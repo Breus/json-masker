@@ -13,13 +13,13 @@ class JsonMasker implements MessageMasker {
 
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
-        return maskValuesOfTargetKey(new String(message, charset)).getBytes(charset);
+        return maskValuesOfTargetKey("", new String(message, charset)).getBytes(charset);
     }
 
     @Override
     @NotNull
     public String mask(@NotNull String message) {
-        return maskValuesOfTargetKey(message);
+        return maskValuesOfTargetKey("", message);
     }
 
     String targetKey;
@@ -34,7 +34,7 @@ class JsonMasker implements MessageMasker {
     }
 
     @NotNull
-    String maskValuesOfTargetKey(@NotNull String input) {
+    String maskValuesOfTargetKey(@NotNull String prefix, @NotNull String input) {
         int startIndexOfFilterKey = input.indexOf(getTargetKey());
         if (startIndexOfFilterKey == -1) {
             return input; // input doesn't contain filter key, so no need to mask anything
@@ -53,8 +53,7 @@ class JsonMasker implements MessageMasker {
             }
         }
         if (colonIndex == 0) {
-            String newInput = input.substring(i);
-            return maskValuesOfTargetKey(newInput); // input contained filter key, but it wasn't a JSON key, so continue on the tail
+            return maskValuesOfTargetKey(input.substring(0,i), input.substring(i)); // input contained filter key, but it wasn't a JSON key, so continue on the tail
         }
         i++; // step over colon
         for (; i < inputBytes.length; i++) {
@@ -68,11 +67,10 @@ class JsonMasker implements MessageMasker {
             } else if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
                 continue;
             } else {
-                String newInput = input.substring(i);
-                return maskValuesOfTargetKey(newInput);
+                return maskValuesOfTargetKey(input.substring(0, i), input.substring(i));
             }
         }
-        return new String(inputBytes, StandardCharsets.UTF_8);
+        return prefix + new String(inputBytes, StandardCharsets.UTF_8);
     }
 
      byte getByteValueOfUTF8String(@NotNull String inputStringCharacter) {

@@ -1,11 +1,16 @@
 plugins {
     id 'java'
+    id "me.champeau.jmh" version "0.6.6"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 group 'dev.blaauwendraad'
 version '0.1.0'
-
-sourceCompatibility = 17
 
 repositories {
     mavenCentral()
@@ -17,7 +22,8 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     testCompileOnly 'org.junit.jupiter:junit-jupiter-params:5.8.1'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
-
+    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.33'
+    implementation 'org.openjdk.jmh:jmh-core:1.33'
 }
 
 test {

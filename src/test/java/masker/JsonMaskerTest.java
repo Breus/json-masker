@@ -28,8 +28,8 @@ public class JsonMaskerTest {
                 Arguments.of(objectNode().set("ab", mapper.convertValue("", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("", JsonNode.class)).toString()),
                 Arguments.of(objectNode().set("cab", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString(),
                              objectNode().set("cab", objectNode().set("ab", mapper.convertValue("*****", JsonNode.class))).toString()),
-                Arguments.of(objectNode().set("cab", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString(),
-                             objectNode().set("cab", objectNode().set("ab", mapper.convertValue("*****", JsonNode.class))).toString()),
+                Arguments.of(objectNode().set("ab", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString(),
+                             objectNode().set("ab", objectNode().set("ab", mapper.convertValue("*****", JsonNode.class))).toString()),
                 Arguments.of(objectNode().set("ab", mapper.convertValue("lo", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("**", JsonNode.class)).toString())
         );
     }

@@ -3,14 +3,6 @@ package masker;
 import java.nio.charset.StandardCharsets;
 
 class Masker {
-    public static void main(String[] args) {
-        String input = "{\"ab\":\"value\"}";
-        String maskedInput = "{\"ab\":\"*****\"}";
-        String filterKey = "ab";
-        System.out.println(maskValueOfKeyJson(input, filterKey));
-        System.out.println(maskedInput.equals(maskValueOfKeyJson(input, filterKey)));
-    }
-
     static String maskValueOfKeyJson(String input, String filterKey) {
         String filterJsonKey = "\"" + filterKey + "\"";
         int startIndexOfFilterKey = input.indexOf(filterJsonKey);
@@ -39,7 +31,7 @@ class Masker {
         i++; // step over colon
         for (; i < inputBytes.length; i++) {
             if (inputBytes[i] == getByteValueOfUTF8String("\"")) {
-                i++; // skip over quotes
+                i++; // skip over quote
                 while(inputBytes[i] != getByteValueOfUTF8String("\"")) {
                     inputBytes[i] = getByteValueOfUTF8String("*");
                     i++;

@@ -1,0 +1,24 @@
+# IntelliJ settings
+.idea
+
+# Build files
+**/build/
+!src/**/build/
+
+
+# Java
+*.class
+
+# Java archives
+*.jar
+*.war
+*.ear
+
+# Gradle
+.gradle
+.gradletasknamecache
+gradle-app.setting
+
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar

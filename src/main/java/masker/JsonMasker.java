@@ -13,13 +13,13 @@ class JsonMasker implements MessageMasker {
 
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
-        return maskValuesOfTargetKey("", new String(message, charset)).getBytes(charset);
+        return maskValuesOfTargetKey(new String(message, charset)).getBytes(charset);
     }
 
     @Override
     @NotNull
     public String mask(@NotNull String message) {
-        return maskValuesOfTargetKey("", message);
+        return maskValuesOfTargetKey(message);
     }
 
     String targetKey;
@@ -34,10 +34,15 @@ class JsonMasker implements MessageMasker {
     }
 
     @NotNull
+    String maskValuesOfTargetKey(@NotNull String input) {
+        return maskValuesOfTargetKey("", input);
+    }
+
+    @NotNull
     String maskValuesOfTargetKey(@NotNull String prefix, @NotNull String input) {
         int startIndexOfFilterKey = input.indexOf(getTargetKey());
         if (startIndexOfFilterKey == -1) {
-            return input; // input doesn't contain filter key, so no need to mask anything
+            return prefix + input; // input doesn't contain filter key, so no need to mask anything
         }
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int colonIndex = 0;
@@ -53,7 +58,7 @@ class JsonMasker implements MessageMasker {
             }
         }
         if (colonIndex == 0) {
-            return maskValuesOfTargetKey(input.substring(0,i), input.substring(i)); // input contained filter key, but it wasn't a JSON key, so continue on the tail
+            return maskValuesOfTargetKey(prefix + input.substring(0,i), input.substring(i)); // input contained filter key, but it wasn't a JSON key, so continue on the tail
         }
         i++; // step over colon
         for (; i < inputBytes.length; i++) {
@@ -67,7 +72,7 @@ class JsonMasker implements MessageMasker {
             } else if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
                 continue;
             } else {
-                return maskValuesOfTargetKey(input.substring(0, i), input.substring(i));
+                return maskValuesOfTargetKey(prefix + input.substring(0, i), input.substring(i));
             }
         }
         return prefix + new String(inputBytes, StandardCharsets.UTF_8);

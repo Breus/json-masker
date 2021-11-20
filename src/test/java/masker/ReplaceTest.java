@@ -8,13 +8,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ReplaceTest {
+    final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void testMaskJsonStringValueFilterKey() {
-        final ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
-        jsonNode.set("ab", mapper.convertValue("value", JsonNode.class));
-        String input = jsonNode.toString();
+        String input = objectNode().set("ab", mapper.convertValue("value", JsonNode.class)).toString();
         String maskedInput = "{\"ab\":\"*****\"}";
         String filterKey = "ab";
         Assertions.assertEquals(maskedInput, Masker.maskValueOfKeyJson(input, filterKey));
@@ -22,12 +20,13 @@ public class ReplaceTest {
 
     @Test
     void testMaskJsonStringValueFilterKeyNotInObject() {
-        final ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
-        jsonNode.set("cab", mapper.convertValue("value", JsonNode.class));
-        String input = jsonNode.toString();
+        String input = objectNode().set("cab", mapper.convertValue("value", JsonNode.class)).toString();
         String expectedOutput = "{\"cab\":\"value\"}";
         String filterKey = "ab";
         Assertions.assertEquals(expectedOutput, Masker.maskValueOfKeyJson(input, filterKey));
+    }
+
+    ObjectNode objectNode() {
+        return JsonNodeFactory.instance.objectNode();
     }
 }

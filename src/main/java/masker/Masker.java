@@ -1,15 +1,18 @@
 package masker;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.charset.StandardCharsets;
 
 class Masker {
-    static String maskValueOfKeyJson(String input, String filterKey) {
+
+    @NotNull
+    static String maskValueOfKeyJson(@NotNull String input, @NotNull String filterKey) {
         String filterJsonKey = "\"" + filterKey + "\"";
         int startIndexOfFilterKey = input.indexOf(filterJsonKey);
         if (startIndexOfFilterKey == -1) {
             return input; // input doesn't contain filter key, so no need to mask anything
         }
-
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int colonIndex = 0;
         int i = startIndexOfFilterKey + filterJsonKey.length();
@@ -47,7 +50,7 @@ class Masker {
         return new String(inputBytes, StandardCharsets.UTF_8);
     }
 
-    static byte getByteValueOfUTF8String(String inputStringCharacter) {
+    static byte getByteValueOfUTF8String(@NotNull String inputStringCharacter) {
         if (inputStringCharacter.length() != 1) {
             throw new IllegalArgumentException("This method should only be called for Strings which are only a single byte in UTF-8");
         }

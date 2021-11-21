@@ -1,0 +1,28 @@
+[
+  {
+    "maskingFlags": [],
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello"
+    },
+    "expectedOutput": {
+      "someKey": "*****"
+    }
+  },
+  {
+    "maskingFlags": [],
+    "targetKey": "someKey",
+    "input": {
+      "someKey": ["this", "should", "not", "be", "masked"],
+      "someKey2": "someKey",
+      "someKey3": "nothingShouldBeMasked"
+    },
+    "expectedOutput": {
+      "someKey": ["this", "should", "not", "be", "masked"],
+      "someKey2": "someKey",
+      "someKey3": "nothingShouldBeMasked"
+    }
+  }
+]
+
+

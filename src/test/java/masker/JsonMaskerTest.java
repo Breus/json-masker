@@ -2,13 +2,16 @@ package masker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
@@ -25,6 +28,17 @@ public class JsonMaskerTest {
     @MethodSource("inputOutputMaskAb")
     void testMaskJsonStringValueFilterKeyByteArray(String input, String expectedOutput) {
         Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getMaskerWithTargetKey("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void testFromJsonFile() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(getClass().getClassLoader().getResource("test-input-output.json"), ArrayNode.class);
+        for (JsonNode jsonNode : jsonArray) {
+            JsonMasker jsonMasker = JsonMasker.getMaskerWithTargetKey(mapper.convertValue(jsonNode.get("targetKey"), String.class));
+            JsonNode inputJson = jsonNode.get("input");
+            String maskedJson = jsonMasker.mask(inputJson.toString());
+            Assertions.assertEquals(jsonNode.get("expectedOutput").toString(), maskedJson);
+        }
     }
 
     // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.

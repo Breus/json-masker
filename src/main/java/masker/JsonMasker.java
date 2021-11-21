@@ -5,9 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-class JsonMasker implements MessageMasker {
+class JsonMasker extends AbstractMasker implements MessageMasker {
     @NotNull
     public static JsonMasker getMaskerWithTargetKey(@NotNull String targetKey) {
+        if (targetKey.length() < 1) {
+            throw new IllegalArgumentException("Target key must contain at least one character");
+        }
         return new JsonMasker(targetKey);
     }
 
@@ -22,15 +25,8 @@ class JsonMasker implements MessageMasker {
         return maskValuesOfTargetKey(message);
     }
 
-    String targetKey;
-    int targetKeyLength;
-
     private JsonMasker(@NotNull String targetKey) {
-        if (targetKey.length() < 1) {
-            throw new IllegalArgumentException("Target key must at least contain a single character");
-        }
-        this.targetKey = "\"" + targetKey + "\"";
-        this.targetKeyLength = getTargetKey().length();
+        super("\"" + targetKey + "\"", targetKey.length()+2);
     }
 
     @NotNull
@@ -42,7 +38,7 @@ class JsonMasker implements MessageMasker {
     String maskValuesOfTargetKey(@NotNull String prefix, @NotNull String input) {
         int startIndexOfFilterKey = input.indexOf(getTargetKey());
         if (startIndexOfFilterKey == -1) {
-            return prefix + input; // input doesn't contain filter key, so no need to mask anything
+            return prefix + input; // input doesn't contain filter key anymore, no further masking required
         }
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int colonIndex = 0;
@@ -63,7 +59,7 @@ class JsonMasker implements MessageMasker {
         i++; // step over colon
         for (; i < inputBytes.length; i++) {
             if (inputBytes[i] == getByteValueOfUTF8String("\"")) {
-                i++; // skip over quote
+                i++; // step over quote
                 while(inputBytes[i] != getByteValueOfUTF8String("\"")) {
                     inputBytes[i] = getByteValueOfUTF8String("*");
                     i++;
@@ -83,13 +79,5 @@ class JsonMasker implements MessageMasker {
             throw new IllegalArgumentException("This method should only be called for Strings which are only a single byte in UTF-8");
         }
         return inputStringCharacter.getBytes(StandardCharsets.UTF_8)[0];
-    }
-
-    String getTargetKey() {
-        return targetKey;
-    }
-
-    int getTargetKeyLength() {
-        return targetKeyLength;
     }
 }

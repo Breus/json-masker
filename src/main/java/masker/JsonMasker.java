@@ -43,7 +43,7 @@ final class JsonMasker extends AbstractMasker {
                 break; // input doesn't contain filter key anymore, no further masking required
             }
             i = startIndexOffFilterKey + super.getTargetKeyLength();
-            for (; i < inputBytes.length; i++) {
+            for (; i < inputSliceBytes.length; i++) {
                 if (inputSliceBytes[i] == getByteValueOfUTF8String(":")) {
                     break;
                 }
@@ -53,19 +53,19 @@ final class JsonMasker extends AbstractMasker {
                 continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
             }
             i++; // step over colon
-            for (; i < inputBytes.length; i++) {
-                if (inputSliceBytes[i] == getByteValueOfUTF8String("\"")) {
+            for (; i < inputSliceBytes.length; i++) {
+                if (inputSliceBytes[i] == getByteValueOfUTF8String("\"")) { // value is a string
                     i++; // step over quote
                     while(inputSliceBytes[i] != getByteValueOfUTF8String("\"")) {
                         inputBytes[i + j] = getByteValueOfUTF8String("*");
                         i++;
                     }
-                    break;
+                    continue outer;
                 }
                 if (inputSliceBytes[i] == getByteValueOfUTF8String(" ")) {
                     continue;
                 }
-                break;
+                continue outer;
             }
         }
         return new String(inputBytes, StandardCharsets.UTF_8);

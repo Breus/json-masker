@@ -32,40 +32,37 @@ final class JsonMasker extends AbstractMasker {
     @NotNull
     String  maskValuesOfTargetKey(@NotNull String input) {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
-        int i = 0;
-        String inputSubstring = input.substring(i);
-        while (i < inputBytes.length) {
-            inputSubstring = inputSubstring.substring(i);
-            int startIndexOffFilterKey = inputSubstring.indexOf(super.getTargetKey());
+        int i = 0; // index based on current input slice
+        int j = 0; // index based on input
+        outer: while (j < inputBytes.length - getTargetKeyLength()) {
+            j = j + i;
+            String inputSlice = input.substring(j);
+            byte[] inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
+            int startIndexOffFilterKey = inputSlice.indexOf(super.getTargetKey());
             if(startIndexOffFilterKey == -1) {
                 break; // input doesn't contain filter key anymore, no further masking required
             }
             i = startIndexOffFilterKey + super.getTargetKeyLength();
-            int colonIndex = 0;
             for (; i < inputBytes.length; i++) {
-                if (inputBytes[i] == getByteValueOfUTF8String(":")) {
-                    colonIndex = i;
+                if (inputSliceBytes[i] == getByteValueOfUTF8String(":")) {
                     break;
                 }
-                if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
+                if (inputSliceBytes[i] == getByteValueOfUTF8String(" ")) {
                     continue;
                 }
-                break; // found a different character than whitespace or colon, so the found target key is not a JSON key
-            }
-            if (colonIndex == 0) {
-                continue;
+                continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
             }
             i++; // step over colon
             for (; i < inputBytes.length; i++) {
-                if (inputBytes[i] == getByteValueOfUTF8String("\"")) {
+                if (inputSliceBytes[i] == getByteValueOfUTF8String("\"")) {
                     i++; // step over quote
-                    while(inputBytes[i] != getByteValueOfUTF8String("\"")) {
-                        inputBytes[i] = getByteValueOfUTF8String("*");
+                    while(inputSliceBytes[i] != getByteValueOfUTF8String("\"")) {
+                        inputBytes[i + j] = getByteValueOfUTF8String("*");
                         i++;
                     }
                     break;
                 }
-                if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
+                if (inputSliceBytes[i] == getByteValueOfUTF8String(" ")) {
                     continue;
                 }
                 break;

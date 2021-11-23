@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-class JsonMasker extends AbstractMasker implements MessageMasker {
+final class JsonMasker extends AbstractMasker {
     @NotNull
     public static JsonMasker getMaskerWithTargetKey(@NotNull String targetKey) {
         if (targetKey.length() < 1) {
@@ -36,22 +36,22 @@ class JsonMasker extends AbstractMasker implements MessageMasker {
 
     @NotNull
     String maskValuesOfTargetKey(@NotNull String prefix, @NotNull String input) {
-        int startIndexOfFilterKey = input.indexOf(getTargetKey());
+        int startIndexOfFilterKey = input.indexOf(super.getTargetKey());
         if (startIndexOfFilterKey == -1) {
             return prefix + input; // input doesn't contain filter key anymore, no further masking required
         }
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int colonIndex = 0;
-        int i = startIndexOfFilterKey + getTargetKeyLength();
+        int i = startIndexOfFilterKey + super.getTargetKeyLength();
         for (; i < inputBytes.length; i++) {
             if (inputBytes[i] == getByteValueOfUTF8String(":")) {
                 colonIndex = i;
                 break;
-            } else if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
-                continue;
-            } else {
-                break;
             }
+            if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
+                continue;
+            }
+            break; // found a different character than whitespace or colon, so the found target key is not a JSON key
         }
         if (colonIndex == 0) {
             return maskValuesOfTargetKey(prefix + input.substring(0,i), input.substring(i)); // input contained filter key, but it wasn't a JSON key, so continue on the tail
@@ -65,11 +65,11 @@ class JsonMasker extends AbstractMasker implements MessageMasker {
                     i++;
                 }
                 break;
-            } else if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
-                continue;
-            } else {
-                return maskValuesOfTargetKey(prefix + input.substring(0, i), input.substring(i));
             }
+            if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
+                continue;
+            }
+            return maskValuesOfTargetKey(prefix + input.substring(0, i), input.substring(i));
         }
         return prefix + new String(inputBytes, StandardCharsets.UTF_8);
     }

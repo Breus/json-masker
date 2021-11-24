@@ -1,0 +1,42 @@
+[
+  {
+    "obfuscationLength": 2,
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello"
+    },
+    "expectedOutput": {
+      "someKey": "**"
+    }
+  },
+  {
+    "obfuscationLength": 1,
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello"
+    },
+    "expectedOutput": {
+      "someKey": "*"
+    }
+  },
+  {
+    "obfuscationLength": 0,
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello"
+    },
+    "expectedOutput": {
+      "someKey": ""
+    }
+  },
+  {
+    "obfuscationLength": 5,
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hi"
+    },
+    "expectedOutput": {
+      "someKey": "*****"
+    }
+  }
+]

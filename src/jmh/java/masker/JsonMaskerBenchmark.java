@@ -23,7 +23,7 @@ public class JsonMaskerBenchmark {
 
     @Benchmark
     public String maskSimpleJsonObject(State state) throws Exception {
-        return JsonMasker.getMaskerWithTargetKey("ab").mask(state.inputString);
+        return JsonMasker.getDefaultMasker("ab").mask(state.inputString);
     }
 
     @Benchmark

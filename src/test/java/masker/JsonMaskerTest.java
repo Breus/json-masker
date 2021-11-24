@@ -21,20 +21,20 @@ public class JsonMaskerTest {
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
     void testMaskJsonStringValueTargetKey(String input, String expectedOutput) {
-        Assertions.assertEquals(expectedOutput, JsonMasker.getMaskerWithTargetKey("ab").mask(input));
+        Assertions.assertEquals(expectedOutput, JsonMasker.getDefaultMasker("ab").mask(input));
     }
 
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
     void testMaskJsonStringValueTargetKeyByteArray(String input, String expectedOutput) {
-        Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getMaskerWithTargetKey("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+        Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getDefaultMasker("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     }
 
     @Test
     void testFromJsonFile() throws IOException {
         ArrayNode jsonArray = mapper.readValue(getClass().getClassLoader().getResource("test-input-output.json"), ArrayNode.class);
         for (JsonNode jsonNode : jsonArray) {
-            JsonMasker jsonMasker = JsonMasker.getMaskerWithTargetKey(mapper.convertValue(jsonNode.get("targetKey"), String.class));
+            JsonMasker jsonMasker = JsonMasker.getDefaultMasker(mapper.convertValue(jsonNode.get("targetKey"), String.class));
             JsonNode inputJson = jsonNode.get("input");
             String maskedJson = jsonMasker.mask(inputJson.toString());
             Assertions.assertEquals(jsonNode.get("expectedOutput").toString(), maskedJson);

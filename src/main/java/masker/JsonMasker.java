@@ -7,11 +7,8 @@ import java.nio.charset.StandardCharsets;
 
 final class JsonMasker extends AbstractMasker {
     @NotNull
-    public static JsonMasker getMaskerWithTargetKey(@NotNull String targetKey) {
-        if (targetKey.length() < 1) {
-            throw new IllegalArgumentException("Target key must contain at least one character");
-        }
-        return new JsonMasker(targetKey);
+    public static JsonMasker getDefaultMasker(@NotNull String targetKey) {
+        return getMasker(targetKey, null);
     }
 
     @Override
@@ -66,10 +63,23 @@ final class JsonMasker extends AbstractMasker {
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
+                    int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+                    int k = 0; // index based on obfuscation length
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                        // CASE 1: SAME LENGTH
+                        // CASE 2: SHORTER LENGTH
+                        // CASE 3: LONGER LENGTH
+                        if (obfuscationLength != -1 && k == obfuscationLength) {
+                            i++;
+                            break;
+                        }
                         inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                        k++;
                         i++;
                     }
+//                    if (obfuscationLength != -1 && k < obfuscationLength-1) {
+//                        i--;
+//                    }
                     continue outer;
                 }
                 continue outer;

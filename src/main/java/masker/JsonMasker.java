@@ -36,34 +36,41 @@ final class JsonMasker extends AbstractMasker {
         int j = 0; // index based on input
         outer: while (j < inputBytes.length - getTargetKeyLength()) {
             j = j + i;
-            String inputSlice = input.substring(j);
-            byte[] inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
-            int startIndexOffFilterKey = inputSlice.indexOf(super.getTargetKey());
-            if(startIndexOffFilterKey == -1) {
-                break; // input doesn't contain filter key anymore, no further masking required
+            String inputSlice;
+            byte[] inputSliceBytes;
+            if (j == 0) {
+                inputSlice = input;
+                inputSliceBytes = inputBytes;
+            } else {
+                inputSlice = input.substring(j);
+                inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
             }
-            i = startIndexOffFilterKey + super.getTargetKeyLength();
+            int startIndexOfTargetKey = inputSlice.indexOf(super.getTargetKey());
+            if(startIndexOfTargetKey == -1) {
+                break; // input doesn't contain target key anymore, no further masking required
+            }
+            i = startIndexOfTargetKey + super.getTargetKeyLength();
             for (; i < inputSliceBytes.length; i++) {
-                if (inputSliceBytes[i] == getByteValueOfUTF8String(":")) {
-                    break;
+                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
+                    continue; // found a space, try next character
                 }
-                if (inputSliceBytes[i] == getByteValueOfUTF8String(" ")) {
-                    continue;
+                if (inputSliceBytes[i] == UTF8Encoding.COLON.getUtf8ByteValue()) {
+                    break; // found a colon, so the found target key is indeed a JSON key
                 }
                 continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (inputSliceBytes[i] == getByteValueOfUTF8String("\"")) { // value is a string
+                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
+                    continue; // found a space, try next character
+                }
+                if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
                     while(inputSliceBytes[i] != getByteValueOfUTF8String("\"")) {
                         inputBytes[i + j] = getByteValueOfUTF8String("*");
                         i++;
                     }
                     continue outer;
-                }
-                if (inputSliceBytes[i] == getByteValueOfUTF8String(" ")) {
-                    continue;
                 }
                 continue outer;
             }

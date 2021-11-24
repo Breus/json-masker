@@ -22,6 +22,58 @@
       "someKey2": "someKey",
       "someKey3": "nothingShouldBeMasked"
     }
+  },
+  {
+    "maskingFlags": [],
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello",
+      "objectKey": {
+        "someOtherKey": "someKey",
+        "someKey": "someValue"
+      }
+    },
+    "expectedOutput": {
+      "someKey": "*****",
+      "objectKey": {
+        "someOtherKey": "someKey",
+        "someKey": "*********"
+      }
+    }
+  },
+  {
+    "maskingFlags": [],
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "hello",
+      "arrayKey": [
+        { "someOtherKey": "someKey" },
+        { "someKey": "someValue" }
+      ]
+    },
+    "expectedOutput": {
+      "someKey": "*****",
+      "arrayKey": [
+        { "someOtherKey": "someKey" },
+        { "someKey": "*********" }
+      ]
+    }
+  },
+  {
+    "maskingFlags": [],
+    "targetKey": "someKey",
+    "input": {
+      "someKey": [
+        { "someOtherKey": "someKey" },
+        { "someKey": "someValue" }
+      ]
+    },
+    "expectedOutput": {
+      "someKey": [
+        { "someOtherKey": "someKey" },
+        { "someKey": "*********" }
+      ]
+    }
   }
 ]
 

@@ -20,13 +20,13 @@ public class JsonMaskerTest {
 
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
-    void testMaskJsonStringValueFilterKey(String input, String expectedOutput) {
+    void testMaskJsonStringValueTargetKey(String input, String expectedOutput) {
         Assertions.assertEquals(expectedOutput, JsonMasker.getMaskerWithTargetKey("ab").mask(input));
     }
 
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
-    void testMaskJsonStringValueFilterKeyByteArray(String input, String expectedOutput) {
+    void testMaskJsonStringValueTargetKeyByteArray(String input, String expectedOutput) {
         Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getMaskerWithTargetKey("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     }
 

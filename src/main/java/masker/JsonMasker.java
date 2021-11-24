@@ -30,54 +30,51 @@ final class JsonMasker extends AbstractMasker {
     }
 
     @NotNull
-    String maskValuesOfTargetKey(@NotNull String input) {
-        return maskValuesOfTargetKey("", input);
-    }
-
-    @NotNull
-    String maskValuesOfTargetKey(@NotNull String prefix, @NotNull String input) {
-        int startIndexOfFilterKey = input.indexOf(super.getTargetKey());
-        if (startIndexOfFilterKey == -1) {
-            return prefix + input; // input doesn't contain filter key anymore, no further masking required
-        }
+    String  maskValuesOfTargetKey(@NotNull String input) {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
-        int colonIndex = 0;
-        int i = startIndexOfFilterKey + super.getTargetKeyLength();
-        for (; i < inputBytes.length; i++) {
-            if (inputBytes[i] == getByteValueOfUTF8String(":")) {
-                colonIndex = i;
-                break;
+        int i = 0; // index based on current input slice
+        int j = 0; // index based on input
+        outer: while (j < inputBytes.length - getTargetKeyLength() - 1) { // minus 1 for closing '}', and < for ':' required for a new key which has a value (number).
+            j = j + i;
+            String inputSlice;
+            byte[] inputSliceBytes;
+            if (j == 0) {
+                inputSlice = input;
+                inputSliceBytes = inputBytes;
+            } else {
+                inputSlice = input.substring(j);
+                inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
             }
-            if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
-                continue;
+            int startIndexOfTargetKey = inputSlice.indexOf(super.getTargetKey());
+            if(startIndexOfTargetKey == -1) {
+                break; // input doesn't contain target key anymore, no further masking required
             }
-            break; // found a different character than whitespace or colon, so the found target key is not a JSON key
-        }
-        if (colonIndex == 0) {
-            return maskValuesOfTargetKey(prefix + input.substring(0,i), input.substring(i)); // input contained filter key, but it wasn't a JSON key, so continue on the tail
-        }
-        i++; // step over colon
-        for (; i < inputBytes.length; i++) {
-            if (inputBytes[i] == getByteValueOfUTF8String("\"")) {
-                i++; // step over quote
-                while(inputBytes[i] != getByteValueOfUTF8String("\"")) {
-                    inputBytes[i] = getByteValueOfUTF8String("*");
-                    i++;
+            i = startIndexOfTargetKey + super.getTargetKeyLength();
+            for (; i < inputSliceBytes.length; i++) {
+                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
+                    continue; // found a space, try next character
                 }
-                break;
+                if (inputSliceBytes[i] == UTF8Encoding.COLON.getUtf8ByteValue()) {
+                    break; // found a colon, so the found target key is indeed a JSON key
+                }
+                continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
             }
-            if (inputBytes[i] == getByteValueOfUTF8String(" ")) {
-                continue;
+            i++; // step over colon
+            for (; i < inputSliceBytes.length; i++) {
+                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
+                    continue; // found a space, try next character
+                }
+                if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
+                    i++; // step over quote
+                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                        inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                        i++;
+                    }
+                    continue outer;
+                }
+                continue outer;
             }
-            return maskValuesOfTargetKey(prefix + input.substring(0, i), input.substring(i));
         }
-        return prefix + new String(inputBytes, StandardCharsets.UTF_8);
-    }
-
-     byte getByteValueOfUTF8String(@NotNull String inputStringCharacter) {
-        if (inputStringCharacter.length() != 1) {
-            throw new IllegalArgumentException("This method should only be called for Strings which are only a single byte in UTF-8");
-        }
-        return inputStringCharacter.getBytes(StandardCharsets.UTF_8)[0];
+        return new String(inputBytes, StandardCharsets.UTF_8);
     }
 }

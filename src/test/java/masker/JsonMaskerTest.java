@@ -41,6 +41,18 @@ public class JsonMaskerTest {
         }
     }
 
+    @Test
+    void testLengthObfuscation() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(getClass().getClassLoader().getResource("test-obfuscate-length.json"), ArrayNode.class);
+        for (JsonNode jsonNode : jsonArray) {
+            MaskingConfig maskingConfig = MaskingConfig.custom().obfuscationLength(mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)).build();
+            JsonMasker jsonMasker = JsonMasker.getMasker(mapper.convertValue(jsonNode.get("targetKey"), String.class), maskingConfig);
+            JsonNode inputJson = jsonNode.get("input");
+            String maskedJson = jsonMasker.mask(inputJson.toString());
+            Assertions.assertEquals(jsonNode.get("expectedOutput").toString(), maskedJson);
+        }
+    }
+
     // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.
     private static Stream<Arguments> inputOutputMaskAb() {
         return Stream.of(

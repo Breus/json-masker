@@ -1,6 +1,7 @@
 package masker;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,11 @@ final class JsonMasker extends AbstractMasker {
         return getMasker(targetKey, null);
     }
 
+    @NotNull
+    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
+        return new JsonMasker(targetKey, maskingConfiguration);
+    }
+    
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
         return maskValuesOfTargetKey(new String(message, charset)).getBytes(charset);
@@ -22,8 +28,8 @@ final class JsonMasker extends AbstractMasker {
         return maskValuesOfTargetKey(message);
     }
 
-    private JsonMasker(@NotNull String targetKey) {
-        super("\"" + targetKey + "\"", targetKey.length()+2);
+    private JsonMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
+        super("\"" + targetKey + "\"", maskingConfiguration);
     }
 
     @NotNull

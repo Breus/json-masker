@@ -1,12 +1,23 @@
 package masker;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 
 abstract class AbstractMasker implements MessageMasker {
-    private final String targetKey;
-    private final int targetKeyLength;
+    private String targetKey;
+    private int targetKeyLength;
+    private final MaskingConfig maskingConfiguration;
+
+    AbstractMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
+        if (targetKey.length() < 1) {
+            throw new IllegalArgumentException("Target key must contain at least one character");
+        }
+        this.targetKey = targetKey;
+        this.targetKeyLength = targetKey.length();
+        this.maskingConfiguration = maskingConfiguration;
+    }
 
     @Override
     public abstract byte[] mask(byte[] message, @NotNull Charset charset);
@@ -15,16 +26,24 @@ abstract class AbstractMasker implements MessageMasker {
     @NotNull
     public abstract String mask(@NotNull String message);
 
-    public AbstractMasker(String targetKey, int targetKeyLength) {
-        this.targetKey = targetKey;
-        this.targetKeyLength = targetKeyLength;
+
+    public void resetTargetKey(@NotNull String newTargetKey) {
+        if (newTargetKey.length() < 1) {
+            throw new IllegalArgumentException("Target key must contain at least one character");
+        }
+        this.targetKey = newTargetKey;
+        this.targetKeyLength = newTargetKey.length();
     }
 
-    public String getTargetKey() {
+    String getTargetKey() {
         return targetKey;
     }
 
-    public int getTargetKeyLength() {
+    int getTargetKeyLength() {
         return targetKeyLength;
+    }
+
+    MaskingConfig getMaskingConfiguration() {
+        return maskingConfiguration;
     }
 }

@@ -34,7 +34,7 @@ final class JsonMasker extends AbstractMasker {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
-        outer: while (j < inputBytes.length - getTargetKeyLength()) {
+        outer: while (j < inputBytes.length - getTargetKeyLength() - 1) { // minus 1 for closing '}', and < for ':' required for a new key which has a value (number).
             j = j + i;
             String inputSlice;
             byte[] inputSliceBytes;
@@ -66,8 +66,8 @@ final class JsonMasker extends AbstractMasker {
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
-                    while(inputSliceBytes[i] != getByteValueOfUTF8String("\"")) {
-                        inputBytes[i + j] = getByteValueOfUTF8String("*");
+                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                        inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
                         i++;
                     }
                     continue outer;
@@ -76,12 +76,5 @@ final class JsonMasker extends AbstractMasker {
             }
         }
         return new String(inputBytes, StandardCharsets.UTF_8);
-    }
-
-     byte getByteValueOfUTF8String(@NotNull String inputStringCharacter) {
-        if (inputStringCharacter.length() != 1) {
-            throw new IllegalArgumentException("This method should only be called for Strings which are only a single byte in UTF-8");
-        }
-        return inputStringCharacter.getBytes(StandardCharsets.UTF_8)[0];
     }
 }

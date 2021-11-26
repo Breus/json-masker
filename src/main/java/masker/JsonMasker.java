@@ -71,26 +71,39 @@ final class JsonMasker extends AbstractMasker {
                     i++; // step over quote
                     int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
                     int k = 0; // index based on obfuscation length
+                    int unmaskedCharacters = 0; // characters which remained unmasked, difference between obfuscation length and target value length
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                        // CASE 1: SAME LENGTH
-                        // CASE 2: SHORTER LENGTH
-                        // CASE 3: LONGER LENGTH
-                        if (obfuscationLength != -1 && k == obfuscationLength) {
-                            i++;
-                            break;
+                        if (k == obfuscationLength) { // obfuscation length is shorter than input
+                            unmaskedCharacters++; // count unmasked characters
+                        } else {
+                            inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                            k++;
                         }
-                        inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
-                        k++;
                         i++;
                     }
-//                    if (obfuscationLength != -1 && k < obfuscationLength-1) {
-//                        i--;
-//                    }
+                    if (unmaskedCharacters != 0) {
+                        inputBytes = shrinkArray(inputBytes, i, unmaskedCharacters);
+                    }
+                    if(k < obfuscationLength) { // obfuscation length is longer than input
+                        inputBytes = extendArray(inputBytes);
+                    }
                     continue outer;
                 }
                 continue outer;
             }
         }
         return new String(inputBytes, StandardCharsets.UTF_8);
+    }
+
+    byte[] shrinkArray(byte[] inputBytes, int index, int unmaskedCharacters) {
+        byte[] newInputBytes = new byte[inputBytes.length - unmaskedCharacters];
+        System.arraycopy(inputBytes, 0, newInputBytes, 0, index - unmaskedCharacters);
+        System.arraycopy(inputBytes, index, newInputBytes, index - unmaskedCharacters, inputBytes.length - index);
+        return newInputBytes;
+    }
+
+    byte[] extendArray(byte[] inputBytes) {
+        byte[] newInputBytes = new byte[inputBytes.length];
+        return newInputBytes;
     }
 }

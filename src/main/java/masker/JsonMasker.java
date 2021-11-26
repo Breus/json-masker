@@ -70,22 +70,17 @@ final class JsonMasker extends AbstractMasker {
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
                     int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
-                    int k = 0; // index based on obfuscation length
-                    int unmaskedCharacters = 0; // characters which remained unmasked, difference between obfuscation length and target value length
+                    int targetValueLength = 0;
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                        if (k == obfuscationLength) { // obfuscation length is shorter than input
-                            unmaskedCharacters++; // count unmasked characters
+                        if (obfuscationLength != -1) {
+                            targetValueLength++;
                         } else {
                             inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
-                            k++;
                         }
                         i++;
                     }
-                    if (unmaskedCharacters != 0) {
-                        inputBytes = shrinkArray(inputBytes, i, unmaskedCharacters);
-                    }
-                    if(k < obfuscationLength) { // obfuscation length is longer than input
-                        inputBytes = extendArray(inputBytes);
+                    if (obfuscationLength != -1) {
+                        inputBytes = modifyArray(inputBytes, i, obfuscationLength, targetValueLength);
                     }
                     continue outer;
                 }
@@ -95,15 +90,13 @@ final class JsonMasker extends AbstractMasker {
         return new String(inputBytes, StandardCharsets.UTF_8);
     }
 
-    byte[] shrinkArray(byte[] inputBytes, int index, int unmaskedCharacters) {
-        byte[] newInputBytes = new byte[inputBytes.length - unmaskedCharacters];
-        System.arraycopy(inputBytes, 0, newInputBytes, 0, index - unmaskedCharacters);
-        System.arraycopy(inputBytes, index, newInputBytes, index - unmaskedCharacters, inputBytes.length - index);
-        return newInputBytes;
-    }
-
-    byte[] extendArray(byte[] inputBytes) {
-        byte[] newInputBytes = new byte[inputBytes.length];
+    byte[] modifyArray(byte[] inputBytes, int index, int obfuscationLength, int targetValueLength) {
+        byte[] newInputBytes = new byte[inputBytes.length + (obfuscationLength - targetValueLength)];
+        System.arraycopy(inputBytes, 0, newInputBytes, 0, index - targetValueLength);
+        for (int i = index - targetValueLength; i < index - targetValueLength + obfuscationLength; i++) {
+            newInputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+        }
+        System.arraycopy(inputBytes, index, newInputBytes, index - targetValueLength + obfuscationLength, inputBytes.length - index);
         return newInputBytes;
     }
 }

@@ -1,19 +1,22 @@
 package masker;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 final class JsonMasker extends AbstractMasker {
     @NotNull
-    public static JsonMasker getMaskerWithTargetKey(@NotNull String targetKey) {
-        if (targetKey.length() < 1) {
-            throw new IllegalArgumentException("Target key must contain at least one character");
-        }
-        return new JsonMasker(targetKey);
+    public static JsonMasker getDefaultMasker(@NotNull String targetKey) {
+        return getMasker(targetKey, MaskingConfig.defaultConfig());
     }
 
+    @NotNull
+    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
+        return new JsonMasker(targetKey, maskingConfiguration);
+    }
+    
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
         return maskValuesOfTargetKey(new String(message, charset)).getBytes(charset);
@@ -25,8 +28,8 @@ final class JsonMasker extends AbstractMasker {
         return maskValuesOfTargetKey(message);
     }
 
-    private JsonMasker(@NotNull String targetKey) {
-        super("\"" + targetKey + "\"", targetKey.length()+2);
+    private JsonMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
+        super("\"" + targetKey + "\"", maskingConfiguration);
     }
 
     @NotNull
@@ -66,9 +69,15 @@ final class JsonMasker extends AbstractMasker {
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
+                    int targetValueLength = 0;
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
                         inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                        targetValueLength++;
                         i++;
+                    }
+                    int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+                    if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                        inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
                     continue outer;
                 }
@@ -76,5 +85,16 @@ final class JsonMasker extends AbstractMasker {
             }
         }
         return new String(inputBytes, StandardCharsets.UTF_8);
+    }
+
+    byte[] obfuscateLengthOfTargetValue(byte[] inputBytes, int closingQuoteIndex, int obfuscationLength, int targetValueLength) {
+        byte[] newInputBytes = new byte[inputBytes.length + (obfuscationLength - targetValueLength)]; // create new empty array with a length computed by the difference between obfuscation and target value length
+        int targetValueStartIndex = closingQuoteIndex - targetValueLength;
+        System.arraycopy(inputBytes, 0, newInputBytes, 0, targetValueStartIndex); // copy all bytes till the target value (including opening quotes)
+        for (int i = targetValueStartIndex; i < targetValueStartIndex + obfuscationLength; i++) { // start from beginning of target value and loop amount of wanted masked characters
+            newInputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue(); // add masking characters
+        }
+        System.arraycopy(inputBytes, closingQuoteIndex, newInputBytes, targetValueStartIndex + obfuscationLength, inputBytes.length - closingQuoteIndex); // append rest of the original array starting from end of target value
+        return newInputBytes;
     }
 }

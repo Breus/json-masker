@@ -1,6 +1,5 @@
 [
   {
-    "maskingFlags": [],
     "targetKey": "someKey",
     "input": {
       "someKey": "hello"
@@ -10,7 +9,6 @@
     }
   },
   {
-    "maskingFlags": [],
     "targetKey": "someKey",
     "input": {
       "someKey": ["this", "should", "not", "be", "masked"],
@@ -24,7 +22,6 @@
     }
   },
   {
-    "maskingFlags": [],
     "targetKey": "someKey",
     "input": {
       "someKey": "hello",
@@ -42,7 +39,6 @@
     }
   },
   {
-    "maskingFlags": [],
     "targetKey": "someKey",
     "input": {
       "someKey": "hello",
@@ -60,7 +56,6 @@
     }
   },
   {
-    "maskingFlags": [],
     "targetKey": "someKey",
     "input": {
       "someKey": [

@@ -69,18 +69,18 @@ final class JsonMasker extends AbstractMasker {
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
-                    int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
                     int targetValueLength = 0;
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                        if (obfuscationLength != -1) {
-                            targetValueLength++;
-                        } else {
-                            inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
-                        }
+                        inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                        targetValueLength++;
                         i++;
                     }
-                    if (obfuscationLength != -1) {
-                        inputBytes = modifyArray(inputBytes, i, obfuscationLength, targetValueLength);
+                    int obfuscationLength = -1;
+                    if (getMaskingConfiguration() != null) {
+                        obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+                    }
+                    if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                        inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
                     continue outer;
                 }
@@ -90,13 +90,13 @@ final class JsonMasker extends AbstractMasker {
         return new String(inputBytes, StandardCharsets.UTF_8);
     }
 
-    byte[] modifyArray(byte[] inputBytes, int index, int obfuscationLength, int targetValueLength) {
-        byte[] newInputBytes = new byte[inputBytes.length + (obfuscationLength - targetValueLength)];
-        System.arraycopy(inputBytes, 0, newInputBytes, 0, index - targetValueLength);
-        for (int i = index - targetValueLength; i < index - targetValueLength + obfuscationLength; i++) {
-            newInputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+    byte[] obfuscateLengthOfTargetValue(byte @NotNull [] inputBytes, int index, int obfuscationLength, int targetValueLength) {
+        byte[] newInputBytes = new byte[inputBytes.length + (obfuscationLength - targetValueLength)]; // create new empty array with a length computed by the difference between obfuscation and target value length
+        System.arraycopy(inputBytes, 0, newInputBytes, 0, index - targetValueLength); // copy all bytes till the target value
+        for (int i = index - targetValueLength; i < index - targetValueLength + obfuscationLength; i++) { // start from beginning of target value and loop amount of wanted masked characters
+            newInputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue(); // add masked characters
         }
-        System.arraycopy(inputBytes, index, newInputBytes, index - targetValueLength + obfuscationLength, inputBytes.length - index);
+        System.arraycopy(inputBytes, index, newInputBytes, index - targetValueLength + obfuscationLength, inputBytes.length - index); // append rest of the original array starting from end of target value
         return newInputBytes;
     }
 }

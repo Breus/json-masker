@@ -18,12 +18,32 @@ public class JsonMaskerBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     public static class State {
         ObjectMapper mapper = new ObjectMapper();
-        String inputString = objectNode().set("cab", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString();
+        ObjectNode objectNode = objectNode();
+        String inputString = objectNode.set("someKey", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString();
+        JsonMasker defaultMasker = JsonMasker.getDefaultMasker("ab");
+        JsonMasker twoCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(2).build());
+        JsonMasker fiveCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(5).build());
+        JsonMasker sixCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(6).build());
     }
 
     @Benchmark
-    public String maskSimpleJsonObject(State state) throws Exception {
-        return JsonMasker.getDefaultMasker("ab").mask(state.inputString);
+    public String maskSimpleJsonObject(State state) throws InterruptedException {
+        return state.defaultMasker.mask(state.inputString);
+    }
+
+    @Benchmark
+    public String maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue(State state) throws InterruptedException {
+        return state.twoCharObfuscationLengthMasker.mask(state.inputString);
+    }
+
+    @Benchmark
+    public String maskSimpleJsonObjectObfuscateLengthEqualToTargetValue(State state) throws InterruptedException {
+        return state.fiveCharObfuscationLengthMasker.mask(state.inputString);
+    }
+
+    @Benchmark
+    public String maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue(State state) throws InterruptedException {
+        return state.sixCharObfuscationLengthMasker.mask(state.inputString);
     }
 
     @Benchmark

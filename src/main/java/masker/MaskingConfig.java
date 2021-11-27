@@ -17,12 +17,6 @@ public class MaskingConfig {
 		return obfuscationLength;
 	}
 
-	MaskingConfig(Integer obfuscationLength) {
-		if (obfuscationLength != null) {
-			this.obfuscationLength = obfuscationLength;
-		}
-	}
-
 	public static class Builder {
 		private int obfuscationLength = -1;
 

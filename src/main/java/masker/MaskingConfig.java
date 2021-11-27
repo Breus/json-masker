@@ -1,6 +1,7 @@
 package masker;
 
 public class MaskingConfig {
+	public static MaskingConfig defaultConfig() { return custom().build(); }
 	public static MaskingConfig.Builder custom() {
 		return new MaskingConfig.Builder();
 	}

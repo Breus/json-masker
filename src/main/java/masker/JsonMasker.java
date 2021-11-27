@@ -5,39 +5,65 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 final class JsonMasker extends AbstractMasker {
+    private final Set<String> quotedTargetKeys;
+
     @NotNull
     public static JsonMasker getDefaultMasker(@NotNull String targetKey) {
-        return getMasker(targetKey, MaskingConfig.defaultConfig());
+        return getDefaultMasker(Set.of(targetKey));
     }
 
     @NotNull
-    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
-        return new JsonMasker(targetKey, maskingConfiguration);
+    public static JsonMasker getDefaultMasker(@NotNull Set<String> targetKeys) {
+        return getMasker(targetKeys, MaskingConfig.defaultConfig());
+    }
+
+    @NotNull
+    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfig) {
+        return getMasker(Set.of(targetKey), maskingConfig);
+    }
+
+    @NotNull
+    public static JsonMasker getMasker(@NotNull Set<String> targetKeys, @Nullable MaskingConfig maskingConfig) {
+        if (maskingConfig == null) {
+            return new JsonMasker(targetKeys, MaskingConfig.defaultConfig());
+        }
+        return new JsonMasker(targetKeys, maskingConfig);
     }
     
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
-        return maskValuesOfTargetKey(new String(message, charset)).getBytes(charset);
+        for (String targetKey : getQuotedTargetKeys()) {
+            message = maskValuesOfTargetKey(new String(message, charset), targetKey).getBytes(charset);
+        }
+        return message;
     }
 
     @Override
     @NotNull
     public String mask(@NotNull String message) {
-        return maskValuesOfTargetKey(message);
+        for (String targetKey : getQuotedTargetKeys()) {
+            message = maskValuesOfTargetKey(message, targetKey);
+        }
+        return message;
     }
 
-    private JsonMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfiguration) {
-        super("\"" + targetKey + "\"", maskingConfiguration);
+    private JsonMasker(@NotNull Set<String> targetKeys, @NotNull MaskingConfig maskingConfiguration) {
+        super(targetKeys, maskingConfiguration);
+        Set<String> quotedTargetKeys = new HashSet<>();
+        targetKeys.forEach(t -> quotedTargetKeys.add('"' + t + '"'));
+        this.quotedTargetKeys = quotedTargetKeys;
     }
 
     @NotNull
-    String  maskValuesOfTargetKey(@NotNull String input) {
+    String  maskValuesOfTargetKey(@NotNull String input, @NotNull String targetKey) {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
-        outer: while (j < inputBytes.length - getTargetKeyLength() - 1) { // minus 1 for closing '}', and < for ':' required for a new key which has a value (number).
+        outer: while (j < inputBytes.length - targetKey.length() - 1) { // minus 1 for closing bracket, smaller than because colon required for a new key which has a value (number).
             j = j + i;
             String inputSlice;
             byte[] inputSliceBytes;
@@ -48,11 +74,11 @@ final class JsonMasker extends AbstractMasker {
                 inputSlice = input.substring(j);
                 inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
             }
-            int startIndexOfTargetKey = inputSlice.indexOf(super.getTargetKey());
+            int startIndexOfTargetKey = inputSlice.indexOf(targetKey);
             if(startIndexOfTargetKey == -1) {
                 break; // input doesn't contain target key anymore, no further masking required
             }
-            i = startIndexOfTargetKey + super.getTargetKeyLength();
+            i = startIndexOfTargetKey + targetKey.length();
             for (; i < inputSliceBytes.length; i++) {
                 if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
                     continue; // found a space, try next character
@@ -96,5 +122,9 @@ final class JsonMasker extends AbstractMasker {
         }
         System.arraycopy(inputBytes, closingQuoteIndex, newInputBytes, targetValueStartIndex + obfuscationLength, inputBytes.length - closingQuoteIndex); // append rest of the original array starting from end of target value
         return newInputBytes;
+    }
+
+    public Set<String> getQuotedTargetKeys() {
+        return quotedTargetKeys;
     }
 }

@@ -69,6 +69,17 @@
         { "someKey": "*********" }
       ]
     }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "hello": ["someKey", "someOtherValue", "no"],
+      "hello2": [{"someKey":  "someValue", "someKey2": {"someKey": "val"}}]
+    },
+    "expectedOutput": {
+      "hello": ["someKey", "someOtherValue", "no"],
+      "hello2": [{"someKey":  "*********", "someKey2": {"someKey": "***"}}]
+    }
   }
 ]
 

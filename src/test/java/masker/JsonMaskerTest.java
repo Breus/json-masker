@@ -1,18 +1,22 @@
 package masker;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class JsonMaskerTest {
@@ -30,27 +34,22 @@ public class JsonMaskerTest {
         Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getDefaultMasker("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     }
 
-    @Test
-    void testFromJsonFile() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(getClass().getClassLoader().getResource("test-input-output.json"), ArrayNode.class);
-        for (JsonNode jsonNode : jsonArray) {
-            JsonMasker jsonMasker = JsonMasker.getDefaultMasker(mapper.convertValue(jsonNode.get("targetKey"), String.class));
-            JsonNode inputJson = jsonNode.get("input");
-            String maskedJson = jsonMasker.mask(inputJson.toString());
-            Assertions.assertEquals(jsonNode.get("expectedOutput").toString(), maskedJson);
-        }
+    @ParameterizedTest
+    @MethodSource("testSingleTargetKeyFile")
+    void testSingleTargetKeyFromJsonFile(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getDefaultMasker(testInstance.getTargetKeys()).mask(testInstance.getInput()));
     }
 
-    @Test
-    void testLengthObfuscation() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(getClass().getClassLoader().getResource("test-obfuscate-length.json"), ArrayNode.class);
-        for (JsonNode jsonNode : jsonArray) {
-            MaskingConfig maskingConfig = MaskingConfig.custom().obfuscationLength(mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)).build();
-            JsonMasker jsonMasker = JsonMasker.getMasker(mapper.convertValue(jsonNode.get("targetKey"), String.class), maskingConfig);
-            JsonNode inputJson = jsonNode.get("input");
-            String maskedJson = jsonMasker.mask(inputJson.toString());
-            Assertions.assertEquals(jsonNode.get("expectedOutput").toString(), maskedJson);
-        }
+    @ParameterizedTest
+    @MethodSource("testMultipleTargetKeyFile")
+    void testMultipleTargetKeyFromJsonFile(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getDefaultMasker(testInstance.getTargetKeys()).mask(testInstance.getInput()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("testObfuscationFile")
+    void testLengthObfuscationFromFile(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getMasker(testInstance.getTargetKeys(), MaskingConfig.custom().obfuscationLength(testInstance.getObfuscationLength()).build()).mask(testInstance.getInput()));
     }
 
     // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.
@@ -69,6 +68,44 @@ public class JsonMaskerTest {
                         objectNode().set("ba", objectNode().set("ab", mapper.convertValue("**", JsonNode.class))).toString()),
                 Arguments.of(objectNode().set("ab", mapper.convertValue("lo", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("**", JsonNode.class)).toString())
         );
+    }
+
+    private static Stream<JsonMaskerTestInstance> testSingleTargetKeyFile() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-single-target-key.json"), ArrayNode.class);
+        return getJsonTestInstancesFromJsonArray(jsonArray).stream();
+    }
+
+    private static Stream<JsonMaskerTestInstance> testMultipleTargetKeyFile() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-multiple-target-keys.json"), ArrayNode.class);
+        return getMultipleTargetJsonTestInstanceFromJsonArray(jsonArray).stream();
+    }
+
+    private static Stream<JsonMaskerTestInstance> testObfuscationFile() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-obfuscate-length.json"), ArrayNode.class);
+        return getJsonTestInstancesFromJsonArray(jsonArray).stream();
+    }
+
+    private static List<JsonMaskerTestInstance> getMultipleTargetJsonTestInstanceFromJsonArray(ArrayNode jsonArray) throws IOException {
+        ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
+        ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
+        for (JsonNode jsonNode : jsonArray) {
+            testInstances.add(new JsonMaskerTestInstance(reader.readValue(jsonNode.get("targetKeys")),
+                    jsonNode.get("input").toString(),
+                    jsonNode.get("expectedOutput").toString(),
+                    mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)));
+        }
+        return testInstances;
+    }
+
+    private static List<JsonMaskerTestInstance> getJsonTestInstancesFromJsonArray(ArrayNode jsonArray) {
+        ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
+        for (JsonNode jsonNode : jsonArray) {
+            testInstances.add(new JsonMaskerTestInstance(Set.of(mapper.convertValue(jsonNode.get("targetKey"), String.class)),
+                    jsonNode.get("input").toString(),
+                    jsonNode.get("expectedOutput").toString(),
+                    mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)));
+        }
+        return testInstances;
     }
 
     private static ObjectNode objectNode() {

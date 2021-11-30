@@ -80,6 +80,11 @@
       "hello": ["someKey", "someOtherValue", "no"],
       "hello2": [{"someKey":  "*********", "someKey2": {"someKey": "***"}}]
     }
+  },
+  {
+    "targetKey": "someKey",
+    "input": [{"someKey":  "hi", "someKey2": {"someKey": ""}}],
+    "expectedOutput": [{"someKey": "**", "someKey2":  {"someKey":  ""}}]
   }
 ]
 

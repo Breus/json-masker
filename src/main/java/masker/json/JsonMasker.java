@@ -126,7 +126,43 @@ final class JsonMasker extends AbstractMasker {
                3. [{"key": 12}, {"value": 12}]
          */
         // TODO @robert, @breus: implement this method according to method 1.
-        return input;
+
+        byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
+        int i = 0;
+        while (i < inputBytes.length - 2) {
+            if (inputBytes[i] != UTF8Encoding.COLON.getUtf8ByteValue())
+                i++; // loop until index is on colon
+            int colonIndex = i;
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue())
+                i--; // loop back until index is on closing quote of key
+            int closingQuoteIndex = i;
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue())
+                i--; // loop back until index is on opening quote of key
+            int openingQuoteIndex = i;
+            int keyLength = closingQuoteIndex - openingQuoteIndex;
+            byte[] keyBytes = new byte[keyLength];
+            System.arraycopy(inputBytes, openingQuoteIndex, keyBytes, 0, keyLength);
+            String key = new String(keyBytes, StandardCharsets.UTF_8);
+            i = colonIndex + 1; // continue looping from after colon
+            if (!targetKeys.contains(key)) {
+                i = i + 5; // +5 since minimum amount of characters between colon is 5 --> {"a":1,"b":2}
+                continue;
+            }
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue())
+                i++; // loop until index is on opening quote of value
+            i++; // step over quote
+            int targetValueLength = 0;
+            while(inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                inputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                targetValueLength++;
+                i++;
+            }
+            int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+            if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+            }
+        }
+        return new String(inputBytes, StandardCharsets.UTF_8);
     }
 
     /**

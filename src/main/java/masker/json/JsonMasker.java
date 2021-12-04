@@ -162,7 +162,7 @@ final class JsonMasker extends AbstractMasker {
                 targetValueLength++;
                 i++;
             }
-            int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+            int obfuscationLength = getMaskingConfig().getObfuscationLength();
             if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
                 inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
             }

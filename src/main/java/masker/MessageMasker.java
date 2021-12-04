@@ -9,4 +9,6 @@ public interface MessageMasker {
 
     @NotNull
     String mask(@NotNull String message);
+
+    // TODO @breus: check if getMasker can be included in the interface
 }

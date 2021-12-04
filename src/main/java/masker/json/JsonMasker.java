@@ -1,5 +1,7 @@
-package masker;
+package masker.json;
 
+import masker.AbstractMasker;
+import masker.UTF8Encoding;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,28 +11,26 @@ import java.util.HashSet;
 import java.util.Set;
 
 final class JsonMasker extends AbstractMasker {
-    private final Set<String> quotedTargetKeys;
+    private final JsonMaskingConfig maskingConfig;
+    private Set<String> quotedTargetKeys; // TODO: only used for SINGLE_TARGET_LOOP algorithm, might want to remove somehow
 
     @NotNull
-    public static JsonMasker getDefaultMasker(@NotNull String targetKey) {
-        return getDefaultMasker(Set.of(targetKey));
+    public static JsonMasker getMasker(@NotNull String targetKey) {
+        return getMasker(targetKey, null);
     }
 
     @NotNull
-    public static JsonMasker getDefaultMasker(@NotNull Set<String> targetKeys) {
-        return getMasker(targetKeys, MaskingConfig.defaultConfig());
-    }
-
-    @NotNull
-    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable MaskingConfig maskingConfig) {
+    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable JsonMaskingConfig maskingConfig) {
         return getMasker(Set.of(targetKey), maskingConfig);
     }
 
     @NotNull
-    public static JsonMasker getMasker(@NotNull Set<String> targetKeys, @Nullable MaskingConfig maskingConfig) {
-        if (maskingConfig == null) {
-            return new JsonMasker(targetKeys, MaskingConfig.defaultConfig());
-        }
+    public static JsonMasker getMasker(@NotNull Set<String> targetKeys) {
+        return getMasker(targetKeys, null);
+    }
+
+    @NotNull
+    public static JsonMasker getMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig maskingConfig) {
         return new JsonMasker(targetKeys, maskingConfig);
     }
     
@@ -45,18 +45,29 @@ final class JsonMasker extends AbstractMasker {
     @Override
     @NotNull
     public String mask(@NotNull String message) {
-        for (String targetKey : getQuotedTargetKeys()) {
-            message = maskValuesOfTargetKey(message, targetKey);
+        if (getMaskingConfig().getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
+            for (String targetKey : getQuotedTargetKeys()) {
+                message = maskValuesOfTargetKey(message, targetKey);
+            }
+        } else if (getMaskingConfig().getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.KEYS_CONTAIN) {
+            message = maskValueOfTargetKeys(message, getTargetKeys()); // TODO @robert: implement keys contain algorithm here
         }
         return message;
     }
 
-    private JsonMasker(@NotNull Set<String> targetKeys, @NotNull MaskingConfig maskingConfiguration) {
-        super(targetKeys, maskingConfiguration);
-        // TODO @breus: initialize target key set with and without quotes depending on MultiTargetAlgorithm
-        Set<String> quotedTargetKeys = new HashSet<>();
-        targetKeys.forEach(t -> quotedTargetKeys.add('"' + t + '"'));
-        this.quotedTargetKeys = quotedTargetKeys;
+    private JsonMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig maskingConfig) {
+        super(targetKeys);
+        if (maskingConfig == null) {
+            this.maskingConfig = JsonMaskingConfig.getDefault();
+        } else {
+            this.maskingConfig = maskingConfig;
+        }
+        if (this.maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
+            // TODO @breus: initialize target key set with and without quotes depending on MultiTargetAlgorithm
+            Set<String> quotedTargetKeys = new HashSet<>();
+            targetKeys.forEach(t -> quotedTargetKeys.add('"' + t + '"'));
+            this.quotedTargetKeys = quotedTargetKeys;
+        }
     }
 
 
@@ -115,7 +126,7 @@ final class JsonMasker extends AbstractMasker {
                3. [{"key": 12}, {"value": 12}]
          */
         // TODO @robert, @breus: implement this method according to method 1.
-        return null;
+        return input;
     }
 
     /**
@@ -169,7 +180,7 @@ final class JsonMasker extends AbstractMasker {
                         targetValueLength++;
                         i++;
                     }
-                    int obfuscationLength = getMaskingConfiguration().getObfuscationLength();
+                    int obfuscationLength = getMaskingConfig().getObfuscationLength();
                     if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
                         inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
@@ -194,5 +205,9 @@ final class JsonMasker extends AbstractMasker {
 
     public Set<String> getQuotedTargetKeys() {
         return quotedTargetKeys;
+    }
+
+    public JsonMaskingConfig getMaskingConfig() {
+        return maskingConfig;
     }
 }

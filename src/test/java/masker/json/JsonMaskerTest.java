@@ -1,4 +1,4 @@
-package masker;
+package masker.json;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,31 +25,31 @@ public class JsonMaskerTest {
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
     void testMaskJsonStringValueTargetKey(String input, String expectedOutput) {
-        Assertions.assertEquals(expectedOutput, JsonMasker.getDefaultMasker("ab").mask(input));
+        Assertions.assertEquals(expectedOutput, JsonMasker.getMasker("ab").mask(input));
     }
 
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
     void testMaskJsonStringValueTargetKeyByteArray(String input, String expectedOutput) {
-        Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getDefaultMasker("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+        Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getMasker("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     }
 
     @ParameterizedTest
     @MethodSource("testSingleTargetKeyFile")
     void testSingleTargetKeyFromJsonFile(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getDefaultMasker(testInstance.getTargetKeys()).mask(testInstance.getInput()));
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
     @MethodSource("testMultipleTargetKeyFile")
     void testMultipleTargetKeyFromJsonFile(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getDefaultMasker(testInstance.getTargetKeys()).mask(testInstance.getInput()));
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
     @MethodSource("testObfuscationFile")
     void testLengthObfuscationFromFile(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.getExpectedOutput(), JsonMasker.getMasker(testInstance.getTargetKeys(), MaskingConfig.custom().obfuscationLength(testInstance.getObfuscationLength()).build()).mask(testInstance.getInput()));
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().obfuscationLength(testInstance.obfuscationLength()).build()).mask(testInstance.input()));
     }
 
     // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.

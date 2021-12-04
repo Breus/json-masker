@@ -1,6 +1,6 @@
 package masker;
 
-enum UTF8Encoding {
+public enum UTF8Encoding {
 	SPACE((byte) 32),
 	DOUBLE_QUOTE((byte) 34),
 	COLON((byte) 58),
@@ -12,7 +12,7 @@ enum UTF8Encoding {
 		this.utf8ByteValue = utf8ByteValue;
 	}
 
-	byte getUtf8ByteValue() {
+	public byte getUtf8ByteValue() {
 		return utf8ByteValue;
 	}
 }

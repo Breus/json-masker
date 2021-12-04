@@ -1,4 +1,4 @@
-package masker;
+package masker.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +20,10 @@ public class JsonMaskerBenchmark {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode objectNode = objectNode();
         String inputString = objectNode.set("someKey", objectNode().set("ab", mapper.convertValue("hello", JsonNode.class))).toString();
-        JsonMasker defaultMasker = JsonMasker.getDefaultMasker("ab");
-        JsonMasker twoCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(2).build());
-        JsonMasker fiveCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(5).build());
-        JsonMasker sixCharObfuscationLengthMasker = JsonMasker.getMasker("ab", MaskingConfig.custom().obfuscationLength(6).build());
+        JsonMasker defaultMasker = JsonMasker.getMasker("ab");
+        JsonMasker twoCharObfuscationLengthMasker = JsonMasker.getMasker("ab", JsonMaskingConfig.custom().obfuscationLength(2).build());
+        JsonMasker fiveCharObfuscationLengthMasker = JsonMasker.getMasker("ab", JsonMaskingConfig.custom().obfuscationLength(5).build());
+        JsonMasker sixCharObfuscationLengthMasker = JsonMasker.getMasker("ab", JsonMaskingConfig.custom().obfuscationLength(6).build());
     }
 
     @Benchmark

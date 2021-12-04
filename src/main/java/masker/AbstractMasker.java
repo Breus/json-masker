@@ -5,16 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.Charset;
 import java.util.Set;
 
-abstract class AbstractMasker implements MessageMasker {
-    private final MaskingConfig maskingConfiguration;
+public abstract class AbstractMasker implements MessageMasker {
     private final Set<String> targetKeys;
 
-    AbstractMasker(@NotNull Set<String> targetKeys, @NotNull MaskingConfig maskingConfiguration) {
+    protected AbstractMasker(@NotNull Set<String> targetKeys) {
         if (targetKeys.size() < 1) {
             throw new IllegalArgumentException("Target key set must contain at least on target key");
         }
         this.targetKeys = targetKeys;
-        this.maskingConfiguration = maskingConfiguration;
     }
 
     @Override
@@ -27,10 +25,5 @@ abstract class AbstractMasker implements MessageMasker {
     @NotNull
     public Set<String> getTargetKeys() {
         return targetKeys;
-    }
-
-    @NotNull
-    MaskingConfig getMaskingConfiguration() {
-        return maskingConfiguration;
     }
 }

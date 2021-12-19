@@ -10,4 +10,5 @@ High-performance message masker that can be used to mask the value corresponding
 - [ ] JSON: add support for input String containing JSON array instead of JSON object
 
 ## Bug fixes
-- [x] Besides skipping UTF_8 SPACE (dec 32), also skip LINE FEED (dec 10), HORIZONTAL TAB (dec 9), and CARIAGE RETURN (dec 13)
+- [x] JSON: Besides skipping UTF_8 SPACE (dec 32), also skip LINE FEED (dec 10), HORIZONTAL TAB (dec 9), and CARIAGE RETURN (dec 13)
+- [ ] JSON: Ignore escaped characters 

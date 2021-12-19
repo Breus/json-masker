@@ -130,7 +130,7 @@ final class JsonMasker extends AbstractMasker {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int i = 0;
         outer:
-        while (i < inputBytes.length - 2) {
+        while (i < inputBytes.length - 2) { // minus one character for closing curly bracket, one for the value
             if (inputBytes[i] != UTF8Encoding.COLON.getUtf8ByteValue()) {  // loop until index is on colon
                 i++;
                 continue;
@@ -146,7 +146,7 @@ final class JsonMasker extends AbstractMasker {
                 i--; // loop back until index is on opening quote of key
             }
             int openingQuoteIndex = i;
-            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // quotes are not included, but it is a length hence the minus 1
+            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // quotes are not included, but it is a length, hence the minus 1
             byte[] keyBytes = new byte[keyLength];
             System.arraycopy(inputBytes, openingQuoteIndex + 1, keyBytes, 0, keyLength);
             String key = new String(keyBytes, StandardCharsets.UTF_8);
@@ -156,11 +156,11 @@ final class JsonMasker extends AbstractMasker {
                 continue;
             }
             while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                if (inputBytes[i] == UTF8Encoding.LEFT_CURLY_BRACKET.getUtf8ByteValue() || inputBytes[i] == UTF8Encoding.LEFT_SQUARE_BRACKET.getUtf8ByteValue()) {
-                    i++;
-                    continue outer;
+                if (UTF8JsonCharacters.isWhiteSpace(inputBytes[i])) {
+                    i++; // skip white characters
                 }
-                i++; // loop until index is on opening quote of value
+                i++;
+                continue outer; // any other character than white space or double quote means the value is not a string, so we don't have to do any masking
             }
             i++; // step over quote
             int targetValueLength = 0;
@@ -207,8 +207,8 @@ final class JsonMasker extends AbstractMasker {
             }
             i = startIndexOfTargetKey + targetKey.length();
             for (; i < inputSliceBytes.length; i++) {
-                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
-                    continue; // found a space, try next character
+                if (UTF8JsonCharacters.isWhiteSpace(inputSliceBytes[i])) {
+                    continue; // found a JSON whitespace, try next character
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.COLON.getUtf8ByteValue()) {
                     break; // found a colon, so the found target key is indeed a JSON key
@@ -217,7 +217,7 @@ final class JsonMasker extends AbstractMasker {
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (inputSliceBytes[i] == UTF8Encoding.SPACE.getUtf8ByteValue()) {
+                if (UTF8JsonCharacters.isWhiteSpace(inputBytes[i])) {
                     continue; // found a space, try next character
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string

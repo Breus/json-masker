@@ -1,12 +1,13 @@
 package masker;
 
 public enum UTF8Encoding {
-	SPACE((byte) 32),
-	DOUBLE_QUOTE((byte) 34),
 	ASTERISK((byte) 42),
+	CARRIAGE_RETURN((byte) 13),
 	COLON((byte) 58),
-	LEFT_SQUARE_BRACKET((byte) 91),
-	LEFT_CURLY_BRACKET((byte) 123);
+	DOUBLE_QUOTE((byte) 34),
+	HORIZONTAL_TAB((byte) 9),
+	LINE_FEED((byte) 10),
+	SPACE((byte) 32);
 
 	final byte utf8ByteValue;
 

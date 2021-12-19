@@ -13,10 +13,14 @@
     "obfuscationLength": 1,
     "targetKey": "someKey",
     "input": {
-      "someKey": "hello"
+      "someKey": 123,
+      "someKey": "hello",
+      "someKey": 2
     },
     "expectedOutput": {
-      "someKey": "*"
+      "someKey": 123,
+      "someKey": "*",
+      "someKey": 2
     }
   },
   {

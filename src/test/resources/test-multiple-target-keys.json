@@ -25,5 +25,23 @@
       "someKey3": "hey",
       "someKey4": [{"someKey4":  "*****"}]
     }
+  },
+  {
+    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "input": {
+      "someKey": "hello",
+      "someKey2": "hi",
+      "someKey2": 2123,
+      "someKey3": "hey",
+      "someKey4": [{"someKey4":  "value"}]
+
+    },
+    "expectedOutput": {
+      "someKey": "*****",
+      "someKey2": "**",
+      "someKey2": 2123,
+      "someKey3": "hey",
+      "someKey4": [{"someKey4":  "*****"}]
+    }
   }
 ]

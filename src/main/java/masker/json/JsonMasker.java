@@ -99,7 +99,7 @@ final class JsonMasker extends AbstractMasker {
             We start implementing 1. because it's much less complex and its worst case is quite unlikely
 
             Pseudocode:
-            1. Loop through input, look for JSON key (jsonkey)
+            1. Loop through input, look for JSON key (jsonKey)
             2. if (targetKeys.contains(jsonKey) // mask String value
             3. else continue
 
@@ -120,13 +120,61 @@ final class JsonMasker extends AbstractMasker {
                 3.6 Substring of startIndex - closeIndex
                 3.7 targetKeys.contains(key)
 
-            3. Check if opening DOUBLE_QOUTE can be a JSON key:
+            3. Check if opening DOUBLE_QUOTE can be a JSON key:
                1. A JSON object has opened and no key has been found yet
                2. A JSON object has opened and a key has been found, but this has been reset with a comma
                3. [{"key": 12}, {"value": 12}]
          */
         // TODO @robert, @breus: implement this method according to method 1.
-        return input;
+
+        byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
+        int i = 0;
+        outer:
+        while (i < inputBytes.length - 2) {
+            if (inputBytes[i] != UTF8Encoding.COLON.getUtf8ByteValue()) {  // loop until index is on colon
+                i++;
+                continue;
+            }
+            int colonIndex = i;
+            i--; // step back from colon
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                i--; // loop back until index is on closing quote of key
+            }
+            int closingQuoteIndex = i;
+            i--; // step back from closing quote
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                i--; // loop back until index is on opening quote of key
+            }
+            int openingQuoteIndex = i;
+            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // quotes are not included, but it is a length hence the minus 1
+            byte[] keyBytes = new byte[keyLength];
+            System.arraycopy(inputBytes, openingQuoteIndex + 1, keyBytes, 0, keyLength);
+            String key = new String(keyBytes, StandardCharsets.UTF_8);
+            i = colonIndex + 1; // continue looping from after colon
+            if (!targetKeys.contains(key)) {
+                i = i + 5; // +5 since minimum amount of characters between colon is 5 --> {"a":1,"b":2}
+                continue;
+            }
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                if (inputBytes[i] == UTF8Encoding.LEFT_CURLY_BRACKET.getUtf8ByteValue() || inputBytes[i] == UTF8Encoding.LEFT_SQUARE_BRACKET.getUtf8ByteValue()) {
+                    i++;
+                    continue outer;
+                }
+                i++; // loop until index is on opening quote of value
+            }
+            i++; // step over quote
+            int targetValueLength = 0;
+            while(inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                inputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                targetValueLength++;
+                i++;
+            }
+            int obfuscationLength = getMaskingConfig().getObfuscationLength();
+            if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+            }
+        }
+        return new String(inputBytes, StandardCharsets.UTF_8);
     }
 
     /**

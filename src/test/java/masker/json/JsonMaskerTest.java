@@ -8,19 +8,24 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
 public class JsonMaskerTest {
-    static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest
     @MethodSource("inputOutputMaskAb")
@@ -74,6 +79,22 @@ public class JsonMaskerTest {
                         objectNode().set("ba", objectNode().set("ab", mapper.convertValue("**", JsonNode.class))).toString()),
                 Arguments.of(objectNode().set("ab", mapper.convertValue("lo", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("**", JsonNode.class)).toString())
         );
+    }
+
+    @Test
+    void testMalformedJsonMasking() throws IOException, URISyntaxException {
+        final String TARGET_KEY = "targetKey";
+        URL resourceUrl = JsonMaskerTest.class.getClassLoader().getResource("malformed-json.txt");
+        Assertions.assertNotNull(resourceUrl);
+        Path fileName = Path.of(resourceUrl.toURI());
+        Assertions.assertNotNull(fileName);
+        String malformedJsonMessage = Files.readString(fileName);
+        JsonNode jsonNode = mapper.readTree(malformedJsonMessage);
+        String targetKeyValue = mapper.convertValue(jsonNode.findValue(TARGET_KEY), String.class);
+        String maskedJsonMessage = JsonMasker.getMasker(TARGET_KEY).mask(malformedJsonMessage);
+        JsonNode maskedJsonNode = mapper.readTree(maskedJsonMessage);
+        String maskedKeyValue = "*".repeat(targetKeyValue.length());
+        Assertions.assertEquals(maskedKeyValue, mapper.convertValue(maskedJsonNode.findValue(TARGET_KEY), String.class));
     }
 
     private static Stream<JsonMaskerTestInstance> testSingleTargetKeyFile() throws IOException {

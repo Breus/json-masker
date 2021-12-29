@@ -2,6 +2,7 @@ package masker;
 
 public enum UTF8Encoding {
 	ASTERISK((byte) 42),
+	BACK_SLASH((byte) 92),
 	CARRIAGE_RETURN((byte) 13),
 	COLON((byte) 58),
 	DOUBLE_QUOTE((byte) 34),

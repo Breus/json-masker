@@ -1,0 +1,80 @@
+[
+  {
+    "targetKeys": ["someKey", "someKey2"],
+    "input": {
+      "someKey": "\\hello",
+      "someKey2": "\"hi\"",
+      "someKey3": "\"hi\""
+    },
+    "expectedOutput": {
+      "someKey": "*******",
+      "someKey2": "******",
+      "someKey3": "\"hi\""
+    }
+  },
+  {
+    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "input": {
+      "someKey": "/h:ello",
+      "someKey2": "\bhi",
+      "someKey3": "hey\\\u00f7",
+      "someKey4": [{"someKey4":  "value"}]
+
+    },
+    "expectedOutput": {
+      "someKey": "*******",
+      "someKey2": "****",
+      "someKey3": "hey\\\u00f7",
+      "someKey4": [{"someKey4":  "*****"}]
+}
+  },
+  {
+    "targetKeys": ["someKey", "someKey2", "someKey3", "someKey4"],
+    "input": {
+      "someKey": "\nhello",
+      "someKey2": "\rhi",
+      "someKey3": "\they",
+      "someKey4": [{"someKey4":  "\uffffvalue"}]
+
+    },
+    "expectedOutput": {
+      "someKey": "*******",
+      "someKey2": "****",
+      "someKey3": "*****",
+      "someKey4": [{"someKey4":  "********"}]
+    }
+  },
+  {
+    "targetKeys": ["someKey"],
+    "input": {
+      "someKey": "\u00f8v"
+    },
+    "expectedOutput": {
+      "someKey": "***"
+    }
+  },
+  {
+    "targetKeys": ["k1"],
+    "input": {
+      "k1": "s\uffff",
+      "k2": "value"
+
+    },
+    "expectedOutput": {
+      "k1": "****",
+      "k2": "value"
+    }
+  },
+  {
+    "targetKeys": ["k2"],
+    "input": {
+      "k1": "\uffff",
+      "k2": "val"
+
+    },
+    "expectedOutput": {
+      "k1": "\uffff",
+      "k2": "***"
+    }
+  }
+]

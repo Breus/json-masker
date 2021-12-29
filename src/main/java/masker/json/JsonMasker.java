@@ -196,13 +196,12 @@ final class JsonMasker extends AbstractMasker {
             String inputSlice;
             byte[] inputSliceBytes;
             if (j == 0) {
-                inputSlice = input;
                 inputSliceBytes = inputBytes;
             } else {
                 inputSlice = input.substring(j);
                 inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
             }
-            int startIndexOfTargetKey = inputSlice.indexOf(targetKey);
+            int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
             if(startIndexOfTargetKey == -1) {
                 break; // input doesn't contain target key anymore, no further masking required
             }
@@ -224,7 +223,9 @@ final class JsonMasker extends AbstractMasker {
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
                     int targetValueLength = 0;
-                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+                    byte lastByte = 1; // some random non-escaping byte
+                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && lastByte == UTF8Encoding.BACK_SLASH.getUtf8ByteValue())) {
+                        lastByte = inputSliceBytes[i];
                         inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
                         targetValueLength++;
                         i++;
@@ -258,5 +259,19 @@ final class JsonMasker extends AbstractMasker {
 
     public JsonMaskingConfig getMaskingConfig() {
         return maskingConfig;
+    }
+
+    private int indexOf(byte[] src, byte[] target) {
+        for (int i = 0; i <= src.length - target.length; i++) {
+            boolean found = true;
+            for (int j = 0; j < target.length; ++j) {
+                if (src[i + j] != target[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) return i;
+        }
+        return -1;
     }
 }

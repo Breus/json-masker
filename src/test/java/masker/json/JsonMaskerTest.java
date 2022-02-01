@@ -97,6 +97,24 @@ public class JsonMaskerTest {
         Assertions.assertEquals(maskedKeyValue, mapper.convertValue(maskedJsonNode.findValue(TARGET_KEY), String.class));
     }
 
+    @Test
+    void testMalformedJsonMaskingMultiTargetAlgorithm() throws IOException, URISyntaxException {
+        final String TARGET_KEY = "targetKey";
+        URL resourceUrl = JsonMaskerTest.class.getClassLoader().getResource("malformed-json.txt");
+        Assertions.assertNotNull(resourceUrl);
+        Path fileName = Path.of(resourceUrl.toURI());
+        Assertions.assertNotNull(fileName);
+        String malformedJsonMessage = Files.readString(fileName);
+        JsonNode jsonNode = mapper.readTree(malformedJsonMessage);
+        String targetKeyValue = mapper.convertValue(jsonNode.findValue(TARGET_KEY), String.class);
+        JsonMaskingConfig jsonMaskingConfig = JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build();
+        String maskedJsonMessage = JsonMasker.getMasker(TARGET_KEY, jsonMaskingConfig).mask(malformedJsonMessage);
+        JsonNode maskedJsonNode = mapper.readTree(maskedJsonMessage);
+        String maskedKeyValue = "*".repeat(targetKeyValue.length());
+        Assertions.assertEquals(maskedKeyValue, mapper.convertValue(maskedJsonNode.findValue(TARGET_KEY), String.class));
+    }
+
+
     private static Stream<JsonMaskerTestInstance> testSingleTargetKeyFile() throws IOException {
         ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-single-target-key.json"), ArrayNode.class);
         return getJsonTestInstancesFromJsonArray(jsonArray).stream();

@@ -152,12 +152,13 @@ final class JsonMasker extends AbstractMasker {
             String key = new String(keyBytes, StandardCharsets.UTF_8);
             i = colonIndex + 1; // continue looping from after colon
             if (!targetKeys.contains(key)) {
-                i = i + 5; // +5 since minimum amount of characters between colon is 5 --> {"a":1,"b":2}
+                i = i + 4; // +4 since minimum amount of characters between colon is 5 --> {"a":1,"":2}
                 continue;
             }
             while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
                 if (UTF8JsonCharacters.isWhiteSpace(inputBytes[i])) {
                     i++; // skip white characters
+                    continue;
                 }
                 i++;
                 continue outer; // any other character than white space or double quote means the value is not a string, so we don't have to do any masking

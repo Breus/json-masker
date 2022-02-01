@@ -6,6 +6,6 @@
 
 
              {
-                "targetKey": "value2"
+                "targetKey":     "value2"
              }
 }

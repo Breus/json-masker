@@ -81,52 +81,6 @@ final class JsonMasker extends AbstractMasker {
      */
     @NotNull
     String maskValueOfTargetKeys(@NotNull String input, @NotNull Set<String> targetKeys) {
-        /*
-            General approaches:
-            1. Look for colon (:), and read back to find the key
-                Pros: Read string is always a JSON key
-                Drawbacks: Read all bytes of all JSON keys twice
-                Worst case: high number of long JSON keys
-            2. Look for " and check if it is a JSON key
-                Pros: No double byte reading.
-                Drawbacks: might spend way too much computation on string values in e.g. String arrays.
-                Worst case: Lots of string values, especially when in an array.
-            3. Look for opening ", but keep historic state to determine if current quote can be JSON key.
-                Pros: no double byte reading, mitigate drawback of 2.
-                Drawbacks: complexity
-                Worst case: deeply nested JSON objects causing lots of state switching between canBeJsonKey
-
-            We start implementing 1. because it's much less complex and its worst case is quite unlikely
-
-            Pseudocode:
-            1. Loop through input, look for JSON key (jsonKey)
-            2. if (targetKeys.contains(jsonKey) // mask String value
-            3. else continue
-
-            1. Look for :, step back to read key
-               1.1 Loop over all bytes, until byte equals UTF8Encoding.COLON
-               1.2 Read back till closing DOUBLE_QUOTE
-               1.3 Count characters from closing DOUBLE_QUOTE to opening DOUBLE_QUOTE
-               1.4 Do a smart System.ArrayCopy to create a new String from the key (key)
-               1.5 Check targetKeys.contains(key)
-
-            3. Look for ", look ahead to check for ':'
-                3.0 While last bracket is '[', continue while not ']' OR last bracket is '{'
-                3.1 Loop over all bytes, until byte equal UTF8Encoding.DOUBLE_QUOTE
-                3.2 Set startIndex
-                3.3 Read till closing DOUBLE_QUOTE
-                3.4 Set closeIndex
-                3.5 If after spaces/tabs/enters is COLON? Then key.
-                3.6 Substring of startIndex - closeIndex
-                3.7 targetKeys.contains(key)
-
-            3. Check if opening DOUBLE_QUOTE can be a JSON key:
-               1. A JSON object has opened and no key has been found yet
-               2. A JSON object has opened and a key has been found, but this has been reset with a comma
-               3. [{"key": 12}, {"value": 12}]
-         */
-        // TODO @robert, @breus: implement this method according to method 1.
-
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int i = 0;
         outer:
@@ -138,12 +92,12 @@ final class JsonMasker extends AbstractMasker {
             int colonIndex = i;
             i--; // step back from colon
             while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                i--; // loop back until index is on closing quote of key
+                i--; // loop back until index is on closing quote of JSON key
             }
             int closingQuoteIndex = i;
             i--; // step back from closing quote
-            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                i--; // loop back until index is on opening quote of key
+            while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && inputBytes[i-1] != UTF8Encoding.BACK_SLASH.getUtf8ByteValue()) {
+                i--; // loop back until index is on opening quote of key, so ignore escaped quotes (which are part of the value)
             }
             int openingQuoteIndex = i;
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // quotes are not included, but it is a length, hence the minus 1
@@ -155,6 +109,7 @@ final class JsonMasker extends AbstractMasker {
                 i = i + 4; // +4 since minimum amount of characters between colon is 5 --> {"a":1,"":2}
                 continue;
             }
+
             while (inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
                 if (UTF8JsonCharacters.isWhiteSpace(inputBytes[i])) {
                     i++; // skip white characters
@@ -165,7 +120,9 @@ final class JsonMasker extends AbstractMasker {
             }
             i++; // step over quote
             int targetValueLength = 0;
-            while(inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+            boolean escapeNextCharacter = false;
+            while(inputBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
+                escapeNextCharacter = (inputBytes[i] == UTF8Encoding.BACK_SLASH.getUtf8ByteValue());
                 inputBytes[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
                 targetValueLength++;
                 i++;

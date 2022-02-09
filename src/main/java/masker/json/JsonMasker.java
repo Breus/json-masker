@@ -37,7 +37,7 @@ final class JsonMasker extends AbstractMasker {
     @Override
     public byte[] mask(byte[] message, @NotNull Charset charset) {
         for (String targetKey : getQuotedTargetKeys()) {
-            message = maskValuesOfTargetKey(new String(message, charset), targetKey).getBytes(charset);
+            message = mask(new String(message, charset), targetKey).getBytes(charset);
         }
         return message;
     }
@@ -47,7 +47,7 @@ final class JsonMasker extends AbstractMasker {
     public String mask(@NotNull String message) {
         if (getMaskingConfig().getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
             for (String targetKey : getQuotedTargetKeys()) {
-                message = maskValuesOfTargetKey(message, targetKey);
+                message = mask(message, targetKey);
             }
         } else if (getMaskingConfig().getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.KEYS_CONTAIN) {
             message = KeyContainsMaskingAlgorithm.mask(message, getTargetKeys(), getMaskingConfig());
@@ -78,11 +78,11 @@ final class JsonMasker extends AbstractMasker {
      * @return the masked message
      */
     @NotNull
-    String  maskValuesOfTargetKey(@NotNull String input, @NotNull String targetKey) {
+    String mask(@NotNull String input, @NotNull String targetKey) {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
-        outer: while (j < inputBytes.length - targetKey.length() - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
+        outer: while (j < inputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
             j = j + i;
             String inputSlice;
             byte[] inputSliceBytes;
@@ -96,7 +96,7 @@ final class JsonMasker extends AbstractMasker {
             if(startIndexOfTargetKey == -1) {
                 break; // input doesn't contain target key anymore, no further masking required
             }
-            i = startIndexOfTargetKey + targetKey.length();
+            i = startIndexOfTargetKey + targetKey.length(); // step over found target key
             for (; i < inputSliceBytes.length; i++) {
                 if (UTF8JsonCharacters.isWhiteSpace(inputSliceBytes[i])) {
                     continue; // found a JSON whitespace, try next character
@@ -114,9 +114,9 @@ final class JsonMasker extends AbstractMasker {
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
                     i++; // step over quote
                     int targetValueLength = 0;
-                    byte lastByte = 1; // some random non-escaping byte
-                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && lastByte == UTF8Encoding.BACK_SLASH.getUtf8ByteValue())) {
-                        lastByte = inputSliceBytes[i];
+                    boolean escapeNextCharacter = false;
+                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
+                        escapeNextCharacter = (inputSliceBytes[i] == UTF8Encoding.BACK_SLASH.getUtf8ByteValue());
                         inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
                         targetValueLength++;
                         i++;

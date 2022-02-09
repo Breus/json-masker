@@ -26,7 +26,7 @@
       "someKey2": "****",
       "someKey3": "hey\\\u00f7",
       "someKey4": [{"someKey4":  "*****"}]
-}
+    }
   },
   {
     "targetKeys": ["someKey", "someKey2", "someKey3", "someKey4"],
@@ -75,6 +75,18 @@
     "expectedOutput": {
       "k1": "\uffff",
       "k2": "***"
+    }
+  },
+  {
+    "targetKeys": ["a","b"],
+    "input": {
+      "a": "\u000f",
+      "b": [{"b":  "value"}]
+
+    },
+    "expectedOutput": {
+      "a": "**",
+      "b": [{"b":  "*****"}]
     }
   }
 ]

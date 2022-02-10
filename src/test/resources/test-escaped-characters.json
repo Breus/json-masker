@@ -80,7 +80,7 @@
   {
     "targetKeys": ["a","b"],
     "input": {
-      "a": "\u000f",
+      "a": "\u00ff",
       "b": [{"b":  "value"}]
 
     },

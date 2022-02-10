@@ -80,7 +80,8 @@ final class JsonMasker extends AbstractMasker {
      */
     @NotNull
     String mask(@NotNull String input, @NotNull String targetKey) {
-        byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
+        byte[] originalInput = input.getBytes(StandardCharsets.UTF_8); // we want to walk and slice the original input to check for occurrences of target keys, so need to keep this in a seperate reference
+        byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8); // with obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
         outer: while (j < inputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
@@ -89,7 +90,7 @@ final class JsonMasker extends AbstractMasker {
             if (j == 0) {
                 inputSliceBytes = inputBytes;
             } else {
-                inputSliceBytes = Arrays.copyOfRange(inputBytes, j, inputBytes.length);
+                inputSliceBytes = Arrays.copyOfRange(originalInput, j, originalInput.length);
 
             }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));

@@ -63,7 +63,7 @@ public class JsonMaskerTest {
 		Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().obfuscationLength(testInstance.obfuscationLength()).build()).mask(testInstance.input()));
 	}
 
-	// Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.
+    // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.
 	private static Stream<Arguments> inputOutputMaskAb() {
         return Stream.of(
                 Arguments.of(objectNode().set("ab", mapper.convertValue("value", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("*****", JsonNode.class)).toString()),
@@ -115,6 +115,7 @@ public class JsonMaskerTest {
     }
 
 
+
     private static Stream<JsonMaskerTestInstance> testSingleTargetKeyFile() throws IOException {
         ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-single-target-key.json"), ArrayNode.class);
         return getJsonTestInstancesFromJsonArray(jsonArray).stream();
@@ -130,7 +131,7 @@ public class JsonMaskerTest {
         return getJsonTestInstancesFromJsonArray(jsonArray).stream();
     }
 
-    private static List<JsonMaskerTestInstance> getMultipleTargetJsonTestInstanceFromJsonArray(ArrayNode jsonArray) throws IOException {
+    static List<JsonMaskerTestInstance> getMultipleTargetJsonTestInstanceFromJsonArray(ArrayNode jsonArray) throws IOException {
         ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
         ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
         for (JsonNode jsonNode : jsonArray) {

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,13 +85,12 @@ final class JsonMasker extends AbstractMasker {
         int j = 0; // index based on input
         outer: while (j < inputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
             j = j + i;
-            String inputSlice;
             byte[] inputSliceBytes;
             if (j == 0) {
                 inputSliceBytes = inputBytes;
             } else {
-                inputSlice = input.substring(j);
-                inputSliceBytes = inputSlice.getBytes(StandardCharsets.UTF_8);
+                inputSliceBytes = Arrays.copyOfRange(inputBytes, j, inputBytes.length);
+
             }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
             if(startIndexOfTargetKey == -1) {
@@ -161,7 +161,9 @@ final class JsonMasker extends AbstractMasker {
                     break;
                 }
             }
-            if (found) return i;
+            if (found) {
+                return i;
+            }
         }
         return -1;
     }

@@ -71,27 +71,32 @@ final class JsonMasker extends AbstractMasker {
     }
 
     /**
+     * @see JsonMasker#mask(byte[], String)
+     */
+    String mask(@NotNull String input, @NotNull String targetKey) {
+        return new String(mask(input.getBytes(StandardCharsets.UTF_8), targetKey), StandardCharsets.UTF_8);
+    }
+
+    /**
      * Masks the String values in the given input for all values corresponding to the provided target key.
      * This implementation is optimized for a single target key.
      * Currently, only supports UTF_8/US_ASCII
-     * @param input the input message for which values might be masked
+     *
+     * @param input     the UTF-8 encoded input bytes for which values of the target key are masked
      * @param targetKey the JSON key for which the String values are masked
      * @return the masked message
      */
-    @NotNull
-    String mask(@NotNull String input, @NotNull String targetKey) {
-        byte[] originalInput = input.getBytes(StandardCharsets.UTF_8); // we want to walk and slice the original input to check for occurrences of target keys, so need to keep this in a seperate reference
-        byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8); // with obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
+    byte[] mask(byte[] input, @NotNull String targetKey) {
+        byte[] outputBytes = input; // with obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
-        outer: while (j < inputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
+        outer: while (j < outputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
             j = j + i;
             byte[] inputSliceBytes;
             if (j == 0) {
-                inputSliceBytes = inputBytes;
+                inputSliceBytes = outputBytes;
             } else {
-                inputSliceBytes = Arrays.copyOfRange(originalInput, j, originalInput.length);
-
+                inputSliceBytes = Arrays.copyOfRange(input, j, input.length);
             }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
             if(startIndexOfTargetKey == -1) {
@@ -109,7 +114,7 @@ final class JsonMasker extends AbstractMasker {
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (UTF8JsonCharacters.isWhiteSpace(inputBytes[i])) {
+                if (UTF8JsonCharacters.isWhiteSpace(outputBytes[i])) {
                     continue; // found a space, try next character
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
@@ -118,20 +123,20 @@ final class JsonMasker extends AbstractMasker {
                     boolean escapeNextCharacter = false;
                     while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
                         escapeNextCharacter = (inputSliceBytes[i] == UTF8Encoding.BACK_SLASH.getUtf8ByteValue());
-                        inputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                        outputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
                         targetValueLength++;
                         i++;
                     }
                     int obfuscationLength = getMaskingConfig().getObfuscationLength();
                     if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
-                        inputBytes = obfuscateLengthOfTargetValue(inputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                        outputBytes = obfuscateLengthOfTargetValue(outputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
                     continue outer;
                 }
                 continue outer;
             }
         }
-        return new String(inputBytes, StandardCharsets.UTF_8);
+        return outputBytes;
     }
 
     static byte[] obfuscateLengthOfTargetValue(byte[] inputBytes, int closingQuoteIndex, int obfuscationLength, int targetValueLength) {

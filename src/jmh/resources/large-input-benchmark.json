@@ -1,0 +1,168 @@
+{
+  "_id": "620bdbb727f7966c44697929",
+  "index": 0,
+  "guid": "859a2c29-3634-4741-9059-a00b706f3b1c",
+  "isActive": false,
+  "balance": "$3,780.28",
+  "age": 23,
+  "eyeColor": "green",
+  "name": "Nolan Velez",
+  "gender": "male",
+  "company": "DATAGENE",
+  "email": "nolanvelez@datagene.com",
+  "phone": "+1 (957) 419-3878",
+  "address": "305 Furman Street, Munjor, District Of Columbia, 1562",
+  "about": "Lorem adipisicing consectetur ullamco officia Lorem sint exercitation anim incididunt cupidatat. Dolor officia aute esse do laborum. Enim non minim minim adipisicing do cupidatat irure cillum dolor et dolor consectetur officia occaecat.\r\nEnim magna consequat ex incididunt sint anim consequat sit qui veniam anim. Magna enim in incididunt velit. Fugiat sint do reprehenderit sint voluptate sit cupidatat nostrud culpa aliqua anim eu. Aute velit nostrud ipsum do aliquip.\r\n",
+  "registered": "2016-05-26T12:20:37 -02:00",
+  "latitude": -37.026658,
+  "longitude": -170.60657,
+  "someObject": {
+    "random": 83,
+    "random float": 69.136,
+    "bool": true,
+    "date": "1983-04-27",
+    "regEx": "helloooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo to you",
+    "enum": "generator",
+    "firstname": "Britni",
+    "lastname": "Brittani",
+    "city": "Yokohama",
+    "country": "United Arab Emirates",
+    "countryCode": "GT",
+    "email uses current data": "Britni.Brittani@gmail.com",
+    "email from expression": "Britni.Brittani@yopmail.com",
+    "array": [
+      "Petronia",
+      "Natka",
+      "Cristabel",
+      "Inga",
+      "Agathe"
+    ],
+    "array of objects": [
+      {
+        "index": 0,
+        "index start at 5": 5
+      },
+      {
+        "index": 1,
+        "index start at 5": 6
+      },
+      {
+        "index": 2,
+        "index start at 5": 7
+      }
+    ],
+    "Ann-Marie": {
+      "age": 36
+    }
+  },
+  "someKey": [
+    "cupidatat ullamco qui",
+    "reprehenderit ipsum proident",
+    "ullamco ex adipisicing",
+    "nulla magna cupidatat",
+    "quis eiusmod mollit",
+    "in mollit nostrud",
+    "reprehenderit laborum duis",
+    "cillum laborum ex",
+    "esse irure cupidatat",
+    "nulla velit incididunt",
+    "adipisicing qui irure",
+    "ad et Lorem"
+  ],
+  "friends": [
+    {
+      "id": 0,
+      "name": "Talley Espinoza"
+    },
+    {
+      "id": 1,
+      "someKey": "Meyers Dudley"
+    },
+    {
+      "id": 2,
+      "name": "Peck Robbins"
+    },
+    {
+      "id": 3,
+      "name": "Sheree Davidson"
+    },
+    {
+      "id": 4,
+      "name": "Ortega Norton"
+    },
+    {
+      "id": 5,
+      "name": "Beard Mccarty"
+    },
+    {
+      "id": 6,
+      "name": "Esperanza Camacho"
+    },
+    {
+      "id": 7,
+      "name": "Dillard Barr"
+    },
+    {
+      "id": 8,
+      "name": "Nicholson Baxter"
+    },
+    {
+      "id": 9,
+      "name": "Peters Ortega"
+    },
+    {
+      "id": 10,
+      "name": "Morse Salazar"
+    },
+    {
+      "id": 11,
+      "name": "Emerson Koch"
+    },
+    {
+      "id": 12,
+      "name": "Vanessa Mclaughlin"
+    },
+    {
+      "id": 13,
+      "name": "Annmarie Dalton"
+    },
+    {
+      "id": 14,
+      "name": "Walsh Bird"
+    },
+    {
+      "id": 15,
+      "name": "Brigitte Daniel"
+    },
+    {
+      "someKey": 16,
+      "name": "Angel Randall"
+    },
+    {
+      "id": 17,
+      "name": "Pearson Fitzgerald"
+    },
+    {
+      "id": 18,
+      "name": "Dunlap Lara"
+    },
+    {
+      "id": 19,
+      "name": "Eddie Parks"
+    },
+    {
+      "id": 20,
+      "name": "Vilma Nguyen"
+    },
+    {
+      "id": 21,
+      "name": "Lina Saunders"
+    },
+    {
+      "id": 22,
+      "name": "Stefanie Hayes"
+    }
+  ],
+  "ab": "Hello, Nolan Velez! You have 6 unread messages.",
+  "favoriteFruit": "strawberry"
+}

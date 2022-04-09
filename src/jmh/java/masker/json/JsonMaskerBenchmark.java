@@ -5,12 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1)
+@Warmup(iterations = 1, time = 10)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 10)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -47,65 +48,65 @@ public class JsonMaskerBenchmark {
     }
 
     @Benchmark
-    public String maskSimpleJsonObjectString(State state) throws InterruptedException {
-        return state.defaultMasker.mask(state.simpleJsonAsString, "ab");
+    public void maskSimpleJsonObjectString(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.defaultMasker.mask(state.simpleJsonAsString, "ab"));
     }
 
     @Benchmark
-    public String maskLargeJsonObjectString(State state) throws InterruptedException {
-        return state.defaultMasker.mask(state.largeJsonAsString, "ab");
+    public void maskLargeJsonObjectString(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.defaultMasker.mask(state.largeJsonAsString, "ab"));
     }
 
     @Benchmark
-    public byte[] maskSimpleJsonObjectBytes(State state) throws InterruptedException {
-        return state.defaultMasker.mask(state.simpleJsonAsBytes, "ab");
+    public void maskSimpleJsonObjectBytes(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.defaultMasker.mask(state.simpleJsonAsBytes, "ab"));
     }
 
     @Benchmark
-    public byte[] maskLargeJsonObjectBytes(State state) throws InterruptedException {
-        return state.defaultMasker.mask(state.largeJsonAsBytes, "ab");
+    public void maskLargeJsonObjectBytes(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.defaultMasker.mask(state.largeJsonAsBytes, "ab"));
     }
 
     @Benchmark
-    public String maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue(State state) throws InterruptedException {
-        return state.twoCharObfuscationLengthMasker.mask(state.simpleJsonAsString);
+    public void maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.twoCharObfuscationLengthMasker.mask(state.simpleJsonAsString));
     }
 
     @Benchmark
-    public String maskSimpleJsonObjectObfuscateLengthEqualToTargetValue(State state) throws InterruptedException {
-        return state.fiveCharObfuscationLengthMasker.mask(state.simpleJsonAsString);
+    public void maskSimpleJsonObjectObfuscateLengthEqualToTargetValue(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.fiveCharObfuscationLengthMasker.mask(state.simpleJsonAsString));
     }
 
     @Benchmark
-    public String maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue(State state) throws InterruptedException {
-        return state.sixCharObfuscationLengthMasker.mask(state.simpleJsonAsString);
+    public void maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue(State state, Blackhole blackhole) throws InterruptedException {
+        blackhole.consume(state.sixCharObfuscationLengthMasker.mask(state.simpleJsonAsString));
     }
 
     @Benchmark
-    public String parseAndMaskSmallJsonObjectToString(State state) throws Exception {
+    public void parseAndMaskSimpleJsonObjectToString(State state, Blackhole blackhole) throws Exception {
         ObjectNode objectNode = (ObjectNode) state.mapper.readTree(state.simpleJsonAsString);
         objectNode.set("ab", state.mapper.convertValue("*****", JsonNode.class));
-        return objectNode.toString();
+        blackhole.consume(objectNode.toString());
     }
 
     @Benchmark
-    public String parseAndMaskLargeJsonObjectToString(State state) throws Exception {
+    public void parseAndMaskLargeJsonObjectToString(State state, Blackhole blackhole) throws Exception {
         ObjectNode objectNode = (ObjectNode) state.mapper.readTree(state.largeJsonAsString);
         objectNode.set("ab", state.mapper.convertValue("*******", JsonNode.class));
-        return objectNode.toString();
+        blackhole.consume(objectNode.toString());
     }
 
     @Benchmark
-    public byte[] parseAndMaskSmallJsonObjectToBytes(State state) throws Exception {
+    public void parseAndMaskSimplesonObjectToBytes(State state, Blackhole blackhole) throws Exception {
         ObjectNode objectNode = (ObjectNode) state.mapper.readTree(state.simpleJsonAsBytes);
         objectNode.set("ab", state.mapper.convertValue("*****", JsonNode.class));
-        return objectNode.toString().getBytes(StandardCharsets.UTF_8);
+        blackhole.consume(objectNode.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Benchmark
-    public String parseAndMaskLargeJsonObjectToBytes(State state) throws Exception {
+    public void parseAndMaskLargeJsonObjectToBytes(State state, Blackhole blackhole) throws Exception {
         ObjectNode objectNode = (ObjectNode) state.mapper.readTree(state.largeJsonAsBytes);
         objectNode.set("ab", state.mapper.convertValue("*******", JsonNode.class));
-        return objectNode.toString();
+        blackhole.consume(objectNode.toString());
     }
 }

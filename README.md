@@ -16,8 +16,8 @@ High-performance message masker that can be used to mask the value corresponding
 
 ## Bug fixes
 - [x] JSON: Besides skipping UTF_8 SPACE (dec 32), also skip LINE FEED (dec 10), HORIZONTAL TAB (dec 9), and CARIAGE RETURN (dec 13)
-- [ ] JSON: Ignore escaped characters 
+- [x] JSON: Ignore escaped characters 
 
 ## Tests / Benchmarks
-- [ ] Benchmark maksing in larger, deeply nested JSON objects
+- [x] Benchmark masking in larger, deeply nested JSON objects
 - [ ] Benchmark the two multitarget key algortihms to find the break-even point 

@@ -1,0 +1,108 @@
+package randomgen.json;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.*;
+import java.util.Random;
+
+public class RandomJsonGenerator {
+    private final RandomJsonGeneratorConfig config;
+    private int nodeDepth = 0;
+
+    private enum NodeType {
+        arrayNode,
+        objectNode,
+        booleanNode,
+        nullNode,
+        stringNode,
+        numberNode
+    }
+
+    public RandomJsonGenerator(RandomJsonGeneratorConfig config) {
+        this.config = config;
+    }
+
+    public JsonNode createRandomJsonNode() {
+        NodeType nodeType = getRandomNodeType();
+        if (nodeDepth >= config.getMaxNodeDepth()) {
+            nodeType = NodeType.stringNode; // don't add depth, just value (String) nodes.
+        }
+        nodeDepth++;
+        return switch (nodeType) {
+            case arrayNode -> createRandomArrayNode();
+            case numberNode -> createRandomNumericNode();
+            case objectNode -> createRandomObjectNode();
+            case booleanNode -> createRandomBooleanNode();
+            case stringNode -> createRandomTextNode();
+            case nullNode -> JsonNodeFactory.instance.nullNode();
+        };
+    }
+
+    private NodeType getRandomNodeType() {
+        int rnd = new Random().nextInt(NodeType.values().length -1);
+        return NodeType.values()[rnd];
+    }
+
+    private TextNode createRandomTextNode() {
+        return JsonNodeFactory.instance.textNode(getRandomString());
+    }
+
+    private BooleanNode createRandomBooleanNode() {
+        int rnd = new Random().nextInt(3); // 1 or 2
+        return JsonNodeFactory.instance.booleanNode(rnd == 2);
+    }
+
+    private ObjectNode createRandomObjectNode() {
+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+        int nrOfObjectKeys = new Random().nextInt(config.getMaxObjectKeys());
+        for (int i = 0; i < nrOfObjectKeys; i++) {
+            if (keyIsTargetKey()) {
+                objectNode.set(getRandomTargetKey(), createRandomJsonNode());
+            } else {
+                objectNode.set(getRandomString(), createRandomJsonNode());
+            }
+        }
+        return objectNode;
+    }
+
+    private boolean keyIsTargetKey() {
+        int rnd = new Random().nextInt(1,101);
+        return rnd <= config.getTargetKeyPercentage();
+    }
+
+    private String getRandomTargetKey() {
+        int rnd = new Random().nextInt(config.getTargetKeys().size() -1);
+        return (String) config.getTargetKeys().toArray()[rnd];
+    }
+
+    private String getRandomString() {
+        int stringLength = new Random().nextInt(config.getMaxStringLength());
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < stringLength; i++) {
+            sb.append(getRandomCharacter());
+        }
+        return sb.toString();
+    }
+
+    private Character getRandomCharacter() {
+        Character[] characters = config.getStringCharacters().toArray(new Character[0]);
+        int randomIndex = new Random().nextInt(characters.length - 1);
+        return characters[randomIndex];
+    }
+
+    private NumericNode createRandomNumericNode() {
+        // TODO: for now only returns decimal nodes, also add int, etc.
+        float rndFloat = new Random().nextFloat(config.getMaxFloat());
+        return JsonNodeFactory.instance.numberNode(rndFloat);
+    }
+
+    private ArrayNode createRandomArrayNode() {
+        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
+        int nrOfArrayElements = new Random().nextInt(config.getMaxArraySize());
+        for (int i = 0; i < nrOfArrayElements; i++) {
+            arrayNode.add(createRandomJsonNode());
+        }
+        return arrayNode;
+    }
+
+
+}

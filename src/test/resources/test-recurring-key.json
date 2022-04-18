@@ -1,0 +1,23 @@
+[
+  {
+    "targetKeys": ["someKey", "someKey2"],
+    "input": {
+      "someKey3": {
+        "someKey": "hello",
+        "someKey2": {
+          "someKey": "hi"
+        }
+      },
+      "someKey": "hello"
+    },
+    "expectedOutput": {
+      "someKey3": {
+        "someKey": "*****",
+        "someKey2": {
+          "someKey": "**"
+        }
+      },
+      "someKey": "*****"
+    }
+  }
+]

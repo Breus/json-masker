@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class RandomJsonGenerator {
     private final RandomJsonGeneratorConfig config;
-    private int nodeDepth = 0;
+    private int arrayOrObjectNodes; // equal or larger than the max node depth
 
     private enum NodeType {
         arrayNode,
@@ -19,14 +19,17 @@ public class RandomJsonGenerator {
 
     public RandomJsonGenerator(RandomJsonGeneratorConfig config) {
         this.config = config;
+        this.arrayOrObjectNodes = 0;
     }
 
     public JsonNode createRandomJsonNode() {
         NodeType nodeType = getRandomNodeType();
-        if (nodeDepth >= config.getMaxNodeDepth()) {
+        if (arrayOrObjectNodes >= config.getMaxNodeDepth()) {
             nodeType = NodeType.stringNode; // don't add depth, just value (String) nodes.
         }
-        nodeDepth++;
+        if (arrayOrObjectNodes < 3 && (nodeType != NodeType.objectNode || nodeType != NodeType.arrayNode)) {
+            nodeType = NodeType.objectNode;
+        }
         return switch (nodeType) {
             case arrayNode -> createRandomArrayNode();
             case numberNode -> createRandomNumericNode();
@@ -61,6 +64,7 @@ public class RandomJsonGenerator {
                 objectNode.set(getRandomString(), createRandomJsonNode());
             }
         }
+        arrayOrObjectNodes++;
         return objectNode;
     }
 
@@ -101,6 +105,7 @@ public class RandomJsonGenerator {
         for (int i = 0; i < nrOfArrayElements; i++) {
             arrayNode.add(createRandomJsonNode());
         }
+        arrayOrObjectNodes++;
         return arrayNode;
     }
 

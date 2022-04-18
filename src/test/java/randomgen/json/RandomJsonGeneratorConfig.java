@@ -68,12 +68,12 @@ public class RandomJsonGeneratorConfig {
     }
 
     public static class Builder {
-        private int maxArraySize = 100;
+        private int maxArraySize = 4;
         private float maxFloat = Float.MAX_VALUE;
-        private int maxStringLength = 100;
-        private int maxObjectKeys = 100;
-        private int maxNodeDepth = 100;
-        private int targetKeyPercentage = 10;
+        private int maxStringLength = 4;
+        private int maxObjectKeys = 4;
+        private int maxNodeDepth = 4;
+        private int targetKeyPercentage = 20;
         private Set<Character> stringCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters);
         private Set<String> targetKeys = defaultTargetKeys;
 

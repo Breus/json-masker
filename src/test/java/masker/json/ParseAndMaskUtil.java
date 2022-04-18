@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.io.IOException;
 import java.util.Set;
@@ -13,32 +14,57 @@ public final class ParseAndMaskUtil {
         // util
     }
 
-    static ObjectNode parseBytesAndMask(byte[] jsonAsBytes, Set<String> keysToBeMasked, ObjectMapper mapper) throws IOException {
-        ObjectNode objectNode = mapper.readValue(jsonAsBytes, ObjectNode.class);
+    static JsonNode parseBytesAndMask(byte[] jsonAsBytes, Set<String> keysToBeMasked, ObjectMapper mapper) throws IOException {
+        JsonNode jsonNode = mapper.readValue(jsonAsBytes, JsonNode.class);
         for (String keyToBeMasked : keysToBeMasked) {
-            maskPropertyInObjectNode(objectNode, keyToBeMasked, mapper);
+            maskPropertyInJsonNode(jsonNode, keyToBeMasked);
         }
-        return objectNode;
+        return jsonNode;
     }
 
-    static ObjectNode parseBytesAndMask(byte[] jsonAsBytes, String keyToBeMasked, ObjectMapper mapper) throws IOException {
-        return maskPropertyInObjectNode(mapper.readValue(jsonAsBytes, ObjectNode.class), keyToBeMasked, mapper);
+    static JsonNode parseBytesAndMask(byte[] jsonAsBytes, String keyToBeMasked, ObjectMapper mapper) throws IOException {
+        return mask(mapper.readValue(jsonAsBytes, JsonNode.class), keyToBeMasked);
     }
 
-    static ObjectNode parseStringAndMask(String jsonAsString, String keyToBeMasked, ObjectMapper mapper) throws JsonProcessingException {
-        return maskPropertyInObjectNode(mapper.readValue(jsonAsString, ObjectNode.class), keyToBeMasked, mapper);
+    static JsonNode parseStringAndMask(String jsonAsString, String keyToBeMasked, ObjectMapper mapper) throws JsonProcessingException {
+        return mask(mapper.readValue(jsonAsString, JsonNode.class), keyToBeMasked);
     }
 
-    static ObjectNode maskPropertyInObjectNode(ObjectNode objectNode, String propertyKey, ObjectMapper mapper) {
-        JsonNode jsonNode = objectNode.findValue(propertyKey);
-        if (jsonNode != null) {
-            objectNode.set(propertyKey, mapper.convertValue(getMask(jsonNode.textValue()), JsonNode.class));
+
+    static JsonNode mask(JsonNode jsonNode, String keyToBeMasked) {
+        maskPropertyInJsonNode(jsonNode, keyToBeMasked);
+        return jsonNode;
+    }
+
+    static JsonNode mask(JsonNode jsonNode, Set<String> keysToBeMasked) {
+        maskPropertiesInJsonNode(jsonNode, keysToBeMasked);
+        return jsonNode;
+    }
+
+    static void maskPropertiesInJsonNode(JsonNode parent, Set<String> keysToBeMasked) {
+        for (String keyToBeMasked : keysToBeMasked) {
+            JsonNode jsonNode = parent.get(keyToBeMasked);
+            if (jsonNode instanceof TextNode) {
+                String replacementValue = "*".repeat(jsonNode.textValue().length());
+                ((ObjectNode) parent).put(keyToBeMasked, replacementValue);
+            }
         }
-        return objectNode;
+        for (JsonNode child : parent) {
+            maskPropertiesInJsonNode(child, keysToBeMasked);
+        }
     }
 
-    private static String getMask(String value) {
-        return "*".repeat(value.length());
+    static void maskPropertyInJsonNode(JsonNode parent, String keyToBeMasked) {
+        JsonNode jsonNode = parent.get(keyToBeMasked);
+        if (jsonNode instanceof TextNode) {
+            String replacementValue = "*".repeat(jsonNode.textValue().length());
+            ((ObjectNode) parent).put(keyToBeMasked, replacementValue);
+        }
+
+        // Now, recursively invoke this method on all properties
+        for (JsonNode child : parent) {
+            maskPropertyInJsonNode(child, keyToBeMasked);
+        }
     }
 
     static String readJsonFromFileAsString(String resourceName, Class<?> clazz) {

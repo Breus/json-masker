@@ -27,7 +27,7 @@ public class RandomJsonGenerator {
         if (arrayOrObjectNodes >= config.getMaxNodeDepth()) {
             nodeType = NodeType.stringNode; // don't add depth, just value (String) nodes.
         }
-        if (arrayOrObjectNodes < 3 && (nodeType != NodeType.objectNode || nodeType != NodeType.arrayNode)) {
+        if ((arrayOrObjectNodes < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode && nodeType != NodeType.arrayNode)) {
             nodeType = NodeType.objectNode;
         }
         return switch (nodeType) {
@@ -40,7 +40,7 @@ public class RandomJsonGenerator {
         };
     }
 
-    private NodeType getRandomNodeType() {
+    public NodeType getRandomNodeType() {
         int rnd = new Random().nextInt(NodeType.values().length -1);
         return NodeType.values()[rnd];
     }

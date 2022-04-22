@@ -12,7 +12,7 @@ import java.util.Set;
 public class FuzzingTest {
 
     @ParameterizedTest
-    @ValueSource(ints = {1}) // number of tests
+    @ValueSource(ints = {10000}) // number of tests
     public void fuzzTestSingleTarget(int amountOfTests) {
         for (int i = 0; i < amountOfTests; i++) {
             Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
@@ -21,12 +21,11 @@ public class FuzzingTest {
             RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             String randomJsonNodeString = randomJsonNode.toPrettyString();
-            System.out.println(randomJsonNodeString);
             String keyContainsOutput = keyContainsMasker.mask(randomJsonNodeString);
             String singleTargetOutput = singleTargetMasker.mask(randomJsonNodeString);
-            String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, targetKeys).toString();
+            String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, targetKeys).toPrettyString();
             Assertions.assertEquals(keyContainsOutput, singleTargetOutput);
-            Assertions.assertEquals(jacksonMaskingOutput, singleTargetOutput);
+            Assertions.assertEquals(jacksonMaskingOutput, keyContainsOutput);
         }
     }
 }

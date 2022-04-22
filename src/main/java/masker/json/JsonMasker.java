@@ -114,7 +114,7 @@ final class JsonMasker extends AbstractMasker {
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (UTF8JsonCharacters.isWhiteSpace(outputBytes[i])) {
+                if (UTF8JsonCharacters.isWhiteSpace(inputSliceBytes[i])) {
                     continue; // found a space, try next character
                 }
                 if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string

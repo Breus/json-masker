@@ -2,6 +2,8 @@ package randomgen.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.*;
+
+import java.math.BigInteger;
 import java.util.Random;
 
 public class RandomJsonGenerator {
@@ -41,7 +43,7 @@ public class RandomJsonGenerator {
     }
 
     public NodeType getRandomNodeType() {
-        int rnd = new Random().nextInt(NodeType.values().length -1);
+        int rnd = new Random().nextInt(NodeType.values().length);
         return NodeType.values()[rnd];
     }
 
@@ -74,7 +76,7 @@ public class RandomJsonGenerator {
     }
 
     private String getRandomTargetKey() {
-        int rnd = new Random().nextInt(config.getTargetKeys().size() -1);
+        int rnd = new Random().nextInt(config.getTargetKeys().size());
         return (String) config.getTargetKeys().toArray()[rnd];
     }
 
@@ -94,9 +96,15 @@ public class RandomJsonGenerator {
     }
 
     private NumericNode createRandomNumericNode() {
-        // TODO: for now only returns decimal nodes, also add int, etc.
-        float rndFloat = new Random().nextFloat(config.getMaxFloat());
-        return JsonNodeFactory.instance.numberNode(rndFloat);
+        int rnd = new Random().nextInt(1, 5);
+        Random random = new Random();
+        return switch (rnd) {
+            case 1 -> JsonNodeFactory.instance.numberNode(random.nextLong(config.getMaxLong()));
+            case 2 -> JsonNodeFactory.instance.numberNode(random.nextFloat(config.getMaxFloat()));
+            case 3 -> JsonNodeFactory.instance.numberNode(random.nextDouble(config.getMaxDouble()));
+            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), new Random()));
+            default -> throw new IllegalStateException("Unexpected value: " + rnd);
+        };
     }
 
     private ArrayNode createRandomArrayNode() {

@@ -1,12 +1,14 @@
 = High-performance (JSON) message masker
 :toc:
 
-
+== Introduction
 (JSON) message masker that can be used to mask the value corresponding to a (set of) target key(s). 
 This implementation is optimized for maximum (time) performance using Java. 
 
 == Dependencies
-No external dependencies are required to use this library.
+* Java 17
+* No external dependencies are required to use this library.
+* Test/benchmark dependencies are included in the `build.gradle`
 
 == Features
 - Mask String values in any JSON structure corresponding to configured target key(s).

@@ -1,0 +1,117 @@
+= High-performance (JSON) message masker
+:toc:
+
+
+(JSON) message masker that can be used to mask the value corresponding to a (set of) target key(s). 
+This implementation is optimized for maximum (time) performance using Java. 
+
+== Dependencies
+No external dependencies are required to use this library.
+
+== Features
+- Mask String values in any JSON structure corresponding to configured target key(s).
+- Obfuscate the original length of the value by setting a fixed mask length.
+- Strong validity guarantees: the two provided algorithms are tested against each other and against masking using Jackson replaces in a fuzzing test in which billions of random JSON structures were created and the outputs were compared.
+
+=== JSON masking algorithms
+- *Single target key loop:* loops over the target key set and executes the single-target key masking algorithm for each key. This algorithm has a time complexity of `Cn * k`, where `n` is the message input size, `k` the target key set size, and `C` is some constant. This algorithm is the best choice in case of a low number of target keys to be masked.
+
+- *Key contains:* uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time. Therefore, the time complexity is `Cn`, where `n` is the message input size and `C` is some constant.
+
+=== Which algorithm should I use?
+The constant factor `C` in the time complexity formula of the 'key contains' algorithm is slightly larger than the 'single target key loop'.
+Therefore, to mask the values of a single target key it is recommended to use the 'single target key loop' algorithm option.
+When targeting multiple keys for masking, one it is recommended to use the 'key contains' algorithm for performance reasons.
+
+== Examples
+=== Single target key masking
+
+Simple example of JsonMasker usage masking a single target key (pineCode).
+
+==== Input
+
+[source,json]
+----
+{
+  "someKey": "someValue",
+  "some2ndKey": {
+    "pinCode": "1234",
+    "some3rdKey": "someOtherValue"
+  }
+}
+----
+
+==== Usage
+
+[source,java]
+----
+    String output = JsonMasker.getMasker("pinCode").mask(input);
+----
+
+==== Output
+
+[source,json]
+----
+{
+  "someKey": "someValue",
+  "some2ndKey": {
+    "pinCode": "****",
+    "some3rdKey": "someOtherValue"
+  }
+}
+----
+
+=== Multiple target keys + length obfuscation masking
+Example showing a how to target multiple keys using the 'key contains' algorithm and obfuscate the original length of the masked values.
+
+==== Input
+
+[source,json]
+----
+{
+  "someKey": "someValue",
+  "some2ndKey": {
+    "pinCode": "1234",
+    "name": "Breus Blaauwendraad",
+    "address": "Some street 12",
+    "cardNumber": "1234 6789",
+    "clientNo": "987 765 432"
+  }
+}
+----
+
+==== Usage
+
+[source,java]
+----
+    Set<String> targetKeys = Set.of("address", "cardNumber", "cvv", "pinCode", "name");
+    JsonMaskingConfig config = JsonMaskingConfig.custom().obfuscationLength(4).multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build();
+    String output = JsonMasker.getMasker(targetKeys, config).mask(input);
+----
+
+==== Output
+
+[source,json]
+----
+{
+  "someKey": "someValue",
+  "some2ndKey": {
+    "pinCode": "****",
+    "name": "****",
+    "address": "****",
+    "cardNumber": "****",
+    "clientNo": "987 765 432"
+  }
+}
+----
+
+== Planned features
+- [x] JSON: adding length obfuscation option
+- [x] JSON: targeting multiple (naive, time complexity n * target key set length)
+- [x] JSON: targeting multiple keys (time complexity n)
+- [x] JSON: add support for input String containing JSON array instead of JSON object
+- [ ] JSON: add feature to enable/disable numeric values
+
+== Future message formats support
+- [ ] XML: add XML masking
+- [ ] x-www-form-urlencoded data masking

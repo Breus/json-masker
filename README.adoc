@@ -117,3 +117,47 @@ Example showing a how to target multiple keys using the 'key contains' algorithm
 == Future message formats support
 - [ ] XML: add XML masking
 - [ ] x-www-form-urlencoded data masking
+
+== Performance (benchmarks)
+This library shines when you have a predefined list of target keys for which one wants the value in the (JSON) message to be masked.
+Especially the 'key contains' algorithm is an advantage compared to using something like Jackson for masking, since the time complexity of masking doesn't scale with the number of keys targeted.
+
+
+=== Targeting multiple keys
+Using JMH, we got the following results which compare the `key contains` algorithm, the `single target loop` algorithm and using Jackson to mask the values.
+This benchmark takes the file `large-input-benchmark.json` as input and targets a set of 100 keys.
+
+[source]
+----
+Benchmark                                                              Mode  Cnt       Score   Error  Units
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt    2    3705,435          ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt    2     259,892          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt    2  389815,790          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt    2   19147,009          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt    2  140475,577          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    2    3116,934          ns/op
+----
+
+
+=== Targeting a single key and obfuscation
+
+Targeting a single key using the 'single target loop' algorithm is approximately as fast as using Jackson for masking for small inputs.
+Nonetheless, for larger inputs the JsonMasker is faster compared to using Jackson for masking.
+
+Furthermore, the benchmark results below indicate that length obfuscation has negligible impact on the performance of the masking.
+
+[source]
+----
+Benchmark                                                                                   Mode  Cnt     Score   Error  Units
+JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectBytes                                   avgt       4127,513          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectString                                  avgt       3904,211          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectBytes                                  avgt        217,186          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthEqualToTargetValue      avgt        220,453          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue   avgt        205,186          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue  avgt        186,976          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectString                                 avgt        218,180          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsBytes                         avgt       8034,178          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsString                        avgt       8841,435          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsByte                          avgt        173,872          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsString                        avgt        208,936          ns/op
+----

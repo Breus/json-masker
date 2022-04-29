@@ -43,14 +43,7 @@ public final class ParseAndMaskUtil {
 
     static void maskPropertiesInJsonNode(JsonNode parent, Set<String> keysToBeMasked) {
         for (String keyToBeMasked : keysToBeMasked) {
-            JsonNode jsonNode = parent.get(keyToBeMasked);
-            if (jsonNode instanceof TextNode) {
-                String replacementValue = "*".repeat(jsonNode.textValue().length());
-                ((ObjectNode) parent).put(keyToBeMasked, replacementValue);
-            }
-        }
-        for (JsonNode child : parent) {
-            maskPropertiesInJsonNode(child, keysToBeMasked);
+            maskPropertyInJsonNode(parent, keyToBeMasked);
         }
     }
 
@@ -60,8 +53,7 @@ public final class ParseAndMaskUtil {
             String replacementValue = "*".repeat(jsonNode.textValue().length());
             ((ObjectNode) parent).put(keyToBeMasked, replacementValue);
         }
-
-        // Now, recursively invoke this method on all properties
+        // Now, recursively invoke this method on all nodes
         for (JsonNode child : parent) {
             maskPropertyInJsonNode(child, keyToBeMasked);
         }

@@ -64,9 +64,9 @@ final class JsonMasker extends AbstractMasker {
             this.maskingConfig = maskingConfig;
         }
         if (this.maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
-            Set<String> quotedTargetKeys = new HashSet<>();
-            targetKeys.forEach(t -> quotedTargetKeys.add('"' + t + '"'));
-            this.quotedTargetKeys = quotedTargetKeys;
+            Set<String> quotedTargetKeySet = new HashSet<>();
+            targetKeys.forEach(t -> quotedTargetKeySet.add('"' + t + '"'));
+            this.quotedTargetKeys = quotedTargetKeySet;
         }
     }
 
@@ -131,7 +131,6 @@ final class JsonMasker extends AbstractMasker {
                     if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
                         outputBytes = obfuscateLengthOfTargetValue(outputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
-                    continue outer;
                 }
                 continue outer;
             }

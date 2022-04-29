@@ -9,11 +9,11 @@ import randomgen.json.RandomJsonGeneratorConfig;
 
 import java.util.Set;
 
-public class FuzzingTest {
+class FuzzingTest {
 
     @ParameterizedTest
     @ValueSource(ints = {10000}) // number of tests
-    public void fuzzTestSingleTarget(int amountOfTests) {
+    void fuzzTestSingleTarget(int amountOfTests) {
         for (int i = 0; i < amountOfTests; i++) {
             Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
             JsonMasker keyContainsMasker = JsonMasker.getMasker(targetKeys, JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build());

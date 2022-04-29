@@ -1,36 +1,33 @@
 [
   {
-    "maskerConfig": {
-      "obfuscationLength": 2
-    },
+    "obfuscationLength": 2,
+    ""
     "targetKey": "someKey",
     "input": {
-      "someKey": "hello"
-    },
-    "expectedOutput": {
-      "someKey": "**"
-    }
-  },
-  {
-    "maskerConfig": {
-      "obfuscationLength": 1
-    },
-    "targetKey": "someKey",
-    "input": {
-      "someKey1": 123,
       "someKey": "hello",
-      "someKey2": 2
+      "someKey2": 1234
     },
     "expectedOutput": {
-      "someKey1": 123,
-      "someKey": "*",
-      "someKey2": 2
+      "someKey": "**",
+      "someKey2": 11
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 0
+    "obfuscationLength": 1,
+    "targetKey": "someKey",
+    "input": {
+      "someKey1": 123,
+      "someKey2": "hello",
+      "someKey3": 23
     },
+    "expectedOutput": {
+      "someKey1": 123,
+      "someKey2": "*",
+      "someKey3": 1
+    }
+  },
+  {
+    "obfuscationLength": 0,
     "targetKey": "someKey",
     "input": {
       "someKey": "hello"
@@ -40,9 +37,7 @@
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 5
-    },
+    "obfuscationLength": 5,
     "targetKey": "someKey",
     "input": {
       "someKey": "hi"

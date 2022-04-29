@@ -19,12 +19,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
-public class JsonMaskerTest {
+class JsonMaskerTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest
@@ -135,21 +133,26 @@ public class JsonMaskerTest {
         ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
         ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
         for (JsonNode jsonNode : jsonArray) {
-            testInstances.add(new JsonMaskerTestInstance(reader.readValue(jsonNode.get("targetKeys")),
-                    jsonNode.get("input").toString(),
-                    jsonNode.get("expectedOutput").toString(),
-                    mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)));
+            Map<String, Object> maskerConfigs = null;
+            if (jsonNode.findValue("maskerConfig") != null) {
+                maskerConfigs = reader.readValue(jsonNode.get("maskerConfig"), Map.class);
+            }
+            var jsonMaskerTestInstance = new JsonMaskerTestInstance(reader.readValue(jsonNode.get("targetKeys")), jsonNode.get("input").toString(), jsonNode.get("expectedOutput").toString(), maskerConfigs);
+            testInstances.add(jsonMaskerTestInstance);
         }
         return testInstances;
     }
 
-    private static List<JsonMaskerTestInstance> getJsonTestInstancesFromJsonArray(ArrayNode jsonArray) {
+    private static List<JsonMaskerTestInstance> getJsonTestInstancesFromJsonArray(ArrayNode jsonArray) throws IOException {
         ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
+        ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
         for (JsonNode jsonNode : jsonArray) {
-            testInstances.add(new JsonMaskerTestInstance(Set.of(mapper.convertValue(jsonNode.get("targetKey"), String.class)),
-                    jsonNode.get("input").toString(),
-                    jsonNode.get("expectedOutput").toString(),
-                    mapper.convertValue(jsonNode.get("obfuscationLength"), Integer.class)));
+            Map<String, Object> maskerConfigs = null;
+            if (jsonNode.findValue("maskerConfig") != null) {
+                maskerConfigs = reader.readValue(jsonNode.get("maskerConfig"), Map.class);
+            }
+            var jsonMaskerTestInstance = new JsonMaskerTestInstance(Set.of(mapper.convertValue(jsonNode.get("targetKey"), String.class)), jsonNode.get("input").toString(), jsonNode.get("expectedOutput").toString(), maskerConfigs);
+            testInstances.add(jsonMaskerTestInstance);
         }
         return testInstances;
     }

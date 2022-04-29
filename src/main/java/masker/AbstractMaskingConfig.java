@@ -4,7 +4,7 @@ public abstract class AbstractMaskingConfig {
 	/**
 	 * Specifies the fixed length of the mask when target value lengths should be obfuscated.
 	 * <p>
-	 * -1 means length obfuscation being disabled.
+	 * -1 means length obfuscation is disabled.
 	 * <p>
 	 * Default value: -1 (via builder)
 	 */

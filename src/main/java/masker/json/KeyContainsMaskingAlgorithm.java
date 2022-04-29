@@ -6,7 +6,12 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-public class KeyContainsMaskingAlgorithm {
+public final class KeyContainsMaskingAlgorithm {
+
+    private KeyContainsMaskingAlgorithm() {
+        // don't instantiate
+    }
+
     /**
      * Masks the String values in the given input for all values having keys corresponding to any of the provided target keys.
      * This implementation is optimized for multiple target keys.
@@ -43,7 +48,7 @@ public class KeyContainsMaskingAlgorithm {
             String key = new String(keyBytes, StandardCharsets.UTF_8);
             i = colonIndex + 1; // continue looping from after colon
             if (!targetKeys.contains(key)) {
-                i = i + 4; // +4 since minimum amount of characters between colon is 5 --> {"a":1,"":2}
+                i = i + 4; // +4 since minimum amount of characters between colon is 5: {"a":1,"":2}
                 continue;
             }
 

@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-public class JsonRecurringKeyTest {
+class JsonRecurringKeyTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest

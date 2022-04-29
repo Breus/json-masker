@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class JsonPrettyPrintTest {
+class JsonPrettyPrintTest {
     @Test
     void testPrettyPrintMaskingDefault() throws JsonProcessingException {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");

@@ -23,9 +23,8 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
      * @param input the input message for which values might be masked
      * @return the masked message
      */
-    @NotNull
     @Override
-    public byte[] mask(@NotNull byte[] input) {
+    public byte[] mask(byte[] input) {
         int i = 0;
         outer:
         while (i < input.length - 2) { // minus one character for closing curly bracket, one for the value

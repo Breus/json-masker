@@ -10,15 +10,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 10)
+@Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
-@Measurement(iterations = 2, time = 10)
+@Measurement(iterations = 1, time = 5)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @BenchmarkMode(Mode.AverageTime)
 public class JsonMaskMultipleTargetKeysBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Benchmark)
     public static class State {
-        Set<String> keysToBeMasked = getKeysToBeMasked(100);
+        Set<String> keysToBeMasked = getTargetKeys(100);
         ObjectMapper mapper = new ObjectMapper();
         String smallJsonAsString = "{\"someSecret\": \"someValue\", \n\"someOtherKey\": {\"someSecret2\": \"value\"}}";
         byte[] simpleJsonAsBytes = smallJsonAsString.getBytes(StandardCharsets.UTF_8);
@@ -27,12 +27,12 @@ public class JsonMaskMultipleTargetKeysBenchmark {
         JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(keysToBeMasked, JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build());
         JsonMasker loopJsonMasker = JsonMasker.getMasker(keysToBeMasked, JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build());
 
-        private Set<String> getKeysToBeMasked(int numberOfKeys) {
-            Set<String> keysToBeMasked = new HashSet<>();
+        private Set<String> getTargetKeys(int numberOfKeys) {
+            Set<String> targetKeys = new HashSet<>();
             for (int i = 0; i < numberOfKeys; i++) {
-                keysToBeMasked.add("someSecret" + i);
+                targetKeys.add("someSecret" + i);
             }
-            return keysToBeMasked;
+            return targetKeys;
         }
     }
 

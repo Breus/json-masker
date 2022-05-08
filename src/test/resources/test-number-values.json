@@ -1,11 +1,13 @@
 [
   {
-    "obfuscationLength": 2,
-    ""
-    "targetKey": "someKey",
+    "maskerConfig": {
+      "obfuscationLength": 2,
+      "maskNumberValuesWith": 1
+    },
+    "targetKeys": ["someKey", "someKey2", "someKey4"],
     "input": {
       "someKey": "hello",
-      "someKey2": 1234
+      "someKey2": 12345
     },
     "expectedOutput": {
       "someKey": "**",
@@ -13,37 +15,18 @@
     }
   },
   {
-    "obfuscationLength": 1,
-    "targetKey": "someKey",
+    "maskerConfig": {
+      "obfuscationLength": 4,
+      "maskNumberValuesWith": 8
+    },
+    "targetKeys": ["someKey", "someKey2", "someKey3"],
     "input": {
-      "someKey1": 123,
-      "someKey2": "hello",
-      "someKey3": 23
+      "someKey": "hello",
+      "someKey3": 12345
     },
     "expectedOutput": {
-      "someKey1": 123,
-      "someKey2": "*",
-      "someKey3": 1
-    }
-  },
-  {
-    "obfuscationLength": 0,
-    "targetKey": "someKey",
-    "input": {
-      "someKey": "hello"
-    },
-    "expectedOutput": {
-      "someKey": ""
-    }
-  },
-  {
-    "obfuscationLength": 5,
-    "targetKey": "someKey",
-    "input": {
-      "someKey": "hi"
-    },
-    "expectedOutput": {
-      "someKey": "*****"
+      "someKey": "****",
+      "someKey3": 8888
     }
   }
 ]

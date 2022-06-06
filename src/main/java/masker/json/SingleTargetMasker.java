@@ -1,6 +1,6 @@
 package masker.json;
 
-import masker.UTF8Encoding;
+import masker.Utf8AsciiCharacter;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -59,32 +59,51 @@ public class SingleTargetMasker implements JsonMaskerImpl {
             }
             i = startIndexOfTargetKey + targetKey.length(); // step over found target key
             for (; i < inputSliceBytes.length; i++) {
-                if (UTF8JsonCharacters.isWhiteSpace(inputSliceBytes[i])) {
+                if (Utf8AsciiJson.isWhiteSpace(inputSliceBytes[i])) {
                     continue; // found a JSON whitespace, try next character
                 }
-                if (inputSliceBytes[i] == UTF8Encoding.COLON.getUtf8ByteValue()) {
+                if (inputSliceBytes[i] == Utf8AsciiCharacter.COLON.getUtf8ByteValue()) {
                     break; // found a colon, so the found target key is indeed a JSON key
                 }
                 continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (UTF8JsonCharacters.isWhiteSpace(inputSliceBytes[i])) {
+                if (Utf8AsciiJson.isWhiteSpace(inputSliceBytes[i])) {
                     continue; // found a space, try next character
                 }
-                if (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
-                    i++; // step over quote
+                // If number masking is enabled, check if the next character could be the first character of a JSON number value
+                if (maskingConfig.getMaskNumberValuesWith() != -1 && Utf8AsciiJson.isFirstNumberChar(inputSliceBytes[i]))  {
                     int targetValueLength = 0;
-                    boolean escapeNextCharacter = false;
-                    while(inputSliceBytes[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
-                        escapeNextCharacter = (inputSliceBytes[i] == UTF8Encoding.BACK_SLASH.getUtf8ByteValue());
-                        outputBytes[i + j] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
+                    while (Utf8AsciiJson.isNumericCharacter(inputSliceBytes[i])) {
+                        outputBytes[i + j] = Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith());
                         targetValueLength++;
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
                     if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
-                        outputBytes = LengthObfuscationUtil.obfuscateLengthOfTargetValue(outputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                        if (obfuscationLength == 0) {
+                            // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
+                            outputBytes = LengthObfuscationUtil.obfuscationLengthOfValue(outputBytes, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        } else {
+                            outputBytes = LengthObfuscationUtil.obfuscationLengthOfValue(outputBytes, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        }
+                    }
+                }
+
+                if (inputSliceBytes[i] == Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue()) { // value is a string
+                    i++; // step over quote
+                    int targetValueLength = 0;
+                    boolean escapeNextCharacter = false;
+                    while(inputSliceBytes[i] != Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() || (inputSliceBytes[i] == Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
+                        escapeNextCharacter = (inputSliceBytes[i] == Utf8AsciiCharacter.BACK_SLASH.getUtf8ByteValue());
+                        outputBytes[i + j] = Utf8AsciiCharacter.ASTERISK.getUtf8ByteValue();
+                        targetValueLength++;
+                        i++;
+                    }
+                    int obfuscationLength = maskingConfig.getObfuscationLength();
+                    if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                        outputBytes = LengthObfuscationUtil.obfuscateLengthOfStringValue(outputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     }
                 }
                 continue outer;
@@ -92,9 +111,6 @@ public class SingleTargetMasker implements JsonMaskerImpl {
         }
         return outputBytes;
     }
-
-
-
 
     private int indexOf(byte[] src, byte[] target) {
         for (int i = 0; i <= src.length - target.length; i++) {

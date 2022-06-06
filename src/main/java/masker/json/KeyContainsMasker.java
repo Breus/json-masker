@@ -1,6 +1,6 @@
 package masker.json;
 
-import masker.UTF8Encoding;
+import masker.Utf8AsciiCharacter;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -28,18 +28,18 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
         int i = 0;
         outer:
         while (i < input.length - 2) { // minus one character for closing curly bracket, one for the value
-            if (input[i] != UTF8Encoding.COLON.getUtf8ByteValue()) {  // loop until index is on colon
+            if (input[i] != Utf8AsciiCharacter.COLON.getUtf8ByteValue()) {  // loop until index is on colon (to find a JSON key)
                 i++;
                 continue;
             }
             int colonIndex = i;
             i--; // step back from colon
-            while (input[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
+            while (input[i] != Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue()) {
                 i--; // loop back until index is on closing quote of JSON key
             }
             int closingQuoteIndex = i;
             i--; // step back from closing quote
-            while (input[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && input[i-1] != UTF8Encoding.BACK_SLASH.getUtf8ByteValue()) {
+            while (input[i] != Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() && input[i-1] != Utf8AsciiCharacter.BACK_SLASH.getUtf8ByteValue()) {
                 i--; // loop back until index is on opening quote of key, so ignore escaped quotes (which are part of the value)
             }
             int openingQuoteIndex = i;
@@ -53,29 +53,60 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
                 continue;
             }
 
-            while (input[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue()) {
-                if (UTF8JsonCharacters.isWhiteSpace(input[i])) {
+            while (unrecognizedValueCharacter(input[i])) {
+                if (Utf8AsciiJson.isWhiteSpace(input[i])) {
                     i++; // skip white characters
                     continue;
                 }
                 i++;
-                continue outer; // any other character than white space or double quote means the value is not a string, so we don't have to do any masking
-            }
-            i++; // step over quote
-            int targetValueLength = 0;
-            boolean escapeNextCharacter = false;
-            while(input[i] != UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() || (input[i] == UTF8Encoding.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
-                escapeNextCharacter = (input[i] == UTF8Encoding.BACK_SLASH.getUtf8ByteValue());
-                input[i] = UTF8Encoding.ASTERISK.getUtf8ByteValue();
-                targetValueLength++;
-                i++;
+                continue outer; // any other character than white space or double quote means the value is not a string, so we don't have to do any masking. Only if masking number values is set, we also move on when next character is a numeric character
             }
             int obfuscationLength = maskingConfig.getObfuscationLength();
-            if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
-                input = LengthObfuscationUtil.obfuscateLengthOfTargetValue(input, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+            if (maskingConfig.getMaskNumberValuesWith() == -1 || ! Utf8AsciiJson.isNumericCharacter(input[i])) {
+                // This block deals with Strings
+                i++; // step over quote
+                int targetValueLength = 0;
+                boolean escapeNextCharacter = false;
+                while (input[i] != Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() || (input[i] == Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() && escapeNextCharacter)) {
+                    escapeNextCharacter = (input[i] == Utf8AsciiCharacter.BACK_SLASH.getUtf8ByteValue());
+                    input[i] = Utf8AsciiCharacter.ASTERISK.getUtf8ByteValue();
+                    targetValueLength++;
+                    i++;
+                }
+                if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                    input = LengthObfuscationUtil.obfuscateLengthOfStringValue(input, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                }
+            } else {
+                // This block deals with numeric values
+                int targetValueLength = 0;
+                while (Utf8AsciiJson.isNumericCharacter(input[i])) {
+                    targetValueLength++;
+                    input[i] = Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith());
+                    i++;
+                }
+                if (obfuscationLength != -1 && obfuscationLength != targetValueLength) {
+                    if (obfuscationLength == 0) {
+                        // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
+                        input = LengthObfuscationUtil.obfuscationLengthOfValue(input, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                    } else {
+                        input = LengthObfuscationUtil.obfuscationLengthOfValue(input, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                    }
+                }
             }
         }
         return input;
+    }
+
+    /**
+     * Wrong character is anything that is not a quotation mark (denoting String value beginnings) or not numeric in case number masking is enabled.
+     * @param inputByte the character to check
+     * @return true if it's an unrecognized value character or else false
+     */
+    private boolean unrecognizedValueCharacter(@NotNull byte inputByte) {
+        if (maskingConfig.getMaskNumberValuesWith() != -1 && Utf8AsciiJson.isNumericCharacter(inputByte)) {
+            return false;
+        }
+        return ! (Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() == inputByte);
     }
 
     @NotNull

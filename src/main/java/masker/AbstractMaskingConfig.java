@@ -22,6 +22,10 @@ public abstract class AbstractMaskingConfig {
 			return self();
 		}
 
+		public int getObfuscationLength() {
+			return obfuscationLength;
+		}
+
 		public abstract AbstractMaskingConfig build();
 
 		// Subclasses must override this method to return "this"

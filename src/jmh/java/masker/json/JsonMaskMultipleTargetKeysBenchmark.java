@@ -10,9 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1, time = 10)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 5)
+@Measurement(iterations = 1, time = 10)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @BenchmarkMode(Mode.AverageTime)
 public class JsonMaskMultipleTargetKeysBenchmark {

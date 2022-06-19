@@ -1,0 +1,28 @@
+= Benchmark history
+
+To prevent performance regressions, we keep track of changes in JMH benchmarks (10 s warmup, 10s average time)
+after each commit that could impact the performance of the masker.
+
+== Measurements
+
+19-06-2022
+Benchmark                                                              Mode  Cnt       Score   Error  Units
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt         2649,220          ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt          246,187          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt       260032,673          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt        15819,945          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt       142586,845          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt         3156,930          ns/op
+
+Benchmark                                                                                   Mode  Cnt     Score   Error  Units
+JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectBytes                                   avgt       3464,961          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectString                                  avgt       3461,907          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectBytes                                  avgt        171,354          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthEqualToTargetValue      avgt        171,603          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue   avgt        166,287          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue  avgt        146,020          ns/op
+JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectString                                 avgt        173,057          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsBytes                         avgt       7674,787          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsString                        avgt       8871,494          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsByte                          avgt        184,661          ns/op
+JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsString                        avgt        203,854          ns/op

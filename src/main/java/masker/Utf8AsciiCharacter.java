@@ -5,6 +5,8 @@ public enum Utf8AsciiCharacter {
 	BACK_SLASH((byte) 92),
 	CARRIAGE_RETURN((byte) 13),
 	COLON((byte) 58),
+	COMMA((byte) 44),
+	CURLY_BRACKET_OPEN((byte) 123),
 	DOUBLE_QUOTE((byte) 34),
 	HORIZONTAL_TAB((byte) 9),
 	LINE_FEED((byte) 10),
@@ -14,6 +16,10 @@ public enum Utf8AsciiCharacter {
 	PLUS((byte) 43),
 	SPACE((byte) 32),
 	UPPERCASE_E((byte) 69),
+
+	LOWERCASE_F((byte) 102),
+	LOWERCASE_N((byte) 110),
+	LOWERCASE_T((byte) 116),
 
 	ZERO((byte) 48),
 	ONE((byte) 49),
@@ -50,5 +56,17 @@ public enum Utf8AsciiCharacter {
 			case 9 -> NINE.utf8ByteValue;
 			default -> throw new IllegalStateException("Unexpected value: " + digit);
 		};
+	}
+
+	public static boolean isDoubleQuote(byte inputByte) {
+		return DOUBLE_QUOTE.getUtf8ByteValue() == inputByte;
+	}
+
+	public static boolean isEscapeCharacter(byte inputByte) {
+		return BACK_SLASH.getUtf8ByteValue() == inputByte;
+	}
+
+	public static boolean isColon(byte inputByte) {
+		return COLON.getUtf8ByteValue() == inputByte;
 	}
 }

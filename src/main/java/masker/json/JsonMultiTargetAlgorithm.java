@@ -7,8 +7,7 @@ package masker.json;
  * (time complexity cN * M, where N is the message input size, M the target key set size, and c is some constant)
  * {@link JsonMultiTargetAlgorithm#KEYS_CONTAIN}         uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key.
  * (time complexity cN, where N is the message input size and c is some constant)
- * // TODO @breus: benchmark next statement
- * Note: for small target key set, the {@link JsonMultiTargetAlgorithm#SINGLE_TARGET_LOOP} might actually be faster for multi-target masking since the constant in is smaller.
+ * Note: for small target key set (1-2 entries), the {@link JsonMultiTargetAlgorithm#SINGLE_TARGET_LOOP} might actually be faster for multi-target masking since the constant in is smaller.
  * <p>
  * Default value: KEYS_CONTAIN
  */

@@ -14,6 +14,10 @@ public abstract class AbstractMaskingConfig {
 		return obfuscationLength;
 	}
 
+	public boolean isObfuscationEnabled() {
+		return obfuscationLength != -1;
+	}
+
 	protected abstract static class Builder <T extends Builder<T>> {
 		private int obfuscationLength = -1;
 

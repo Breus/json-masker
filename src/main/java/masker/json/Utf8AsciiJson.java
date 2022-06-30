@@ -48,12 +48,21 @@ public final class Utf8AsciiJson {
             NINE.getUtf8ByteValue()
     };
 
+    static byte[] firstBooleanCharacters = new byte[] {
+            LOWERCASE_F.getUtf8ByteValue(),
+            LOWERCASE_T.getUtf8ByteValue()
+    };
+
     private Utf8AsciiJson() {
         // don't instantiate
     }
 
     static byte[] firstNumberCharacters() {
         return firstNumberCharacters;
+    }
+
+    static byte[] firstBooleanCharacters() {
+        return firstBooleanCharacters;
     }
 
     static byte[] numberCharacters() {
@@ -89,5 +98,18 @@ public final class Utf8AsciiJson {
             }
         }
         return false;
+    }
+
+    static boolean isFirstBooleanCharacter(byte utf8Character) {
+        for (byte booleanFirstChar : firstBooleanCharacters) {
+            if (utf8Character == booleanFirstChar) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean isStartOfValue(byte utf8Character) {
+        return isNumericCharacter(utf8Character) || isDoubleQuote(utf8Character) || isFirstBooleanCharacter(utf8Character) || LOWERCASE_N.getUtf8ByteValue() == utf8Character;
     }
 }

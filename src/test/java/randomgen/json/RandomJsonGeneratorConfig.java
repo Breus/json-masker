@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 
 public class RandomJsonGeneratorConfig {
     private static final Set<Character> asciiDigits = IntStream.rangeClosed(48, 57).mapToObj(i -> (char) i).collect(Collectors.toSet());
+    private static final Set<Character> asciiSpecialChars = IntStream.rangeClosed(59,64).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<Character> asciiUppercaseLetters = IntStream.rangeClosed(65, 90).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<Character> asciiLowercaseLetters = IntStream.rangeClosed(97, 122).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3");
@@ -108,7 +109,7 @@ public class RandomJsonGeneratorConfig {
         private int maxObjectKeys = 10;
         private int maxNodeDepth = 10;
         private int targetKeyPercentage = 30;
-        private Set<Character> stringCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters);
+        private Set<Character> stringCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters, asciiSpecialChars);
         private Set<String> targetKeys = defaultTargetKeys;
 
         public Builder setMaxArraySize(int maxArraySize) {

@@ -69,4 +69,12 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     public int getMaskNumberValuesWith() {
         return maskNumberValuesWith;
     }
+
+    public boolean isNumberMaskingEnabled() {
+        return maskNumberValuesWith != -1;
+    }
+
+    public boolean isNumberMaskingDisabled() {
+        return maskNumberValuesWith == -1;
+    }
 }

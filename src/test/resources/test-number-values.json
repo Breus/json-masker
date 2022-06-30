@@ -1,17 +1,17 @@
 [
   {
     "maskerConfig": {
-      "obfuscationLength": 2,
+      "obfuscationLength": 4,
       "maskNumberValuesWith": 1
     },
     "targetKeys": ["someKey", "someKey2", "someKey4"],
     "input": {
-      "someKey": "hello",
-      "someKey2": 12345
+      "someKey": "o",
+      "someKey2": 123456
     },
     "expectedOutput": {
-      "someKey": "**",
-      "someKey2": 11
+      "someKey": "****",
+      "someKey2": 1111
     }
   },
   {

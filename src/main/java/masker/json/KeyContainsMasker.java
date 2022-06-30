@@ -1,12 +1,12 @@
 package masker.json;
 
 import masker.Utf8AsciiCharacter;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static masker.Utf8AsciiCharacter.*;
+import static masker.Utf8AsciiCharacter.isDoubleQuote;
+import static masker.Utf8AsciiCharacter.isEscapeCharacter;
 import static masker.json.Utf8AsciiJson.*;
 
 public final class KeyContainsMasker implements JsonMaskerImpl {
@@ -28,79 +28,74 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
      */
     @Override
     public byte[] mask(byte[] input) {
-        if (isStartOfValue(input[0])) {
-            // The input is a JSON value which cannot contain any keys so no masking is required
+        if (!isObjectOrArray(input) || input.length < 7) {
+            // Minimum object required for masking is: {"":""}, so minimum length at least 7 bytes
+            // No masking required as first byte is not a '{' or '[', so the JSON input is a value type (boolean, String, number, ...)
             return input;
         }
-        int i = 0;
-        outer:
-        while (i < input.length) {
-            // minus one character for closing curly bracket, one for the value
-            // skip characters until index is on a colon (to find a JSON key) which is not part of a String (key or value)
-            if (! isColon(input[i])) {
-                // Following line cannot result in ArrayOutOfBound because of the early return after checking for first char being a double quote
-                i++;
-                continue;
+        int i = 1; // first character can be skipped as it is either a '{' or '['
+        // we are looking for targeted JSON keys, so they can appear at minimum 4 characters till the end at the end is: {"":""}
+        mainLoop:
+        while (i < input.length - 4) {
+            // Find JSON strings by looking for unescaped double quotes
+            while (!Utf8AsciiCharacter.isDoubleQuote(input[i]) && !Utf8AsciiCharacter.isEscapeCharacter(input[i-1])) {
+                if (i < input.length -4) {
+                    i++;
+                } else {
+                    break mainLoop;
+                }
             }
-            int colonIndex = i;
-            i++; // step over the colon
+            int openingQuoteIndex = i;
+            i++; // step over the opening quote
+            while (!Utf8AsciiCharacter.isDoubleQuote(input[i]) && !Utf8AsciiCharacter.isEscapeCharacter(input[i-1]) && i < input.length -1) {
+                if (i < input.length -4) {
+                    i++;
+                } else {
+                    break mainLoop;
+                }
+            }
+            int closingQuoteIndex = i;
+            i++; // step over the closing quote
 
-            // first check that the value for this key is a string to see if we need to do masking
+            // At this point, we found a string ("...").
+            // Now let's verify it is a JSON key (it must be followed by a colon (there might be some white spaces in between).
+            while (!Utf8AsciiCharacter.isColon(input[i])) {
+                if (!Utf8AsciiJson.isWhiteSpace(input[i])) {
+                    continue mainLoop; // the found string was not a JSON key, continue looking from where we left of
+                }
+                i++;
+            }
+
+            // At this point, we found a string which is a JSON key.
+            // Now let's verify that the value is maskable (a number or string).
+
+            // The index is at the colon between the key and value
+            i++; // step over the colon
             while (isWhiteSpace(input[i])) {
                 i++; // step over all white characters after the colon
             }
             if (! isDoubleQuote(input[i])) {
                 if (maskingConfig.isNumberMaskingDisabled()) {
-                    i++;
-                    continue; // continue looking for the next colon (this one is inside a key or value)
+                    continue mainLoop;  // the found JSON key did not have a maskable value, continue looking from where we left of
                 } else {
                     if (! isFirstNumberChar(input[i])) {
-                        i++;
-                        continue; // continue looking for the next colon (this one is inside a key or value)
+                        continue mainLoop; // the found JSON key did not have a maskable value, continue looking from where we left of
                     }
                 }
             }
 
-            i = colonIndex - 1; // step back from the colon
-            while (! isDoubleQuote(input[i])) {
-                if (! isWhiteSpace(input[i])) {
-                    // this is a colon in a JSON value, continue outer
-                    i = i + 2;
-                    continue outer;
-                }
-                i--; // loop back until index is on closing quote of JSON key
-            }
-            int closingQuoteIndex = i; // or opening double quote if colon was part of a JSON String
-
-            if (i < 2) {
-                // colon can only be in a JSON key
-                i = colonIndex + 1;
-                continue;
-            }
-            i--; // step back from closing quote
-            while (! isDoubleQuote(input[i]) && ! isEscapeCharacter(input[i-1])) {
-                i--; // loop back until index is on opening quote of key, so ignore escaped quotes (which are part of the value)
-            }
-            int openingQuoteIndex = i;
+            // At this point, we found a JSON key with a maskable value.
+            // Now let's verify the found JSON key is a target key.
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // quotes are not included, but it is a length, hence the minus 1
-            byte[] keyBytes = new byte[keyLength];
-            System.arraycopy(input, openingQuoteIndex + 1, keyBytes, 0, keyLength);
-            String key = new String(keyBytes, StandardCharsets.UTF_8);
-            i = colonIndex + 1; // continue looping from after colon
+            byte[] keyBytesBuffer = new byte[keyLength];
+            System.arraycopy(input, openingQuoteIndex + 1, keyBytesBuffer, 0, keyLength);
+            String key = new String(keyBytesBuffer, StandardCharsets.UTF_8);
             if (!targetKeys.contains(key)) {
-                i = i + 4; // +4 since minimum amount of characters between colon is 5: {"a":1,"":2}
-                continue;
+                continue mainLoop; // The found JSON key is not a target key, so continue the main loop
             }
 
-            while (unrecognizedValueCharacter(input[i])) {
-                if (isWhiteSpace(input[i])) {
-                    i++; // skip white space characters
-                    continue;
-                }
-                i++;
-                // for any other character that isn't recognized to be a value (String or number in case number masking is enabled) we can skip to the other loop as there is nothing to mask
-                continue outer;
-            }
+            // At this point, we found a targeted JSON key with a maskable value.
+            // Now let's mask the value.
             int obfuscationLength = maskingConfig.getObfuscationLength();
             if (maskingConfig.isNumberMaskingEnabled() && isNumericCharacter(input[i])) {
                 // This block deals with numeric values
@@ -116,8 +111,11 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
                     if (obfuscationLength == 0) {
                         // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
                         input = FixedLengthValueUtil.setFixedLengthOfValue(input, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        // The length of the input got changed, so we need to compensate that on our index by stepping the difference between value length and obfuscation length back
+                        i = i - (targetValueLength - 1);
                     } else {
                         input = FixedLengthValueUtil.setFixedLengthOfValue(input, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        // The length of the input got changed, so we need to compensate that on our index by stepping the difference between value length and obfuscation length back
                         i = i - (targetValueLength - obfuscationLength);
                     }
                 }
@@ -150,28 +148,13 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
                     // compensate the index for shortening the input with noOfEscapeCharacters to be at closing double quote of the String value
                     i = i - noOfEscapeCharacters;
                 }
+                i++; // step over closing quote of string value to start looking for the next JSON key
             }
-            i++; // step over closing double quote
         }
         return input;
     }
 
-    /**
-     * Wrong character is anything that is not a quotation mark (denoting String value beginnings) or not numeric in case number masking is enabled.
-     * @param inputByte the character to check
-     * @return true if it's an unrecognized value character or else false
-     */
-    private boolean unrecognizedValueCharacter(byte inputByte) {
-        if (maskingConfig.isNumberMaskingEnabled() && isNumericCharacter(inputByte)) {
-            return false;
-        }
-        return Utf8AsciiCharacter.DOUBLE_QUOTE.getUtf8ByteValue() != inputByte;
+    private boolean isObjectOrArray(byte[] input) {
+        return Utf8AsciiCharacter.CURLY_BRACKET_OPEN.getUtf8ByteValue() == input[0] || Utf8AsciiCharacter.SQUARE_BRACKET_OPEN.getUtf8ByteValue() == input[0];
     }
-
-    @NotNull
-    @Override
-    public String mask(@NotNull String input) {
-        return new String(mask(input.getBytes(StandardCharsets.UTF_8)),StandardCharsets.UTF_8);
-    }
-
 }

@@ -15,6 +15,7 @@ public enum Utf8AsciiCharacter {
 	PERIOD((byte) 46),
 	PLUS((byte) 43),
 	SPACE((byte) 32),
+	SQUARE_BRACKET_OPEN((byte) 91),
 	UPPERCASE_E((byte) 69),
 
 	LOWERCASE_F((byte) 102),

@@ -18,12 +18,6 @@ public class SingleTargetMasker implements JsonMaskerImpl {
         this.maskingConfig = maskingConfig;
     }
 
-    @NotNull
-    @Override
-    public String mask(@NotNull String input) {
-        return new String(mask(input.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-    }
-
     @Override
     public byte[] mask(byte[] message) {
         for (String targetKey : quotedTargetKeys) {

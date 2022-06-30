@@ -11,15 +11,9 @@ class JsonColonInKeyOrValueTest {
     void testObjectContainingColon() {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("targetKey:1", ":val:ue\\::");
         Assertions.assertDoesNotThrow(() -> JsonMasker.getMasker("targetKey:1", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(objectNode.toString()));
+        Assertions.assertDoesNotThrow(() -> JsonMasker.getMasker("targetKey:1", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(objectNode.toString()));
     }
 
-
-    @Test
-    void testColonKey() {
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put(":", ":");
-        String mask = JsonMasker.getMasker(":", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(objectNode.toString());
-        System.out.println(mask);
-    }
 
     @Test
     void testStringContainingColon() {

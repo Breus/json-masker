@@ -13,5 +13,5 @@ package masker.json;
  */
 public enum JsonMultiTargetAlgorithm {
     SINGLE_TARGET_LOOP,
-    KEYS_CONTAIN
+    KEYS_CONTAIN,
 }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -131,7 +132,7 @@ class JsonMaskerTest {
 
     static List<JsonMaskerTestInstance> getMultipleTargetJsonTestInstanceFromJsonArray(ArrayNode jsonArray) throws IOException {
         ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
-        ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
+        ObjectReader reader = mapper.readerFor(TypeFactory.defaultInstance().constructCollectionType(Set.class, String.class));
         for (JsonNode jsonNode : jsonArray) {
             Map<String, Object> maskerConfigs = null;
             if (jsonNode.findValue("maskerConfig") != null) {

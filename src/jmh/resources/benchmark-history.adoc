@@ -6,6 +6,7 @@ after each commit that could impact the performance of the masker.
 == Measurements
 
 19-06-2022
+```
 Benchmark                                                              Mode  Cnt       Score   Error  Units
 JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt         2649,220          ns/op
 JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt          246,187          ns/op
@@ -13,7 +14,10 @@ JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt     
 JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt        15819,945          ns/op
 JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt       142586,845          ns/op
 JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt         3156,930          ns/op
+```
 
+
+```
 Benchmark                                                                                   Mode  Cnt     Score   Error  Units
 JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectBytes                                   avgt       3464,961          ns/op
 JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectString                                  avgt       3461,907          ns/op
@@ -26,3 +30,28 @@ JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsBytes             
 JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsString                        avgt       8871,494          ns/op
 JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsByte                          avgt        184,661          ns/op
 JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsString                        avgt        203,854          ns/op
+```
+
+02-07-2022
+
+```
+Benchmark                                                              Mode  Cnt       Score   Error  Units
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt         2741,496          ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt          153,333          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt       259726,763          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt        14396,989          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt       146207,944          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt         3102,921          ns/op
+```
+
+12-07-2022
+
+```
+Benchmark                                                              Mode  Cnt       Score   Error  Units
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt         2512,185          ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt          165,912          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt       262763,770          ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt        14650,831          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt       142375,488          ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt         3125,639          ns/op
+```

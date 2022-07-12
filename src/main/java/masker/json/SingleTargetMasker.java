@@ -101,10 +101,10 @@ public class SingleTargetMasker implements JsonMaskerImpl {
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
                     if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength - obfuscationLength) {
-                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(outputBytes, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(outputBytes, i + j, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     } else if (noOfEscapeCharacters > 0) { // So we don't add asterisks for escape characters (which are not part of the String length)
                         int actualStringLength = targetValueLength - noOfEscapeCharacters;
-                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(input, i, actualStringLength, targetValueLength);
+                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(outputBytes, i + j, actualStringLength, targetValueLength);
                     }
                 }
                 continue outer;

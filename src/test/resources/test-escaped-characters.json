@@ -78,15 +78,36 @@
     }
   },
   {
-    "targetKeys": ["a","b"],
+    "targetKeys": ["\\\"a","b"],
     "input": {
-      "a": "\u00ff",
+      "\"a": "\u00ff",
       "b": [{"b":  "value"}]
 
     },
     "expectedOutput": {
-      "a": "**",
+      "\"a": "**",
       "b": [{"b":  "*****"}]
+    }
+  },
+  {
+    "targetKeys": ["a"],
+    "input": {
+      "f]-E\"ESn$": {
+        "(Vtx": {
+          "n0tI5Je;": {
+            "a": "#$"
+          }
+        }
+      }
+    },
+    "expectedOutput": {
+      "f]-E\"ESn$": {
+        "(Vtx": {
+          "n0tI5Je;": {
+            "a": "**"
+          }
+        }
+      }
     }
   }
 ]

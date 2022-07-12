@@ -7,10 +7,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class RandomJsonGeneratorConfig {
-    private static final Set<Character> asciiDigits = IntStream.rangeClosed(48, 57).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiSpecialChars = IntStream.rangeClosed(58,64).mapToObj(i -> (char) i).collect(Collectors.toSet());
+    private static final Set<Character> asciiDigits = IntStream.rangeClosed(32, 57).mapToObj(i -> (char) i).collect(Collectors.toSet());
+    private static final Set<Character> asciiSpecialChars1 = IntStream.rangeClosed(58,64).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<Character> asciiUppercaseLetters = IntStream.rangeClosed(65, 90).mapToObj(i -> (char) i).collect(Collectors.toSet());
+    private static final Set<Character> asciiSpecialChars2 = IntStream.rangeClosed(91, 96).filter(i -> i != 92 /* escape character */).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<Character> asciiLowercaseLetters = IntStream.rangeClosed(97, 122).mapToObj(i -> (char) i).collect(Collectors.toSet());
+    private static final Set<Character> asciiSpecialChars3 = IntStream.rangeClosed(123, 126).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3");
 
     private final int maxArraySize;
@@ -105,11 +107,11 @@ public class RandomJsonGeneratorConfig {
         private double maxDouble = Double.MAX_VALUE;
         private long maxLong = Long.MAX_VALUE; // because we already have long, we don't add byte, short and int
         private BigInteger maxBigInt = BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.valueOf(Long.MAX_VALUE));
-        private int maxStringLength = 10;
-        private int maxObjectKeys = 10;
-        private int maxNodeDepth = 10;
+        private int maxStringLength = 3;
+        private int maxObjectKeys = 2;
+        private int maxNodeDepth = 1;
         private int targetKeyPercentage = 30;
-        private Set<Character> stringCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters, asciiSpecialChars);
+        private Set<Character> printableAsciiCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters, asciiSpecialChars1, asciiSpecialChars2, asciiSpecialChars3); // all printable ascii characters except for '\' as this is not acceptable by the json specs
         private Set<String> targetKeys = defaultTargetKeys;
 
         public Builder setMaxArraySize(int maxArraySize) {
@@ -155,7 +157,7 @@ public class RandomJsonGeneratorConfig {
         }
 
         public Builder setStringCharacters(Set<Character> stringCharacters) {
-            this.stringCharacters = stringCharacters;
+            this.printableAsciiCharacters = stringCharacters;
             return this;
         }
 
@@ -165,7 +167,7 @@ public class RandomJsonGeneratorConfig {
         }
 
         public RandomJsonGeneratorConfig createConfig() {
-            return new RandomJsonGeneratorConfig(maxArraySize, maxFloat, maxDouble, maxLong, maxBigInt, maxStringLength, maxObjectKeys, maxNodeDepth, targetKeyPercentage, stringCharacters, targetKeys);
+            return new RandomJsonGeneratorConfig(maxArraySize, maxFloat, maxDouble, maxLong, maxBigInt, maxStringLength, maxObjectKeys, maxNodeDepth, targetKeyPercentage, printableAsciiCharacters, targetKeys);
         }
 
         @SafeVarargs

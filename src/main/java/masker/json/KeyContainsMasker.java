@@ -10,6 +10,8 @@ import static masker.Utf8AsciiCharacter.isEscapeCharacter;
 import static masker.json.Utf8AsciiJson.*;
 
 public final class KeyContainsMasker implements JsonMaskerImpl {
+    // We are looking for targeted JSON keys, so the closing quote can appear at minimum 4 characters till the end of the JSON in the following case: {"":""}
+    private static final int MIN_OFFSET_JSON_KEY_QUOTE = 4;
     private final Set<String> targetKeys;
     private final JsonMaskingConfig maskingConfig;
 
@@ -33,13 +35,12 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
             // No masking required as first byte is not a '{' or '[', so the JSON input is a value type (boolean, String, number, ...)
             return input;
         }
-        int i = 1; // first character can be skipped as it is either a '{' or '['
-        // we are looking for targeted JSON keys, so they can appear at minimum 4 characters till the end at the end is: {"":""}
+        int i = 1; // first character can be skipped as it is either a '{' or '[', ensures we can safely check for unescaped double quotes
         mainLoop:
-        while (i < input.length - 4) {
+        while (i < input.length - MIN_OFFSET_JSON_KEY_QUOTE) {
             // Find JSON strings by looking for unescaped double quotes
-            while (!Utf8AsciiCharacter.isDoubleQuote(input[i]) && !Utf8AsciiCharacter.isEscapeCharacter(input[i-1])) {
-                if (i < input.length -4) {
+            while (!isUnescapedDoubleQuote(i, input)) {
+                if (i < input.length - MIN_OFFSET_JSON_KEY_QUOTE - 1) {
                     i++;
                 } else {
                     break mainLoop;
@@ -47,8 +48,8 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
             }
             int openingQuoteIndex = i;
             i++; // step over the opening quote
-            while (!Utf8AsciiCharacter.isDoubleQuote(input[i]) && !Utf8AsciiCharacter.isEscapeCharacter(input[i-1]) && i < input.length -1) {
-                if (i < input.length -4) {
+            while (!isUnescapedDoubleQuote(i, input) && i < input.length -1) {
+                if (i < input.length - MIN_OFFSET_JSON_KEY_QUOTE) {
                     i++;
                 } else {
                     break mainLoop;
@@ -152,6 +153,17 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
             }
         }
         return input;
+    }
+
+
+    /**
+     * Checks if the byte at the given index in the input byte array is an unescaped double quote character in UTF-8
+     * @param i the index, must be >= 1
+     * @param input the input byte array
+     * @return whether the byte at index i is an unescaped double quote
+     */
+    private boolean isUnescapedDoubleQuote(int i, byte[] input) {
+        return isDoubleQuote(input[i]) && ! isEscapeCharacter(input[i-1]);
     }
 
     private boolean isObjectOrArray(byte[] input) {

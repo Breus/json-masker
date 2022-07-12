@@ -1,0 +1,46 @@
+[
+  {
+    "targetKeys": [
+      "someKey", ""
+    ],
+    "input": {
+      "w&EK": [
+        {
+          "%SO": {
+            "[": {},
+            "targetKey2": {},
+            "+BAU^s}d": {
+              "targetKey1": "**",
+              "": "y5dYloB",
+              "targetKey2": "**",
+              "wTMS_dT": "c",
+              "$+feSlg!E": "yUInkY=",
+              "\"L": "Mw;GdNc"
+            }
+          }
+        }
+      ]
+    },
+    "expectedOutput": {
+      "w&EK": [
+        {
+          "%SO": {
+            "[": {},
+            "targetKey2": {},
+            "+BAU^s}d": {
+              "targetKey1": "**",
+              "": "*******",
+              "targetKey2": "**",
+              "wTMS_dT": "c",
+              "$+feSlg!E": "yUInkY=",
+              "\"L": "Mw;GdNc"
+            }
+          }
+        }
+      ]
+    }
+  }
+]
+
+
+

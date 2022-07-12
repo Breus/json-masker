@@ -1,7 +1,5 @@
 package masker.json;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
 import java.util.*;
 
 public final class JsonMaskerTestInstance {
@@ -12,7 +10,7 @@ public final class JsonMaskerTestInstance {
 
     public enum MaskerConfigKey {
         obfuscationLength,
-        maskNumberValuesWith;
+        maskNumberValuesWith
     }
 
     public JsonMaskerTestInstance(Set<String> targetKeys, String input,
@@ -75,5 +73,4 @@ public final class JsonMaskerTestInstance {
                 "expectedOutput=" + expectedOutput + ", " +
                 "maskerConfigs=" + maskerConfigs + ']';
     }
-
 }

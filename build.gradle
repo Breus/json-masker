@@ -9,7 +9,7 @@ java {
     }
 }
 
-description = 'High-performance JSON Message masker'
+description = 'High-performance JSON message masker'
 
 group 'dev.blaauwendraad'
 version '0.1.0'

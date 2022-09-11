@@ -143,12 +143,12 @@ This benchmark takes the file `large-input-benchmark.json` as input and targets 
 [source]
 ----
 Benchmark                                                              Mode  Cnt       Score   Error  Units
-JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt    2    3705,435          ns/op
-JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt    2     259,892          ns/op
-JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt    2  389815,790          ns/op
-JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt    2   19147,009          ns/op
-JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt    2  140475,577          ns/op
-JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    2    3116,934          ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt    4    2506,568 ±   187,050  ns/op
+JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt    4     158,005 ±    37,953  ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt    4  260965,236 ±  2804,440  ns/op
+JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt    4   14707,132 ±   910,526  ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt    4  143765,284 ± 10434,571  ns/op
+JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    4    3097,302 ±    19,985  ns/op
 ----
 
 

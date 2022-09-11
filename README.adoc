@@ -9,7 +9,6 @@ JSON message masker that can be used to mask string and numeric values correspon
 This implementation is optimized for maximum (time) performance using Java.
 
 == Dependencies
-* Java 17
 * No external dependencies are required to use this library
 * Test/benchmark dependencies are included in the `build.gradle`
 
@@ -17,10 +16,6 @@ This implementation is optimized for maximum (time) performance using Java.
 - Mask string values in any JSON structure corresponding to configured target key(s).
 - Mask numeric values in any JSON structure corresponding to configured target key(s).
 - Obfuscate the original length of the value by setting a fixed mask length.
-
-== Functionality verification
-This library implements two algorithms which
-- Strong validity guarantees: the two provided algorithms are tested against each other and against masking using Jackson replaces in a fuzzing test in which billions of random JSON structures were created and the outputs were compared.
 
 === JSON masking algorithms
 
@@ -103,7 +98,7 @@ Example showing a how to target multiple keys using the key-contains algorithm a
 [source,java]
 ----
     Set<String> targetKeys = Set.of("address", "cardNumber", "cvv", "pinCode", "name");
-    JsonMaskingConfig config = JsonMaskingConfig.custom().obfuscationLength(4).multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build();
+    JsonMaskingConfig config = JsonMaskingConfig.custom().obfuscationLength(4).build();
     String output = JsonMasker.getMasker(targetKeys, config).mask(input);
 ----
 
@@ -153,11 +148,6 @@ JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    4
 
 
 === Targeting a single key and obfuscation
-
-Targeting a single key using the single-target-loop algorithm is approximately as fast as using Jackson for masking for small inputs.
-Nonetheless, for larger inputs the JsonMasker is faster compared to using Jackson for masking.
-
-Furthermore, the benchmark results below indicate that length obfuscation has negligible impact on the performance of the masking.
 
 [source]
 ----

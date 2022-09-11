@@ -19,7 +19,7 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         private int maskNumberValuesWith;
 
         public Builder() {
-            this.multiTargetAlgorithm = JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP; // default multi-target algorithm
+            this.multiTargetAlgorithm = JsonMultiTargetAlgorithm.KEYS_CONTAIN; // default multi-target algorithm
             this.maskNumberValuesWith = -1; // default value -1 means number value masking is disabled
         }
 

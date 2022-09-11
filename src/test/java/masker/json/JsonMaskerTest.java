@@ -38,32 +38,45 @@ class JsonMaskerTest {
         Assertions.assertArrayEquals(expectedOutput.getBytes(StandardCharsets.UTF_8), JsonMasker.getMasker("ab").mask(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
     }
 
-	@ParameterizedTest
-	@MethodSource("testSingleTargetKeyFile")
-	void singleTargetKeyFromJsonFile(JsonMaskerTestInstance testInstance) {
-		Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys()).mask(testInstance.input()));
-	}
+    @ParameterizedTest
+    @MethodSource("testSingleTargetKeyFile")
+    void singleTargetSingleTargetLoopAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
+    }
 
-	@ParameterizedTest
-	@MethodSource("testMultipleTargetKeyFile")
-	void singleTargetLoopMultipleTargetAlgorithm(JsonMaskerTestInstance testInstance) {
-		Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
-	}
+    @ParameterizedTest
+    @MethodSource("testSingleTargetKeyFile")
+    void singleTargetKeyKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
+    }
 
-	@ParameterizedTest
-	@MethodSource("testMultipleTargetKeyFile")
-	void keysContainMultipleTargetAlgorithm(JsonMaskerTestInstance testInstance) {
-		Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
-	}
+    @ParameterizedTest
+    @MethodSource("testMultipleTargetKeyFile")
+    void multipleTargetsSingleTargetLoopAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
+    }
 
-	@ParameterizedTest
-	@MethodSource("testObfuscationFile")
-	void lengthObfuscationFromFile(JsonMaskerTestInstance testInstance) {
-		Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().obfuscationLength(testInstance.obfuscationLength()).build()).mask(testInstance.input()));
-	}
+    @ParameterizedTest
+    @MethodSource("testMultipleTargetKeyFile")
+    void multipleTargetskeysContainAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("testObfuscationFile")
+    void lengthObfuscationFromFileSingleTargetLoopAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).obfuscationLength(testInstance.obfuscationLength()).build()).mask(testInstance.input()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("testObfuscationFile")
+    void lengthObfuscationFromFileKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).obfuscationLength(testInstance.obfuscationLength()).build()).mask(testInstance.input()));
+    }
 
     // Returns a stream of argument pairs containing of an unmasked message and the corresponding masked output when the key "ab"  is masked.
-	private static Stream<Arguments> inputOutputMaskAb() {
+    private static Stream<Arguments> inputOutputMaskAb() {
         return Stream.of(
                 Arguments.of(objectNode().set("ab", mapper.convertValue("value", JsonNode.class)).toString(), objectNode().set("ab", mapper.convertValue("*****", JsonNode.class)).toString()),
                 Arguments.of(objectNode().set("cab", mapper.convertValue("value", JsonNode.class)).toString(), objectNode().set("cab", mapper.convertValue("value", JsonNode.class)).toString()),
@@ -81,7 +94,7 @@ class JsonMaskerTest {
     }
 
     @Test
-    void malformedJsonMasking() throws IOException, URISyntaxException {
+    void malformedJsonMaskingSingleTargetLoopAlgorithm() throws IOException, URISyntaxException {
         final String TARGET_KEY = "targetKey";
         URL resourceUrl = JsonMaskerTest.class.getClassLoader().getResource("malformed-json.txt");
         Assertions.assertNotNull(resourceUrl);
@@ -90,14 +103,15 @@ class JsonMaskerTest {
         String malformedJsonMessage = Files.readString(fileName);
         JsonNode jsonNode = mapper.readTree(malformedJsonMessage);
         String targetKeyValue = mapper.convertValue(jsonNode.findValue(TARGET_KEY), String.class);
-        String maskedJsonMessage = JsonMasker.getMasker(TARGET_KEY).mask(malformedJsonMessage);
+        JsonMaskingConfig jsonMaskingConfig = JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build();
+        String maskedJsonMessage = JsonMasker.getMasker(TARGET_KEY, jsonMaskingConfig).mask(malformedJsonMessage);
         JsonNode maskedJsonNode = mapper.readTree(maskedJsonMessage);
         String maskedKeyValue = "*".repeat(targetKeyValue.length());
         Assertions.assertEquals(maskedKeyValue, mapper.convertValue(maskedJsonNode.findValue(TARGET_KEY), String.class));
     }
 
     @Test
-    void malformedJsonMaskingMultiTargetAlgorithm() throws IOException, URISyntaxException {
+    void malformedJsonMaskingKeyContainsAlgorithm() throws IOException, URISyntaxException {
         final String TARGET_KEY = "targetKey";
         URL resourceUrl = JsonMaskerTest.class.getClassLoader().getResource("malformed-json.txt");
         Assertions.assertNotNull(resourceUrl);
@@ -144,7 +158,8 @@ class JsonMaskerTest {
 
     private static List<JsonMaskerTestInstance> getJsonTestInstancesFromJsonArray(ArrayNode jsonArray) throws IOException {
         ArrayList<JsonMaskerTestInstance> testInstances = new ArrayList<>();
-        ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {});
+        ObjectReader reader = mapper.readerFor(new TypeReference<Set<String>>() {
+        });
         for (JsonNode jsonNode : jsonArray) {
             Map<String, Object> maskerConfigs = null;
             if (jsonNode.findValue("maskerConfig") != null) {

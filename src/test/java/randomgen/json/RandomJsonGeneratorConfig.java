@@ -1,19 +1,12 @@
 package randomgen.json;
 
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static masker.json.JsonStringCharacters.*;
 
 public class RandomJsonGeneratorConfig {
-    private static final Set<Character> asciiDigits = IntStream.rangeClosed(32, 57).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiSpecialChars1 = IntStream.rangeClosed(58,64).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiUppercaseLetters = IntStream.rangeClosed(65, 90).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiSpecialChars2 = IntStream.rangeClosed(91, 96).filter(i -> i != 92 /* escape character */).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiLowercaseLetters = IntStream.rangeClosed(97, 122).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<Character> asciiSpecialChars3 = IntStream.rangeClosed(123, 126).mapToObj(i -> (char) i).collect(Collectors.toSet());
-    private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3");
+    private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4");
 
     private final int maxArraySize;
     private final float maxFloat;
@@ -27,7 +20,17 @@ public class RandomJsonGeneratorConfig {
     private final Set<Character> stringCharacters;
     private final Set<String> targetKeys;
 
-    public RandomJsonGeneratorConfig(int maxArraySize, float maxFloat, double maxDouble, long maxLong, BigInteger maxBigInt, int maxStringLength, int maxObjectKeys, int maxNodeDepth, int targetKeyPercentage, Set<Character> stringCharacters, Set<String> targetKeys) {
+    public RandomJsonGeneratorConfig(int maxArraySize,
+                                     float maxFloat,
+                                     double maxDouble,
+                                     long maxLong,
+                                     BigInteger maxBigInt,
+                                     int maxStringLength,
+                                     int maxObjectKeys,
+                                     int maxNodeDepth,
+                                     int targetKeyPercentage,
+                                     Set<Character> stringCharacters,
+                                     Set<String> targetKeys) {
         this.maxArraySize = maxArraySize;
         this.maxFloat = maxFloat;
         this.maxDouble = maxDouble;
@@ -102,16 +105,16 @@ public class RandomJsonGeneratorConfig {
     }
 
     public static class Builder {
-        private int maxArraySize = 10;
+        private int maxArraySize = 2;
         private float maxFloat = Float.MAX_VALUE;
         private double maxDouble = Double.MAX_VALUE;
         private long maxLong = Long.MAX_VALUE; // because we already have long, we don't add byte, short and int
         private BigInteger maxBigInt = BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.valueOf(Long.MAX_VALUE));
-        private int maxStringLength = 3;
-        private int maxObjectKeys = 2;
-        private int maxNodeDepth = 1;
-        private int targetKeyPercentage = 30;
-        private Set<Character> printableAsciiCharacters = mergeCharSets(asciiDigits, asciiLowercaseLetters, asciiUppercaseLetters, asciiSpecialChars1, asciiSpecialChars2, asciiSpecialChars3); // all printable ascii characters except for '\' as this is not acceptable by the json specs
+        private int maxStringLength = 10;
+        private int maxObjectKeys = 5;
+        private int maxNodeDepth = 5;
+        private int targetKeyPercentage = 50;
+        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(getPrintableAsciiCharacters(), getUnicodeControlCharacters(), getRandomPrintableUnicodeCharacters()));
         private Set<String> targetKeys = defaultTargetKeys;
 
         public Builder setMaxArraySize(int maxArraySize) {
@@ -157,7 +160,7 @@ public class RandomJsonGeneratorConfig {
         }
 
         public Builder setStringCharacters(Set<Character> stringCharacters) {
-            this.printableAsciiCharacters = stringCharacters;
+            this.allowedCharacters = stringCharacters;
             return this;
         }
 
@@ -167,16 +170,19 @@ public class RandomJsonGeneratorConfig {
         }
 
         public RandomJsonGeneratorConfig createConfig() {
-            return new RandomJsonGeneratorConfig(maxArraySize, maxFloat, maxDouble, maxLong, maxBigInt, maxStringLength, maxObjectKeys, maxNodeDepth, targetKeyPercentage, printableAsciiCharacters, targetKeys);
-        }
-
-        @SafeVarargs
-        static Set<Character> mergeCharSets(Set<Character>... charSet){
-            Set<Character> mergedSet = new HashSet<>();
-            for (Set<Character> characters : charSet) {
-                mergedSet.addAll(characters);
-            }
-            return mergedSet;
+            return new RandomJsonGeneratorConfig(
+                    maxArraySize,
+                    maxFloat,
+                    maxDouble,
+                    maxLong,
+                    maxBigInt,
+                    maxStringLength,
+                    maxObjectKeys,
+                    maxNodeDepth,
+                    targetKeyPercentage,
+                    allowedCharacters,
+                    targetKeys
+            );
         }
     }
 }

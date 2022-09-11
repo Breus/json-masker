@@ -9,12 +9,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-class JsonNumberMaskingTest {
+class NumberMaskingTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest
     @MethodSource("testNumberMaskingFile")
-    void testNumberMaskingSingleTargetLoop(JsonMaskerTestInstance testInstance) {
+    void numberMaskingSingleTargetLoop(JsonMaskerTestInstance testInstance) {
         JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
                 .obfuscationLength(testInstance.obfuscationLength())
@@ -24,7 +24,7 @@ class JsonNumberMaskingTest {
 
     @ParameterizedTest
     @MethodSource("testNumberMaskingFile")
-    void testNumberMaskingKeyContains(JsonMaskerTestInstance testInstance) {
+    void numberMaskingKeyContains(JsonMaskerTestInstance testInstance) {
         JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
                 .obfuscationLength(testInstance.obfuscationLength())

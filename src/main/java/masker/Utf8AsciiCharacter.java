@@ -1,37 +1,38 @@
 package masker;
 
 public enum Utf8AsciiCharacter {
-	ASTERISK((byte) 42),
-	BACK_SLASH((byte) 92),
+	ASTERISK((byte) '*'),
+	BACK_SLASH((byte) '\\'),
 	CARRIAGE_RETURN((byte) 13),
-	COLON((byte) 58),
-	COMMA((byte) 44),
-	CURLY_BRACKET_OPEN((byte) 123),
-	DOUBLE_QUOTE((byte) 34),
+	COLON((byte) ':'),
+	COMMA((byte) ','),
+	CURLY_BRACKET_OPEN((byte) '{'),
+	DOUBLE_QUOTE((byte) '"'),
 	HORIZONTAL_TAB((byte) 9),
 	LINE_FEED((byte) 10),
-	LOWERCASE_E((byte) 101),
-	MINUS((byte) 45),
-	PERIOD((byte) 46),
-	PLUS((byte) 43),
-	SPACE((byte) 32),
-	SQUARE_BRACKET_OPEN((byte) 91),
-	UPPERCASE_E((byte) 69),
+	LOWERCASE_E((byte) 'e'),
+	MINUS((byte) '-'),
+	PERIOD((byte) '.'),
+	PLUS((byte) '+'),
+	SPACE((byte) ' '),
+	SQUARE_BRACKET_OPEN((byte) '['),
+	UPPERCASE_E((byte) 'E'),
 
-	LOWERCASE_F((byte) 102),
-	LOWERCASE_N((byte) 110),
-	LOWERCASE_T((byte) 116),
+	LOWERCASE_F((byte) 'f'),
+	LOWERCASE_N((byte) 'n'),
+	LOWERCASE_T((byte) 't'),
+	LOWERCASE_U((byte) 'u'),
 
-	ZERO((byte) 48),
-	ONE((byte) 49),
-	TWO((byte) 50),
-	THREE((byte) 51),
-	FOUR((byte) 52),
-	FIVE((byte) 53),
-	SIX((byte) 54),
-	SEVEN((byte) 55),
-	EIGHT((byte) 56),
-	NINE((byte) 57);
+	ZERO((byte) '0'),
+	ONE((byte) '1'),
+	TWO((byte) '2'),
+	THREE((byte) '3'),
+	FOUR((byte) '4'),
+	FIVE((byte) '5'),
+	SIX((byte) '6'),
+	SEVEN((byte) '7'),
+	EIGHT((byte) '8'),
+	NINE((byte) '9');
 
 	final byte utf8ByteValue;
 
@@ -65,6 +66,10 @@ public enum Utf8AsciiCharacter {
 
 	public static boolean isEscapeCharacter(byte inputByte) {
 		return BACK_SLASH.getUtf8ByteValue() == inputByte;
+	}
+
+	public static boolean isLowercaseU(byte inputByte) {
+		return LOWERCASE_U.getUtf8ByteValue() == inputByte;
 	}
 
 	public static boolean isColon(byte inputByte) {

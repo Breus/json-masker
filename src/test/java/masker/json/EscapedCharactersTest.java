@@ -9,23 +9,23 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-class JsonEmptyKeyTest {
+class EscapedCharactersTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest
-    @MethodSource("testEmptyKeyTestFile")
-    void testEmptyKeySingleTargetLoopAlgorithm(JsonMaskerTestInstance testInstance) {
+    @MethodSource("testEscapedCharactersFile")
+    void escapedCharactersSingleTargetLoop(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
-    @MethodSource("testEmptyKeyTestFile")
-    void testEmptyKeyKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
+    @MethodSource("testEscapedCharactersFile")
+    void escapedCharactersKeysContainAlgorithm(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
     }
 
-    private static Stream<JsonMaskerTestInstance> testEmptyKeyTestFile() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-empty-key.json"), ArrayNode.class);
+    private static Stream<JsonMaskerTestInstance> testEscapedCharactersFile() throws IOException {
+        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-escaped-characters.json"), ArrayNode.class);
         return JsonMaskerTest.getMultipleTargetJsonTestInstanceFromJsonArray(jsonArray).stream();
     }
 }

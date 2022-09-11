@@ -99,17 +99,4 @@ public final class Utf8AsciiJson {
         }
         return false;
     }
-
-    static boolean isFirstBooleanCharacter(byte utf8Character) {
-        for (byte booleanFirstChar : firstBooleanCharacters) {
-            if (utf8Character == booleanFirstChar) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    static boolean isStartOfValue(byte utf8Character) {
-        return isNumericCharacter(utf8Character) || isDoubleQuote(utf8Character) || isFirstBooleanCharacter(utf8Character) || LOWERCASE_N.getUtf8ByteValue() == utf8Character;
-    }
 }

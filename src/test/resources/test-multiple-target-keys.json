@@ -1,6 +1,9 @@
 [
   {
-    "targetKeys": ["someKey", "someKey2"],
+    "targetKeys": [
+      "someKey",
+      "someKey2"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": "hi"
@@ -11,37 +14,97 @@
     }
   },
   {
-    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey4"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": "hi",
       "someKey3": "hey",
-      "someKey4": [{"someKey4":  "value"}]
-
+      "someKey4": [
+        {
+          "someKey4": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "someKey": "*****",
       "someKey2": "**",
       "someKey3": "hey",
-      "someKey4": [{"someKey4":  "*****"}]
+      "someKey4": [
+        {
+          "someKey4": "*****"
+        }
+      ]
     }
   },
   {
-    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey4"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": "hi",
       "someKey2": 2123,
       "someKey3": "hey",
-      "someKey4": [{"someKey4":  "value"}]
-
+      "someKey4": [
+        {
+          "someKey4": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "someKey": "*****",
       "someKey2": "**",
       "someKey2": 2123,
       "someKey3": "hey",
-      "someKey4": [{"someKey4":  "*****"}]
+      "someKey4": [
+        {
+          "someKey4": "*****"
+        }
+      ]
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey1",
+      "targetKey2"
+    ],
+    "input": {
+      "targetKey1": {
+        "targetKey2": "\u001C"
+      },
+      "targetKey2": "W"
+    },
+    "expectedOutput": {
+      "targetKey1": {
+        "targetKey2": "*"
+      },
+      "targetKey2": "*"
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey1",
+      "targetKey2"
+    ],
+    "input": {
+      "targetKey1": {
+        "targetKey2": "\u001C"
+      },
+      "targetKey2": true,
+      "targetKey1": null
+    },
+    "expectedOutput": {
+      "targetKey1": {
+        "targetKey2": "*"
+      },
+      "targetKey2": true,
+      "targetKey1": null
     }
   }
 ]

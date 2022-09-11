@@ -9,18 +9,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-class JsonRecurringKeyTest {
+class RecurringKeyTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @ParameterizedTest
     @MethodSource("testRecurringKeyFile")
-    void testRecurringKeyKeysContainAlgorithm(JsonMaskerTestInstance testInstance) {
+    void recurringKeyKeysContainAlgorithm(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
     @MethodSource("testRecurringKeyFile")
-    void testRecurringKeySingleTargetAlgorithm(JsonMaskerTestInstance testInstance) {
+    void recurringKeySingleTargetAlgorithm(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
     }
 

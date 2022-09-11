@@ -1,0 +1,73 @@
+[
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "\u2020"
+    },
+    "expectedOutput": {
+      "someKey": "*"
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "a\u2020b"
+    },
+    "expectedOutput": {
+      "someKey": "***"
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "a\\\u2020b"
+    },
+    "expectedOutput": {
+      "someKey": "****"
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": [
+        {
+          "someKey": "\u0003\u0015"
+        }
+      ]
+    },
+    "expectedOutput": {
+      "someKey": [
+        {
+          "someKey": "**"
+        }
+      ]
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "\u0014"
+    },
+    "expectedOutput": {
+      "someKey": "**"
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "\u0014\u0085"
+    },
+    "expectedOutput": {
+      "someKey": "**"
+    }
+  },
+  {
+    "targetKey": "someKey",
+    "input": {
+      "someKey": "\u0085"
+    },
+    "expectedOutput": {
+      "someKey": "*"
+    }
+  }
+]

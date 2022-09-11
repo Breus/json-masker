@@ -41,7 +41,7 @@
       "someKey": "******",
       "someKey2": "***",
       "someKey3": "****",
-      "someKey4": [{"someKey4":  "********"}]
+      "someKey4": [{"someKey4":  "******"}]
     }
   },
   {
@@ -50,7 +50,7 @@
       "someKey": "\u00f8v"
     },
     "expectedOutput": {
-      "someKey": "***"
+      "someKey": "**"
     }
   },
   {
@@ -61,7 +61,7 @@
 
     },
     "expectedOutput": {
-      "k1": "****",
+      "k1": "**",
       "k2": "value"
     }
   },
@@ -85,7 +85,7 @@
 
     },
     "expectedOutput": {
-      "\"a": "**",
+      "\"a": "*",
       "b": [{"b":  "*****"}]
     }
   },
@@ -108,6 +108,41 @@
           }
         }
       }
+    }
+  },
+  {
+    "targetKeys": ["a"],
+    "input": {
+      "a": "  ",
+      "b": [{"b":  "value"}]
+
+    },
+    "expectedOutput": {
+      "a": "**",
+      "b": [{"b":  "value"}]
+    }
+  },
+  {
+    "targetKeys": ["a"],
+    "input": {
+      "a": "\u0020\u0020",
+      "b": [{"b":  "value"}]
+
+    },
+    "expectedOutput": {
+      "a": "**",
+      "b": [{"b":  "value"}]
+    }
+  },
+  {
+    "targetKeys": ["targetKey1","targetKey2"],
+    "input": {
+      "targetKey1" : "\u001F",
+      "targetKey2" : "<"
+    },
+    "expectedOutput": {
+      "targetKey1": "**",
+      "targetKey2": "*"
     }
   }
 ]

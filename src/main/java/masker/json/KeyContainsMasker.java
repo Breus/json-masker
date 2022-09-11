@@ -1,12 +1,12 @@
 package masker.json;
 
 import masker.Utf8AsciiCharacter;
+import masker.Utf8Util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static masker.Utf8AsciiCharacter.isDoubleQuote;
-import static masker.Utf8AsciiCharacter.isEscapeCharacter;
+import static masker.Utf8AsciiCharacter.*;
 import static masker.json.Utf8AsciiJson.*;
 
 public final class KeyContainsMasker implements JsonMaskerImpl {
@@ -25,6 +25,7 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
      * Masks the values in the given input for all values having keys corresponding to any of the provided target keys.
      * This implementation is optimized for multiple target keys.
      * Currently, only supports UTF_8/US_ASCII
+     *
      * @param input the input message for which values might be masked
      * @return the masked message
      */
@@ -48,7 +49,7 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
             }
             int openingQuoteIndex = i;
             i++; // step over the opening quote
-            while (!isUnescapedDoubleQuote(i, input) && i < input.length -1) {
+            while (!isUnescapedDoubleQuote(i, input) && i < input.length - 1) {
                 if (i < input.length - MIN_OFFSET_JSON_KEY_QUOTE) {
                     i++;
                 } else {
@@ -75,11 +76,11 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
             while (isWhiteSpace(input[i])) {
                 i++; // step over all white characters after the colon
             }
-            if (! isDoubleQuote(input[i])) {
+            if (!isDoubleQuote(input[i])) {
                 if (maskingConfig.isNumberMaskingDisabled()) {
                     continue mainLoop;  // the found JSON key did not have a maskable value, continue looking from where we left of
                 } else {
-                    if (! isFirstNumberChar(input[i])) {
+                    if (!isFirstNumberChar(input[i])) {
                         continue mainLoop; // the found JSON key did not have a maskable value, continue looking from where we left of
                     }
                 }
@@ -125,14 +126,24 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
                 i++; // step over quote
                 int targetValueLength = 0;
                 int noOfEscapeCharacters = 0;
+                int additionalBytesForEncoding = 0;
                 boolean escapeNextCharacter = false;
                 boolean previousCharacterCountedAsEscapeCharacter = false;
-                while (! isDoubleQuote(input[i]) || (isDoubleQuote(input[i]) && escapeNextCharacter)) {
+                while (!isDoubleQuote(input[i]) || (isDoubleQuote(input[i]) && escapeNextCharacter)) {
+                    if (Utf8Util.getCodePointByteLength(input[i]) > 1) {
+                        // UTF-8, so whenever code points are encoded using multiple bytes this should be represented by a single asterisk and the additional bytes used for encoding need to be removed
+                        additionalBytesForEncoding += Utf8Util.getCodePointByteLength(input[i]) - 1;
+                    }
                     escapeNextCharacter = isEscapeCharacter(input[i]);
                     if (escapeNextCharacter && !previousCharacterCountedAsEscapeCharacter) {
+                        // non-escaped backslashes are escape characters and are not actually part of the string but only used for encoding
                         noOfEscapeCharacters++;
                         previousCharacterCountedAsEscapeCharacter = true;
                     } else {
+                        if (previousCharacterCountedAsEscapeCharacter && Utf8AsciiCharacter.isLowercaseU(input[i])) {
+                            // next 4 characters are hexadecimal digits which form a single character and are only there for encoding
+                            additionalBytesForEncoding += 4;
+                        }
                         previousCharacterCountedAsEscapeCharacter = false;
                     }
                     input[i] = Utf8AsciiCharacter.ASTERISK.getUtf8ByteValue();
@@ -143,11 +154,15 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
                     input = FixedLengthValueUtil.setFixedLengthOfStringValue(input, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     // compensate the index for shortening the input by setting fixed length to be at the closing double quote of the String value
                     i = i - (targetValueLength - obfuscationLength);
-                }  else if (noOfEscapeCharacters > 0) { // So we don't add asterisks for escape characters (which are not part of the String length)
-                    int actualStringLength = targetValueLength - noOfEscapeCharacters;
+                } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) { // So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
+                    /*
+                     * The actual length of the string is the length minus escape characters (which are not part of the String length).
+                     * Also, unicode characters are denoted as 4-hex digits but represent actually just one character, so for each of them 3 asteriks should be removed.
+                     */
+                    int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
                     input = FixedLengthValueUtil.setFixedLengthOfStringValue(input, i, actualStringLength, targetValueLength);
                     // compensate the index for shortening the input with noOfEscapeCharacters to be at closing double quote of the String value
-                    i = i - noOfEscapeCharacters;
+                    i = i - noOfEscapeCharacters - additionalBytesForEncoding;
                 }
                 i++; // step over closing quote of string value to start looking for the next JSON key
             }
@@ -158,12 +173,13 @@ public final class KeyContainsMasker implements JsonMaskerImpl {
 
     /**
      * Checks if the byte at the given index in the input byte array is an unescaped double quote character in UTF-8
-     * @param i the index, must be >= 1
+     *
+     * @param i     the index, must be >= 1
      * @param input the input byte array
      * @return whether the byte at index i is an unescaped double quote
      */
     private boolean isUnescapedDoubleQuote(int i, byte[] input) {
-        return isDoubleQuote(input[i]) && ! isEscapeCharacter(input[i-1]);
+        return isDoubleQuote(input[i]) && !isEscapeCharacter(input[i - 1]);
     }
 
     private boolean isObjectOrArray(byte[] input) {

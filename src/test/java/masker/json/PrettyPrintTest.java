@@ -8,19 +8,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class JsonPrettyPrintTest {
+class PrettyPrintTest {
     @Test
-    void testPrettyPrintMaskingDefault() throws JsonProcessingException {
+    void prettyPrintMaskingSingleTargetLoop() throws JsonProcessingException {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = JsonMasker.getMasker("Test");
+        JsonMasker jsonMasker = JsonMasker.getMasker("Test", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build());
         String mask = jsonMasker.mask(prettyString);
         Assertions.assertEquals("*****", JsonMapper.builder().build().readValue(mask, JsonNode.class).findValue("Test").textValue());
     }
 
     @Test
-    void testPrettyPrintMaskingKeyContains() throws JsonProcessingException {
+    void prettyPrintMaskingKeyContains() throws JsonProcessingException {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();

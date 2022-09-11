@@ -19,7 +19,7 @@ repositories {
 }
 
 ext {
-    jUnitVersion = '5.8.2'
+    jUnitVersion = '5.9.0'
     jmhVersion = '1.35'
 }
 
@@ -28,7 +28,7 @@ dependencies {
     implementation "org.jetbrains:annotations:23.0.0"
     implementation "org.openjdk.jmh:jmh-core:${jmhVersion}"
 
-    testImplementation "com.fasterxml.jackson.core:jackson-databind:2.13.3"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:2.13.4"
     testImplementation "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"

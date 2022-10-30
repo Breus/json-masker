@@ -3,7 +3,16 @@ package masker.json;
 import masker.AbstractMaskingConfig;
 
 public class JsonMaskingConfig extends AbstractMaskingConfig {
+    /**
+     * Specifies the algorithm that will be used to mask multiple
+     */
     private final JsonMultiTargetAlgorithm multiTargetAlgorithm;
+    /**
+     * Specifies the number with which numeric values should be replaced.
+     * -1 denotes number musking is disabled.
+     * <p>
+     * Default value: -1
+     */
     private final int maskNumberValuesWith;
 
     public static JsonMaskingConfig getDefault() {

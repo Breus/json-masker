@@ -3,7 +3,7 @@ package randomgen.json;
 import java.math.BigInteger;
 import java.util.Set;
 
-import static masker.json.JsonStringCharacters.*;
+import static randomgen.json.JsonStringCharacters.*;
 
 public class RandomJsonGeneratorConfig {
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4");
@@ -114,7 +114,9 @@ public class RandomJsonGeneratorConfig {
         private int maxObjectKeys = 5;
         private int maxNodeDepth = 5;
         private int targetKeyPercentage = 50;
-        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(getPrintableAsciiCharacters(), getUnicodeControlCharacters(), getRandomPrintableUnicodeCharacters()));
+        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(getPrintableAsciiCharacters(),
+                                                                               getUnicodeControlCharacters(),
+                                                                               getRandomPrintableUnicodeCharacters()));
         private Set<String> targetKeys = defaultTargetKeys;
 
         public Builder setMaxArraySize(int maxArraySize) {
@@ -170,19 +172,17 @@ public class RandomJsonGeneratorConfig {
         }
 
         public RandomJsonGeneratorConfig createConfig() {
-            return new RandomJsonGeneratorConfig(
-                    maxArraySize,
-                    maxFloat,
-                    maxDouble,
-                    maxLong,
-                    maxBigInt,
-                    maxStringLength,
-                    maxObjectKeys,
-                    maxNodeDepth,
-                    targetKeyPercentage,
-                    allowedCharacters,
-                    targetKeys
-            );
+            return new RandomJsonGeneratorConfig(maxArraySize,
+                                                 maxFloat,
+                                                 maxDouble,
+                                                 maxLong,
+                                                 maxBigInt,
+                                                 maxStringLength,
+                                                 maxObjectKeys,
+                                                 maxNodeDepth,
+                                                 targetKeyPercentage,
+                                                 allowedCharacters,
+                                                 targetKeys);
         }
     }
 }

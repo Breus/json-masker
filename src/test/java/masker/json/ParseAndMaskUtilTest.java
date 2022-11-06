@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Test;
 class ParseAndMaskUtilTest {
     @Test
     void parseAndMask() throws JsonProcessingException {
-        String simpleJsonObjectAsString = "{\"someSecret\": \"someValue\", \n\"someOtherKey\": {\"someSecret2\": \"value\"}}";
-        JsonNode jsonNode = ParseAndMaskUtil.parseStringAndMask(simpleJsonObjectAsString, "someSecret", new ObjectMapper());
+        String simpleJsonObjectAsString =
+                "{\"someSecret\": \"someValue\", \n\"someOtherKey\": {\"someSecret2\": \"value\"}}";
+        JsonNode jsonNode =
+                ParseAndMaskUtil.parseStringAndMask(simpleJsonObjectAsString, "someSecret", new ObjectMapper());
         Assertions.assertEquals("*********", jsonNode.get("someSecret").textValue());
     }
 }

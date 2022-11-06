@@ -18,8 +18,11 @@ class NumberMaskingTest {
         JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
                 .obfuscationLength(testInstance.obfuscationLength())
-                .maskNumberValuesWith(testInstance.maskNumbersWithValue()).build();
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig).mask(testInstance.input()));
+                .maskNumberValuesWith(testInstance.maskNumbersWithValue())
+                .build();
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig)
+                                        .mask(testInstance.input()));
     }
 
     @ParameterizedTest
@@ -28,13 +31,18 @@ class NumberMaskingTest {
         JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
                 .obfuscationLength(testInstance.obfuscationLength())
-                .maskNumberValuesWith(testInstance.maskNumbersWithValue()).build();
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig).mask(testInstance.input()));
+                .maskNumberValuesWith(testInstance.maskNumbersWithValue())
+                .build();
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig)
+                                        .mask(testInstance.input()));
     }
 
 
     private static Stream<JsonMaskerTestInstance> testNumberMaskingFile() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-number-values.json"), ArrayNode.class);
+        ArrayNode jsonArray =
+                mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-number-values.json"),
+                                 ArrayNode.class);
         return JsonMaskerTest.getMultipleTargetJsonTestInstanceFromJsonArray(jsonArray).stream();
     }
 }

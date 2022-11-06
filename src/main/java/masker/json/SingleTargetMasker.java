@@ -1,6 +1,6 @@
 package masker.json;
 
-import masker.Utf8AsciiCharacter;
+import masker.AsciiCharacter;
 import masker.Utf8Util;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static masker.Utf8AsciiCharacter.isDoubleQuote;
-import static masker.Utf8AsciiCharacter.isEscapeCharacter;
+import static masker.AsciiCharacter.isDoubleQuote;
+import static masker.AsciiCharacter.isEscapeCharacter;
 
 public class SingleTargetMasker implements JsonMaskerAlgorithm {
     private final Set<String> quotedTargetKeys;
@@ -40,10 +40,14 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
      * @return the masked message
      */
     public byte[] mask(byte[] input, @NotNull String targetKey) {
-        byte[] outputBytes = input; // with obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
+        // With obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
+        byte[] outputBytes = input;
         int i = 0; // index based on current input slice
         int j = 0; // index based on input
-        outer: while (j < outputBytes.length - targetKey.getBytes().length - 2) { // minus 1 for closing bracket, smaller than because colon required for a new key and minus 1 for value with minimum length of 1
+        outer:
+        // Smaller and minus two because when looking for a JSON key, the minimum value (0 length) would result in:
+        // '{"key":2}'. So 1 for th colon, 1 for the value and 1 (smaller than) for the closing '}'.
+        while (j < outputBytes.length - targetKey.getBytes().length - 2) {
             j = j + i;
             byte[] inputSliceBytes;
             if (j == 0) {
@@ -52,44 +56,61 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                 inputSliceBytes = Arrays.copyOfRange(outputBytes, j, outputBytes.length);
             }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
-            if(startIndexOfTargetKey == -1) {
-                break; // input doesn't contain target key anymore, no further masking required
+            if (startIndexOfTargetKey == -1) {
+                break; // Input doesn't contain target key anymore, no further masking required
             }
             i = startIndexOfTargetKey + targetKey.length(); // step over found target key
             for (; i < inputSliceBytes.length; i++) {
-                if (Utf8AsciiJson.isWhiteSpace(inputSliceBytes[i])) {
-                    continue; // found a JSON whitespace, try next character
+                if (AsciiJsonUtil.isWhiteSpace(inputSliceBytes[i])) {
+
+                    continue; // Found a JSON whitespace, try next character
                 }
-                if (Utf8AsciiCharacter.isColon(inputSliceBytes[i])) {
-                    break; // found a colon, so the found target key is indeed a JSON key
+                if (AsciiCharacter.isColon(inputSliceBytes[i])) {
+                    break; // Found a colon, so the found target key is indeed a JSON key
                 }
-                continue outer; // found a different character than whitespace or colon, so the found target key is not a JSON key
+                // Found a different character than whitespace or colon, so the found target key is not a JSON key
+                continue outer;
             }
             i++; // step over colon
             for (; i < inputSliceBytes.length; i++) {
-                if (Utf8AsciiJson.isWhiteSpace(inputSliceBytes[i])) {
+                if (AsciiJsonUtil.isWhiteSpace(inputSliceBytes[i])) {
                     continue; // found a space, try next character
                 }
-                // If number masking is enabled, check if the next character could be the first character of a JSON number value
-                if (maskingConfig.isNumberMaskingEnabled() && Utf8AsciiJson.isFirstNumberChar(inputSliceBytes[i]))  {
+                /*
+                 * Whenever number masking is enabled, check if the next character could be the first character of a
+                 * JSON number value.
+                 */
+                if (maskingConfig.isNumberMaskingEnabled() && AsciiJsonUtil.isFirstNumberChar(inputSliceBytes[i])) {
                     int targetValueLength = 0;
-                    while (Utf8AsciiJson.isNumericCharacter(inputSliceBytes[i])) {
-                        outputBytes[i + j] = Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith());
+                    while (AsciiJsonUtil.isNumericCharacter(inputSliceBytes[i])) {
+                        outputBytes[i + j] = AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith());
                         targetValueLength++;
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
                     if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength) {
                         if (obfuscationLength == 0) {
-                            // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
-                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(outputBytes, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                            /* For obfuscation length 0, we want to obfuscate numeric values with a single 0 because
+                             * an empty numeric value is illegal JSON.
+                             */
+                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                                    outputBytes,
+                                    i,
+                                    1,
+                                    targetValueLength,
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith()));
                             i = i - (targetValueLength - 1);
                         } else {
-                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(outputBytes, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                                    outputBytes,
+                                    i,
+                                    obfuscationLength,
+                                    targetValueLength,
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith()));
                             i = i - (targetValueLength - obfuscationLength);
                         }
                     }
-                } else if (Utf8AsciiCharacter.isDoubleQuote(inputSliceBytes[i])) { // value is a string
+                } else if (AsciiCharacter.isDoubleQuote(inputSliceBytes[i])) { // value is a string
                     i++; // step over quote
                     int targetValueLength = 0;
                     int noOfEscapeCharacters = 0;
@@ -98,32 +119,52 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                     boolean previousCharacterCountedAsEscapeCharacter = false;
                     while (!isDoubleQuote(inputSliceBytes[i]) || (isDoubleQuote(inputSliceBytes[i]) && escapeNextCharacter)) {
                         if (Utf8Util.getCodePointByteLength(inputSliceBytes[i]) > 1) {
-                            // UTF-8, so whenever code points are encoded using multiple bytes this should be represented by a single asterisk and the additional bytes used for encoding need to be removed
+                            /*
+                             *  UTF-8, so whenever code points are encoded using multiple bytes this should be
+                             *  represented by a single asterisk and the additional bytes used for encoding need to be
+                             *  removed.
+                             */
                             additionalBytesForEncoding += Utf8Util.getCodePointByteLength(inputSliceBytes[i]) - 1;
                         }
                         escapeNextCharacter = isEscapeCharacter(inputSliceBytes[i]);
                         if (escapeNextCharacter && !previousCharacterCountedAsEscapeCharacter) {
-                            // non-escaped backslashes are escape characters and are not actually part of the string but only used for encoding
+                            /*
+                             * Non-escaped backslashes are escape characters and are not actually part of the string
+                             * but only used for encoding, so need not be included in the mask.
+                             */
                             noOfEscapeCharacters++;
                             previousCharacterCountedAsEscapeCharacter = true;
                         } else {
-                            if (previousCharacterCountedAsEscapeCharacter && Utf8AsciiCharacter.isLowercaseU(inputSliceBytes[i])) {
-                                // next 4 characters are hexadecimal digits which form a single character and are only there for encoding
+                            if (previousCharacterCountedAsEscapeCharacter && AsciiCharacter.isLowercaseU(inputSliceBytes[i])) {
+                                /*
+                                 * Next 4 characters are hexadecimal digits which form a single character and are only
+                                 * there for encoding unicode characters.
+                                 */
                                 additionalBytesForEncoding += 4;
                             }
                             previousCharacterCountedAsEscapeCharacter = false;
                         }
-                        outputBytes[i + j] = Utf8AsciiCharacter.ASTERISK.getUtf8ByteValue();
+                        outputBytes[i + j] = AsciiCharacter.ASTERISK.getAsciiByteValue();
                         targetValueLength++;
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
                     if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength - obfuscationLength) {
-                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(outputBytes, i + j, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                                outputBytes,
+                                i + j,
+                                obfuscationLength,
+                                targetValueLength); // set reference of input bytes to the new array reference
                         i = i - (targetValueLength - obfuscationLength);
-                    } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) { // So we don't add asterisks for escape characters (which are not part of the String length)
+                    } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) {
+                        // Remove escape characters and additional bytes required for unicode point character from
+                        // the mask since they aren't actually part of the target value string.
                         int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
-                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(outputBytes, i + j, actualStringLength, targetValueLength);
+                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                                outputBytes,
+                                i + j,
+                                actualStringLength,
+                                targetValueLength);
                         i = i - noOfEscapeCharacters - additionalBytesForEncoding;
                     }
                 }
@@ -133,7 +174,7 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
         return outputBytes;
     }
 
-    private int indexOf(byte[] src, byte[] target) {
+    static int indexOf(byte[] src, byte[] target) {
         for (int i = 0; i <= src.length - target.length; i++) {
             boolean found = true;
             for (int j = 0; j < target.length; ++j) {

@@ -24,30 +24,38 @@ class UnicodeCharacterTest {
     @ParameterizedTest
     @MethodSource("unicodeCharactersFile")
     void unicodeCharactersSingleTargetLoopAlgortihm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(
-                        testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build())
-                .mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(),
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+                                                             .build()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
     @MethodSource("unicodeCharactersFile")
     void unicodeCharactersKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(
-                testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build())
-                .mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(),
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                             .build()).mask(testInstance.input()));
     }
 
     @Test
     void unicodeCharacter() {
         String input = "{\"someKey\": \"\u2020\"}";
         String output = "{\"someKey\": \"*\"}";
-        Assertions.assertEquals(output, JsonMasker.getMasker("someKey",
-                JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build())
-                .mask(input));
+        Assertions.assertEquals(output,
+                                JsonMasker.getMasker("someKey",
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                             .build()).mask(input));
     }
 
     private static Stream<JsonMaskerTestInstance> unicodeCharactersFile() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-unicode-characters.json"), ArrayNode.class);
+        ArrayNode jsonArray =
+                mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-unicode-characters.json"),
+                                 ArrayNode.class);
         return getJsonTestInstancesFromJsonArray(jsonArray).stream();
     }
 
@@ -59,8 +67,12 @@ class UnicodeCharacterTest {
             if (jsonNode.findValue("maskerConfig") != null) {
                 maskerConfigs = reader.readValue(jsonNode.get("maskerConfig"), Map.class);
             }
-            var jsonMaskerTestInstance = new JsonMaskerTestInstance(Set.of(mapper.convertValue(jsonNode.get("targetKey"), String.class)), jsonNode.get("input").toString(), jsonNode.get("expectedOutput").toString(), maskerConfigs);
-               testInstances.add(jsonMaskerTestInstance);
+            var jsonMaskerTestInstance =
+                    new JsonMaskerTestInstance(Set.of(mapper.convertValue(jsonNode.get("targetKey"), String.class)),
+                                               jsonNode.get("input").toString(),
+                                               jsonNode.get("expectedOutput").toString(),
+                                               maskerConfigs);
+            testInstances.add(jsonMaskerTestInstance);
         }
         return testInstances;
     }

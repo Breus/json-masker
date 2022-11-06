@@ -15,17 +15,26 @@ class EmptyKeyTest {
     @ParameterizedTest
     @MethodSource("testEmptyKeyTestFile")
     void emptyKeySingleTargetLoopAlgorithm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build()).mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(),
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+                                                             .build()).mask(testInstance.input()));
     }
 
     @ParameterizedTest
     @MethodSource("testEmptyKeyTestFile")
     void emptyKeyKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(), JsonMasker.getMasker(testInstance.targetKeys(), JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build()).mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(),
+                                JsonMasker.getMasker(testInstance.targetKeys(),
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                             .build()).mask(testInstance.input()));
     }
 
     private static Stream<JsonMaskerTestInstance> testEmptyKeyTestFile() throws IOException {
-        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-empty-key.json"), ArrayNode.class);
+        ArrayNode jsonArray = mapper.readValue(JsonMaskerTest.class.getClassLoader().getResource("test-empty-key.json"),
+                                               ArrayNode.class);
         return JsonMaskerTest.getMultipleTargetJsonTestInstanceFromJsonArray(jsonArray).stream();
     }
 }

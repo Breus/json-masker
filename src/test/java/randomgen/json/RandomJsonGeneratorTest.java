@@ -9,7 +9,8 @@ public class RandomJsonGeneratorTest {
     @ValueSource(ints = 100)
     void testRandomGenerator(int numberOfTests) {
         for (int i = 0; i < numberOfTests; i++) {
-            RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
+            RandomJsonGenerator randomJsonGenerator =
+                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             System.out.println(randomJsonNode.toPrettyString());
         }

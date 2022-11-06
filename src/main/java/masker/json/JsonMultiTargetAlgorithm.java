@@ -11,7 +11,7 @@ package masker.json;
  * (time complexity cN, where N is the message input size and c is some constant)
  * Note: for small target key set (1-2 entries), the {@link JsonMultiTargetAlgorithm#SINGLE_TARGET_LOOP} might
  * actually be faster for multi-target masking since the constant is slightly smaller.
- *
+ * <p>
  * The main reason this library contains both algorithm is to support automated fuzzing testing (randomly generating a
  * huge number input messages and verifying that both algorithms result in an equal output to catch bugs).
  * <p>

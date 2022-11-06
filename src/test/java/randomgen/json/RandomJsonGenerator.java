@@ -11,12 +11,7 @@ public class RandomJsonGenerator {
     private int arrayOrObjectNodes; // equal or larger than the max node depth
 
     private enum NodeType {
-        arrayNode,
-        objectNode,
-        booleanNode,
-        nullNode,
-        stringNode,
-        numberNode
+        arrayNode, objectNode, booleanNode, nullNode, stringNode, numberNode
     }
 
     public RandomJsonGenerator(RandomJsonGeneratorConfig config) {
@@ -71,7 +66,7 @@ public class RandomJsonGenerator {
     }
 
     private boolean keyIsTargetKey() {
-        int rnd = new Random().nextInt(1,101);
+        int rnd = new Random().nextInt(1, 101);
         return rnd <= config.getTargetKeyPercentage();
     }
 

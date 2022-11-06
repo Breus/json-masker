@@ -9,12 +9,13 @@ public final class JsonMaskerTestInstance {
     private Map<String, Object> maskerConfigs;
 
     public enum MaskerConfigKey {
-        obfuscationLength,
-        maskNumberValuesWith
+        obfuscationLength, maskNumberValuesWith
     }
 
-    public JsonMaskerTestInstance(Set<String> targetKeys, String input,
-                                  String expectedOutput, Map<String, Object> maskingConfigs) {
+    public JsonMaskerTestInstance(Set<String> targetKeys,
+                                  String input,
+                                  String expectedOutput,
+                                  Map<String, Object> maskingConfigs) {
         this.targetKeys = targetKeys;
         this.input = input;
         this.expectedOutput = expectedOutput;
@@ -51,13 +52,18 @@ public final class JsonMaskerTestInstance {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
         var that = (JsonMaskerTestInstance) obj;
-        return Objects.equals(this.targetKeys, that.targetKeys) &&
-                Objects.equals(this.input, that.input) &&
-                Objects.equals(this.expectedOutput, that.expectedOutput) &&
-                Objects.equals(this.maskerConfigs, that.maskerConfigs);
+        return Objects.equals(this.targetKeys, that.targetKeys) && Objects.equals(this.input,
+                                                                                  that.input) && Objects.equals(this.expectedOutput,
+                                                                                                                that.expectedOutput) && Objects.equals(
+                this.maskerConfigs,
+                that.maskerConfigs);
     }
 
     @Override
@@ -67,10 +73,6 @@ public final class JsonMaskerTestInstance {
 
     @Override
     public String toString() {
-        return "JsonMaskerTestInstance[" +
-                "targetKeys=" + targetKeys + ", " +
-                "input=" + input + ", " +
-                "expectedOutput=" + expectedOutput + ", " +
-                "maskerConfigs=" + maskerConfigs + ']';
+        return "JsonMaskerTestInstance[" + "targetKeys=" + targetKeys + ", " + "input=" + input + ", " + "expectedOutput=" + expectedOutput + ", " + "maskerConfigs=" + maskerConfigs + ']';
     }
 }

@@ -10,6 +10,6 @@ interface JsonMaskerAlgorithm {
 
     @NotNull
     default String mask(@NotNull String input) {
-        return new String(mask(input.getBytes(StandardCharsets.UTF_8)),StandardCharsets.UTF_8);
+        return new String(mask(input.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 }

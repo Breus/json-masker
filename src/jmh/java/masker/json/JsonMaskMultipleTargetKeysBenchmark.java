@@ -22,10 +22,17 @@ public class JsonMaskMultipleTargetKeysBenchmark {
         ObjectMapper mapper = new ObjectMapper();
         String smallJsonAsString = "{\"someSecret\": \"someValue\", \n\"someOtherKey\": {\"someSecret2\": \"value\"}}";
         byte[] simpleJsonAsBytes = smallJsonAsString.getBytes(StandardCharsets.UTF_8);
-        String largeJsonAsString = ParseAndMaskUtil.readJsonFromFileAsString("large-input-benchmark.json", this.getClass());
+        String largeJsonAsString =
+                ParseAndMaskUtil.readJsonFromFileAsString("large-input-benchmark.json", this.getClass());
         byte[] largeJsonAsBytes = largeJsonAsString.getBytes(StandardCharsets.UTF_8);
-        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(keysToBeMasked, JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build());
-        JsonMasker loopJsonMasker = JsonMasker.getMasker(keysToBeMasked, JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build());
+        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(keysToBeMasked,
+                                                                JsonMaskingConfig.custom()
+                                                                        .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                                        .build());
+        JsonMasker loopJsonMasker = JsonMasker.getMasker(keysToBeMasked,
+                                                         JsonMaskingConfig.custom()
+                                                                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+                                                                 .build());
 
         private Set<String> getTargetKeys(int numberOfKeys) {
             Set<String> targetKeys = new HashSet<>();
@@ -63,13 +70,17 @@ public class JsonMaskMultipleTargetKeysBenchmark {
 
     @Benchmark
     public void parseAndMaskMultiKeysSmallJson(State state, Blackhole blackhole) throws IOException {
-        String maskedJsonOutput = ParseAndMaskUtil.parseBytesAndMask(state.simpleJsonAsBytes, state.keysToBeMasked, state.mapper).toString();
+        String maskedJsonOutput =
+                ParseAndMaskUtil.parseBytesAndMask(state.simpleJsonAsBytes, state.keysToBeMasked, state.mapper)
+                        .toString();
         blackhole.consume(maskedJsonOutput);
     }
 
     @Benchmark
     public void parseAndMaskMultiKeysLargeJson(State state, Blackhole blackhole) throws IOException {
-        String maskedJsonOutput = ParseAndMaskUtil.parseBytesAndMask(state.largeJsonAsBytes, state.keysToBeMasked, state.mapper).toString();
+        String maskedJsonOutput =
+                ParseAndMaskUtil.parseBytesAndMask(state.largeJsonAsBytes, state.keysToBeMasked, state.mapper)
+                        .toString();
         blackhole.consume(maskedJsonOutput);
     }
 }

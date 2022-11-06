@@ -14,7 +14,9 @@ public final class ParseAndMaskUtil {
         // util
     }
 
-    static JsonNode parseBytesAndMask(byte[] jsonAsBytes, Set<String> keysToBeMasked, ObjectMapper mapper) throws IOException {
+    static JsonNode parseBytesAndMask(byte[] jsonAsBytes,
+                                      Set<String> keysToBeMasked,
+                                      ObjectMapper mapper) throws IOException {
         JsonNode jsonNode = mapper.readValue(jsonAsBytes, JsonNode.class);
         for (String keyToBeMasked : keysToBeMasked) {
             maskPropertyInJsonNode(jsonNode, keyToBeMasked);
@@ -22,11 +24,15 @@ public final class ParseAndMaskUtil {
         return jsonNode;
     }
 
-    static JsonNode parseBytesAndMask(byte[] jsonAsBytes, String keyToBeMasked, ObjectMapper mapper) throws IOException {
+    static JsonNode parseBytesAndMask(byte[] jsonAsBytes,
+                                      String keyToBeMasked,
+                                      ObjectMapper mapper) throws IOException {
         return mask(mapper.readValue(jsonAsBytes, JsonNode.class), keyToBeMasked);
     }
 
-    static JsonNode parseStringAndMask(String jsonAsString, String keyToBeMasked, ObjectMapper mapper) throws JsonProcessingException {
+    static JsonNode parseStringAndMask(String jsonAsString,
+                                       String keyToBeMasked,
+                                       ObjectMapper mapper) throws JsonProcessingException {
         return mask(mapper.readValue(jsonAsString, JsonNode.class), keyToBeMasked);
     }
 

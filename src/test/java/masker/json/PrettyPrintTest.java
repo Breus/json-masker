@@ -14,9 +14,17 @@ class PrettyPrintTest {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = JsonMasker.getMasker("Test", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP).build());
+        JsonMasker jsonMasker = JsonMasker.getMasker("Test",
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+                                                             .build());
         String mask = jsonMasker.mask(prettyString);
-        Assertions.assertEquals("*****", JsonMapper.builder().build().readValue(mask, JsonNode.class).findValue("Test").textValue());
+        Assertions.assertEquals("*****",
+                                JsonMapper.builder()
+                                        .build()
+                                        .readValue(mask, JsonNode.class)
+                                        .findValue("Test")
+                                        .textValue());
     }
 
     @Test
@@ -24,8 +32,16 @@ class PrettyPrintTest {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = JsonMasker.getMasker("Test", JsonMaskingConfig.custom().multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN).build());
+        JsonMasker jsonMasker = JsonMasker.getMasker("Test",
+                                                     JsonMaskingConfig.custom()
+                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                             .build());
         String mask = jsonMasker.mask(prettyString);
-        Assertions.assertEquals("*****", JsonMapper.builder().build().readValue(mask, JsonNode.class).findValue("Test").textValue());
+        Assertions.assertEquals("*****",
+                                JsonMapper.builder()
+                                        .build()
+                                        .readValue(mask, JsonNode.class)
+                                        .findValue("Test")
+                                        .textValue());
     }
 }

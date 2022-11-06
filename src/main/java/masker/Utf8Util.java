@@ -11,6 +11,7 @@ public final class Utf8Util {
      * 2 bytes: 110xxxxx 10xxxxxx
      * 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
      * 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     *
      * @param input first (or only) code point byte
      * @return code point length in bytes
      */

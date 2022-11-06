@@ -47,7 +47,7 @@ final class JsonMasker extends AbstractMasker {
 
     private JsonMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig jsonMaskingConfig) {
         super(targetKeys);
-        JsonMaskingConfig maskingConfig = (jsonMaskingConfig != null ? jsonMaskingConfig : JsonMaskingConfig.getDefault());
+        var maskingConfig = (jsonMaskingConfig != null ? jsonMaskingConfig : JsonMaskingConfig.getDefault());
         if (maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
             this.maskerImpl = new SingleTargetMasker(targetKeys, maskingConfig);
         } else {

@@ -1,6 +1,6 @@
 package masker.json;
 
-import masker.Utf8AsciiCharacter;
+import masker.AsciiCharacter;
 
 /**
  * Class containing util methods to set a particular target value length to a fixed size mask (used for length
@@ -57,6 +57,6 @@ public final class FixedLengthTargetValueMaskUtil {
                                                      closingQuoteIndex,
                                                      fixedLength,
                                                      targetValueLength,
-                                                     Utf8AsciiCharacter.ASTERISK.getUtf8ByteValue());
+                                                     AsciiCharacter.ASTERISK.getAsciiByteValue());
     }
 }

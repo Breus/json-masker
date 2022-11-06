@@ -112,11 +112,11 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
                 if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength) {
                     if (obfuscationLength == 0) {
                         // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
-                        input = FixedLengthValueUtil.setFixedLengthOfValue(input, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(input, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
                         // The length of the input got changed, so we need to compensate that on our index by stepping the difference between value length and obfuscation length back
                         i = i - (targetValueLength - 1);
                     } else {
-                        input = FixedLengthValueUtil.setFixedLengthOfValue(input, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(input, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
                         // The length of the input got changed, so we need to compensate that on our index by stepping the difference between value length and obfuscation length back
                         i = i - (targetValueLength - obfuscationLength);
                     }
@@ -151,7 +151,7 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
                     i++;
                 }
                 if (maskingConfig.isObfuscationEnabled() && obfuscationLength != (targetValueLength - noOfEscapeCharacters)) {
-                    input = FixedLengthValueUtil.setFixedLengthOfStringValue(input, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(input, i, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                     // compensate the index for shortening the input by setting fixed length to be at the closing double quote of the String value
                     i = i - (targetValueLength - obfuscationLength);
                 } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) { // So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
@@ -160,7 +160,7 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
                      * Also, unicode characters are denoted as 4-hex digits but represent actually just one character, so for each of them 3 asteriks should be removed.
                      */
                     int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
-                    input = FixedLengthValueUtil.setFixedLengthOfStringValue(input, i, actualStringLength, targetValueLength);
+                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(input, i, actualStringLength, targetValueLength);
                     // compensate the index for shortening the input with noOfEscapeCharacters to be at closing double quote of the String value
                     i = i - noOfEscapeCharacters - additionalBytesForEncoding;
                 }

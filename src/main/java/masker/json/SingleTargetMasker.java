@@ -82,10 +82,10 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                     if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength) {
                         if (obfuscationLength == 0) {
                             // For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an empty numeric value is illegal JSON
-                            outputBytes = FixedLengthValueUtil.setFixedLengthOfValue(outputBytes, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(outputBytes, i, 1, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
                             i = i - (targetValueLength - 1);
                         } else {
-                            outputBytes = FixedLengthValueUtil.setFixedLengthOfValue(outputBytes, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
+                            outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(outputBytes, i, obfuscationLength, targetValueLength, Utf8AsciiCharacter.toUtf8ByteValue(maskingConfig.getMaskNumberValuesWith()));
                             i = i - (targetValueLength - obfuscationLength);
                         }
                     }
@@ -119,11 +119,11 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
                     if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength - obfuscationLength) {
-                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(outputBytes, i + j, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
+                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(outputBytes, i + j, obfuscationLength, targetValueLength); // set reference of input bytes to the new array reference
                         i = i - (targetValueLength - obfuscationLength);
                     } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) { // So we don't add asterisks for escape characters (which are not part of the String length)
                         int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
-                        outputBytes = FixedLengthValueUtil.setFixedLengthOfStringValue(outputBytes, i + j, actualStringLength, targetValueLength);
+                        outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(outputBytes, i + j, actualStringLength, targetValueLength);
                         i = i - noOfEscapeCharacters - additionalBytesForEncoding;
                     }
                 }

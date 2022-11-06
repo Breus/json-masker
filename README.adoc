@@ -2,17 +2,17 @@
 :toc:
 
 == Introduction
-The JSON message masker can be used to mask string and numeric values from JSON messages, corresponding to a (set of) target key(s). The implementation is focused on maximum (time) performance using Java.
 
-
-JSON message masker that can be used to mask string and numeric values corresponding to a (set of) target key(s).
-This implementation is optimized for maximum (time) performance using Java.
+JSON message masker can be used to mask string and numeric values from JSON messages, corresponding to a (set of) target key(s).
+The implementation is focused on maximum (time) performance using Java without any external library dependencies.
 
 == Dependencies
-* No external dependencies are required to use this library
+
+* No external dependencies are required for this library
 * Test/benchmark dependencies are included in the `build.gradle`
 
 == Features
+
 - Mask string values in any JSON structure corresponding to configured target key(s).
 - Mask numeric values in any JSON structure corresponding to configured target key(s).
 - Obfuscate the original length of the value by setting a fixed mask length.
@@ -20,23 +20,32 @@ This implementation is optimized for maximum (time) performance using Java.
 === JSON masking algorithms
 
 ==== Single-target-loop
-Loops over the target key set and executes the single-target key masking algorithm for each key. This algorithm has a time complexity of `Cn * k`, where `n` is the message input size, `k` the target key set size, and `C` is some constant.
 
-This algorithm performs only better than the other if the set of target keys contains a single target key. The main reason for the existence of this algorithm is to be able to do fuzzing testing to ensure the correctness of the other algorithm.
+Loops over the target key set and executes the single-target key masking algorithm for each key.
+This algorithm has a time complexity of `Cn * k`, where `n` is the message input size, `k` the target key set size, and `C` is some constant.
+
+This algorithm performs only better than the other if the set of target keys contains a single target key.
+The main reason for the existence of this algorithm is to be able to do fuzzing testing to ensure the correctness of the other algorithm.
 
 ==== Key-contains
-Uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time. Therefore, the time complexity is `Cn`, where `n` is the message input size and `C` is some constant. I.e.: the time complexity of this algorithm scales only linear in the message input length.
+
+Uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
+Therefore, the time complexity is `Cn`, where `n` is the message input size and `C` is some constant.
+I.e.: the time complexity of this algorithm scales only linear in the message input length.
 
 === Which algorithm should I use?
-The constant factor `C` in the time complexity function of the key-contains algorithm is slightly larger than for the single-target-loop algorithm. Therefore, for absolute maximum performance one should use the single-target-loop algorithm while targeting a single key to mask.
+
+The constant factor `C` in the time complexity function of the key-contains algorithm is slightly larger than for the single-target-loop algorithm.
+Therefore, for absolute maximum performance one should use the single-target-loop algorithm while targeting a single key to mask.
 
 While targeting multiple keys to mask, the better performing algorithm is the key-contains algorithm.
 
 ==== Default algorithm: key-contains
+
 The default algorithm is the key-contains algorithm as the small difference in the constant `C` while targeting a single key to mask was deemed less relevant than the impact of multiple target keys on the time complexity of the single-target-loop algorithm.
 
-
 == Examples
+
 === Single target key masking
 
 Simple example of JsonMasker usage masking a single target key (pinCode).
@@ -75,6 +84,7 @@ Simple example of JsonMasker usage masking a single target key (pinCode).
 ----
 
 === Multiple target keys + length obfuscation masking
+
 Example showing a how to target multiple keys using the key-contains algorithm and obfuscate the original length of the masked values.
 
 ==== Input
@@ -118,20 +128,10 @@ Example showing a how to target multiple keys using the key-contains algorithm a
 }
 ----
 
-== Planned features
-- [x] JSON: adding length obfuscation option
-- [x] JSON: targeting multiple (naive, time complexity n * target key set length)
-- [x] JSON: targeting multiple keys (time complexity n)
-- [x] JSON: add support for input String containing JSON array instead of JSON object
-- [x] JSON: add feature to enable/disable numeric values
-
-== Future message formats support
-- [ ] XML: add XML masking
-- [ ] x-www-form-urlencoded data masking
-
 == Performance (benchmarks)
 
 === Targeting multiple keys
+
 Using JMH, we got the following results while comparing the key-contains algorithm, the single-target-loop algorithm and using Jackson to mask the values.
 This benchmark takes the file `large-input-benchmark.json` as input and targets a set of 100 keys.
 
@@ -145,7 +145,6 @@ JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt    4
 JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt    4  143765,284 ± 10434,571  ns/op
 JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    4    3097,302 ±    19,985  ns/op
 ----
-
 
 === Targeting a single key and obfuscation
 

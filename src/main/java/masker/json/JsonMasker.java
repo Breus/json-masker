@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 final class JsonMasker extends AbstractMasker {
-    private final JsonMaskerImpl maskerImpl;
+    private final JsonMaskerAlgorithm maskerImpl;
 
     @NotNull
     public static JsonMasker getMasker(@NotNull String targetKey) {

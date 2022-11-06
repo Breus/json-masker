@@ -2,10 +2,9 @@ package masker.json;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-interface JsonMaskerImpl {
+interface JsonMaskerAlgorithm {
 
     byte[] mask(byte[] input);
 

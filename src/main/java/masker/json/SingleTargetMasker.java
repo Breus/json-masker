@@ -12,7 +12,7 @@ import java.util.Set;
 import static masker.Utf8AsciiCharacter.isDoubleQuote;
 import static masker.Utf8AsciiCharacter.isEscapeCharacter;
 
-public class SingleTargetMasker implements JsonMaskerImpl {
+public class SingleTargetMasker implements JsonMaskerAlgorithm {
     private final Set<String> quotedTargetKeys;
     private final JsonMaskingConfig maskingConfig;
 

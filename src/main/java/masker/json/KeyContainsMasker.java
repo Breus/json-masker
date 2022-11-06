@@ -9,7 +9,7 @@ import java.util.Set;
 import static masker.Utf8AsciiCharacter.*;
 import static masker.json.Utf8AsciiJson.*;
 
-public final class KeyContainsMasker implements JsonMaskerImpl {
+public final class KeyContainsMasker implements JsonMaskerAlgorithm {
     // We are looking for targeted JSON keys, so the closing quote can appear at minimum 4 characters till the end of the JSON in the following case: {"":""}
     private static final int MIN_OFFSET_JSON_KEY_QUOTE = 4;
     private final Set<String> targetKeys;

@@ -25,11 +25,13 @@ public final class FixedLengthTargetValueMaskUtil {
      * @return a new array corresponding to the input bytes array with the target value replaced with a fixed length
      * mask
      */
-    static byte[] replaceTargetValueWithFixedLengthMask(byte[] inputBytes,
-                                                        int targetValueEndIndex,
-                                                        int fixedMaskLength,
-                                                        int targetValueLength,
-                                                        byte maskByte) {
+    static byte[] replaceTargetValueWithFixedLengthMask(
+            byte[] inputBytes,
+            int targetValueEndIndex,
+            int fixedMaskLength,
+            int targetValueLength,
+            byte maskByte
+    ) {
         // Create new empty array with a length computed by the difference between requested fixed length and target
         // value length.
         byte[] newInputBytes = new byte[inputBytes.length + (fixedMaskLength - targetValueLength)];
@@ -41,22 +43,28 @@ public final class FixedLengthTargetValueMaskUtil {
             newInputBytes[i] = maskByte; // add masking characters
         }
         // Append the rest of the original array starting from end of target value
-        System.arraycopy(inputBytes,
-                         targetValueEndIndex,
-                         newInputBytes,
-                         targetValueStartIndex + fixedMaskLength,
-                         inputBytes.length - targetValueEndIndex);
+        System.arraycopy(
+                inputBytes,
+                targetValueEndIndex,
+                newInputBytes,
+                targetValueStartIndex + fixedMaskLength,
+                inputBytes.length - targetValueEndIndex
+        );
         return newInputBytes;
     }
 
-    static byte[] replaceTargetValueWithFixedLengthAsteriskMask(byte[] inputBytes,
-                                                                int closingQuoteIndex,
-                                                                int fixedLength,
-                                                                int targetValueLength) {
-        return replaceTargetValueWithFixedLengthMask(inputBytes,
-                                                     closingQuoteIndex,
-                                                     fixedLength,
-                                                     targetValueLength,
-                                                     AsciiCharacter.ASTERISK.getAsciiByteValue());
+    static byte[] replaceTargetValueWithFixedLengthAsteriskMask(
+            byte[] inputBytes,
+            int closingQuoteIndex,
+            int fixedLength,
+            int targetValueLength
+    ) {
+        return replaceTargetValueWithFixedLengthMask(
+                inputBytes,
+                closingQuoteIndex,
+                fixedLength,
+                targetValueLength,
+                AsciiCharacter.ASTERISK.getAsciiByteValue()
+        );
     }
 }

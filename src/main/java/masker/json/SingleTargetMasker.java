@@ -22,6 +22,22 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
         this.maskingConfig = maskingConfig;
     }
 
+    static int indexOf(byte[] src, byte[] target) {
+        for (int i = 0; i <= src.length - target.length; i++) {
+            boolean found = true;
+            for (int j = 0; j < target.length; ++j) {
+                if (src[i + j] != target[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     @Override
     public byte[] mask(byte[] message) {
         for (String targetKey : quotedTargetKeys) {
@@ -98,7 +114,8 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                                     i,
                                     1,
                                     targetValueLength,
-                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith()));
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                            );
                             i = i - (targetValueLength - 1);
                         } else {
                             outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
@@ -106,7 +123,8 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                                     i,
                                     obfuscationLength,
                                     targetValueLength,
-                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith()));
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                            );
                             i = i - (targetValueLength - obfuscationLength);
                         }
                     }
@@ -117,7 +135,8 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                     int additionalBytesForEncoding = 0;
                     boolean escapeNextCharacter = false;
                     boolean previousCharacterCountedAsEscapeCharacter = false;
-                    while (!isDoubleQuote(inputSliceBytes[i]) || (isDoubleQuote(inputSliceBytes[i]) && escapeNextCharacter)) {
+                    while (!isDoubleQuote(inputSliceBytes[i]) || (isDoubleQuote(inputSliceBytes[i])
+                            && escapeNextCharacter)) {
                         if (Utf8Util.getCodePointByteLength(inputSliceBytes[i]) > 1) {
                             /*
                              *  UTF-8, so whenever code points are encoded using multiple bytes this should be
@@ -135,7 +154,8 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                             noOfEscapeCharacters++;
                             previousCharacterCountedAsEscapeCharacter = true;
                         } else {
-                            if (previousCharacterCountedAsEscapeCharacter && AsciiCharacter.isLowercaseU(inputSliceBytes[i])) {
+                            if (previousCharacterCountedAsEscapeCharacter
+                                    && AsciiCharacter.isLowercaseU(inputSliceBytes[i])) {
                                 /*
                                  * Next 4 characters are hexadecimal digits which form a single character and are only
                                  * there for encoding unicode characters.
@@ -149,12 +169,14 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
-                    if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength - obfuscationLength) {
+                    if (maskingConfig.isObfuscationEnabled()
+                            && obfuscationLength != targetValueLength - obfuscationLength) {
                         outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
                                 outputBytes,
                                 i + j,
                                 obfuscationLength,
-                                targetValueLength); // set reference of input bytes to the new array reference
+                                targetValueLength
+                        ); // set reference of input bytes to the new array reference
                         i = i - (targetValueLength - obfuscationLength);
                     } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) {
                         // Remove escape characters and additional bytes required for unicode point character from
@@ -164,7 +186,8 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
                                 outputBytes,
                                 i + j,
                                 actualStringLength,
-                                targetValueLength);
+                                targetValueLength
+                        );
                         i = i - noOfEscapeCharacters - additionalBytesForEncoding;
                     }
                 }
@@ -172,21 +195,5 @@ public class SingleTargetMasker implements JsonMaskerAlgorithm {
             }
         }
         return outputBytes;
-    }
-
-    static int indexOf(byte[] src, byte[] target) {
-        for (int i = 0; i <= src.length - target.length; i++) {
-            boolean found = true;
-            for (int j = 0; j < target.length; ++j) {
-                if (src[i + j] != target[j]) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) {
-                return i;
-            }
-        }
-        return -1;
     }
 }

@@ -11,6 +11,10 @@ public abstract class AbstractMaskingConfig {
      */
     private final int obfuscationLength;
 
+    protected AbstractMaskingConfig(Builder<?> builder) {
+        obfuscationLength = builder.obfuscationLength;
+    }
+
     public int getObfuscationLength() {
         return obfuscationLength;
     }
@@ -35,9 +39,5 @@ public abstract class AbstractMaskingConfig {
 
         // Subclasses must override this method to return "this"
         protected abstract T self();
-    }
-
-    protected AbstractMaskingConfig(Builder<?> builder) {
-        obfuscationLength = builder.obfuscationLength;
     }
 }

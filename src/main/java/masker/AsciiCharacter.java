@@ -40,10 +40,6 @@ public enum AsciiCharacter {
         this.byteValue = byteValue;
     }
 
-    public byte getAsciiByteValue() {
-        return byteValue;
-    }
-
     public static byte toAsciiByteValue(int digit) {
         return switch (digit) {
             case 0 -> ZERO.byteValue;
@@ -74,5 +70,9 @@ public enum AsciiCharacter {
 
     public static boolean isColon(byte inputByte) {
         return COLON.getAsciiByteValue() == inputByte;
+    }
+
+    public byte getAsciiByteValue() {
+        return byteValue;
     }
 }

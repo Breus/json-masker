@@ -11,6 +11,16 @@ import java.util.Set;
 final class JsonMasker extends AbstractMasker {
     private final JsonMaskerAlgorithm maskerImpl;
 
+    private JsonMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig jsonMaskingConfig) {
+        super(targetKeys);
+        var maskingConfig = (jsonMaskingConfig != null ? jsonMaskingConfig : JsonMaskingConfig.getDefault());
+        if (maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
+            this.maskerImpl = new SingleTargetMasker(targetKeys, maskingConfig);
+        } else {
+            this.maskerImpl = new KeyContainsMasker(targetKeys, maskingConfig);
+        }
+    }
+
     @NotNull
     public static JsonMasker getMasker(@NotNull String targetKey) {
         return getMasker(targetKey, null);
@@ -43,15 +53,5 @@ final class JsonMasker extends AbstractMasker {
     @Override
     public String mask(@NotNull String message) {
         return maskerImpl.mask(message);
-    }
-
-    private JsonMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig jsonMaskingConfig) {
-        super(targetKeys);
-        var maskingConfig = (jsonMaskingConfig != null ? jsonMaskingConfig : JsonMaskingConfig.getDefault());
-        if (maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
-            this.maskerImpl = new SingleTargetMasker(targetKeys, maskingConfig);
-        } else {
-            this.maskerImpl = new KeyContainsMasker(targetKeys, maskingConfig);
-        }
     }
 }

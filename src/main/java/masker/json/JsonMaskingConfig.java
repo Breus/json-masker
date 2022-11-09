@@ -15,12 +15,39 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
      */
     private final int maskNumberValuesWith;
 
+    private JsonMaskingConfig(Builder builder) {
+        super(builder);
+        if (builder.getObfuscationLength() == 0 && !(builder.maskNumberValuesWith == 0
+                || builder.maskNumberValuesWith == -1)) {
+            throw new IllegalArgumentException(
+                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
+        }
+        multiTargetAlgorithm = builder.multiTargetAlgorithm;
+        maskNumberValuesWith = builder.maskNumberValuesWith;
+    }
+
     public static JsonMaskingConfig getDefault() {
         return custom().build();
     }
 
     public static JsonMaskingConfig.Builder custom() {
         return new JsonMaskingConfig.Builder();
+    }
+
+    public JsonMultiTargetAlgorithm getMultiTargetAlgorithm() {
+        return multiTargetAlgorithm;
+    }
+
+    public int getMaskNumberValuesWith() {
+        return maskNumberValuesWith;
+    }
+
+    public boolean isNumberMaskingEnabled() {
+        return maskNumberValuesWith != -1;
+    }
+
+    public boolean isNumberMaskingDisabled() {
+        return maskNumberValuesWith == -1;
     }
 
     public static class Builder extends AbstractMaskingConfig.Builder<Builder> {
@@ -62,31 +89,5 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         protected Builder self() {
             return this;
         }
-    }
-
-    private JsonMaskingConfig(Builder builder) {
-        super(builder);
-        if (builder.getObfuscationLength() == 0 && !(builder.maskNumberValuesWith == 0 || builder.maskNumberValuesWith == -1)) {
-            throw new IllegalArgumentException(
-                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
-        }
-        multiTargetAlgorithm = builder.multiTargetAlgorithm;
-        maskNumberValuesWith = builder.maskNumberValuesWith;
-    }
-
-    public JsonMultiTargetAlgorithm getMultiTargetAlgorithm() {
-        return multiTargetAlgorithm;
-    }
-
-    public int getMaskNumberValuesWith() {
-        return maskNumberValuesWith;
-    }
-
-    public boolean isNumberMaskingEnabled() {
-        return maskNumberValuesWith != -1;
-    }
-
-    public boolean isNumberMaskingDisabled() {
-        return maskNumberValuesWith == -1;
     }
 }

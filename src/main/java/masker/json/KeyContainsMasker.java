@@ -6,8 +6,11 @@ import masker.Utf8Util;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static masker.AsciiCharacter.*;
-import static masker.json.AsciiJsonUtil.*;
+import static masker.AsciiCharacter.isDoubleQuote;
+import static masker.AsciiCharacter.isEscapeCharacter;
+import static masker.json.AsciiJsonUtil.isFirstNumberChar;
+import static masker.json.AsciiJsonUtil.isNumericCharacter;
+import static masker.json.AsciiJsonUtil.isWhiteSpace;
 
 public final class KeyContainsMasker implements JsonMaskerAlgorithm {
     /*
@@ -26,7 +29,6 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
         this.targetKeys = targetKeys;
         this.maskingConfig = maskingConfig;
     }
-
 
     /**
      * Masks the values in the given input for all values having keys corresponding to any of the provided target keys.
@@ -139,24 +141,26 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
                          * For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an
                          * empty numeric value is illegal JSON.
                          */
-                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(input,
-                                                                                                     i,
-                                                                                                     1,
-                                                                                                     targetValueLength,
-                                                                                                     AsciiCharacter.toAsciiByteValue(
-                                                                                                             maskingConfig.getMaskNumberValuesWith()));
+                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                                input,
+                                i,
+                                1,
+                                targetValueLength,
+                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                        );
                         /*
                          * The length of the input got changed, so we need to compensate that on our index by
                          * stepping the difference between value length and obfuscation length back.
                          */
                         i = i - (targetValueLength - 1);
                     } else {
-                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(input,
-                                                                                                     i,
-                                                                                                     obfuscationLength,
-                                                                                                     targetValueLength,
-                                                                                                     AsciiCharacter.toAsciiByteValue(
-                                                                                                             maskingConfig.getMaskNumberValuesWith()));
+                        input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                                input,
+                                i,
+                                obfuscationLength,
+                                targetValueLength,
+                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                        );
                         /*
                          * The length of the input got changed, so we need to compensate that on our index by
                          * stepping the difference between value length and obfuscation length back.
@@ -203,27 +207,35 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
                     targetValueLength++;
                     i++;
                 }
-                if (maskingConfig.isObfuscationEnabled() && obfuscationLength != (targetValueLength - noOfEscapeCharacters)) {
-                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(input,
-                                                                                                         i,
-                                                                                                         obfuscationLength,
-                                                                                                         targetValueLength);
+                if (maskingConfig.isObfuscationEnabled()
+                        && obfuscationLength != (targetValueLength - noOfEscapeCharacters)) {
+                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                            input,
+                            i,
+                            obfuscationLength,
+                            targetValueLength
+                    );
                     /*
                      * Compensate the index for shortening the input by setting fixed length to be at the closing
                      * double quote of the string value.
                      */
                     i = i - (targetValueLength - obfuscationLength);
-                } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) { // So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
+                } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) {
+                    // So we don't add asterisks for escape characters or additional encoding bytes (which
+                    // are not part of the String length)
+
                     /*
                      * The actual length of the string is the length minus escape characters (which are not part of the
                      * string length). Also, unicode characters are denoted as 4-hex digits but represent actually
-                     * just one character, so for each of them 3 asteriks should be removed.
+                     * just one character, so for each of them 3 asterisks should be removed.
                      */
                     int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
-                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(input,
-                                                                                                         i,
-                                                                                                         actualStringLength,
-                                                                                                         targetValueLength);
+                    input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                            input,
+                            i,
+                            actualStringLength,
+                            targetValueLength
+                    );
                     /*
                      * Compensate the index for shortening the input with noOfEscapeCharacters to be at closing
                      * double quote of the String value.
@@ -235,7 +247,6 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
         }
         return input;
     }
-
 
     /**
      * Checks if the byte at the given index in the input byte array is an unescaped double quote character in UTF-8.
@@ -249,6 +260,7 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
     }
 
     private boolean isObjectOrArray(byte[] input) {
-        return AsciiCharacter.CURLY_BRACKET_OPEN.getAsciiByteValue() == input[0] || AsciiCharacter.SQUARE_BRACKET_OPEN.getAsciiByteValue() == input[0];
+        return AsciiCharacter.CURLY_BRACKET_OPEN.getAsciiByteValue() == input[0]
+                || AsciiCharacter.SQUARE_BRACKET_OPEN.getAsciiByteValue() == input[0];
     }
 }

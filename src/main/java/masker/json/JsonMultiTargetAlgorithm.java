@@ -18,5 +18,6 @@ package masker.json;
  * Default value: KEYS_CONTAIN
  */
 public enum JsonMultiTargetAlgorithm {
-    SINGLE_TARGET_LOOP, KEYS_CONTAIN,
+    SINGLE_TARGET_LOOP,
+    KEYS_CONTAIN,
 }

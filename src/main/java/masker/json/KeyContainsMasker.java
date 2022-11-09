@@ -12,7 +12,7 @@ import static masker.json.AsciiJsonUtil.isFirstNumberChar;
 import static masker.json.AsciiJsonUtil.isNumericCharacter;
 import static masker.json.AsciiJsonUtil.isWhiteSpace;
 
-public final class KeyContainsMasker implements JsonMaskerAlgorithm {
+public final class KeyContainsMasker implements JsonMasker {
     /*
      * We are looking for targeted JSON keys, so the closing quote can appear at minimum 4 characters till the end of
      *  the JSON in the following minimal case: '{"":""}'
@@ -23,10 +23,54 @@ public final class KeyContainsMasker implements JsonMaskerAlgorithm {
      */
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
     private final Set<String> targetKeys;
+
+
+    /**
+     * 1. mask all keys corresponding to key (done)
+     * 2. maks a key only top-level ($.key)
+     * 3. mask a key in some object path (object.inner.key)
+     *
+     *
+     * {
+     *     "key" {
+     *         "key1": "secret",
+     *         "key2": "secret"
+     *         "Key3": {
+     *             "key4": ""
+     *             "key2": ""
+     *         }
+     *     }
+     * }
+     *
+     *
+     *    "key2"
+     *  "obj.secret"
+     *  "obj.otherSecret"
+     * key.key1
+     * key.key3
+     * key.**
+     *
+     * class MyData {
+     *     private String ssn;
+     *     private String secret;
+     *     private InnerObj obj;
+     * }
+     *
+     * class InnerObj {
+     *     @MaskMe
+     *     private String secret;
+     *     @MaskMe
+     *     private String otherSecret;
+     * }
+     *
+     */
+    // /settings/somefield/
+    // $.phoneNumbers[:1].type
+
     private final JsonMaskingConfig maskingConfig;
 
-    public KeyContainsMasker(Set<String> targetKeys, JsonMaskingConfig maskingConfig) {
-        this.targetKeys = targetKeys;
+    public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
+        this.targetKeys = maskingConfig.getTargetKeys();
         this.maskingConfig = maskingConfig;
     }
 

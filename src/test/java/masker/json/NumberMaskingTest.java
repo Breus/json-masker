@@ -15,27 +15,40 @@ class NumberMaskingTest {
     @ParameterizedTest
     @MethodSource("testNumberMaskingFile")
     void numberMaskingSingleTargetLoop(JsonMaskerTestInstance testInstance) {
-        JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
-                .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+        JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom(testInstance.targetKeys())
                 .obfuscationLength(testInstance.obfuscationLength())
                 .maskNumberValuesWith(testInstance.maskNumbersWithValue())
                 .build();
-        Assertions.assertEquals(testInstance.expectedOutput(),
-                                JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig)
-                                        .mask(testInstance.input()));
+        Assertions.assertEquals(
+                testInstance.expectedOutput(),
+                new SingleTargetMasker(maskingConfig).mask(testInstance.input())
+        );
     }
 
     @ParameterizedTest
     @MethodSource("testNumberMaskingFile")
     void numberMaskingKeyContains(JsonMaskerTestInstance testInstance) {
-        JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom()
-                .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+        JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom(testInstance.targetKeys())
                 .obfuscationLength(testInstance.obfuscationLength())
                 .maskNumberValuesWith(testInstance.maskNumbersWithValue())
                 .build();
-        Assertions.assertEquals(testInstance.expectedOutput(),
-                                JsonMasker.getMasker(testInstance.targetKeys(), maskingConfig)
-                                        .mask(testInstance.input()));
+        Assertions.assertEquals(
+                testInstance.expectedOutput(),
+                new KeyContainsMasker(maskingConfig).mask(testInstance.input())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("testNumberMaskingFile")
+    void numberMaskingPathAwareKeyContains(JsonMaskerTestInstance testInstance) {
+        JsonMaskingConfig maskingConfig = JsonMaskingConfig.custom(testInstance.targetKeys())
+                .obfuscationLength(testInstance.obfuscationLength())
+                .maskNumberValuesWith(testInstance.maskNumbersWithValue())
+                .build();
+        Assertions.assertEquals(
+                testInstance.expectedOutput(),
+                new PathAwareKeyContainsMasker(maskingConfig).mask(testInstance.input())
+        );
     }
 
 

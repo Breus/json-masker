@@ -27,11 +27,11 @@ public class JsonMaskMultipleTargetKeysBenchmark {
         byte[] largeJsonAsBytes = largeJsonAsString.getBytes(StandardCharsets.UTF_8);
         JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(keysToBeMasked,
                                                                 JsonMaskingConfig.custom()
-                                                                        .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
+                                                                        .multiTargetAlgorithm(JsonMaskerAlgorithmType.KEYS_CONTAIN)
                                                                         .build());
         JsonMasker loopJsonMasker = JsonMasker.getMasker(keysToBeMasked,
                                                          JsonMaskingConfig.custom()
-                                                                 .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
+                                                                 .multiTargetAlgorithm(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP)
                                                                  .build());
 
         private Set<String> getTargetKeys(int numberOfKeys) {

@@ -20,36 +20,21 @@ import java.util.stream.Stream;
 class UnicodeCharacterTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-
     @ParameterizedTest
     @MethodSource("unicodeCharactersFile")
-    void unicodeCharactersSingleTargetLoopAlgortihm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(),
-                                JsonMasker.getMasker(testInstance.targetKeys(),
-                                                     JsonMaskingConfig.custom()
-                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
-                                                             .build()).mask(testInstance.input()));
-    }
-
-    @ParameterizedTest
-    @MethodSource("unicodeCharactersFile")
-    void unicodeCharactersKeyContainsAlgorithm(JsonMaskerTestInstance testInstance) {
-        Assertions.assertEquals(testInstance.expectedOutput(),
-                                JsonMasker.getMasker(testInstance.targetKeys(),
-                                                     JsonMaskingConfig.custom()
-                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
-                                                             .build()).mask(testInstance.input()));
+    void unicodeCharacter(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), new SingleTargetMasker(JsonMaskingConfig.getDefault(testInstance.targetKeys())).mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(), new KeyContainsMasker(JsonMaskingConfig.getDefault(testInstance.targetKeys())).mask(testInstance.input()));
+        Assertions.assertEquals(testInstance.expectedOutput(), new PathAwareKeyContainsMasker(JsonMaskingConfig.getDefault(testInstance.targetKeys())).mask(testInstance.input()));
     }
 
     @Test
     void unicodeCharacter() {
         String input = "{\"someKey\": \"\u2020\"}";
         String output = "{\"someKey\": \"*\"}";
-        Assertions.assertEquals(output,
-                                JsonMasker.getMasker("someKey",
-                                                     JsonMaskingConfig.custom()
-                                                             .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
-                                                             .build()).mask(input));
+        Assertions.assertEquals(output, new SingleTargetMasker(JsonMaskingConfig.getDefault(Set.of("someKey"))).mask(input));
+        Assertions.assertEquals(output, new KeyContainsMasker(JsonMaskingConfig.getDefault(Set.of("someKey"))).mask(input));
+        Assertions.assertEquals(output, new PathAwareKeyContainsMasker(JsonMaskingConfig.getDefault(Set.of("someKey"))).mask(input));
     }
 
     private static Stream<JsonMaskerTestInstance> unicodeCharactersFile() throws IOException {

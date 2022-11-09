@@ -1,57 +1,36 @@
 package masker.json;
 
-import masker.AbstractMasker;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-final class JsonMasker extends AbstractMasker {
-    private final JsonMaskerAlgorithm maskerImpl;
+interface JsonMasker {
+    @NotNull
+    static JsonMasker getMasker(@NotNull String targetKey) {
+        return getMasker(JsonMaskingConfig.getDefault(Set.of(targetKey)));
+    }
 
-    private JsonMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig jsonMaskingConfig) {
-        super(targetKeys);
-        var maskingConfig = (jsonMaskingConfig != null ? jsonMaskingConfig : JsonMaskingConfig.getDefault());
-        if (maskingConfig.getMultiTargetAlgorithm() == JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP) {
-            this.maskerImpl = new SingleTargetMasker(targetKeys, maskingConfig);
+    @NotNull
+    static JsonMasker getMasker(@NotNull Set<String> targetKeys) {
+        return getMasker(JsonMaskingConfig.getDefault(targetKeys));
+    }
+
+    @NotNull
+    static JsonMasker getMasker(@NotNull JsonMaskingConfig maskingConfig) {
+        if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
+            return new SingleTargetMasker(maskingConfig);
+        } else if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN){
+            return new KeyContainsMasker(maskingConfig);
         } else {
-            this.maskerImpl = new KeyContainsMasker(targetKeys, maskingConfig);
+            return new PathAwareKeyContainsMasker(maskingConfig);
         }
     }
 
-    @NotNull
-    public static JsonMasker getMasker(@NotNull String targetKey) {
-        return getMasker(targetKey, null);
-    }
+    byte[] mask(byte[] input);
 
     @NotNull
-    public static JsonMasker getMasker(@NotNull String targetKey, @Nullable JsonMaskingConfig maskingConfig) {
-        return getMasker(Set.of(targetKey), maskingConfig);
-    }
-
-    @NotNull
-    public static JsonMasker getMasker(@NotNull Set<String> targetKeys) {
-        return getMasker(targetKeys, null);
-    }
-
-    @NotNull
-    public static JsonMasker getMasker(@NotNull Set<String> targetKeys, @Nullable JsonMaskingConfig maskingConfig) {
-        return new JsonMasker(targetKeys, maskingConfig);
-    }
-
-    @Override
-    public byte[] mask(byte[] message, @NotNull Charset charset) {
-        if (!StandardCharsets.UTF_8.equals(charset)) {
-            throw new IllegalArgumentException("Json maskers only support UTF-8 charset");
-        }
-        return maskerImpl.mask(message);
-    }
-
-    @NotNull
-    @Override
-    public String mask(@NotNull String message) {
-        return maskerImpl.mask(message);
+    default String mask(@NotNull String input) {
+        return new String(mask(input.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 }

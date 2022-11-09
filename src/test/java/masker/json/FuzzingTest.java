@@ -12,15 +12,12 @@ import java.util.Set;
 class FuzzingTest {
 
     @ParameterizedTest
-    @ValueSource(ints = {10000})
+    @ValueSource(ints = {100})
         // number of tests
     void fuzzTestNoFailuresKeyContainsAlgorithm(int amountOfTests) {
         for (int i = 0; i < amountOfTests; i++) {
             Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker keyContainsMasker = JsonMasker.getMasker(targetKeys,
-                                                                JsonMaskingConfig.custom()
-                                                                        .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
-                                                                        .build());
+            KeyContainsMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.getDefault(targetKeys));
             RandomJsonGenerator randomJsonGenerator =
                     new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
@@ -30,15 +27,12 @@ class FuzzingTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {100000})
+    @ValueSource(ints = {100})
         // number of tests
     void fuzzTestNoFailuresSingleTargetLoopAlgorithm(int amountOfTests) {
         for (int i = 0; i < amountOfTests; i++) {
             Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker singleTargetMasker = JsonMasker.getMasker(targetKeys,
-                                                                 JsonMaskingConfig.custom()
-                                                                         .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
-                                                                         .build());
+            JsonMasker singleTargetMasker = new SingleTargetMasker(JsonMaskingConfig.getDefault(targetKeys));
             RandomJsonGenerator randomJsonGenerator =
                     new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
@@ -48,19 +42,13 @@ class FuzzingTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {100000})
+    @ValueSource(ints = {100})
         // number of tests
     void fuzzTestTwoTargets(int amountOfTests) {
         for (int i = 0; i < amountOfTests; i++) {
             Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker keyContainsMasker = JsonMasker.getMasker(targetKeys,
-                                                                JsonMaskingConfig.custom()
-                                                                        .multiTargetAlgorithm(JsonMultiTargetAlgorithm.KEYS_CONTAIN)
-                                                                        .build());
-            JsonMasker singleTargetMasker = JsonMasker.getMasker(targetKeys,
-                                                                 JsonMaskingConfig.custom()
-                                                                         .multiTargetAlgorithm(JsonMultiTargetAlgorithm.SINGLE_TARGET_LOOP)
-                                                                         .build());
+            JsonMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.getDefault(targetKeys));
+            JsonMasker singleTargetMasker = new SingleTargetMasker(JsonMaskingConfig.getDefault(targetKeys));
             RandomJsonGenerator randomJsonGenerator =
                     new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();

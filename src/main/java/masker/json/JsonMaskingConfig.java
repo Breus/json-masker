@@ -1,12 +1,23 @@
 package masker.json;
 
 import masker.AbstractMaskingConfig;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 public class JsonMaskingConfig extends AbstractMaskingConfig {
     /**
-     * Specifies the algorithm that will be used to mask multiple
+     * Specifies the set of JSON keys for which the string/number values should be masked.
      */
-    private final JsonMultiTargetAlgorithm multiTargetAlgorithm;
+    private final Set<String> targetKeys;
+    /**
+     * Specifies the set of JSON paths for which the string/number values should be masked.
+     */
+    private final Set<JsonPath> targetJsonPaths;
+    /**
+     * Specifies the algorithm type that will be used for masking.
+     */
+    private final JsonMaskerAlgorithmType algorithmType;
     /**
      * Specifies the number with which numeric values should be replaced.
      * -1 denotes number musking is disabled.
@@ -22,20 +33,38 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             throw new IllegalArgumentException(
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
-        multiTargetAlgorithm = builder.multiTargetAlgorithm;
         maskNumberValuesWith = builder.maskNumberValuesWith;
+        Set<JsonPath> tmpTargetJsonPaths = builder.resolveJsonPaths ? resolveJsonPaths(builder.targets) : null;
+        if (tmpTargetJsonPaths != null && ! tmpTargetJsonPaths.isEmpty()) {
+            algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
+            targetJsonPaths = tmpTargetJsonPaths;
+            targetKeys = null;
+        } else {
+            targetKeys = builder.targets;
+            targetJsonPaths = null;
+            if (builder.targets.size() > 1) {
+                algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
+            } else {
+                algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
+            }
+        }
     }
 
-    public static JsonMaskingConfig getDefault() {
-        return custom().build();
+    private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
+        //TODO implement
+        return Set.of();
     }
 
-    public static JsonMaskingConfig.Builder custom() {
-        return new JsonMaskingConfig.Builder();
+    public static JsonMaskingConfig getDefault(@NotNull Set<String> targets) {
+        return custom(targets).build();
     }
 
-    public JsonMultiTargetAlgorithm getMultiTargetAlgorithm() {
-        return multiTargetAlgorithm;
+    public static JsonMaskingConfig.Builder custom(@NotNull Set<String> targets) {
+        return new JsonMaskingConfig.Builder(targets);
+    }
+
+    public JsonMaskerAlgorithmType getAlgorithmType() {
+        return algorithmType;
     }
 
     public int getMaskNumberValuesWith() {
@@ -50,18 +79,30 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         return maskNumberValuesWith == -1;
     }
 
+    public Set<String> getTargetKeys() {
+        if (algorithmType != JsonMaskerAlgorithmType.KEYS_CONTAIN && algorithmType != JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
+            throw new IllegalArgumentException("Determined algorithm does not support target keys");
+        }
+        return targetKeys;
+    }
+
+    public Set<JsonPath> getTargetsJsonPaths() {
+        if (algorithmType != JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN) {
+            throw new IllegalArgumentException("Determined algorithm does not support target JSON paths");
+        }
+        return targetJsonPaths;
+    }
+
     public static class Builder extends AbstractMaskingConfig.Builder<Builder> {
-        private JsonMultiTargetAlgorithm multiTargetAlgorithm;
+        private Set<String> targets;
         private int maskNumberValuesWith;
 
-        public Builder() {
-            this.multiTargetAlgorithm = JsonMultiTargetAlgorithm.KEYS_CONTAIN; // default multi-target algorithm
-            this.maskNumberValuesWith = -1; // default value -1 means number value masking is disabled
-        }
+        private boolean resolveJsonPaths;
 
-        public Builder multiTargetAlgorithm(JsonMultiTargetAlgorithm multiTargetAlgorithm) {
-            this.multiTargetAlgorithm = multiTargetAlgorithm;
-            return this;
+        public Builder(@NotNull Set<@NotNull String> targets) {
+            this.targets = targets;
+            this.maskNumberValuesWith = -1; // default value -1 means number value masking is disabled
+            this.resolveJsonPaths = true; // default JSON paths are resolved
         }
 
         public Builder maskNumberValuesWith(int maskNumberValuesWith) {
@@ -69,8 +110,16 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             return this;
         }
 
+        public Builder disableJsonPathResolving() {
+            this.resolveJsonPaths = false;
+            return this;
+        }
+
         @Override
         public JsonMaskingConfig build() {
+            if (targets.isEmpty()) {
+                throw new IllegalArgumentException("Target key set must contain at least on target key");
+            }
             if (maskNumberValuesWith == 0) {
                 if (getObfuscationLength() < 0 || getObfuscationLength() > 1) {
                     throw new IllegalArgumentException(

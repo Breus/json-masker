@@ -12,13 +12,13 @@ import java.util.Set;
 import static masker.AsciiCharacter.isDoubleQuote;
 import static masker.AsciiCharacter.isEscapeCharacter;
 
-public class SingleTargetMasker implements JsonMaskerAlgorithm {
+public class SingleTargetMasker implements JsonMasker {
     private final Set<String> quotedTargetKeys;
     private final JsonMaskingConfig maskingConfig;
 
-    public SingleTargetMasker(Set<String> targetKeys, JsonMaskingConfig maskingConfig) {
+    public SingleTargetMasker(JsonMaskingConfig maskingConfig) {
         this.quotedTargetKeys = new HashSet<>();
-        targetKeys.forEach(t -> quotedTargetKeys.add('"' + t + '"'));
+        maskingConfig.getTargetKeys().forEach(t -> quotedTargetKeys.add('"' + t + '"'));
         this.maskingConfig = maskingConfig;
     }
 

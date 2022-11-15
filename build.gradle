@@ -28,11 +28,11 @@ dependencies {
     implementation "org.jetbrains:annotations:23.0.0"
     implementation "org.openjdk.jmh:jmh-core:${jmhVersion}"
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
     testImplementation "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
-    testCompileOnly "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
 }
 
 test {

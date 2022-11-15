@@ -1,6 +1,6 @@
 [
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hello"
     },
@@ -9,7 +9,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": ["this", "should", "not", "be", "masked"],
       "someKey2": "someKey",
@@ -22,7 +22,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hello",
       "objectKey": {
@@ -39,7 +39,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hello",
       "arrayKey": [
@@ -56,7 +56,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": [
         { "someOtherKey": "someKey" },
@@ -71,7 +71,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "hello": ["someKey", "someOtherValue", "no"],
       "hello2": [{"someKey":  "someValue", "someKey2": {"someKey": "val"}}]
@@ -82,7 +82,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": [{"someKey":  "hi", "someKey2": {"someKey": ""}}],
     "expectedOutput": [{"someKey": "**", "someKey2":  {"someKey":  ""}}]
   }

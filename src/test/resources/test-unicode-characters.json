@@ -1,6 +1,6 @@
 [
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "\u2020"
     },
@@ -9,7 +9,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "a\u2020b"
     },
@@ -18,7 +18,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "a\\\u2020b"
     },
@@ -27,7 +27,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": [
         {
@@ -44,7 +44,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "\u0014"
     },
@@ -53,7 +53,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "\u0014\u0085"
     },
@@ -62,7 +62,7 @@
     }
   },
   {
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "\u0085"
     },

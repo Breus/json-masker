@@ -3,7 +3,7 @@
     "maskerConfig": {
       "obfuscationLength": 2
     },
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hello"
     },
@@ -15,7 +15,7 @@
     "maskerConfig": {
       "obfuscationLength": 1
     },
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey1": 123,
       "someKey": "hello",
@@ -31,7 +31,7 @@
     "maskerConfig": {
       "obfuscationLength": 0
     },
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hello"
     },
@@ -43,7 +43,7 @@
     "maskerConfig": {
       "obfuscationLength": 5
     },
-    "targetKey": "someKey",
+    "targetKeys": ["someKey"],
     "input": {
       "someKey": "hi"
     },

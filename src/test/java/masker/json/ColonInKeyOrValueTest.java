@@ -1,27 +1,22 @@
 package masker.json;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.IOException;
 import java.util.Set;
+import java.util.stream.Stream;
 
 class ColonInKeyOrValueTest {
-    @Test
-    void objectContainingColon() {
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("targetKey:1", ":val:ue\\::");
-        Assertions.assertDoesNotThrow(() -> new SingleTargetMasker(JsonMaskingConfig.getDefault(Set.of("targetKey:1"))).mask(objectNode.toString()));
-        Assertions.assertDoesNotThrow(() -> new KeyContainsMasker(JsonMaskingConfig.getDefault(Set.of("targetKey:1"))).mask(objectNode.toString()));
-        Assertions.assertDoesNotThrow(() -> new PathAwareKeyContainsMasker(JsonMaskingConfig.getDefault(Set.of("targetKey:1"))).mask(objectNode.toString()));
+
+    @ParameterizedTest
+    @MethodSource("testContainsColonFile")
+    void containsColon(JsonMaskerTestInstance testInstance) {
+        Assertions.assertEquals(testInstance.expectedOutput(), testInstance.jsonMasker().mask(testInstance.input()));
     }
 
-    @Test
-    void stringContainingColon() {
-        TextNode textNode = TextNode.valueOf("thisIsValidJson:");
-        Assertions.assertDoesNotThrow(() -> new SingleTargetMasker(JsonMaskingConfig.getDefault(Set.of(""))).mask(textNode.asText()));
-        Assertions.assertDoesNotThrow(() -> new KeyContainsMasker(JsonMaskingConfig.getDefault(Set.of(""))).mask(textNode.asText()));
-        Assertions.assertDoesNotThrow(() -> new PathAwareKeyContainsMasker(JsonMaskingConfig.getDefault(Set.of(""))).mask(textNode.asText()));
+    private static Stream<JsonMaskerTestInstance> testContainsColonFile() throws IOException {
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-contains-colon.json", Set.of(JsonMaskerAlgorithmType.values())).stream();
     }
 }

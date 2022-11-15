@@ -1,0 +1,10 @@
+[
+  {
+    "targetKeys": ["targetKey"],
+    "input": "file://malformed-json-input.txt",
+    "expectedOutput": "file://malformed-json-expected.txt"
+  }
+]
+
+
+

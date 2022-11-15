@@ -1,0 +1,27 @@
+[
+  {
+    "targetKeys": [
+      "targetKey:1"
+    ],
+    "input": {
+      "targetKey:1": {
+        "targetKey:1": ":val:ue\\::"
+      }
+    },
+    "expectedOutput": {
+      "targetKey:1": {
+        "targetKey:1": "**********"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey:1"
+    ],
+    "input": "thisIsValidJson::",
+    "expectedOutput": "thisIsValidJson::"
+  }
+]
+
+
+

@@ -1,5 +1,6 @@
 package masker.json;
 
+import masker.json.config.JsonMaskerAlgorithmType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -16,6 +17,7 @@ class MultiTargetKeyTest {
     }
 
     private static Stream<JsonMaskerTestInstance> multiTargetKeyFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-multiple-target-keys.json", Set.of(JsonMaskerAlgorithmType.values())).stream();
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-multiple-target-keys.json", Set.of(
+                JsonMaskerAlgorithmType.values())).stream();
     }
 }

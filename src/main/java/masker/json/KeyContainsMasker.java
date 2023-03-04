@@ -2,6 +2,7 @@ package masker.json;
 
 import masker.AsciiCharacter;
 import masker.Utf8Util;
+import masker.json.config.JsonMaskingConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -30,7 +31,6 @@ public final class KeyContainsMasker implements JsonMasker {
      * 2. maks a key only top-level ($.key)
      * 3. mask a key in some object path (object.inner.key)
      *
-     *
      * {
      *     "key" {
      *         "key1": "secret",
@@ -41,7 +41,6 @@ public final class KeyContainsMasker implements JsonMasker {
      *         }
      *     }
      * }
-     *
      *
      *    "key2"
      *  "obj.secret"

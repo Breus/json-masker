@@ -2,6 +2,7 @@ package masker.json;
 
 import masker.AsciiCharacter;
 import masker.Utf8Util;
+import masker.json.config.JsonMaskingConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;

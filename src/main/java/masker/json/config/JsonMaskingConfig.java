@@ -1,6 +1,7 @@
-package masker.json;
+package masker.json.config;
 
 import masker.AbstractMaskingConfig;
+import masker.json.path.JsonPath;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -35,14 +36,17 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         }
         maskNumberValuesWith = builder.maskNumberValuesWith;
         Set<JsonPath> tmpTargetJsonPaths = builder.resolveJsonPaths ? resolveJsonPaths(builder.targets) : null;
-        if (tmpTargetJsonPaths != null && ! tmpTargetJsonPaths.isEmpty()) {
+        if (builder.algorithmTypeOverride == JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN ||
+                (builder.algorithmTypeOverride == null && tmpTargetJsonPaths != null
+                        && !tmpTargetJsonPaths.isEmpty())) {
             algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
             targetJsonPaths = tmpTargetJsonPaths;
             targetKeys = null;
         } else {
             targetKeys = builder.targets;
             targetJsonPaths = null;
-            if (builder.targets.size() > 1) {
+            if (builder.algorithmTypeOverride == JsonMaskerAlgorithmType.KEYS_CONTAIN ||
+                    (builder.algorithmTypeOverride == null && builder.targets.size() > 1)) {
                 algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
             } else {
                 algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
@@ -51,7 +55,7 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     }
 
     private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
-        //TODO implement
+        //TODO implement JSON path resolving
         return Set.of();
     }
 
@@ -80,7 +84,8 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     }
 
     public Set<String> getTargetKeys() {
-        if (algorithmType != JsonMaskerAlgorithmType.KEYS_CONTAIN && algorithmType != JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
+        if (algorithmType != JsonMaskerAlgorithmType.KEYS_CONTAIN
+                && algorithmType != JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
             throw new IllegalArgumentException("Determined algorithm does not support target keys");
         }
         return targetKeys;
@@ -94,10 +99,12 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     }
 
     public static class Builder extends AbstractMaskingConfig.Builder<Builder> {
-        private Set<String> targets;
+        private final Set<String> targets;
         private int maskNumberValuesWith;
 
         private boolean resolveJsonPaths;
+
+        private JsonMaskerAlgorithmType algorithmTypeOverride;
 
         public Builder(@NotNull Set<@NotNull String> targets) {
             this.targets = targets;
@@ -112,6 +119,11 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
 
         public Builder disableJsonPathResolving() {
             this.resolveJsonPaths = false;
+            return this;
+        }
+
+        public Builder algorithmTypeOverride(@NotNull JsonMaskerAlgorithmType algorithmType) {
+            this.algorithmTypeOverride = algorithmType;
             return this;
         }
 

@@ -1,6 +1,8 @@
 package masker.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import masker.json.config.JsonMaskerAlgorithmType;
+import masker.json.config.JsonMaskingConfig;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -25,13 +27,11 @@ public class JsonMaskMultipleTargetKeysBenchmark {
         String largeJsonAsString =
                 ParseAndMaskUtil.readJsonFromFileAsString("large-input-benchmark.json", this.getClass());
         byte[] largeJsonAsBytes = largeJsonAsString.getBytes(StandardCharsets.UTF_8);
-        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(keysToBeMasked,
-                                                                JsonMaskingConfig.custom()
-                                                                        .multiTargetAlgorithm(JsonMaskerAlgorithmType.KEYS_CONTAIN)
+        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked)
+                                                                        .algorithmTypeOverride(JsonMaskerAlgorithmType.KEYS_CONTAIN)
                                                                         .build());
-        JsonMasker loopJsonMasker = JsonMasker.getMasker(keysToBeMasked,
-                                                         JsonMaskingConfig.custom()
-                                                                 .multiTargetAlgorithm(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP)
+        JsonMasker loopJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked)
+                                                                 .algorithmTypeOverride(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP)
                                                                  .build());
 
         private Set<String> getTargetKeys(int numberOfKeys) {

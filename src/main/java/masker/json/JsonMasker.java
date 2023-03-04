@@ -1,5 +1,7 @@
 package masker.json;
 
+import masker.json.config.JsonMaskerAlgorithmType;
+import masker.json.config.JsonMaskingConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;

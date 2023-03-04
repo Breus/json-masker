@@ -1,4 +1,4 @@
-package masker.json;
+package masker.json.config;
 
 /**
  * Specifies the multi target key masking algorithm used to mask the values of multiple target keys.

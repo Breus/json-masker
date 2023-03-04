@@ -4,15 +4,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.openjdk.jmh.annotations.*;
+import masker.json.config.JsonMaskingConfig;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 10)
+@Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 10)
+@Measurement(iterations = 1, time = 3)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @BenchmarkMode(Mode.AverageTime)
 public class JsonMaskSingleTargetKeyBenchmark {
@@ -32,11 +41,11 @@ public class JsonMaskSingleTargetKeyBenchmark {
 
         JsonMasker defaultMasker = JsonMasker.getMasker(keyToBeMasked);
         JsonMasker twoCharObfuscationLengthMasker =
-                JsonMasker.getMasker(keyToBeMasked, JsonMaskingConfig.custom().obfuscationLength(2).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(2).build());
         JsonMasker fiveCharObfuscationLengthMasker =
-                JsonMasker.getMasker(keyToBeMasked, JsonMaskingConfig.custom().obfuscationLength(5).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(5).build());
         JsonMasker sixCharObfuscationLengthMasker =
-                JsonMasker.getMasker(keyToBeMasked, JsonMaskingConfig.custom().obfuscationLength(6).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(6).build());
 
         private ObjectNode objectNode() {
             return JsonNodeFactory.instance.objectNode();
@@ -55,12 +64,12 @@ public class JsonMaskSingleTargetKeyBenchmark {
 
     @Benchmark
     public void maskSimpleJsonObjectBytes(State state, Blackhole blackhole) {
-        blackhole.consume(state.defaultMasker.mask(state.simpleJsonAsBytes, StandardCharsets.UTF_8));
+        blackhole.consume(state.defaultMasker.mask(state.simpleJsonAsBytes));
     }
 
     @Benchmark
     public void maskLargeJsonObjectBytes(State state, Blackhole blackhole) {
-        blackhole.consume(state.defaultMasker.mask(state.largeJsonAsBytes, StandardCharsets.UTF_8));
+        blackhole.consume(state.defaultMasker.mask(state.largeJsonAsBytes));
     }
 
     @Benchmark

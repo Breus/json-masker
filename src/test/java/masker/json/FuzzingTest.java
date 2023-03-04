@@ -1,6 +1,7 @@
 package masker.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

@@ -4,7 +4,9 @@ import masker.AbstractMaskingConfig;
 import masker.json.path.JsonPath;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JsonMaskingConfig extends AbstractMaskingConfig {
     /**
@@ -27,36 +29,66 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
      */
     private final int maskNumberValuesWith;
 
-    private JsonMaskingConfig(Builder builder) {
+    /**
+     * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder.
+     * The logic for this is as follows:
+     * <p>
+     * If an algorithm type override is set, this will always be the algorithm used.
+     * If this algorithm is JSONPath-aware, the target keys that start with "$." will be interpreted as JSONPaths.
+     * If the algorithm is not JSONPath-aware, all targets will be interpreted as regular targets (even if they start with "$."),
+     * in which case this prefix will just be interpreted as part of the target key.
+     * <p>
+     * If no algorithm type override is set, the algorithm is selected as following:
+     * If the target set contains Strings starting with "$.", these will be interpreted as JSONPaths, and the
+     * JSONPath-aware algorithm is used.
+     * If the target set does not contain JSONPaths, the {@link JsonMaskerAlgorithmType#KEYS_CONTAIN} will be chosen if
+     * the target set contains more than one target key or {@link JsonMaskerAlgorithmType#SINGLE_TARGET_LOOP}.
+     *
+     * @param builder the builder object
+     */
+    JsonMaskingConfig(Builder builder) {
         super(builder);
         if (builder.getObfuscationLength() == 0 && !(builder.maskNumberValuesWith == 0
                 || builder.maskNumberValuesWith == -1)) {
             throw new IllegalArgumentException(
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
-        maskNumberValuesWith = builder.maskNumberValuesWith;
-        Set<JsonPath> tmpTargetJsonPaths = builder.resolveJsonPaths ? resolveJsonPaths(builder.targets) : null;
-        if (builder.algorithmTypeOverride == JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN ||
-                (builder.algorithmTypeOverride == null && tmpTargetJsonPaths != null
-                        && !tmpTargetJsonPaths.isEmpty())) {
-            algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
-            targetJsonPaths = tmpTargetJsonPaths;
-            targetKeys = null;
-        } else {
-            targetKeys = builder.targets;
-            targetJsonPaths = null;
-            if (builder.algorithmTypeOverride == JsonMaskerAlgorithmType.KEYS_CONTAIN ||
-                    (builder.algorithmTypeOverride == null && builder.targets.size() > 1)) {
-                algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
-            } else {
-                algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
-            }
+        if (builder.targets == null || builder.targets.isEmpty()) {
+            throw new IllegalArgumentException("At least a single target have to be set");
         }
+        maskNumberValuesWith = builder.maskNumberValuesWith;
+
+        Set<String> jsonPathLiterals = builder.targets.stream()
+                .filter(t -> t.startsWith("$."))
+                .collect(Collectors.toSet());
+        if (builder.algorithmTypeOverride != null) {
+            algorithmType = builder.algorithmTypeOverride;
+        } else if (!jsonPathLiterals.isEmpty() && builder.resolveJsonPaths) {
+            algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
+        } else if (builder.targets.size() > 1) {
+            algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
+        } else {
+            algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
+        }
+
+        switch (algorithmType) {
+            case PATH_AWARE_KEYS_CONTAIN -> {
+                targetJsonPaths = resolveJsonPaths(jsonPathLiterals);
+                HashSet<String> targets = new HashSet<>(builder.targets);
+                targets.removeAll(jsonPathLiterals);
+                targetKeys = targets;
+            }
+            case KEYS_CONTAIN, SINGLE_TARGET_LOOP -> {
+                targetJsonPaths = Set.of();
+                targetKeys = builder.targets;
+            }
+            default -> throw new IllegalStateException("Unknown JSON masking algorithm");
+        }
+
     }
 
     private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
-        //TODO implement JSON path resolving
-        return Set.of();
+        return targets.stream().map(JsonPath::toJsonPath).collect(Collectors.toSet());
     }
 
     public static JsonMaskingConfig getDefault(@NotNull Set<String> targets) {
@@ -84,17 +116,10 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     }
 
     public Set<String> getTargetKeys() {
-        if (algorithmType != JsonMaskerAlgorithmType.KEYS_CONTAIN
-                && algorithmType != JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
-            throw new IllegalArgumentException("Determined algorithm does not support target keys");
-        }
         return targetKeys;
     }
 
-    public Set<JsonPath> getTargetsJsonPaths() {
-        if (algorithmType != JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN) {
-            throw new IllegalArgumentException("Determined algorithm does not support target JSON paths");
-        }
+    public Set<JsonPath> getTargetJsonPaths() {
         return targetJsonPaths;
     }
 
@@ -108,8 +133,10 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
 
         public Builder(@NotNull Set<@NotNull String> targets) {
             this.targets = targets;
-            this.maskNumberValuesWith = -1; // default value -1 means number value masking is disabled
-            this.resolveJsonPaths = true; // default JSON paths are resolved
+            // by default, mask number values with is -1 which means number value masking is disabled
+            this.maskNumberValuesWith = -1;
+            // by default, JSON paths are resolved, every target starting with "$." is considered a JSONPath
+            this.resolveJsonPaths = true;
         }
 
         public Builder maskNumberValuesWith(int maskNumberValuesWith) {

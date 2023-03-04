@@ -2,6 +2,8 @@ package masker.json.path;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 /**
  * A {@link JsonPath} expression is used to traverse, select and extract fields and values from a JSON document.
  * <p>
@@ -66,5 +68,22 @@ public class JsonPath {
     @Override
     public String toString() {
         return "$." + String.join(".", pathComponents);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        JsonPath jsonPath = (JsonPath) o;
+        return Arrays.equals(pathComponents, jsonPath.pathComponents);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(pathComponents);
     }
 }

@@ -44,20 +44,27 @@ import org.jetbrains.annotations.NotNull;
 public class JsonPath {
     private final String[] pathComponents;
 
-    public JsonPath(String[] pathComponents) {
+    JsonPath(String[] pathComponents) {
         this.pathComponents = pathComponents;
     }
 
     @NotNull
-    public JsonPath toJsonPath(@NotNull String jsonPathLiteral) {
-        if(! jsonPathLiteral.startsWith("$")) {
-            throw new IllegalArgumentException("JSONPath literal must start with an '$'");
+    public static JsonPath toJsonPath(@NotNull String jsonPathLiteral) {
+        if(! jsonPathLiteral.startsWith("$.")) {
+            throw new IllegalArgumentException("JSONPath literal must start with a \"$.\"");
         }
-        return new JsonPath(jsonPathLiteral.split("\\."));
+        if (jsonPathLiteral.length() < 3) {
+            throw new IllegalArgumentException("JSONPath must contain at least one name selector");
+        }
+        if (jsonPathLiteral.charAt(jsonPathLiteral.length() -1) == '.') {
+            throw new IllegalArgumentException("JSONPath cannot end with a component separator ('.')");
+        }
+        var jsonPathLiteralTmp = jsonPathLiteral.substring(2);
+        return new JsonPath(jsonPathLiteralTmp.split("\\."));
     }
 
     @Override
     public String toString() {
-        return "$" + String.join(".", pathComponents);
+        return "$." + String.join(".", pathComponents);
     }
 }

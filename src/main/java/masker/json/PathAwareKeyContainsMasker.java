@@ -3,7 +3,10 @@ package masker.json;
 import masker.json.config.JsonMaskingConfig;
 
 public class PathAwareKeyContainsMasker implements JsonMasker {
+    private JsonMaskingConfig jsonMaskingConfig;
+
     public PathAwareKeyContainsMasker(JsonMaskingConfig jsonMaskingConfig) {
+        this.jsonMaskingConfig = jsonMaskingConfig;
     }
 
     @Override

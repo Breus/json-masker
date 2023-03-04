@@ -88,7 +88,7 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
     }
 
     private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
-        return targets.stream().map(JsonPath::toJsonPath).collect(Collectors.toSet());
+        return targets.stream().map(JsonPath::from).collect(Collectors.toSet());
     }
 
     public static JsonMaskingConfig getDefault(@NotNull Set<String> targets) {

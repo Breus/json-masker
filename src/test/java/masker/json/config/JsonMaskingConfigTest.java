@@ -40,10 +40,10 @@ class JsonMaskingConfigTest {
                         Set.of("hello"), Set.of("hello"), Set.of()
                 ),
                 Arguments.of(
-                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(JsonPath.toJsonPath("$.hello"))
+                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(JsonPath.from("$.hello"))
                 ),
                 Arguments.of(
-                        Set.of("$.hello"), Set.of(), Set.of(JsonPath.toJsonPath("$.hello"))
+                        Set.of("$.hello"), Set.of(), Set.of(JsonPath.from("$.hello"))
                 )
         );
     }

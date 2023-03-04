@@ -11,7 +11,7 @@ public class JsonPathTest {
     @ParameterizedTest
     @MethodSource("validJsonPaths")
     void jsonPathParsing(String jsonPathLiteral) {
-        Assertions.assertEquals(jsonPathLiteral, JsonPath.toJsonPath(jsonPathLiteral).toString());
+        Assertions.assertEquals(jsonPathLiteral, JsonPath.from(jsonPathLiteral).toString());
     }
 
     private static Stream<String> validJsonPaths() {

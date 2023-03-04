@@ -51,7 +51,7 @@ public class JsonPath {
     }
 
     @NotNull
-    public static JsonPath toJsonPath(@NotNull String jsonPathLiteral) {
+    public static JsonPath from(@NotNull String jsonPathLiteral) {
         if(! jsonPathLiteral.startsWith("$.")) {
             throw new IllegalArgumentException("JSONPath literal must start with a \"$.\"");
         }
@@ -63,6 +63,10 @@ public class JsonPath {
         }
         var jsonPathLiteralTmp = jsonPathLiteral.substring(2);
         return new JsonPath(jsonPathLiteralTmp.split("\\."));
+    }
+
+    public String[] getPathComponents() {
+        return pathComponents;
     }
 
     @Override

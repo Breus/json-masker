@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id "me.champeau.jmh" version "0.6.6"
+    id "me.champeau.jmh" version "0.7.0"
 }
 
 java {
@@ -11,7 +11,7 @@ java {
 
 description = 'High-performance JSON message masker'
 
-group 'dev.blaauwendraad'
+group 'dev.breus'
 version '0.1.0'
 
 repositories {
@@ -19,16 +19,15 @@ repositories {
 }
 
 ext {
-    jUnitVersion = '5.9.1'
-    jmhVersion = '1.35'
+    jUnitVersion = '5.9.2'
+    jmhVersion = '1.36'
 }
 
-
 dependencies {
-    implementation "org.jetbrains:annotations:23.0.0"
+    implementation "org.jetbrains:annotations:24.0.1"
     implementation "org.openjdk.jmh:jmh-core:${jmhVersion}"
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
     testImplementation "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"

@@ -25,7 +25,6 @@ public final class KeyContainsMasker implements JsonMasker {
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
     private final Set<String> targetKeys;
 
-
     /**
      * 1. mask all keys corresponding to key (done)
      * 2. maks a key only top-level ($.key)
@@ -157,6 +156,9 @@ public final class KeyContainsMasker implements JsonMasker {
             byte[] keyBytesBuffer = new byte[keyLength];
             System.arraycopy(input, openingQuoteIndex + 1, keyBytesBuffer, 0, keyLength);
             String key = new String(keyBytesBuffer, StandardCharsets.UTF_8);
+            if (!maskingConfig.caseSensitiveTargetKeys()) {
+                key = key.toLowerCase();
+            }
             if (!targetKeys.contains(key)) {
                 continue mainLoop; // The found JSON key is not a target key, so continue the main loop
             }

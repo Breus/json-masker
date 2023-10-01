@@ -71,6 +71,10 @@ public class SingleTargetMasker implements JsonMasker {
             } else {
                 inputSliceBytes = Arrays.copyOfRange(outputBytes, j, outputBytes.length);
             }
+            if (!maskingConfig.caseSensitiveTargetKeys()) {
+                inputSliceBytes = new String(inputSliceBytes, StandardCharsets.UTF_8).toLowerCase().getBytes(
+                        StandardCharsets.UTF_8);
+            }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
             if (startIndexOfTargetKey == -1) {
                 break; // Input doesn't contain target key anymore, no further masking required

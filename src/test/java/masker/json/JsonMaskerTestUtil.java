@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public final class JsonMaskerTestUtil {
@@ -47,13 +48,17 @@ public final class JsonMaskerTestUtil {
                 if (maskNumberValuesWith != null) {
                     configBuilder.maskNumberValuesWith(maskNumberValuesWith.asInt());
                 }
+                JsonNode caseSensitiveTargetKeys = maskerConfig.findValue("caseSensitiveTargetKeys");
+                if (caseSensitiveTargetKeys != null && caseSensitiveTargetKeys.booleanValue()) {
+                    configBuilder.caseSensitiveTargetKeys();
+                }
             }
             JsonMaskingConfig maskingConfig = configBuilder.build();
             var input = jsonNode.get("input").toString();
             if (jsonNode.get("input").isTextual() && jsonNode.get("input").textValue().startsWith("file://")) {
                 URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(jsonNode.get("input").textValue().replace("file://", ""));
                 try {
-                    input = Files.readString(Path.of(resourceUrl.toURI()));
+                    input = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
                 } catch (URISyntaxException e) {
                     throw new IOException("Cannot read file " + resourceUrl, e);
                 }
@@ -62,7 +67,7 @@ public final class JsonMaskerTestUtil {
             if (jsonNode.get("expectedOutput").isTextual() && jsonNode.get("expectedOutput").textValue().startsWith("file://")) {
                 URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(jsonNode.get("expectedOutput").textValue().replace("file://", ""));
                 try {
-                    expectedOutput = Files.readString(Path.of(resourceUrl.toURI()));
+                    expectedOutput = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
                 } catch (URISyntaxException e) {
                     throw new IOException("Cannot read file " + resourceUrl, e);
                 }

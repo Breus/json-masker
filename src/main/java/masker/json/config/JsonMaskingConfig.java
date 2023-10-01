@@ -1,13 +1,12 @@
 package masker.json.config;
 
-import masker.AbstractMaskingConfig;
 import masker.json.path.JsonPath;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class JsonMaskingConfig extends AbstractMaskingConfig {
+public class JsonMaskingConfig {
     /**
      * Specifies the set of JSON keys for which the string/number values should be masked.
      */
@@ -20,13 +19,19 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
      * Specifies the algorithm type that will be used for masking.
      */
     private final JsonMaskerAlgorithmType algorithmType;
+
     /**
-     * Specifies the number with which numeric values should be replaced.
-     * -1 denotes number musking is disabled.
-     * <p>
-     * Default value: -1
+     * @see JsonMaskingConfig.Builder#maskNumberValuesWith
      */
     private final int maskNumberValuesWith;
+    /**
+     * @see JsonMaskingConfig.Builder#obfuscationLength(int)
+     */
+    private final int obfuscationLength;
+    /**
+     * @see JsonMaskingConfig.Builder#caseSensitiveTargetKeys
+     */
+    private final boolean caseSensitiveTargetKeys;
 
     /**
      * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder.
@@ -46,8 +51,8 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
      * @param builder the builder object
      */
     JsonMaskingConfig(Builder builder) {
-        super(builder);
-        if (builder.getObfuscationLength() == 0 && !(builder.maskNumberValuesWith == 0
+        obfuscationLength = builder.obfuscationLength;
+        if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
                 || builder.maskNumberValuesWith == -1)) {
             throw new IllegalArgumentException(
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
@@ -56,6 +61,11 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             throw new IllegalArgumentException("At least a single target have to be set");
         }
         maskNumberValuesWith = builder.maskNumberValuesWith;
+
+        caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
+        if (!caseSensitiveTargetKeys) {
+            builder.targets = builder.targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
+        }
 
         Set<String> jsonPathLiterals = builder.targets.stream()
                 .filter(t -> t.startsWith("$."))
@@ -83,7 +93,6 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             }
             default -> throw new IllegalStateException("Unknown JSON masking algorithm");
         }
-
     }
 
     private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
@@ -122,44 +131,97 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         return targetJsonPaths;
     }
 
-    public static class Builder extends AbstractMaskingConfig.Builder<Builder> {
-        private final Set<String> targets;
+    public int getObfuscationLength() {
+        return obfuscationLength;
+    }
+
+    public boolean isObfuscationEnabled() {
+        return obfuscationLength != -1;
+    }
+
+    public boolean caseSensitiveTargetKeys() {
+        return caseSensitiveTargetKeys;
+    }
+
+    public static class Builder {
+        private Set<String> targets;
         private int maskNumberValuesWith;
-
         private boolean resolveJsonPaths;
-
         private JsonMaskerAlgorithmType algorithmTypeOverride;
+        private int obfuscationLength;
+        private boolean caseSensitiveTargetKeys;
 
         public Builder(Set<String> targets) {
             this.targets = targets;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
-            // by default, JSON paths are resolved, every target starting with "$." is considered a JSONPath
+            // by default, JSON paths are resolved, every target starting with "$." is interpreted as a JSONPath
             this.resolveJsonPaths = true;
+            // by default, length obfuscation is disabled
+            this.obfuscationLength = -1;
+            // by default, target keys are considered case-insensitive
+            this.caseSensitiveTargetKeys = false;
         }
 
+        /**
+         * Specifies the number with which numeric values should be replaced.
+         * -1 denotes number masking is disabled.
+         * <p>
+         * Default value: -1
+         */
         public Builder maskNumberValuesWith(int maskNumberValuesWith) {
             this.maskNumberValuesWith = maskNumberValuesWith;
             return this;
         }
 
-        public Builder disableJsonPathResolving() {
-            this.resolveJsonPaths = false;
-            return this;
-        }
-
+        /**
+         * Overrides the automatically chosen masking algorithm {@link JsonMaskerAlgorithmType#KEYS_CONTAIN}.
+         * @param algorithmType the override algorithm which will be used
+         */
         public Builder algorithmTypeOverride(JsonMaskerAlgorithmType algorithmType) {
             this.algorithmTypeOverride = algorithmType;
             return this;
         }
 
-        @Override
+        /**
+         * @param obfuscationLength specifies the fixed length of the mask when target value lengths is obfuscated.
+         * E.g. masking any string value with obfuscation length 2 results in "**".
+         * <p>
+         * -1 means length obfuscation is disabled.
+         * <p>
+         * Default value: -1 (disabled).
+         */
+        public Builder obfuscationLength(int obfuscationLength) {
+            this.obfuscationLength = obfuscationLength;
+            return self();
+        }
+
+        /**
+         * Configures whether the target keys are considered case-sensitive (e.g. cvv != CVV)
+         * <p>
+         * Default value: false (target keys are considered case-insensitive)
+         */
+        public Builder caseSensitiveTargetKeys() {
+            this.caseSensitiveTargetKeys = true;
+            return self();
+        }
+
+        /**
+         * Disables that target keys starting with a '$' are interpreted as JSON paths
+         * <p>
+         * Default value: true (JSON path resolving is enabled)
+         */
+        public Builder disableJsonPathResolving() {
+            this.resolveJsonPaths = false;
+            return this;
+        }
+
         public JsonMaskingConfig build() {
             if (targets.isEmpty()) {
                 throw new IllegalArgumentException("Target key set must contain at least on target key");
             }
             if (maskNumberValuesWith == 0) {
-                if (getObfuscationLength() < 0 || getObfuscationLength() > 1) {
+                if (obfuscationLength < 0 || obfuscationLength > 1) {
                     throw new IllegalArgumentException(
                             "Mask number values with can only be 0 if obfuscation length is 0 or 1 to preserve valid JSON");
                 }
@@ -172,7 +234,6 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             return new JsonMaskingConfig(this);
         }
 
-        @Override
         protected Builder self() {
             return this;
         }

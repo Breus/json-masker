@@ -12,7 +12,7 @@ public abstract class AbstractMaskingConfig {
     private final int obfuscationLength;
 
     /**
-     * Specifies whether targets should be considered case sensitive.
+     * Specifies whether targets should be considered case-sensitive.
      * <p>
      * Default value: false
      */

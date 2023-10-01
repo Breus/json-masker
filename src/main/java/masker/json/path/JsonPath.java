@@ -1,7 +1,6 @@
 package masker.json.path;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 /**
@@ -50,15 +49,15 @@ public class JsonPath {
         this.pathComponents = pathComponents;
     }
 
-    @NotNull
-    public static JsonPath from(@NotNull String jsonPathLiteral) {
-        if(! jsonPathLiteral.startsWith("$.")) {
+    @Nonnull
+    public static JsonPath from(String jsonPathLiteral) {
+        if (!jsonPathLiteral.startsWith("$.")) {
             throw new IllegalArgumentException("JSONPath literal must start with a \"$.\"");
         }
         if (jsonPathLiteral.length() < 3) {
             throw new IllegalArgumentException("JSONPath must contain at least one name selector");
         }
-        if (jsonPathLiteral.charAt(jsonPathLiteral.length() -1) == '.') {
+        if (jsonPathLiteral.charAt(jsonPathLiteral.length() - 1) == '.') {
             throw new IllegalArgumentException("JSONPath cannot end with a component separator ('.')");
         }
         var jsonPathLiteralTmp = jsonPathLiteral.substring(2);

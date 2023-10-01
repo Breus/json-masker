@@ -1,8 +1,8 @@
 package masker.json.path;
 
 import masker.json.PathAwareKeyContainsMasker;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,8 +30,8 @@ public class JsonPathTreeNode {
         this.isLeafNode = isLeafNode;
     }
 
-    @NotNull
-    public static JsonPathTreeNode of(@NotNull Set<JsonPath> jsonPaths) {
+    @Nonnull
+    public static JsonPathTreeNode of(Set<JsonPath> jsonPaths) {
         JsonPathTreeNode root = new JsonPathTreeNode();
         int depth = 0;
         while (true) {

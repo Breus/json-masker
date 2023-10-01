@@ -2,27 +2,27 @@ package masker.json;
 
 import masker.json.config.JsonMaskerAlgorithmType;
 import masker.json.config.JsonMaskingConfig;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 interface JsonMasker {
-    @NotNull
-    static JsonMasker getMasker(@NotNull String targetKey) {
+    @Nonnull
+    static JsonMasker getMasker(String targetKey) {
         return getMasker(JsonMaskingConfig.getDefault(Set.of(targetKey)));
     }
 
-    @NotNull
-    static JsonMasker getMasker(@NotNull Set<String> targetKeys) {
+    @Nonnull
+    static JsonMasker getMasker(Set<String> targetKeys) {
         return getMasker(JsonMaskingConfig.getDefault(targetKeys));
     }
 
-    @NotNull
-    static JsonMasker getMasker(@NotNull JsonMaskingConfig maskingConfig) {
+    @Nonnull
+    static JsonMasker getMasker(JsonMaskingConfig maskingConfig) {
         if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
             return new SingleTargetMasker(maskingConfig);
-        } else if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN){
+        } else if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
             return new KeyContainsMasker(maskingConfig);
         } else {
             return new PathAwareKeyContainsMasker(maskingConfig);
@@ -31,8 +31,8 @@ interface JsonMasker {
 
     byte[] mask(byte[] input);
 
-    @NotNull
-    default String mask(@NotNull String input) {
+    @Nonnull
+    default String mask(String input) {
         return new String(mask(input.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }
 }

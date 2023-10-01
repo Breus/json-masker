@@ -2,7 +2,6 @@ package masker.json.config;
 
 import masker.AbstractMaskingConfig;
 import masker.json.path.JsonPath;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -91,11 +90,11 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
         return targets.stream().map(JsonPath::from).collect(Collectors.toSet());
     }
 
-    public static JsonMaskingConfig getDefault(@NotNull Set<String> targets) {
+    public static JsonMaskingConfig getDefault(Set<String> targets) {
         return custom(targets).build();
     }
 
-    public static JsonMaskingConfig.Builder custom(@NotNull Set<String> targets) {
+    public static JsonMaskingConfig.Builder custom(Set<String> targets) {
         return new JsonMaskingConfig.Builder(targets);
     }
 
@@ -131,7 +130,7 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
 
         private JsonMaskerAlgorithmType algorithmTypeOverride;
 
-        public Builder(@NotNull Set<@NotNull String> targets) {
+        public Builder(Set<String> targets) {
             this.targets = targets;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
@@ -149,7 +148,7 @@ public class JsonMaskingConfig extends AbstractMaskingConfig {
             return this;
         }
 
-        public Builder algorithmTypeOverride(@NotNull JsonMaskerAlgorithmType algorithmType) {
+        public Builder algorithmTypeOverride(JsonMaskerAlgorithmType algorithmType) {
             this.algorithmTypeOverride = algorithmType;
             return this;
         }

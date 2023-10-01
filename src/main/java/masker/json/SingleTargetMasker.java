@@ -3,7 +3,6 @@ package masker.json;
 import masker.AsciiCharacter;
 import masker.Utf8Util;
 import masker.json.config.JsonMaskingConfig;
-import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -56,7 +55,7 @@ public class SingleTargetMasker implements JsonMasker {
      * @param targetKey the JSON key for which the String values are masked
      * @return the masked message
      */
-    public byte[] mask(byte[] input, @NotNull String targetKey) {
+    public byte[] mask(byte[] input, String targetKey) {
         // With obfuscation enabled, this is used as output (so can eventually have different length than originalInput)
         byte[] outputBytes = input;
         int i = 0; // index based on current input slice

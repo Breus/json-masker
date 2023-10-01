@@ -9,7 +9,7 @@ java {
     }
 }
 
-description = 'High-performance JSON message masker'
+description = 'High-performance JSON masker'
 
 group 'dev.breus'
 version '0.1.0'
@@ -27,7 +27,7 @@ dependencies {
     implementation "org.jetbrains:annotations:24.0.1"
     implementation "org.openjdk.jmh:jmh-core:${jmhVersion}"
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.1'
     testImplementation "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"

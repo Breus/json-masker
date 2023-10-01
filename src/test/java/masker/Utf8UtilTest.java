@@ -28,7 +28,7 @@ class Utf8UtilTest {
 
     private static Stream<Arguments> unicodeCharactersLength() {
         return Stream.of(Arguments.of("$", 1),
-                         Arguments.of("£", 2),
+                         Arguments.of("±", 2),
                          Arguments.of("\u0300", 2),
                          Arguments.of("€", 3),
                          Arguments.of("\u2020", 3),

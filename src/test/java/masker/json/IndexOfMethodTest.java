@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-class IndexOfMethodTest {
+final class IndexOfMethodTest {
 
     @ParameterizedTest
     @MethodSource("indexOfArguments")

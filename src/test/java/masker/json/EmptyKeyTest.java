@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-class EmptyKeyTest {
+final class EmptyKeyTest {
     @ParameterizedTest
     @MethodSource("emptyKeyTestFile")
     void emptyKey(JsonMaskerTestInstance testInstance) {

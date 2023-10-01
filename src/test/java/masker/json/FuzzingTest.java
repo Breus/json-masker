@@ -10,7 +10,7 @@ import randomgen.json.RandomJsonGeneratorConfig;
 
 import java.util.Set;
 
-class FuzzingTest {
+final class FuzzingTest {
 
     @ParameterizedTest
     @ValueSource(ints = {100})

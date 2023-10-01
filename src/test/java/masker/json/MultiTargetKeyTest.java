@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-class MultiTargetKeyTest {
+final class MultiTargetKeyTest {
     @ParameterizedTest
     @MethodSource("multiTargetKeyFile")
     void multiTargetKey(JsonMaskerTestInstance testInstance) {

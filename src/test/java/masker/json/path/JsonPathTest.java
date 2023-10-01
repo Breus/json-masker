@@ -6,7 +6,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-public class JsonPathTest {
+final class JsonPathTest {
 
     @ParameterizedTest
     @MethodSource("validJsonPaths")

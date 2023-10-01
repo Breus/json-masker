@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class LengthObfuscationTest {
+final class LengthObfuscationTest {
     @ParameterizedTest
     @MethodSource("lengthObfuscationFile")
     void lengthObfuscation(JsonMaskerTestInstance testInstance) {

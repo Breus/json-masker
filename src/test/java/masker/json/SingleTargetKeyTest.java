@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class SingleTargetKeyTest {
+final class SingleTargetKeyTest {
     @ParameterizedTest
     @MethodSource("singleTargetKeyFile")
     void singleTargetKey(JsonMaskerTestInstance testInstance) {

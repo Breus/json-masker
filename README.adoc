@@ -19,7 +19,8 @@ The implementation is focused on maximum (time) performance using Java and requi
 - Obfuscate the original length of the masked value by setting a fixed mask length
 - By default, target keys are considered case-insensitive but this can be configured to be case-sensitive
 
-== Examples
+
+== Usage examples
 
 === Single target key masking
 
@@ -124,6 +125,11 @@ The time complexity of this algorithm scales only linear in the message input le
 
 For maximum performance one should use the single-target-loop algorithm while targeting a single key to mask and the (default) key-contains algorithm in any other case.
 By default, the masking algorithm is the key-contains algorithm as the small difference in the constant overhead while targeting a single key to mask was deemed less relevant than the impact of multiple target keys on the time complexity of the single-target-loop algorithm.
+
+== Roadmap features
+
+- Additional support for target keys set interpreted as allow list instead of block list
+- JSONPath support for target keys
 
 == Performance (benchmarks)
 

@@ -18,6 +18,7 @@ The implementation is focused on maximum (time) performance using Java and requi
 - Mask numeric values in any JSON structure corresponding to configured target key(s)
 - Obfuscate the original length of the masked value by setting a fixed mask length
 - By default, target keys are considered case-insensitive but this can be configured to be case-sensitive
+
 == Examples
 
 === Single target key masking
@@ -31,7 +32,7 @@ Simple example of JsonMasker usage masking a single target key (pinCode).
 {
   "someKey": "someValue",
   "some2ndKey": {
-    "pinCode": "1234",
+    "piddddddnCode": "1234",
     "some3rdKey": "someOtherValue"
   }
 }

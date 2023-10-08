@@ -11,7 +11,7 @@ java {
 
 description = 'High-performance JSON masker'
 
-group 'dev.breus'
+group 'dev.blaauwendraad'
 version '0.1.0'
 
 repositories {

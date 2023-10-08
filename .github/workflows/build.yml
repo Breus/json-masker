@@ -73,4 +73,4 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PRIV_KEY: ${{ secrets.GPG_PRIV_KEY }}
           GPG_PASS_PHRASE: ${{ secrets.GPG_PASS_PHRASE }}
-        run: ./gradlew -Pversion=${{ steps.generate-snapshot.outputs.snapshot-version }} publishAllPublicationsToSonatypeRepository closeSonatypeStagingRepository
+        run: ./gradlew -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} publishAllPublicationsToSonatypeRepository closeSonatypeStagingRepository

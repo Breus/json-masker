@@ -33,7 +33,7 @@ jobs:
         name: Generate snapshot version
         shell: bash
         run: |
-          version=$(git describe --tag --abbrev=0 || echo "v0.1.0" | cut -c 2-)
+          version=$(git describe --tag --abbrev=0 | cut -c 2-)
           regex="^([0-9]+).([0-9]+).([0-9]+)$"
           if [[ $version =~ $regex ]]; then
             major="${BASH_REMATCH[1]}"

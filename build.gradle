@@ -14,8 +14,7 @@ java {
 
 description = 'High-performance JSON masker'
 
-group 'dev.blaauwendraad'
-version = project.findProperty('version') ?: '0.1.0-SNAPSHOT'
+group = 'dev.blaauwendraad'
 
 repositories {
     mavenCentral()
@@ -46,11 +45,11 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            from components.java
+
             groupId = project.group
             artifactId = project.name
             version = project.version
-
-            from components.java
 
             pom {
                 name = project.name

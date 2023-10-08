@@ -1,4 +1,0 @@
-@ParametersAreNonnullByDefault
-package masker;
-
-import javax.annotation.ParametersAreNonnullByDefault;

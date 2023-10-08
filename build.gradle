@@ -15,7 +15,7 @@ java {
 description = 'High-performance JSON masker'
 
 group 'dev.blaauwendraad'
-version '0.1.0-SNAPSHOT'
+version = project.findProperty('version') ?: '0.1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()

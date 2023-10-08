@@ -50,36 +50,37 @@ class JsonMaskingConfigTest {
 
     private static Stream<JsonMaskingConfig.Builder> invalidBuilders() {
         return Stream.of(
-                JsonMaskingConfig.custom(Set.of()),
-                JsonMaskingConfig.custom(Set.of("hello")).maskNumberValuesWith(1).obfuscationLength(0)
+                JsonMaskingConfig.custom(Set.of(), JsonMaskingConfig.TargetKeyMode.MASK),
+                JsonMaskingConfig.custom(Set.of("hello"),
+                                         JsonMaskingConfig.TargetKeyMode.MASK).maskNumberValuesWith(1).obfuscationLength(0)
         );
     }
 
     private static Stream<Arguments> buildersWithAlgorithmType() {
         return Stream.of(
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("oneKey")), JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP
+                        JsonMaskingConfig.custom(Set.of("oneKey"), JsonMaskingConfig.TargetKeyMode.MASK), JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("oneKey", "secondKey")),
+                        JsonMaskingConfig.custom(Set.of("oneKey", "secondKey"), JsonMaskingConfig.TargetKeyMode.MASK),
                         JsonMaskerAlgorithmType.KEYS_CONTAIN
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey")),
+                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"), JsonMaskingConfig.TargetKeyMode.MASK),
                         JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"))
+                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"), JsonMaskingConfig.TargetKeyMode.MASK)
                                 .algorithmTypeOverride(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP),
                         JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"))
+                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"), JsonMaskingConfig.TargetKeyMode.MASK)
                                 .algorithmTypeOverride(JsonMaskerAlgorithmType.KEYS_CONTAIN),
                         JsonMaskerAlgorithmType.KEYS_CONTAIN
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("oneKey", "secondKey"))
+                        JsonMaskingConfig.custom(Set.of("oneKey", "secondKey"), JsonMaskingConfig.TargetKeyMode.MASK)
                                 .algorithmTypeOverride(JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN),
                         JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN
                 )

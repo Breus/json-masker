@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -36,9 +37,23 @@ public final class JsonMaskerTestUtil {
         var reader =
                 mapper.readerFor(TypeFactory.defaultInstance().constructCollectionType(Set.class, String.class));
         for (JsonNode jsonNode : jsonArray) {
-            JsonMaskingConfig.Builder configBuilder = JsonMaskingConfig.custom(reader.readValue(jsonNode.get(
-                    "targetKeys")));
             JsonNode maskerConfig = jsonNode.findValue("maskerConfig");
+            JsonMaskingConfig.TargetKeyMode targetKeyMode = JsonMaskingConfig.TargetKeyMode.MASK;
+            if (maskerConfig != null) {
+                JsonNode targetKeyModeJsonConfig = maskerConfig.findValue("targetKeyMode");
+                if (targetKeyModeJsonConfig != null) {
+                    String targetKeyModeJsonString = targetKeyModeJsonConfig.asText();
+                    JsonMaskingConfig.TargetKeyMode resolvedTargetKeyMode = Arrays.stream(JsonMaskingConfig.TargetKeyMode.values())
+                            .filter(e -> targetKeyModeJsonString.equalsIgnoreCase(e.name()))
+                            .findAny()
+                            .orElse(null);
+                    if (resolvedTargetKeyMode != null) {
+                        targetKeyMode = resolvedTargetKeyMode;
+                    }
+                }
+            }
+            JsonMaskingConfig.Builder configBuilder = JsonMaskingConfig.custom(reader.readValue(jsonNode.get(
+                    "targetKeys")), targetKeyMode);
             if (maskerConfig != null) {
                 JsonNode obfuscationLength = maskerConfig.findValue("obfuscationLength");
                 if (obfuscationLength != null) {
@@ -56,7 +71,8 @@ public final class JsonMaskerTestUtil {
             JsonMaskingConfig maskingConfig = configBuilder.build();
             var input = jsonNode.get("input").toString();
             if (jsonNode.get("input").isTextual() && jsonNode.get("input").textValue().startsWith("file://")) {
-                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(jsonNode.get("input").textValue().replace("file://", ""));
+                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader()
+                        .getResource(jsonNode.get("input").textValue().replace("file://", ""));
                 try {
                     input = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
                 } catch (URISyntaxException e) {
@@ -64,8 +80,11 @@ public final class JsonMaskerTestUtil {
                 }
             }
             var expectedOutput = jsonNode.get("expectedOutput").toString();
-            if (jsonNode.get("expectedOutput").isTextual() && jsonNode.get("expectedOutput").textValue().startsWith("file://")) {
-                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(jsonNode.get("expectedOutput").textValue().replace("file://", ""));
+            if (jsonNode.get("expectedOutput").isTextual() && jsonNode.get("expectedOutput")
+                    .textValue()
+                    .startsWith("file://")) {
+                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader()
+                        .getResource(jsonNode.get("expectedOutput").textValue().replace("file://", ""));
                 try {
                     expectedOutput = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
                 } catch (URISyntaxException e) {

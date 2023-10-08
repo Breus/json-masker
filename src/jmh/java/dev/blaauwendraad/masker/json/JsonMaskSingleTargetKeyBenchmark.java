@@ -41,11 +41,14 @@ public class JsonMaskSingleTargetKeyBenchmark {
 
         JsonMasker defaultMasker = JsonMasker.getMasker(keyToBeMasked);
         JsonMasker twoCharObfuscationLengthMasker =
-                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(2).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked),
+                                                              JsonMaskingConfig.TargetKeyMode.MASK).obfuscationLength(2).build());
         JsonMasker fiveCharObfuscationLengthMasker =
-                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(5).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked),
+                                                              JsonMaskingConfig.TargetKeyMode.MASK).obfuscationLength(5).build());
         JsonMasker sixCharObfuscationLengthMasker =
-                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked)).obfuscationLength(6).build());
+                JsonMasker.getMasker(JsonMaskingConfig.custom(Set.of(keyToBeMasked),
+                                                              JsonMaskingConfig.TargetKeyMode.MASK).obfuscationLength(6).build());
 
         private ObjectNode objectNode() {
             return JsonNodeFactory.instance.objectNode();
@@ -90,28 +93,28 @@ public class JsonMaskSingleTargetKeyBenchmark {
     @Benchmark
     public void parseAndMaskSmallJsonObjectAsByte(State state, Blackhole blackhole) throws Exception {
         JsonNode jsonNode =
-                ParseAndMaskUtil.parseBytesAndMask(state.simpleJsonAsBytes, state.keyToBeMasked, state.mapper);
+                ParseAndMaskUtil.mask(state.simpleJsonAsBytes, state.keyToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper);
         blackhole.consume(jsonNode);
     }
 
     @Benchmark
     public void parseAndMaskSmallJsonObjectAsString(State state, Blackhole blackhole) throws Exception {
         JsonNode jsonNode =
-                ParseAndMaskUtil.parseStringAndMask(state.simpleJsonAsString, state.keyToBeMasked, state.mapper);
+                ParseAndMaskUtil.mask(state.simpleJsonAsString, state.keyToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper);
         blackhole.consume(jsonNode);
     }
 
     @Benchmark
     public void parseAndMaskLargeJsonObjectAsString(State state, Blackhole blackhole) throws Exception {
         JsonNode jsonNode =
-                ParseAndMaskUtil.parseStringAndMask(state.largeJsonAsString, state.keyToBeMasked, state.mapper);
+                ParseAndMaskUtil.mask(state.largeJsonAsString, state.keyToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper);
         blackhole.consume(jsonNode);
     }
 
     @Benchmark
     public void parseAndMaskLargeJsonObjectAsBytes(State state, Blackhole blackhole) throws Exception {
         JsonNode jsonNode =
-                ParseAndMaskUtil.parseBytesAndMask(state.largeJsonAsBytes, state.keyToBeMasked, state.mapper);
+                ParseAndMaskUtil.mask(state.largeJsonAsBytes, state.keyToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper);
         blackhole.consume(jsonNode);
     }
 }

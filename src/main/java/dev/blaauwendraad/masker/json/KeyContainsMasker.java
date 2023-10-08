@@ -21,6 +21,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
     private final Set<String> targetKeys;
+    private final boolean allowMode;
 
     /**
      * 1. mask all keys corresponding to key (done)
@@ -66,6 +67,7 @@ public final class KeyContainsMasker implements JsonMasker {
 
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.targetKeys = maskingConfig.getTargetKeys();
+        this.allowMode = maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW;
         this.maskingConfig = maskingConfig;
     }
 
@@ -156,7 +158,8 @@ public final class KeyContainsMasker implements JsonMasker {
             if (!maskingConfig.caseSensitiveTargetKeys()) {
                 key = key.toLowerCase();
             }
-            if (!targetKeys.contains(key)) {
+            boolean keyMatched = targetKeys.contains(key);
+            if ((allowMode && keyMatched) || (!allowMode && !keyMatched)) {
                 continue mainLoop; // The found JSON key is not a target key, so continue the main loop
             }
 

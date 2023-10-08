@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import java.io.IOException;
 import java.util.Set;
@@ -14,55 +15,55 @@ public final class ParseAndMaskUtil {
         // util
     }
 
-    static JsonNode parseBytesAndMask(byte[] jsonAsBytes,
-                                      Set<String> keysToBeMasked,
-                                      ObjectMapper mapper) throws IOException {
-        JsonNode jsonNode = mapper.readValue(jsonAsBytes, JsonNode.class);
-        for (String keyToBeMasked : keysToBeMasked) {
-            maskPropertyInJsonNode(jsonNode, keyToBeMasked);
-        }
-        return jsonNode;
+    static JsonNode mask(byte[] jsonAsBytes,
+                         String targetKeys,
+                         JsonMaskingConfig.TargetKeyMode targetKeyMode,
+                         ObjectMapper mapper) throws IOException {
+        return mask(jsonAsBytes, Set.of(targetKeys), targetKeyMode, mapper);
     }
 
-    static JsonNode parseBytesAndMask(byte[] jsonAsBytes,
-                                      String keyToBeMasked,
-                                      ObjectMapper mapper) throws IOException {
-        return mask(mapper.readValue(jsonAsBytes, JsonNode.class), keyToBeMasked);
+    static JsonNode mask(byte[] jsonAsBytes,
+                         Set<String> targetKeys,
+                         JsonMaskingConfig.TargetKeyMode targetKeyMode,
+                         ObjectMapper mapper) throws IOException {
+        return mask(mapper.readValue(jsonAsBytes, JsonNode.class), targetKeys, targetKeyMode);
     }
 
-    static JsonNode parseStringAndMask(String jsonAsString,
-                                       String keyToBeMasked,
-                                       ObjectMapper mapper) throws JsonProcessingException {
-        return mask(mapper.readValue(jsonAsString, JsonNode.class), keyToBeMasked);
+    static JsonNode mask(String jsonAsString,
+                         String targetKeys,
+                         JsonMaskingConfig.TargetKeyMode targetKeyMode,
+                         ObjectMapper mapper) throws JsonProcessingException {
+        return mask(jsonAsString, Set.of(targetKeys), targetKeyMode, mapper);
     }
 
-
-    static JsonNode mask(JsonNode jsonNode, String keyToBeMasked) {
-        maskPropertyInJsonNode(jsonNode, keyToBeMasked);
-        return jsonNode;
+    static JsonNode mask(String jsonAsString,
+                         Set<String> targetKeys,
+                         JsonMaskingConfig.TargetKeyMode targetKeyMode,
+                         ObjectMapper mapper) throws JsonProcessingException {
+        return mask(mapper.readValue(jsonAsString, JsonNode.class), targetKeys, targetKeyMode);
     }
 
-    static JsonNode mask(JsonNode jsonNode, Set<String> keysToBeMasked) {
-        maskPropertiesInJsonNode(jsonNode, keysToBeMasked);
-        return jsonNode;
-    }
-
-    static void maskPropertiesInJsonNode(JsonNode parent, Set<String> keysToBeMasked) {
-        for (String keyToBeMasked : keysToBeMasked) {
-            maskPropertyInJsonNode(parent, keyToBeMasked);
-        }
-    }
-
-    static void maskPropertyInJsonNode(JsonNode parent, String keyToBeMasked) {
-        JsonNode jsonNode = parent.get(keyToBeMasked);
-        if (jsonNode instanceof TextNode) {
-            String replacementValue = "*".repeat(jsonNode.textValue().length());
-            ((ObjectNode) parent).put(keyToBeMasked, replacementValue);
-        }
+    static JsonNode mask(JsonNode jsonNode, Set<String> targetKeys, JsonMaskingConfig.TargetKeyMode targetKeyMode) {
+        boolean maskMode = targetKeyMode == JsonMaskingConfig.TargetKeyMode.MASK;
         // Now, recursively invoke this method on all nodes
-        for (JsonNode child : parent) {
-            maskPropertyInJsonNode(child, keyToBeMasked);
+        if (jsonNode.isArray()) {
+            for (JsonNode childNode : jsonNode) {
+                mask(childNode, targetKeys, targetKeyMode);
+            }
+        } else if (jsonNode.isObject()) {
+            jsonNode.fieldNames().forEachRemaining(key -> {
+                JsonNode childNode = jsonNode.get(key);
+                if (childNode instanceof TextNode) { // TODO: probably needs to be ValueNode? Why is it working in numeric tests?
+                    boolean keyMatched = targetKeys.contains(key);
+                    if ((maskMode && keyMatched) || (!maskMode && !keyMatched)) {
+                        String replacementValue = "*".repeat(childNode.textValue().length());
+                        ((ObjectNode) jsonNode).put(key, replacementValue);
+                    }
+                }
+                mask(childNode, targetKeys, targetKeyMode);
+            });
         }
+        return jsonNode;
     }
 
     static String readJsonFromFileAsString(String resourceName, Class<?> clazz) {

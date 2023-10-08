@@ -2,15 +2,19 @@ package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.path.JsonPath;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JsonMaskingConfig {
     /**
-     * Specifies the set of JSON keys for which the string/number values should be masked.
+     * Specifies the set of JSON keys for which the string/number values should be targeted (either masked or allowed,
+     * depending on the configured {@link JsonMaskingConfig#targetKeyMode}.
      */
     private final Set<String> targetKeys;
+    /**
+     * The target key mode specifies how to the JSON properties corresponding to the target keys are processed.
+     */
+    private final TargetKeyMode targetKeyMode;
     /**
      * Specifies the set of JSON paths for which the string/number values should be masked.
      */
@@ -51,45 +55,56 @@ public class JsonMaskingConfig {
      * @param builder the builder object
      */
     JsonMaskingConfig(Builder builder) {
+        Set<String> targets = builder.targets;
+        targetKeyMode = builder.targetKeyMode;
         obfuscationLength = builder.obfuscationLength;
         if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
                 || builder.maskNumberValuesWith == -1)) {
             throw new IllegalArgumentException(
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
-        if (builder.targets == null || builder.targets.isEmpty()) {
-            throw new IllegalArgumentException("At least a single target have to be set");
+        if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
+            throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
+        }
+        if (builder.maskNumberValuesWith == 0) {
+            if (builder.obfuscationLength < 0 || builder.obfuscationLength > 1) {
+                throw new IllegalArgumentException(
+                        "Mask number values with can only be 0 if obfuscation length is 0 or 1 to preserve valid JSON");
+            }
+        } else {
+            if (builder.maskNumberValuesWith != -1 && (builder.maskNumberValuesWith < 1 || builder.maskNumberValuesWith > 9)) {
+                throw new IllegalArgumentException(
+                        "Mask number values with must be a digit between 1 and 9 when length obfuscation is disabled or obfuscation length is larger than than 0");
+            }
         }
         maskNumberValuesWith = builder.maskNumberValuesWith;
 
         caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
         if (!caseSensitiveTargetKeys) {
-            builder.targets = builder.targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
+            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
         }
 
-        Set<String> jsonPathLiterals = builder.targets.stream()
+        Set<String> jsonPathLiterals = targets.stream()
                 .filter(t -> t.startsWith("$."))
                 .collect(Collectors.toSet());
         if (builder.algorithmTypeOverride != null) {
             algorithmType = builder.algorithmTypeOverride;
         } else if (!jsonPathLiterals.isEmpty() && builder.resolveJsonPaths) {
             algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
-        } else if (builder.targets.size() > 1) {
+        } else if (targets.size() > 1) {
             algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         } else {
             algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
         }
-
         switch (algorithmType) {
             case PATH_AWARE_KEYS_CONTAIN -> {
                 targetJsonPaths = resolveJsonPaths(jsonPathLiterals);
-                HashSet<String> targets = new HashSet<>(builder.targets);
-                targets.removeAll(jsonPathLiterals);
+                targets.removeIf(jsonPathLiterals::contains);
                 targetKeys = targets;
             }
             case KEYS_CONTAIN, SINGLE_TARGET_LOOP -> {
                 targetJsonPaths = Set.of();
-                targetKeys = builder.targets;
+                targetKeys = targets;
             }
             default -> throw new IllegalStateException("Unknown JSON masking algorithm");
         }
@@ -100,11 +115,11 @@ public class JsonMaskingConfig {
     }
 
     public static JsonMaskingConfig getDefault(Set<String> targets) {
-        return custom(targets).build();
+        return custom(targets, TargetKeyMode.MASK).build();
     }
 
-    public static JsonMaskingConfig.Builder custom(Set<String> targets) {
-        return new JsonMaskingConfig.Builder(targets);
+    public static JsonMaskingConfig.Builder custom(Set<String> targets, TargetKeyMode targetKeyMode) {
+        return new JsonMaskingConfig.Builder(targets, targetKeyMode);
     }
 
     public JsonMaskerAlgorithmType getAlgorithmType() {
@@ -121,6 +136,10 @@ public class JsonMaskingConfig {
 
     public boolean isNumberMaskingDisabled() {
         return maskNumberValuesWith == -1;
+    }
+
+    public TargetKeyMode getTargetKeyMode() {
+        return targetKeyMode;
     }
 
     public Set<String> getTargetKeys() {
@@ -144,15 +163,18 @@ public class JsonMaskingConfig {
     }
 
     public static class Builder {
-        private Set<String> targets;
+        private final Set<String> targets;
+        private final TargetKeyMode targetKeyMode;
         private int maskNumberValuesWith;
         private boolean resolveJsonPaths;
         private JsonMaskerAlgorithmType algorithmTypeOverride;
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
 
-        public Builder(Set<String> targets) {
+        public Builder(Set<String> targets, TargetKeyMode targetKeyMode) {
+            // targets can be either target keys or target JSON paths
             this.targets = targets;
+            this.targetKeyMode = targetKeyMode;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
             // by default, JSON paths are resolved, every target starting with "$." is interpreted as a JSONPath
@@ -217,25 +239,16 @@ public class JsonMaskingConfig {
         }
 
         public JsonMaskingConfig build() {
-            if (targets.isEmpty()) {
-                throw new IllegalArgumentException("Target key set must contain at least on target key");
-            }
-            if (maskNumberValuesWith == 0) {
-                if (obfuscationLength < 0 || obfuscationLength > 1) {
-                    throw new IllegalArgumentException(
-                            "Mask number values with can only be 0 if obfuscation length is 0 or 1 to preserve valid JSON");
-                }
-            } else {
-                if (maskNumberValuesWith != -1 && (maskNumberValuesWith < 1 || maskNumberValuesWith > 9)) {
-                    throw new IllegalArgumentException(
-                            "Mask number values with must be a digit between 1 and 9 when length obfuscation is disabled or obfuscation length is larger than than 0");
-                }
-            }
             return new JsonMaskingConfig(this);
         }
 
         protected Builder self() {
             return this;
         }
+    }
+
+    public enum TargetKeyMode {
+        ALLOW,
+        MASK;
     }
 }

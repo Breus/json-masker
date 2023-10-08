@@ -27,10 +27,12 @@ public class JsonMaskMultipleTargetKeysBenchmark {
         String largeJsonAsString =
                 ParseAndMaskUtil.readJsonFromFileAsString("large-input-benchmark.json", this.getClass());
         byte[] largeJsonAsBytes = largeJsonAsString.getBytes(StandardCharsets.UTF_8);
-        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked)
+        JsonMasker keyContainsJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK)
                                                                         .algorithmTypeOverride(JsonMaskerAlgorithmType.KEYS_CONTAIN)
                                                                         .build());
-        JsonMasker loopJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked)
+        JsonMasker loopJsonMasker = JsonMasker.getMasker(JsonMaskingConfig.custom(keysToBeMasked,
+                                                                                  JsonMaskingConfig.TargetKeyMode.MASK
+                )
                                                                  .algorithmTypeOverride(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP)
                                                                  .build());
 
@@ -71,7 +73,7 @@ public class JsonMaskMultipleTargetKeysBenchmark {
     @Benchmark
     public void parseAndMaskMultiKeysSmallJson(State state, Blackhole blackhole) throws IOException {
         String maskedJsonOutput =
-                ParseAndMaskUtil.parseBytesAndMask(state.simpleJsonAsBytes, state.keysToBeMasked, state.mapper)
+                ParseAndMaskUtil.mask(state.simpleJsonAsBytes, state.keysToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper)
                         .toString();
         blackhole.consume(maskedJsonOutput);
     }
@@ -79,7 +81,7 @@ public class JsonMaskMultipleTargetKeysBenchmark {
     @Benchmark
     public void parseAndMaskMultiKeysLargeJson(State state, Blackhole blackhole) throws IOException {
         String maskedJsonOutput =
-                ParseAndMaskUtil.parseBytesAndMask(state.largeJsonAsBytes, state.keysToBeMasked, state.mapper)
+                ParseAndMaskUtil.mask(state.largeJsonAsBytes, state.keysToBeMasked, JsonMaskingConfig.TargetKeyMode.MASK, state.mapper)
                         .toString();
         blackhole.consume(maskedJsonOutput);
     }

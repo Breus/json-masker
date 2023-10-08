@@ -1,0 +1,99 @@
+[
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "allowedKey"
+    ],
+    "input": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no",
+            "allowedKey": "yes"
+          }
+        },
+        "allowedKey": "someValue"
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "jsonKey": "*****",
+        "someKey": {
+          "someOtherKey": "****",
+          "yetAnotherOne": {
+            "alrightLastOne": "**",
+            "allowedKey": "yes"
+          }
+        },
+        "allowedKey": "someValue"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [],
+    "input": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no"
+          }
+        },
+        "allowedKey": "someValue"
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "jsonKey": "*****",
+        "someKey": {
+          "someOtherKey": "****",
+          "yetAnotherOne": {
+            "alrightLastOne": "**"
+          }
+        },
+        "allowedKey": "*********"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": ["jsonKey", "someOtherKey", "alrightLastOne", "oneMoreKey"],
+    "input": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no"
+          }
+        },
+        "oneMoreKey": "someValue"
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no"
+          }
+        },
+        "oneMoreKey": "someValue"
+      }
+    }
+  }
+]
+
+
+

@@ -3,7 +3,10 @@
 
 == Introduction
 
-This JSON masker can be used to mask string and numeric values from JSON messages, corresponding to a (set of) target key(s).
+JSON masker can be used to mask string and/or numeric values from JSON messages, corresponding to a (set of) target
+key(s). Alternatively, it can be used to mask all string and/or numeric values from a JSON message except the ones
+corresponding to the target keys .
+
 The implementation is focused on maximum (time) performance using Java and requires no additional runtime dependencies.
 
 == Dependencies
@@ -17,8 +20,8 @@ The implementation is focused on maximum (time) performance using Java and requi
 - Mask string values in any JSON structure corresponding to configured target key(s)
 - Mask numeric values in any JSON structure corresponding to configured target key(s)
 - Obfuscate the original length of the masked value by setting a fixed mask length
-- By default, target keys are considered case-insensitive but this can be configured to be case-sensitive
-
+- Target key case sensitivity configuration (default: `false`)
+- JSON properties corresponding the target keys can be `masked` or `allowed` in which case those are the only properties not masked (default: `masked`)
 
 == Usage examples
 
@@ -33,7 +36,7 @@ Simple example of JsonMasker usage masking a single target key (pinCode).
 {
   "someKey": "someValue",
   "some2ndKey": {
-    "piddddddnCode": "1234",
+    "pinCode": "1234",
     "some3rdKey": "someOtherValue"
   }
 }
@@ -43,7 +46,7 @@ Simple example of JsonMasker usage masking a single target key (pinCode).
 
 [source,java]
 ----
-    String output = JsonMasker.getMasker("pinCode").mask(input);
+String output = JsonMasker.getMasker("pinCode").mask(input);
 ----
 
 ==== Output
@@ -83,9 +86,11 @@ Example showing a how to target multiple keys using the key-contains algorithm a
 
 [source,java]
 ----
-    Set<String> targetKeys = Set.of("address", "cardNumber", "cvv", "pinCode", "name");
-    JsonMaskingConfig config = JsonMaskingConfig.custom().obfuscationLength(4).build();
-    String output = JsonMasker.getMasker(targetKeys, config).mask(input);
+JsonMaskingConfig config = JsonMaskingConfig.custom(
+        Set.of("address", "cardNumber", "pinCode", "name"),
+        JsonMaskingConfig.TargetKeyMode.MASK
+).obfuscationLength(4).build();
+String output = JsonMasker.getMasker(config).mask(input);
 ----
 
 ==== Output
@@ -93,8 +98,8 @@ Example showing a how to target multiple keys using the key-contains algorithm a
 [source,json]
 ----
 {
-  "someKey": "someValue",
-  "some2ndKey": {
+  "transactionId": "123 456 890",
+  "clientInformation": {
     "pinCode": "****",
     "name": "****",
     "address": "****",

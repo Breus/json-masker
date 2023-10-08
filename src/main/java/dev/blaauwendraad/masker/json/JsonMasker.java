@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-interface JsonMasker {
+public interface JsonMasker {
     @Nonnull
     static JsonMasker getMasker(String targetKey) {
         return getMasker(JsonMaskingConfig.getDefault(Set.of(targetKey)));

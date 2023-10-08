@@ -33,7 +33,7 @@ jobs:
         name: Generate snapshot version
         shell: bash
         run: |
-          version=$(git describe --tag --abbrev=0 || echo "v0.1.0" | cut -c 2-)
+          version=$(git describe --tag --abbrev=0 2&>/dev/null || echo "v0.1.0" | cut -c 2-)
           regex="^([0-9]+).([0-9]+).([0-9]+)$"
           if [[ $version =~ $regex ]]; then
             major="${BASH_REMATCH[1]}"
@@ -42,14 +42,14 @@ jobs:
           
             patch=$(($patch + 1))
           
-            new_version="${major}.${minor}.${patch}"
+            snapshot_version="${major}.${minor}.${patch}"
           
-            if ! [[ $new_version =~ $regex ]]; then
-              echo "New version $new_version is not a valid SemVer"
+            if ! [[ $snapshot_version =~ $regex ]]; then
+              echo "SNAPSHOT version $snapshot_version is not a valid SemVer"
               exit 1
             fi
           
-            echo "snapshot-version=${new_version}-SNAPSHOT" >> $GITHUB_OUTPUT
+            echo "snapshot-version=${snapshot_version}-SNAPSHOT" >> $GITHUB_OUTPUT
           else
             echo "Version $version is not a valid SemVer"
             exit 1

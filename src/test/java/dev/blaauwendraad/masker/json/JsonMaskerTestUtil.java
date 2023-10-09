@@ -61,7 +61,7 @@ public final class JsonMaskerTestUtil {
                 }
                 JsonNode maskNumberValuesWith = maskerConfig.findValue("maskNumberValuesWith");
                 if (maskNumberValuesWith != null) {
-                    configBuilder.maskNumberValuesWith(maskNumberValuesWith.asInt());
+                    configBuilder.maskNumericValuesWith(maskNumberValuesWith.asInt());
                 }
                 JsonNode caseSensitiveTargetKeys = maskerConfig.findValue("caseSensitiveTargetKeys");
                 if (caseSensitiveTargetKeys != null && caseSensitiveTargetKeys.booleanValue()) {

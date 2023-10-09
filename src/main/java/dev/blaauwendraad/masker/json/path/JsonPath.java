@@ -5,9 +5,7 @@ import java.util.Arrays;
 
 /**
  * A {@link JsonPath} expression is used to traverse, select and extract fields and values from a JSON document.
- * <p>
  * Example JSON and corresponding paths:
- * <p>
  * <pre>
  * {
  *     "a": "1",

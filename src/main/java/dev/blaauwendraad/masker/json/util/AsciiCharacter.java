@@ -1,5 +1,8 @@
-package dev.blaauwendraad.masker;
+package dev.blaauwendraad.masker.json.util;
 
+/**
+ * ASCII code characters and utility methods.
+ */
 public enum AsciiCharacter {
     ASTERISK((byte) '*'),
     BACK_SLASH((byte) '\\'),
@@ -56,22 +59,51 @@ public enum AsciiCharacter {
         };
     }
 
+    /**
+     * Tests if the given byte corresponds to a double quote '"' in ASCII code.
+     *
+     * @param inputByte the input byte
+     * @return true if the byte corresponds to a double quote in ASCII code and false otherwise.
+     */
     public static boolean isDoubleQuote(byte inputByte) {
         return DOUBLE_QUOTE.getAsciiByteValue() == inputByte;
     }
 
+    /**
+     * Tests if the given byte corresponds to an escape character (backslash) '\' in ASCII code.
+     *
+     * @param inputByte the input byte
+     * @return true if the byte corresponds to an escape character (backslash) in ASCII code and false otherwise.
+     */
     public static boolean isEscapeCharacter(byte inputByte) {
         return BACK_SLASH.getAsciiByteValue() == inputByte;
     }
 
+    /**
+     * Tests if the given byte corresponds to a lowercase 'u' in ASCII code.
+     *
+     * @param inputByte the input byte
+     * @return true if the byte corresponds to a lowercase 'u' in ASCII code and false otherwise.
+     */
     public static boolean isLowercaseU(byte inputByte) {
         return LOWERCASE_U.getAsciiByteValue() == inputByte;
     }
 
+    /**
+     * Tests if the given byte corresponds to a colon ':' in ASCII code.
+     *
+     * @param inputByte the input byte
+     * @return true if the byte corresponds to a colon ':' in ASCII code and false otherwise.
+     */
     public static boolean isColon(byte inputByte) {
         return COLON.getAsciiByteValue() == inputByte;
     }
 
+    /**
+     * Get the corresponding ASCII code byte value.
+     *
+     * @return the ASCII code byte value.
+     */
     public byte getAsciiByteValue() {
         return byteValue;
     }

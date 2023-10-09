@@ -119,4 +119,5 @@ signing {
 
 javadoc {
     options.addBooleanOption('html5', true)
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
 }

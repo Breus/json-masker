@@ -1,4 +1,4 @@
-package dev.blaauwendraad.masker;
+package dev.blaauwendraad.masker.json.util;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,21 +18,24 @@ class Utf8UtilTest {
         }
     }
 
-
     @ParameterizedTest
     @MethodSource("unicodeCharactersLength")
     void unicodeCharacters(String character, int utf8ByteLength) {
-        Assertions.assertEquals(utf8ByteLength,
-                                Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0]));
+        Assertions.assertEquals(
+                utf8ByteLength,
+                Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0])
+        );
     }
 
     private static Stream<Arguments> unicodeCharactersLength() {
-        return Stream.of(Arguments.of("$", 1),
-                         Arguments.of("~", 1),
-                         Arguments.of("\u0300", 2),
-                         Arguments.of("€", 3),
-                         Arguments.of("\u2020", 3),
-                         Arguments.of("\u4000", 3),
-                         Arguments.of("\uD800\uDF48", 4));
+        return Stream.of(
+                Arguments.of("$", 1),
+                Arguments.of("~", 1),
+                Arguments.of("\u0300", 2),
+                Arguments.of("€", 3),
+                Arguments.of("\u2020", 3),
+                Arguments.of("\u4000", 3),
+                Arguments.of("\uD800\uDF48", 4)
+        );
     }
 }

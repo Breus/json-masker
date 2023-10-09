@@ -1,26 +1,24 @@
-package dev.blaauwendraad.masker.json;
+package dev.blaauwendraad.masker.json.util;
 
-import static dev.blaauwendraad.masker.AsciiCharacter.CARRIAGE_RETURN;
-import static dev.blaauwendraad.masker.AsciiCharacter.EIGHT;
-import static dev.blaauwendraad.masker.AsciiCharacter.FIVE;
-import static dev.blaauwendraad.masker.AsciiCharacter.FOUR;
-import static dev.blaauwendraad.masker.AsciiCharacter.HORIZONTAL_TAB;
-import static dev.blaauwendraad.masker.AsciiCharacter.LINE_FEED;
-import static dev.blaauwendraad.masker.AsciiCharacter.LOWERCASE_E;
-import static dev.blaauwendraad.masker.AsciiCharacter.LOWERCASE_F;
-import static dev.blaauwendraad.masker.AsciiCharacter.LOWERCASE_T;
-import static dev.blaauwendraad.masker.AsciiCharacter.MINUS;
-import static dev.blaauwendraad.masker.AsciiCharacter.NINE;
-import static dev.blaauwendraad.masker.AsciiCharacter.ONE;
-import static dev.blaauwendraad.masker.AsciiCharacter.PERIOD;
-import static dev.blaauwendraad.masker.AsciiCharacter.PLUS;
-import static dev.blaauwendraad.masker.AsciiCharacter.SEVEN;
-import static dev.blaauwendraad.masker.AsciiCharacter.SIX;
-import static dev.blaauwendraad.masker.AsciiCharacter.SPACE;
-import static dev.blaauwendraad.masker.AsciiCharacter.THREE;
-import static dev.blaauwendraad.masker.AsciiCharacter.TWO;
-import static dev.blaauwendraad.masker.AsciiCharacter.UPPERCASE_E;
-import static dev.blaauwendraad.masker.AsciiCharacter.ZERO;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.EIGHT;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.FIVE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.FOUR;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LOWERCASE_E;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.MINUS;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.NINE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.ONE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.PERIOD;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.PLUS;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SEVEN;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SIX;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.THREE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.TWO;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.UPPERCASE_E;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.ZERO;
 
 public final class AsciiJsonUtil {
     static byte[] whiteSpaceCharacters = new byte[] {
@@ -68,21 +66,12 @@ public final class AsciiJsonUtil {
             NINE.getAsciiByteValue()
     };
 
-    static byte[] firstBooleanCharacters = new byte[] {
-            LOWERCASE_F.getAsciiByteValue(),
-            LOWERCASE_T.getAsciiByteValue()
-    };
-
     private AsciiJsonUtil() {
         // don't instantiate
     }
 
     static byte[] firstNumberCharacters() {
         return firstNumberCharacters;
-    }
-
-    static byte[] firstBooleanCharacters() {
-        return firstBooleanCharacters;
     }
 
     static byte[] numberCharacters() {
@@ -93,7 +82,7 @@ public final class AsciiJsonUtil {
         return whiteSpaceCharacters;
     }
 
-    static boolean isWhiteSpace(byte utf8Character) {
+    public static boolean isWhiteSpace(byte utf8Character) {
         for (byte whiteSpaceChar : whiteSpaces()) {
             if (utf8Character == whiteSpaceChar) {
                 return true;
@@ -102,7 +91,7 @@ public final class AsciiJsonUtil {
         return false;
     }
 
-    static boolean isFirstNumberChar(byte utf8Character) {
+    public static boolean isFirstNumberChar(byte utf8Character) {
         for (byte firstNumberChar : firstNumberCharacters()) {
             if (utf8Character == firstNumberChar) {
                 return true;
@@ -111,7 +100,7 @@ public final class AsciiJsonUtil {
         return false;
     }
 
-    static boolean isNumericCharacter(byte utf8Character) {
+    public static boolean isNumericCharacter(byte utf8Character) {
         for (byte numberChar : numberCharacters()) {
             if (utf8Character == numberChar) {
                 return true;

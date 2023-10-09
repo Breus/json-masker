@@ -1,15 +1,21 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.AsciiCharacter;
-import dev.blaauwendraad.masker.Utf8Util;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.util.AsciiCharacter;
+import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
+import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
+import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import static dev.blaauwendraad.masker.AsciiCharacter.isDoubleQuote;
-import static dev.blaauwendraad.masker.AsciiCharacter.isEscapeCharacter;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
 
+/**
+ * {@link JsonMasker} that is optimized to mask the JSON properties for one or multiple target keys. This is the default
+ * {@link JsonMasker} implementation.
+ */
 public final class KeyContainsMasker implements JsonMasker {
     /*
      * We are looking for targeted JSON keys, so the closing quote can appear at minimum 4 characters till the end of
@@ -22,49 +28,13 @@ public final class KeyContainsMasker implements JsonMasker {
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
     private final Set<String> targetKeys;
     private final boolean allowMode;
-
-    /**
-     * 1. mask all keys corresponding to key (done)
-     * 2. maks a key only top-level ($.key)
-     * 3. mask a key in some object path (object.inner.key)
-     *
-     * {
-     *     "key" {
-     *         "key1": "secret",
-     *         "key2": "secret"
-     *         "Key3": {
-     *             "key4": ""
-     *             "key2": ""
-     *         }
-     *     }
-     * }
-     *
-     *    "key2"
-     *  "obj.secret"
-     *  "obj.otherSecret"
-     * key.key1
-     * key.key3
-     * key.**
-     *
-     * class MyData {
-     *     private String ssn;
-     *     private String secret;
-     *     private InnerObj obj;
-     * }
-     *
-     * class InnerObj {
-     *     @MaskMe
-     *     private String secret;
-     *     @MaskMe
-     *     private String otherSecret;
-     * }
-     *
-     */
-    // /settings/somefield/
-    // $.phoneNumbers[:1].type
-
     private final JsonMaskingConfig maskingConfig;
 
+    /**
+     * Creates an instance of an {@link KeyContainsMasker}
+     *
+     * @param maskingConfig the masking configurations for the created masker
+     */
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.targetKeys = maskingConfig.getTargetKeys();
         this.allowMode = maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW;
@@ -73,8 +43,7 @@ public final class KeyContainsMasker implements JsonMasker {
 
     /**
      * Masks the values in the given input for all values having keys corresponding to any of the provided target keys.
-     * This implementation is optimized for multiple target keys.
-     * Currently, only supports UTF_8 character encoding
+     * This implementation is optimized for multiple target keys. Currently, only supports UTF_8 character encoding
      *
      * @param input the input message for which values might be masked
      * @return the masked message
@@ -82,8 +51,8 @@ public final class KeyContainsMasker implements JsonMasker {
     @Override
     public byte[] mask(byte[] input) {
         /*
-         * No masking required if input is not an JSON array or JSON object (starting with either '{' or
-         * '['), or input is shorter than the minimal maskable JSON input.
+         * No masking required if input is not an JSON array or JSON object (starting with either '{' or '['), or input
+         * is shorter than the minimal maskable JSON input.
          */
         if (!isObjectOrArray(input) || input.length < MIN_MASKABLE_JSON_LENGTH) {
             return input;
@@ -136,8 +105,8 @@ public final class KeyContainsMasker implements JsonMasker {
                 i++; // Step over all white characters after the colon,
             }
             if (!isDoubleQuote(input[i])) {
-                if (maskingConfig.isNumberMaskingDisabled()) {
-                    // The found JSON key did not have a maskable value, continue looking from where we left of.
+                if (!maskingConfig.isNumberMaskingEnabled()) {
+                    // The JSON key found did not have a maskable value, continue looking from where we left of.
                     continue mainLoop;
                 } else {
                     if (!AsciiJsonUtil.isFirstNumberChar(input[i])) {
@@ -173,14 +142,14 @@ public final class KeyContainsMasker implements JsonMasker {
                 int targetValueLength = 0;
                 while (AsciiJsonUtil.isNumericCharacter(input[i])) {
                     targetValueLength++;
-                    input[i] = AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith());
+                    input[i] = AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith());
                     /*
                      * Following line cannot result in ArrayOutOfBound because of the early return after checking for
                      * first char being a double quote.
                      */
                     i++;
                 }
-                if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength) {
+                if (maskingConfig.isLengthObfuscationEnabled() && obfuscationLength != targetValueLength) {
                     if (obfuscationLength == 0) {
                         /*
                          * For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an
@@ -191,7 +160,7 @@ public final class KeyContainsMasker implements JsonMasker {
                                 i,
                                 1,
                                 targetValueLength,
-                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
                         );
                         /*
                          * The length of the input got changed, so we need to compensate that on our index by
@@ -204,7 +173,7 @@ public final class KeyContainsMasker implements JsonMasker {
                                 i,
                                 obfuscationLength,
                                 targetValueLength,
-                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
                         );
                         /*
                          * The length of the input got changed, so we need to compensate that on our index by
@@ -252,7 +221,7 @@ public final class KeyContainsMasker implements JsonMasker {
                     targetValueLength++;
                     i++;
                 }
-                if (maskingConfig.isObfuscationEnabled()
+                if (maskingConfig.isLengthObfuscationEnabled()
                         && obfuscationLength != (targetValueLength - noOfEscapeCharacters)) {
                     input = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
                             input,

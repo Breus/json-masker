@@ -1,10 +1,8 @@
-package dev.blaauwendraad.masker.json;
-
-import dev.blaauwendraad.masker.AsciiCharacter;
+package dev.blaauwendraad.masker.json.util;
 
 /**
- * Class containing util methods to set a particular target value length to a fixed size mask (used for length
- * obfuscation and ignoring escaping characters in String values).
+ * Class containing utility methods to set a particular target value length to a fixed size mask. This can be used for
+ * length obfuscation and ignoring escaping characters in string values.
  */
 public final class FixedLengthTargetValueMaskUtil {
     private FixedLengthTargetValueMaskUtil() {
@@ -25,7 +23,7 @@ public final class FixedLengthTargetValueMaskUtil {
      * @return a new array corresponding to the input bytes array with the target value replaced with a fixed length
      * mask
      */
-    static byte[] replaceTargetValueWithFixedLengthMask(
+    public static byte[] replaceTargetValueWithFixedLengthMask(
             byte[] inputBytes,
             int targetValueEndIndex,
             int fixedMaskLength,
@@ -53,7 +51,7 @@ public final class FixedLengthTargetValueMaskUtil {
         return newInputBytes;
     }
 
-    static byte[] replaceTargetValueWithFixedLengthAsteriskMask(
+    public static byte[] replaceTargetValueWithFixedLengthAsteriskMask(
             byte[] inputBytes,
             int closingQuoteIndex,
             int fixedLength,

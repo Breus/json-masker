@@ -9,7 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Tree representation of (a set of) {@link JsonPath}'s for constant-time lookup in the {@link PathAwareKeyContainsMasker}.
+ * Tree representation of (a set of) {@link JsonPath}s for constant-time lookup in the
+ * {@link PathAwareKeyContainsMasker}.
  */
 public class JsonPathTreeNode {
     private final Map<String, JsonPathTreeNode> children;
@@ -20,18 +21,18 @@ public class JsonPathTreeNode {
         this.isLeafNode = false;
     }
 
-    public JsonPathTreeNode(boolean isLeafNode) {
+    JsonPathTreeNode(boolean isLeafNode) {
         this.children = new HashMap<>();
         this.isLeafNode = isLeafNode;
     }
 
-    public JsonPathTreeNode(Map<String, JsonPathTreeNode> children, boolean isLeafNode) {
+    JsonPathTreeNode(Map<String, JsonPathTreeNode> children, boolean isLeafNode) {
         this.children = children;
         this.isLeafNode = isLeafNode;
     }
 
     @Nonnull
-    public static JsonPathTreeNode of(Set<JsonPath> jsonPaths) {
+    static JsonPathTreeNode of(Set<JsonPath> jsonPaths) {
         JsonPathTreeNode root = new JsonPathTreeNode();
         int depth = 0;
         while (true) {
@@ -56,7 +57,7 @@ public class JsonPathTreeNode {
     }
 
     private static JsonPathTreeNode resolveParent(JsonPathTreeNode root, String[] pathComponents, int depth) {
-        for (int i = 0; i < depth;  i++) {
+        for (int i = 0; i < depth; i++) {
             root = root.children.get(pathComponents[i]);
         }
         return root;

@@ -49,7 +49,7 @@ class PrettyPrintTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("JSON path key contains not yet implemented")
     void prettyPrintMaskingPathAwareKeyContains() throws JsonProcessingException {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);

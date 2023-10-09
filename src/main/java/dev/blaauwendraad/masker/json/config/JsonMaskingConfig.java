@@ -5,6 +5,9 @@ import dev.blaauwendraad.masker.json.path.JsonPath;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Contains the JSON masker configurations.
+ */
 public class JsonMaskingConfig {
     /**
      * Specifies the set of JSON keys for which the string/number values should be targeted (either masked or allowed,
@@ -27,7 +30,7 @@ public class JsonMaskingConfig {
     /**
      * @see JsonMaskingConfig.Builder#maskNumberValuesWith
      */
-    private final int maskNumberValuesWith;
+    private final int maskNumericValuesWith;
     /**
      * @see JsonMaskingConfig.Builder#obfuscationLength(int)
      */
@@ -38,19 +41,18 @@ public class JsonMaskingConfig {
     private final boolean caseSensitiveTargetKeys;
 
     /**
-     * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder.
-     * The logic for this is as follows:
+     * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder. The logic
+     * for this is as follows:
      * <p>
-     * If an algorithm type override is set, this will always be the algorithm used.
-     * If this algorithm is JSONPath-aware, the target keys that start with "$." will be interpreted as JSONPaths.
-     * If the algorithm is not JSONPath-aware, all targets will be interpreted as regular targets (even if they start with "$."),
-     * in which case this prefix will just be interpreted as part of the target key.
+     * If an algorithm type override is set, this will always be the algorithm used. If this algorithm is
+     * JSONPath-aware, the target keys that start with "$." will be interpreted as JSONPaths. If the algorithm is not
+     * JSONPath-aware, all targets will be interpreted as regular targets (even if they start with "$."), in which case
+     * this prefix will just be interpreted as part of the target key.
      * <p>
-     * If no algorithm type override is set, the algorithm is selected as following:
-     * If the target set contains Strings starting with "$.", these will be interpreted as JSONPaths, and the
-     * JSONPath-aware algorithm is used.
-     * If the target set does not contain JSONPaths, the {@link JsonMaskerAlgorithmType#KEYS_CONTAIN} will be chosen if
-     * the target set contains more than one target key or {@link JsonMaskerAlgorithmType#SINGLE_TARGET_LOOP}.
+     * If no algorithm type override is set, the algorithm is selected as following: If the target set contains Strings
+     * starting with "$.", these will be interpreted as JSONPaths, and the JSONPath-aware algorithm is used. If the
+     * target set does not contain JSONPaths, the {@link JsonMaskerAlgorithmType#KEYS_CONTAIN} will be chosen if the
+     * target set contains more than one target key or {@link JsonMaskerAlgorithmType#SINGLE_TARGET_LOOP}.
      *
      * @param builder the builder object
      */
@@ -72,12 +74,13 @@ public class JsonMaskingConfig {
                         "Mask number values with can only be 0 if obfuscation length is 0 or 1 to preserve valid JSON");
             }
         } else {
-            if (builder.maskNumberValuesWith != -1 && (builder.maskNumberValuesWith < 1 || builder.maskNumberValuesWith > 9)) {
+            if (builder.maskNumberValuesWith != -1 && (builder.maskNumberValuesWith < 1
+                    || builder.maskNumberValuesWith > 9)) {
                 throw new IllegalArgumentException(
                         "Mask number values with must be a digit between 1 and 9 when length obfuscation is disabled or obfuscation length is larger than than 0");
             }
         }
-        maskNumberValuesWith = builder.maskNumberValuesWith;
+        maskNumericValuesWith = builder.maskNumberValuesWith;
 
         caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
         if (!caseSensitiveTargetKeys) {
@@ -118,6 +121,13 @@ public class JsonMaskingConfig {
         return custom(targets, TargetKeyMode.MASK).build();
     }
 
+    /**
+     * Creates a new {@link JsonMaskingConfig} builder instance.
+     *
+     * @param targets       target keys of JSONPaths
+     * @param targetKeyMode how to interpret the targets set
+     * @return the {@link JsonMaskingConfig} builder instance
+     */
     public static JsonMaskingConfig.Builder custom(Set<String> targets, TargetKeyMode targetKeyMode) {
         return new JsonMaskingConfig.Builder(targets, targetKeyMode);
     }
@@ -126,16 +136,23 @@ public class JsonMaskingConfig {
         return algorithmType;
     }
 
-    public int getMaskNumberValuesWith() {
-        return maskNumberValuesWith;
+    /**
+     * Which number to mask numeric JSON values with (e.g. with value 8, the JSON property 1234 will be masked as
+     * 8888).
+     *
+     * @return the number mask
+     */
+    public int getMaskNumericValuesWith() {
+        return maskNumericValuesWith;
     }
 
+    /**
+     * Tests if numeric JSON values are masked
+     *
+     * @return true if number masking is enabled and false otherwise.
+     */
     public boolean isNumberMaskingEnabled() {
-        return maskNumberValuesWith != -1;
-    }
-
-    public boolean isNumberMaskingDisabled() {
-        return maskNumberValuesWith == -1;
+        return maskNumericValuesWith != -1;
     }
 
     public TargetKeyMode getTargetKeyMode() {
@@ -150,18 +167,37 @@ public class JsonMaskingConfig {
         return targetJsonPaths;
     }
 
+    /**
+     * Get the obfuscation length configuration value.
+     *
+     * @return the length of the mask to use for all values to obfuscate the original value length, or -1 if length
+     * obfuscation is disabled.
+     */
     public int getObfuscationLength() {
         return obfuscationLength;
     }
 
-    public boolean isObfuscationEnabled() {
+    /**
+     * Tests if length obfuscation is enabled.
+     *
+     * @return true if length obfuscation is enabled and false otherwise
+     */
+    public boolean isLengthObfuscationEnabled() {
         return obfuscationLength != -1;
     }
 
+    /**
+     * Tests if target keys should be considered case-sensitive.
+     *
+     * @return true if target keys are considered case-sensitive and false otherwise.
+     */
     public boolean caseSensitiveTargetKeys() {
         return caseSensitiveTargetKeys;
     }
 
+    /**
+     * Builder to create {@link JsonMaskingConfig} instances using the builder pattern.
+     */
     public static class Builder {
         private final Set<String> targets;
         private final TargetKeyMode targetKeyMode;
@@ -186,19 +222,23 @@ public class JsonMaskingConfig {
         }
 
         /**
-         * Specifies the number with which numeric values should be replaced.
-         * -1 denotes number masking is disabled.
+         * Specifies the number with which numeric values should be replaced. -1 denotes number masking is disabled.
          * <p>
-         * Default value: -1
+         * Default value: -1 (numeric values are not masked)
+         *
+         * @param maskNumericValuesWith the number to mask numeric JSON properties with
+         * @return the builder instance
          */
-        public Builder maskNumberValuesWith(int maskNumberValuesWith) {
-            this.maskNumberValuesWith = maskNumberValuesWith;
+        public Builder maskNumericValuesWith(int maskNumericValuesWith) {
+            this.maskNumberValuesWith = maskNumericValuesWith;
             return this;
         }
 
         /**
          * Overrides the automatically chosen masking algorithm {@link JsonMaskerAlgorithmType#KEYS_CONTAIN}.
+         *
          * @param algorithmType the override algorithm which will be used
+         * @return the builder instance
          */
         public Builder algorithmTypeOverride(JsonMaskerAlgorithmType algorithmType) {
             this.algorithmTypeOverride = algorithmType;
@@ -206,49 +246,64 @@ public class JsonMaskingConfig {
         }
 
         /**
-         * @param obfuscationLength specifies the fixed length of the mask when target value lengths is obfuscated.
-         * E.g. masking any string value with obfuscation length 2 results in "**".
-         * <p>
-         * -1 means length obfuscation is disabled.
-         * <p>
-         * Default value: -1 (disabled).
+         * @param obfuscationLength specifies the fixed length of the mask when target value lengths is obfuscated. E.g.
+         *                          masking any string value with obfuscation length 2 results in "**".
+         *                          <p>
+         *                          Default value: -1 (length obfuscation disabled).
+         * @return the builder instance
          */
         public Builder obfuscationLength(int obfuscationLength) {
             this.obfuscationLength = obfuscationLength;
-            return self();
+            return this;
         }
 
         /**
          * Configures whether the target keys are considered case-sensitive (e.g. cvv != CVV)
          * <p>
          * Default value: false (target keys are considered case-insensitive)
+         *
+         * @return the builder instance
          */
         public Builder caseSensitiveTargetKeys() {
             this.caseSensitiveTargetKeys = true;
-            return self();
+            return this;
         }
 
         /**
          * Disables that target keys starting with a '$' are interpreted as JSON paths
          * <p>
          * Default value: true (JSON path resolving is enabled)
+         *
+         * @return the builder instance
          */
         public Builder disableJsonPathResolving() {
             this.resolveJsonPaths = false;
             return this;
         }
 
+        /**
+         * Creates a new {@link JsonMaskingConfig} instance.
+         *
+         * @return the new instance
+         */
         public JsonMaskingConfig build() {
             return new JsonMaskingConfig(this);
         }
-
-        protected Builder self() {
-            return this;
-        }
     }
 
+    /**
+     * Defines how target keys should be interpreted.
+     */
     public enum TargetKeyMode {
+        /**
+         * In this mode, target keys are interpreted as the only JSON keys for which the corresponding property is
+         * allowed (should not be masked).
+         */
         ALLOW,
-        MASK;
+        /**
+         * In the mode, target keys are interpreted as the only JSON keys for which the corresponding property should be
+         * masked.
+         */
+        MASK
     }
 }

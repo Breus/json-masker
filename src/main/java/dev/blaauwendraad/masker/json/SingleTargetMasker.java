@@ -1,21 +1,34 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.AsciiCharacter;
-import dev.blaauwendraad.masker.Utf8Util;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.util.AsciiCharacter;
+import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
+import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
+import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static dev.blaauwendraad.masker.AsciiCharacter.isDoubleQuote;
-import static dev.blaauwendraad.masker.AsciiCharacter.isEscapeCharacter;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
 
+/**
+ * {@link JsonMasker} that is optimized to mask a JSON property corresponding to a single target key.
+ * <p>
+ * Only supports {@link JsonMaskingConfig.TargetKeyMode#MASK} and does not support
+ * {@link JsonMaskingConfig.TargetKeyMode#ALLOW}.
+ */
 public class SingleTargetMasker implements JsonMasker {
     private final Set<String> quotedTargetKeys;
     private final JsonMaskingConfig maskingConfig;
 
+    /**
+     * Create a new {@link SingleTargetMasker} instance.
+     *
+     * @param maskingConfig the masking configurations for the created masker
+     */
     public SingleTargetMasker(JsonMaskingConfig maskingConfig) {
         this.quotedTargetKeys = new HashSet<>();
         maskingConfig.getTargetKeys().forEach(t -> quotedTargetKeys.add('"' + t + '"'));
@@ -47,9 +60,8 @@ public class SingleTargetMasker implements JsonMasker {
     }
 
     /**
-     * Masks the String values in the given input for all values corresponding to the provided target key.
-     * This implementation is optimized for a single target key.
-     * Currently, only supports UTF_8/US_ASCII
+     * Masks the String values in the given input for all values corresponding to the provided target key. This
+     * implementation is optimized for a single target key. Currently, only supports UTF_8/US_ASCII
      *
      * @param input     the UTF-8 encoded input bytes for which values of the target key are masked
      * @param targetKey the JSON key for which the String values are masked
@@ -72,8 +84,8 @@ public class SingleTargetMasker implements JsonMasker {
                 inputSliceBytes = Arrays.copyOfRange(outputBytes, j, outputBytes.length);
             }
             if (!maskingConfig.caseSensitiveTargetKeys()) {
-                inputSliceBytes = new String(inputSliceBytes, StandardCharsets.UTF_8).toLowerCase().getBytes(
-                        StandardCharsets.UTF_8);
+                inputSliceBytes = new String(inputSliceBytes, StandardCharsets.UTF_8).toLowerCase()
+                        .getBytes(StandardCharsets.UTF_8);
             }
             int startIndexOfTargetKey = indexOf(inputSliceBytes, targetKey.getBytes(StandardCharsets.UTF_8));
             if (startIndexOfTargetKey == -1) {
@@ -103,12 +115,12 @@ public class SingleTargetMasker implements JsonMasker {
                 if (maskingConfig.isNumberMaskingEnabled() && AsciiJsonUtil.isFirstNumberChar(inputSliceBytes[i])) {
                     int targetValueLength = 0;
                     while (AsciiJsonUtil.isNumericCharacter(inputSliceBytes[i])) {
-                        outputBytes[i + j] = AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith());
+                        outputBytes[i + j] = AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith());
                         targetValueLength++;
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
-                    if (maskingConfig.isObfuscationEnabled() && obfuscationLength != targetValueLength) {
+                    if (maskingConfig.isLengthObfuscationEnabled() && obfuscationLength != targetValueLength) {
                         if (obfuscationLength == 0) {
                             /* For obfuscation length 0, we want to obfuscate numeric values with a single 0 because
                              * an empty numeric value is illegal JSON.
@@ -118,7 +130,7 @@ public class SingleTargetMasker implements JsonMasker {
                                     i,
                                     1,
                                     targetValueLength,
-                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
                             );
                             i = i - (targetValueLength - 1);
                         } else {
@@ -127,7 +139,7 @@ public class SingleTargetMasker implements JsonMasker {
                                     i,
                                     obfuscationLength,
                                     targetValueLength,
-                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumberValuesWith())
+                                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
                             );
                             i = i - (targetValueLength - obfuscationLength);
                         }
@@ -173,7 +185,7 @@ public class SingleTargetMasker implements JsonMasker {
                         i++;
                     }
                     int obfuscationLength = maskingConfig.getObfuscationLength();
-                    if (maskingConfig.isObfuscationEnabled()
+                    if (maskingConfig.isLengthObfuscationEnabled()
                             && obfuscationLength != targetValueLength - obfuscationLength) {
                         outputBytes = FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
                                 outputBytes,

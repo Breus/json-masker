@@ -24,7 +24,7 @@ repositories {
 }
 
 ext {
-    jUnitVersion = '5.10.0'
+    jUnitVersion = '5.10.1'
 }
 
 dependencies {

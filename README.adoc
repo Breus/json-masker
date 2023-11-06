@@ -1,4 +1,5 @@
 image:https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml[GitHub Workflow Status (with event)]
+image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven Central]
 
 = High-performance JSON masker
 

@@ -1,11 +1,13 @@
+image:https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml[GitHub Workflow Status (with event)]
+
 = High-performance JSON masker
+
 :toc:
 
 == Introduction
 
-JSON masker can be used to mask string and/or numeric values from JSON messages, corresponding to a (set of) target
-key(s). Alternatively, it can be used to mask all string and/or numeric values from a JSON message except the ones
-corresponding to the target keys .
+JSON masker can be used to mask string and/or numeric values from JSON messages, corresponding to a (set of) target key(s).
+Alternatively, it can be used to mask all string and/or numeric values from a JSON message except the ones corresponding to the target keys .
 
 The implementation is focused on maximum (time) performance using Java and requires no additional runtime dependencies.
 

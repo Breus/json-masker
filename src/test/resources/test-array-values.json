@@ -1,0 +1,25 @@
+[
+  {
+    "maskerConfig": {
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": {
+        "maskMe": [
+          "yes",
+          "no"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "maskMe": [
+          "***",
+          "**"
+        ]
+      }
+    }
+  }
+]

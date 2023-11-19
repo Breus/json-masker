@@ -17,7 +17,6 @@ package dev.blaauwendraad.masker.json.config;
  * Default value: KEYS_CONTAIN
  */
 public enum JsonMaskerAlgorithmType {
-    PATH_AWARE_KEYS_CONTAIN,
     SINGLE_TARGET_LOOP,
     KEYS_CONTAIN,
 }

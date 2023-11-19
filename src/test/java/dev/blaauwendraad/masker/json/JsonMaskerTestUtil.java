@@ -105,13 +105,6 @@ public final class JsonMaskerTestUtil {
                         new SingleTargetMasker(maskingConfig)
                 ));
             }
-//            if (algorithmTypes.contains(JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN)) {
-//                testInstances.add(new JsonMaskerTestInstance(
-//                        input,
-//                        expectedOutput,
-//                        new PathAwareKeyContainsMasker(maskingConfig)
-//                ));
-//            }
         }
         return testInstances;
     }

@@ -1,7 +1,5 @@
 package dev.blaauwendraad.masker.json.config;
 
-import dev.blaauwendraad.masker.json.path.JsonPath;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,10 +16,6 @@ public class JsonMaskingConfig {
      * The target key mode specifies how to the JSON properties corresponding to the target keys are processed.
      */
     private final TargetKeyMode targetKeyMode;
-    /**
-     * Specifies the set of JSON paths for which the string/number values should be masked.
-     */
-    private final Set<JsonPath> targetJsonPaths;
     /**
      * Specifies the algorithm type that will be used for masking.
      */
@@ -44,15 +38,8 @@ public class JsonMaskingConfig {
      * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder. The logic
      * for this is as follows:
      * <p>
-     * If an algorithm type override is set, this will always be the algorithm used. If this algorithm is
-     * JSONPath-aware, the target keys that start with "$." will be interpreted as JSONPaths. If the algorithm is not
-     * JSONPath-aware, all targets will be interpreted as regular targets (even if they start with "$."), in which case
-     * this prefix will just be interpreted as part of the target key.
+     * If an algorithm type override is set, this will always be the algorithm used.
      * <p>
-     * If no algorithm type override is set, the algorithm is selected as following: If the target set contains Strings
-     * starting with "$.", these will be interpreted as JSONPaths, and the JSONPath-aware algorithm is used. If the
-     * target set does not contain JSONPaths, the {@link JsonMaskerAlgorithmType#KEYS_CONTAIN} will be chosen if the
-     * target set contains more than one target key or {@link JsonMaskerAlgorithmType#SINGLE_TARGET_LOOP}.
      *
      * @param builder the builder object
      */
@@ -87,34 +74,17 @@ public class JsonMaskingConfig {
             targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
         }
 
-        Set<String> jsonPathLiterals = targets.stream()
-                .filter(t -> t.startsWith("$."))
-                .collect(Collectors.toSet());
         if (builder.algorithmTypeOverride != null) {
             algorithmType = builder.algorithmTypeOverride;
-        } else if (!jsonPathLiterals.isEmpty() && builder.resolveJsonPaths) {
-            algorithmType = JsonMaskerAlgorithmType.PATH_AWARE_KEYS_CONTAIN;
         } else if (targets.size() > 1) {
             algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         } else {
             algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
         }
         switch (algorithmType) {
-            case PATH_AWARE_KEYS_CONTAIN -> {
-                targetJsonPaths = resolveJsonPaths(jsonPathLiterals);
-                targets.removeIf(jsonPathLiterals::contains);
-                targetKeys = targets;
-            }
-            case KEYS_CONTAIN, SINGLE_TARGET_LOOP -> {
-                targetJsonPaths = Set.of();
-                targetKeys = targets;
-            }
+            case KEYS_CONTAIN, SINGLE_TARGET_LOOP -> targetKeys = targets;
             default -> throw new IllegalStateException("Unknown JSON masking algorithm");
         }
-    }
-
-    private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
-        return targets.stream().map(JsonPath::from).collect(Collectors.toSet());
     }
 
     public static JsonMaskingConfig getDefault(Set<String> targets) {
@@ -163,10 +133,6 @@ public class JsonMaskingConfig {
         return targetKeys;
     }
 
-    public Set<JsonPath> getTargetJsonPaths() {
-        return targetJsonPaths;
-    }
-
     /**
      * Get the obfuscation length configuration value.
      *
@@ -202,7 +168,6 @@ public class JsonMaskingConfig {
         private final Set<String> targets;
         private final TargetKeyMode targetKeyMode;
         private int maskNumberValuesWith;
-        private boolean resolveJsonPaths;
         private JsonMaskerAlgorithmType algorithmTypeOverride;
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
@@ -213,8 +178,6 @@ public class JsonMaskingConfig {
             this.targetKeyMode = targetKeyMode;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
-            // by default, JSON paths are resolved, every target starting with "$." is interpreted as a JSONPath
-            this.resolveJsonPaths = true;
             // by default, length obfuscation is disabled
             this.obfuscationLength = -1;
             // by default, target keys are considered case-insensitive
@@ -266,18 +229,6 @@ public class JsonMaskingConfig {
          */
         public Builder caseSensitiveTargetKeys() {
             this.caseSensitiveTargetKeys = true;
-            return this;
-        }
-
-        /**
-         * Disables that target keys starting with a '$' are interpreted as JSON paths
-         * <p>
-         * Default value: true (JSON path resolving is enabled)
-         *
-         * @return the builder instance
-         */
-        public Builder disableJsonPathResolving() {
-            this.resolveJsonPaths = false;
             return this;
         }
 

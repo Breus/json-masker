@@ -46,7 +46,7 @@ public interface JsonMasker {
         } else if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
             return new KeyContainsMasker(maskingConfig);
         } else {
-            return new PathAwareKeyContainsMasker(maskingConfig);
+            throw new IllegalArgumentException("Unknown masking algorithm type: " + maskingConfig.getAlgorithmType());
         }
     }
 

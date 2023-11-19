@@ -149,3 +149,23 @@ This library uses a dedicated multi-target algorithm by looking for a JSON key a
 The time complexity of this algorithm scales only linear in the message input length.
 Additionally, the target key set size has negligible impact on the performance.
 
+
+
+== Benchmarks
+
+[source]
+----
+Benchmark                           (jsonSize)  (numberOfKeys)   Mode        Score  Units
+BaselineBenchmark.noop                     4kb             100  thrpt  1567094.010  ops/s
+BaselineBenchmark.jackson                  4kb             100  thrpt    75569.597  ops/s
+JsonMaskerBenchmark.maskJsonBytes          4kb             100  thrpt   405496.513  ops/s
+JsonMaskerBenchmark.maskJsonString         4kb             100  thrpt   346559.740  ops/s
+
+BaselineBenchmark.noop                     2mb             100  thrpt     2263.683  ops/s
+BaselineBenchmark.jackson                  2mb             100  thrpt        7.923  ops/s
+JsonMaskerBenchmark.maskJsonBytes          2mb             100  thrpt     2493.899  ops/s
+JsonMaskerBenchmark.maskJsonString         2mb             100  thrpt     1312.198  ops/s
+----
+
+For full benchmark results see xref:jmh/benchmark-history[jmh/benchmark-history]
+

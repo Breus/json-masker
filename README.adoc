@@ -6,7 +6,8 @@ image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven
 JSON masker which can be used to mask strings and numbers from JSON messages, corresponding to a (set of) target key(s).
 Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the target keys.
 
-The implementation is focused on maximum (time) performance using Java and requires no additional third-party runtime dependencies.
+The library provides a convenient API and its implementation is focused on maximum (time) performance using Java.
+No additional third-party runtime dependencies are required for this library.
 
 == Features
 
@@ -144,7 +145,8 @@ String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
 
 == Performance considerations
 
-This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
+This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set
+contains this key in constant time.
 
 The time complexity of this algorithm scales only linear in the message input length.
 Additionally, the target key set size has negligible impact on the performance.

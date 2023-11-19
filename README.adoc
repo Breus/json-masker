@@ -3,174 +3,149 @@ image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven
 
 = High-performance JSON masker
 
-:toc:
+JSON masker which can be used to mask strings and numbers from JSON messages, corresponding to a (set of) target key(s).
+Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the target keys.
 
-== Introduction
-
-JSON masker can be used to mask string and/or numeric values from JSON messages, corresponding to a (set of) target key(s).
-Alternatively, it can be used to mask all string and/or numeric values from a JSON message except the ones corresponding to the target keys .
-
-The implementation is focused on maximum (time) performance using Java and requires no additional runtime dependencies.
-
-== Dependencies
-
-* This library has no external runtime dependencies
-* This library only has a single JSR-305 compilation dependency
-* The test/benchmark dependencies for this library are listed in the `build.gradle`
+The implementation is focused on maximum (time) performance using Java and requires no additional third-party runtime dependencies.
 
 == Features
 
-- Mask string values in any JSON structure corresponding to configured target key(s)
-- Mask numeric values in any JSON structure corresponding to configured target key(s)
-- Obfuscate the original length of the masked value by setting a fixed mask length
+- Mask strings in any JSON structure corresponding to configured target keys (default)
+- Mask numbers in any JSON structure corresponding to configured target keys (optional)
+- Obfuscate the original length of the masked value by using a fixed-length mask (optional)
 - Target key case sensitivity configuration (default: `false`)
-- JSON properties corresponding the target keys can be `masked` or `allowed` in which case those are the only properties not masked (default: `masked`)
-
-== Usage examples
-
-=== Single target key masking
-
-Simple example of JsonMasker usage masking a single target key (pinCode).
-
-==== Input
-
-[source,json]
-----
-{
-  "someKey": "someValue",
-  "some2ndKey": {
-    "pinCode": "1234",
-    "some3rdKey": "someOtherValue"
-  }
-}
-----
-
-==== Usage
-
-[source,java]
-----
-String output = JsonMasker.getMasker("pinCode").mask(input);
-----
-
-==== Output
-
-[source,json]
-----
-{
-  "someKey": "someValue",
-  "some2ndKey": {
-    "pinCode": "****",
-    "some3rdKey": "someOtherValue"
-  }
-}
-----
-
-=== Multiple target keys + length obfuscation masking
-
-Example showing a how to target multiple keys using the key-contains algorithm and obfuscate the original length of the masked values.
-
-==== Input
-
-[source,json]
-----
-{
-  "someKey": "someValue",
-  "some2ndKey": {
-    "pinCode": "1234",
-    "name": "Breus Blaauwendraad",
-    "address": "Some street 12",
-    "cardNumber": "1234 6789",
-    "clientNo": "987 765 432"
-  }
-}
-----
-
-==== Usage
-
-[source,java]
-----
-JsonMaskingConfig config = JsonMaskingConfig.custom(
-        Set.of("address", "cardNumber", "pinCode", "name"),
-        JsonMaskingConfig.TargetKeyMode.MASK
-).obfuscationLength(4).build();
-String output = JsonMasker.getMasker(config).mask(input);
-----
-
-==== Output
-
-[source,json]
-----
-{
-  "transactionId": "123 456 890",
-  "clientInformation": {
-    "pinCode": "****",
-    "name": "****",
-    "address": "****",
-    "cardNumber": "****",
-    "clientNo": "987 765 432"
-  }
-}
-
-----
-
-== JSON masking algorithms
-
-=== Single-target-loop
-
-Loops over the target key set and executes the single-target key masking algorithm for each key.
-
-The main reasons for the existence of this algorithm implementation is for maximum performance when the target key set contains exactly one key and to be able to do fuzzing testing to ensure the correctness of the JSON masker.
-
-Should only be used if the target key set contains exactly 1 target key for which the values should be masked.
-
-=== Key-contains (default)
-
-Uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
-
-The time complexity of this algorithm scales only linear in the message input length and not in the target key set size.
-
-=== Which algorithm should I use?
-
-For maximum performance one should use the single-target-loop algorithm while targeting a single key to mask and the (default) key-contains algorithm in any other case.
-By default, the masking algorithm is the key-contains algorithm as the small difference in the constant overhead while targeting a single key to mask was deemed less relevant than the impact of multiple target keys on the time complexity of the single-target-loop algorithm.
+- Block-list (`masked`) or allow-list (`allowed`) interpretation of target key set (default: `masked`)
+- The implementation only supports JSON in UTF-8 character encoding
 
 == Roadmap features
 
-- Additional support for target keys set interpreted as allow list instead of block list
+- Support for masking strings and numbers inside (nested) arrays
 - JSONPath support for target keys
 
-== Performance (benchmarks)
+== Usage examples
 
-=== Targeting multiple keys
+=== Default JSON masking
 
-Using JMH, we got the following results while comparing the key-contains algorithm, the single-target-loop algorithm and using Jackson to mask the values.
-This benchmark takes the file `large-input-benchmark.json` as input and targets a set of 100 keys.
+Example showing masking certain specific JSON properties containing personal identifiable information (PII) in the message.
 
-[source]
+==== Input
+
+[source,json]
 ----
-Benchmark                                                              Mode  Cnt       Score   Error  Units
-JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysLargeJson  avgt    4    2506,568 ±   187,050  ns/op
-JsonMaskMultipleTargetKeysBenchmark.keyContainsMaskMultiKeysSmallJson  avgt    4     158,005 ±    37,953  ns/op
-JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysLargeJson      avgt    4  260965,236 ±  2804,440  ns/op
-JsonMaskMultipleTargetKeysBenchmark.loopMaskMultipleKeysSmallJson      avgt    4   14707,132 ±   910,526  ns/op
-JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysLargeJson     avgt    4  143765,284 ± 10434,571  ns/op
-JsonMaskMultipleTargetKeysBenchmark.parseAndMaskMultiKeysSmallJson     avgt    4    3097,302 ±    19,985  ns/op
+{
+    "orderId": "789 123 456",
+    "customerDetails": {
+        "id": "123 789 456",
+        "email": "some-customer-email@example.com",
+        "iban": "NL91 FAKE 0417 1643 00"
+    }
+}
 ----
 
-=== Targeting a single key and obfuscation
+==== Usage
 
-[source]
+[source,java]
 ----
-Benchmark                                                                                   Mode  Cnt     Score   Error  Units
-JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectBytes                                   avgt       4127,513          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskLargeJsonObjectString                                  avgt       3904,211          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectBytes                                  avgt        217,186          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthEqualToTargetValue      avgt        220,453          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthLongerThanTargetValue   avgt        205,186          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectObfuscateLengthShorterThanTargetValue  avgt        186,976          ns/op
-JsonMaskSingleTargetKeyBenchmark.maskSimpleJsonObjectString                                 avgt        218,180          ns/op
-JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsBytes                         avgt       8034,178          ns/op
-JsonMaskSingleTargetKeyBenchmark.parseAndMaskLargeJsonObjectAsString                        avgt       8841,435          ns/op
-JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsByte                          avgt        173,872          ns/op
-JsonMaskSingleTargetKeyBenchmark.parseAndMaskSmallJsonObjectAsString                        avgt        208,936          ns/op
+String output = JsonMasker.getMasker(Set.of("email", "iban")).mask(input);
 ----
+
+==== Output
+
+[source,json]
+----
+{
+    "orderId": "789 123 456",
+    "customerDetails": {
+        "id": "123 789 456",
+        "email": "*******************************",
+        "iban": "**********************"
+    }
+}
+----
+
+=== Masking with length obfuscation
+
+Example showing masking where the original length of the masked value is obfuscated besides the value being masked.
+
+==== Input
+
+[source,json]
+----
+{
+    "sessionId": "123_456_789_098",
+    "clientPin": "234654"
+}
+----
+
+==== Usage
+
+[source,java]
+----
+String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
+        Set.of("clientPin"),
+        JsonMaskingConfig.TargetKeyMode.MASK
+).obfuscationLength(3).build()).mask(input);
+----
+
+==== Output
+
+[source,json]
+----
+{
+    "sessionId": "123_456_789_098",
+    "clientPin": "***"
+}
+
+----
+
+=== Allow-list approach and number masking
+
+Example showing an allow-list based approach of masking JSON where additionally all numbers are masked by replacing them with an '8'.
+
+==== Input
+
+[source,json]
+{
+    "customerId": "123 789 456",
+    "customerDetails": {
+        "firstName": "Breus",
+        "lastName": "Blaauwendraad",
+        "email": "some-fake-email@example.com",
+        "age": 37
+    }
+}
+
+==== Usage
+
+[source,java]
+String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
+        Set.of("customerId"),
+        JsonMaskingConfig.TargetKeyMode.ALLOW
+).maskNumberValuesWith(8).build()).mask(input);
+
+==== Output
+
+[source,json]
+{
+    "customerId": "123 789 456",
+    "customerDetails": {
+        "firstName": "*****",
+        "lastName": "**************",
+        "email": "***************************",
+        "age": 88
+    }
+}
+
+== Dependencies
+
+* **The library has no third-party runtime dependencies**
+* The library only has a single JSR-305 compilation dependency
+* The test/benchmark dependencies for this library are listed in the `build.gradle`
+
+== Performance considerations
+
+This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
+
+The time complexity of this algorithm scales only linear in the message input length.
+Additionally, the target key set size has negligible impact on the performance.
+

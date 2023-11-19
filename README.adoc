@@ -168,5 +168,5 @@ JsonMaskerBenchmark.maskJsonBytes          2mb             100  thrpt     2493.8
 JsonMaskerBenchmark.maskJsonString         2mb             100  thrpt     1312.198  ops/s
 ----
 
-For full benchmark results see <<jmh/benchmark-history,jmh/benchmark-history>>
+For full benchmark results see link:jmh/benchmark-history[jmh/benchmark-history]
 

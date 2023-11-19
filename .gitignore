@@ -1,6 +1,9 @@
 # IntelliJ settings
 .idea
 
+# MacOS file system
+.DS_Store
+
 # Build files
 **/build/
 !src/**/build/

@@ -58,6 +58,10 @@ public final class KeyContainsMasker implements JsonMasker {
             return input;
         }
         /*
+         * Keep track of target array depth to be able to mask values in arrays
+         *
+         */
+        /*
          * We can start the index at 1 since the first character can be skipped as it is either a '{' or '[', ensures
          * we can safely check for unescaped double quotes (without masking JSON string values).
          */
@@ -104,7 +108,8 @@ public final class KeyContainsMasker implements JsonMasker {
             while (AsciiJsonUtil.isWhiteSpace(input[i])) {
                 i++; // Step over all white characters after the colon,
             }
-            if (!isDoubleQuote(input[i])) {
+            // Only string and arrays values need to be masked, unless numeric masking is enabled.
+            if (!isDoubleQuote(input[i]) && !AsciiJsonUtil.isArrayStart(input[i])) {
                 if (!maskingConfig.isNumberMaskingEnabled()) {
                     // The JSON key found did not have a maskable value, continue looking from where we left of.
                     continue mainLoop;
@@ -137,7 +142,9 @@ public final class KeyContainsMasker implements JsonMasker {
              * Now let's mask the value.
              */
             int obfuscationLength = maskingConfig.getObfuscationLength();
-            if (maskingConfig.isNumberMaskingEnabled() && AsciiJsonUtil.isNumericCharacter(input[i])) {
+            if (maskingConfig.isArrayMaskingEnabled() && AsciiJsonUtil.isArrayStart(input[i])) {
+e
+            } else if (maskingConfig.isNumberMaskingEnabled() && AsciiJsonUtil.isNumericCharacter(input[i])) {
                 // This block deals with numeric values
                 int targetValueLength = 0;
                 while (AsciiJsonUtil.isNumericCharacter(input[i])) {
@@ -269,12 +276,14 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param input the input byte array
      * @return whether the byte at index i is an unescaped double quote
      */
-    private boolean isUnescapedDoubleQuote(int i, byte[] input) {
+    private static boolean isUnescapedDoubleQuote(int i, byte[] input) {
         return isDoubleQuote(input[i]) && !isEscapeCharacter(input[i - 1]);
     }
 
-    private boolean isObjectOrArray(byte[] input) {
+    private static boolean isObjectOrArray(byte[] input) {
         return AsciiCharacter.CURLY_BRACKET_OPEN.getAsciiByteValue() == input[0]
                 || AsciiCharacter.SQUARE_BRACKET_OPEN.getAsciiByteValue() == input[0];
     }
+
+    private static
 }

@@ -67,7 +67,12 @@
     "maskerConfig": {
       "targetKeyMode": "allow"
     },
-    "targetKeys": ["jsonKey", "someOtherKey", "alrightLastOne", "oneMoreKey"],
+    "targetKeys": [
+      "jsonKey",
+      "someOtherKey",
+      "alrightLastOne",
+      "oneMoreKey"
+    ],
     "input": {
       "someKey": {
         "jsonKey": "value",
@@ -75,7 +80,8 @@
           "someOtherKey": "yes!",
           "yetAnotherOne": {
             "alrightLastOne": "no"
-          }
+          },
+          "emptyArray": []
         },
         "oneMoreKey": "someValue"
       }
@@ -87,7 +93,8 @@
           "someOtherKey": "yes!",
           "yetAnotherOne": {
             "alrightLastOne": "no"
-          }
+          },
+          "emptyArray": []
         },
         "oneMoreKey": "someValue"
       }

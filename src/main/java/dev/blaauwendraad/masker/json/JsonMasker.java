@@ -41,9 +41,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(JsonMaskingConfig maskingConfig) {
-        if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP) {
-            return new SingleTargetMasker(maskingConfig);
-        } else if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
+        if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
             return new KeyContainsMasker(maskingConfig);
         } else {
             throw new IllegalArgumentException("Unknown masking algorithm type: " + maskingConfig.getAlgorithmType());

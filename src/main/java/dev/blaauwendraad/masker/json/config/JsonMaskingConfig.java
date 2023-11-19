@@ -76,13 +76,11 @@ public class JsonMaskingConfig {
 
         if (builder.algorithmTypeOverride != null) {
             algorithmType = builder.algorithmTypeOverride;
-        } else if (targets.size() > 1) {
-            algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         } else {
-            algorithmType = JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP;
+            algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         }
         switch (algorithmType) {
-            case KEYS_CONTAIN, SINGLE_TARGET_LOOP -> targetKeys = targets;
+            case KEYS_CONTAIN -> targetKeys = targets;
             default -> throw new IllegalStateException("Unknown JSON masking algorithm");
         }
     }

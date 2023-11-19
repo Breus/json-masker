@@ -98,13 +98,6 @@ public final class JsonMaskerTestUtil {
                         new KeyContainsMasker(maskingConfig)
                 ));
             }
-            if (algorithmTypes.contains(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP)) {
-                testInstances.add(new JsonMaskerTestInstance(
-                        input,
-                        expectedOutput,
-                        new SingleTargetMasker(maskingConfig)
-                ));
-            }
         }
         return testInstances;
     }

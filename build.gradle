@@ -27,8 +27,16 @@ ext {
     jUnitVersion = '5.10.1'
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+    registerFeature('nullabilityAnnotations') {
+        usingSourceSet(sourceSets.main)
+    }
+}
+
 dependencies {
-    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    nullabilityAnnotationsImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 
     testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
@@ -38,11 +46,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
 }
 
 publishing {

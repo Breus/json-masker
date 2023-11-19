@@ -1,6 +1,10 @@
 package dev.blaauwendraad.masker.json.config;
 
+import dev.blaauwendraad.masker.json.path.JsonPath;
+
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Contains the JSON masker configurations.
@@ -15,6 +19,10 @@ public class JsonMaskingConfig {
      * The target key mode specifies how to the JSON properties corresponding to the target keys are processed.
      */
     private final TargetKeyMode targetKeyMode;
+    /**
+     * Specifies the set of JSON paths for which the string/number values should be masked.
+     */
+    private final Set<JsonPath> targetJsonPaths;
     /**
      * Specifies the algorithm type that will be used for masking.
      */
@@ -34,11 +42,11 @@ public class JsonMaskingConfig {
     private final boolean caseSensitiveTargetKeys;
 
     JsonMaskingConfig(Builder builder) {
+        Set<String> targets = builder.targets;
         algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         obfuscationLength = builder.obfuscationLength;
         targetKeyMode = builder.targetKeyMode;
-        targetKeys = builder.targets;
-        if (targetKeyMode == TargetKeyMode.MASK && targetKeys.isEmpty()) {
+        if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
             throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
         }
         caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
@@ -60,6 +68,21 @@ public class JsonMaskingConfig {
             throw new IllegalArgumentException(
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
+
+        Set<String> jsonPathLiterals = targets.stream()
+                .filter(t -> t.startsWith("$."))
+                .collect(Collectors.toSet());
+        if (!jsonPathLiterals.isEmpty() && builder.resolveJsonPaths) {
+            targetJsonPaths = resolveJsonPaths(jsonPathLiterals);
+            targets.removeIf(jsonPathLiterals::contains);
+        } else {
+            targetJsonPaths = Collections.emptySet();
+        }
+        targetKeys = targets;
+    }
+
+    private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
+        return targets.stream().map(JsonPath::from).collect(Collectors.toSet());
     }
 
     public static JsonMaskingConfig getDefault(Set<String> targets) {
@@ -108,6 +131,10 @@ public class JsonMaskingConfig {
         return targetKeys;
     }
 
+    public Set<JsonPath> getTargetJsonPaths() {
+        return targetJsonPaths;
+    }
+
     /**
      * Get the obfuscation length configuration value.
      *
@@ -143,8 +170,8 @@ public class JsonMaskingConfig {
         private final Set<String> targets;
         private final TargetKeyMode targetKeyMode;
         private int maskNumberValuesWith;
-
-        private JsonMaskerAlgorithmType algorithmTypeOverride;
+        private boolean resolveJsonPaths;
+        
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
 
@@ -154,6 +181,8 @@ public class JsonMaskingConfig {
             this.targetKeyMode = targetKeyMode;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
+            // by default, JSON paths are resolved, every target starting with "$." is interpreted as a JSONPath
+            this.resolveJsonPaths = true;
             // by default, length obfuscation is disabled
             this.obfuscationLength = -1;
             // by default, target keys are considered case-insensitive
@@ -201,6 +230,18 @@ public class JsonMaskingConfig {
          */
         public Builder caseSensitiveTargetKeys() {
             this.caseSensitiveTargetKeys = true;
+            return this;
+        }
+
+        /**
+         * Disables that target keys starting with a '$' are interpreted as JSON paths
+         * <p>
+         * Default value: true (JSON path resolving is enabled)
+         *
+         * @return the builder instance
+         */
+        public Builder disableJsonPathResolving() {
+            this.resolveJsonPaths = false;
             return this;
         }
 

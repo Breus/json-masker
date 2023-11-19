@@ -35,17 +35,8 @@ class JsonMaskingConfigTest {
     private static Stream<Arguments> buildersWithAlgorithmType() {
         return Stream.of(
                 Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("oneKey"), JsonMaskingConfig.TargetKeyMode.MASK),
-                        JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP
-                ),
-                Arguments.of(
                         JsonMaskingConfig.custom(Set.of("oneKey", "secondKey"), JsonMaskingConfig.TargetKeyMode.MASK),
                         JsonMaskerAlgorithmType.KEYS_CONTAIN
-                ),
-                Arguments.of(
-                        JsonMaskingConfig.custom(Set.of("$.path", "otherKey"), JsonMaskingConfig.TargetKeyMode.MASK)
-                                .algorithmTypeOverride(JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP),
-                        JsonMaskerAlgorithmType.SINGLE_TARGET_LOOP
                 ),
                 Arguments.of(
                         JsonMaskingConfig.custom(Set.of("$.path", "otherKey"), JsonMaskingConfig.TargetKeyMode.MASK)

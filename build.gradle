@@ -39,7 +39,7 @@ java {
 dependencies {
     nullabilityAnnotationsImplementation 'com.google.code.findbugs:jsr305:3.0.2'
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"

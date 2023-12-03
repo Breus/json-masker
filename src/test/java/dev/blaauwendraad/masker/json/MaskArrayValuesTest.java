@@ -17,7 +17,7 @@ final class MaskArrayValuesTest {
     }
 
     private static Stream<JsonMaskerTestInstance> arrayValuesFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-array-values.json", Set.of(
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-masking-array-values.json", Set.of(
                 JsonMaskerAlgorithmType.values())).stream();
     }
 }

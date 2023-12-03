@@ -1,10 +1,28 @@
 [
   {
     "maskerConfig": {
+      "maskNumberValuesWith": 1
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": 2
+    },
+    "expectedOutput": {
+      "maskMe": 1
+    }
+  },
+  {
+    "maskerConfig": {
       "obfuscationLength": 4,
       "maskNumberValuesWith": 1
     },
-    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey4"
+    ],
     "input": {
       "someKey": "o",
       "someKey2": 123456
@@ -19,7 +37,11 @@
       "obfuscationLength": 4,
       "maskNumberValuesWith": 8
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": 0.12e+1,
@@ -36,7 +58,11 @@
       "obfuscationLength": 4,
       "maskNumberValuesWith": 9
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-1,
@@ -52,7 +78,11 @@
     "maskerConfig": {
       "maskNumberValuesWith": 9
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-11,
@@ -68,7 +98,11 @@
     "maskerConfig": {
       "maskNumberValuesWith": 9
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": 123,
@@ -85,7 +119,11 @@
       "obfuscationLength": 0,
       "maskNumberValuesWith": 0
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-1,
@@ -102,7 +140,11 @@
       "obfuscationLength": 1,
       "maskNumberValuesWith": 0
     },
-    "targetKeys": ["someKey", "someKey2", "someKey3"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3"
+    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-1,

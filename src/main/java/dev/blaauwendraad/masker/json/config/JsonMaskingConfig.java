@@ -26,6 +26,10 @@ public class JsonMaskingConfig {
      */
     private final int maskNumericValuesWith;
     /**
+     * @see JsonMaskingConfig.Builder#maskObjectValues
+     */
+    private final boolean maskObjectValues;
+    /**
      * @see JsonMaskingConfig.Builder#maskArrayValues
      */
     private final boolean maskArrayValues;
@@ -52,6 +56,7 @@ public class JsonMaskingConfig {
         targetKeyMode = builder.targetKeyMode;
         obfuscationLength = builder.obfuscationLength;
         maskArrayValues = builder.maskArrayValues;
+        maskObjectValues = builder.maskObjectValues;
         if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
                 || builder.maskNumberValuesWith == -1)) {
             throw new IllegalArgumentException(
@@ -129,6 +134,13 @@ public class JsonMaskingConfig {
     }
 
     /**
+     * Tests if object values masking is enabled
+     */
+    public boolean isObjectValuesMaskingEnabled() {
+        return maskObjectValues;
+    }
+
+    /**
      * Tests if array values masking is enabled
      *
      * @return true if array value masking is enabled and false otherwise.
@@ -182,6 +194,8 @@ public class JsonMaskingConfig {
         private int maskNumberValuesWith;
 
         private boolean maskArrayValues;
+
+        private boolean maskObjectValues;
         private JsonMaskerAlgorithmType algorithmTypeOverride;
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
@@ -192,8 +206,10 @@ public class JsonMaskingConfig {
             this.targetKeyMode = targetKeyMode;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
-            // by default, array values masking is enabled
+            // by default, array value masking is enabled
             this.maskArrayValues = true;
+            // by default, object value masking is enabled
+            this.maskObjectValues = true;
             // by default, length obfuscation is disabled
             this.obfuscationLength = -1;
             // by default, target keys are considered case-insensitive
@@ -245,6 +261,26 @@ public class JsonMaskingConfig {
          */
         public Builder caseSensitiveTargetKeys() {
             this.caseSensitiveTargetKeys = true;
+            return this;
+        }
+
+        /**
+         * Disable array value masking, which is enabled by default
+         * <p>
+         * Default value: array value masking is enabled by default
+         */
+        public Builder disableArrayValueMasking() {
+            this.maskArrayValues = false;
+            return this;
+        }
+
+        /**
+         * Disable object value masking, which is enabled by default
+         * <p>
+         * Default value: object value masking is enabled by default
+         */
+        public Builder disableObjectValueMasking() {
+            this.maskObjectValues = false;
             return this;
         }
 

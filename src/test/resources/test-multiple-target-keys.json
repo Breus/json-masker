@@ -6,10 +6,12 @@
     ],
     "input": {
       "someKey": "hello",
+      "otherKey": null,
       "someKey2": "hi"
     },
     "expectedOutput": {
       "someKey": "*****",
+      "otherKey": null,
       "someKey2": "**"
     }
   },
@@ -50,6 +52,7 @@
       "someKey": "hello",
       "someKey2": "hi",
       "someKey2": 2123,
+      "otherKey": null,
       "someKey3": "hey",
       "someKey4": [
         {
@@ -61,6 +64,7 @@
       "someKey": "*****",
       "someKey2": "**",
       "someKey2": 2123,
+      "otherKey": null,
       "someKey3": "hey",
       "someKey4": [
         {

@@ -1,24 +1,64 @@
 [
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "targetKey1",
+      "targetKey2"
+    ],
     "input": {
-      "someKey": "\u2020"
+      "targetKey2": {
+        "targetKey3": {}
+      },
+      "khb\u0007 ": true,
+      "\u001C\u000F": true,
+      "=E\u0018Xi=": {
+        ":": "\u000F\u0017\u0017\u000Bs\b\u0014X",
+        "targetKey2": [],
+        "targetKey4": "kA=Đ-"
+      }
     },
     "expectedOutput": {
-      "someKey": "*"
+      "targetKey2": {
+        "targetKey3": {}
+      },
+      "khb\u0007 ": true,
+      "\u001C\u000F": true,
+      "=E\u0018Xi=": {
+        ":": "\u000F\u0017\u0017\u000Bs\b\u0014X",
+        "targetKey2": [],
+        "targetKey4": "kA=Đ-"
+      }
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
-      "someKey": "a\u2020b"
+      "someKey": "\u2020",
+      "otherKey": null
     },
     "expectedOutput": {
-      "someKey": "***"
+      "someKey": "*",
+      "otherKey": null
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
+    "input": {
+      "someKey": "a\u2020b",
+      "otherKey": null
+    },
+    "expectedOutput": {
+      "someKey": "***",
+      "otherKey": null
+    }
+  },
+  {
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": "a\\\u2020b"
     },
@@ -27,24 +67,30 @@
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": [
         {
-          "someKey": "\u0003\u0015"
+          "someKey": "\u0003\u0015",
+          "otherKey": null
         }
       ]
     },
     "expectedOutput": {
       "someKey": [
         {
-          "someKey": "**"
+          "someKey": "**",
+          "otherKey": null
         }
       ]
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": "\u0014"
     },
@@ -53,7 +99,9 @@
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": "\u0014\u0085"
     },
@@ -62,7 +110,9 @@
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": "\u0085"
     },

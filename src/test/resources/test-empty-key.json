@@ -1,7 +1,8 @@
 [
   {
     "targetKeys": [
-      "someKey", ""
+      "someKey",
+      ""
     ],
     "input": {
       "w&EK": [
@@ -16,7 +17,8 @@
               "wTMS_dT": "c",
               "$+feSlg!E": "yUInkY=",
               "\"L": "Mw;GdNc"
-            }
+            },
+            "": ""
           }
         }
       ]
@@ -34,7 +36,8 @@
               "wTMS_dT": "c",
               "$+feSlg!E": "yUInkY=",
               "\"L": "Mw;GdNc"
-            }
+            },
+            "": ""
           }
         }
       ]

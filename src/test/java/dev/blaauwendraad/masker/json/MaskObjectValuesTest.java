@@ -9,15 +9,15 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-final class SingleTargetKeyTest {
+public class MaskObjectValuesTest {
     @ParameterizedTest
-    @MethodSource("singleTargetKeyFile")
-    void singleTargetKey(JsonMaskerTestInstance testInstance) {
+    @MethodSource("nestedObjectFile")
+    void multiTargetKey(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), testInstance.jsonMasker().mask(testInstance.input()));
     }
 
-    private static Stream<JsonMaskerTestInstance> singleTargetKeyFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-single-target-key.json", Set.of(
+    private static Stream<JsonMaskerTestInstance> nestedObjectFile() throws IOException {
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-masking-object-values.json", Set.of(
                 JsonMaskerAlgorithmType.values())).stream();
     }
 }

@@ -26,6 +26,7 @@ repositories {
 
 ext {
     jUnitVersion = '5.10.1'
+    jmhVersion = '1.37'
 }
 
 java {
@@ -37,12 +38,16 @@ java {
 }
 
 dependencies {
-    nullabilityAnnotationsImplementation 'com.google.code.findbugs:jsr305:3.0.2'
+    nullabilityAnnotationsImplementation "com.google.code.findbugs:jsr305:3.0.2"
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:2.16.0"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${jUnitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jUnitVersion}"
+
+    jmh "org.openjdk.jmh:jmh-core:${jmhVersion}"
+    jmh "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
+    jmhAnnotationProcessor "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
 }
 
 test {

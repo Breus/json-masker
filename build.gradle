@@ -16,7 +16,7 @@ java {
     }
 }
 
-description = 'High-performance JSON masker'
+description = 'High-performance JSON masker in Java with no runtime dependencies'
 
 group = 'dev.blaauwendraad'
 

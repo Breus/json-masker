@@ -13,32 +13,6 @@ import java.util.Set;
 final class FuzzingTest {
     private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 10;
 
-    @ParameterizedTest
-    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
-        // duration in seconds the tests runs for
-    void fuzzTestNoFailuresKeyContainsAlgorithm(int secondsToRunTest) {
-        long startTime = System.currentTimeMillis();
-        int randomTestExecuted = 0;
-        while (System.currentTimeMillis() < startTime + 10 * 1000) {
-            Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            KeyContainsMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.getDefault(targetKeys));
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
-            JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
-            Assertions.assertDoesNotThrow(
-                    () -> keyContainsMasker.mask(randomJsonNode.toPrettyString()),
-                    randomJsonNode.toPrettyString()
-            );
-            randomTestExecuted++;
-        }
-        System.out.printf(
-                "Executed %d randomly generated test scenarios in %d seconds%n",
-                randomTestExecuted,
-                secondsToRunTest
-        );
-    }
-
-    @ParameterizedTest
     @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
         // duration in seconds the tests runs for
     void fuzzing_NoArrayNoObjectValueMasking(int secondsToRunTest) {

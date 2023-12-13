@@ -123,7 +123,7 @@ public final class KeyContainsMasker implements JsonMasker {
             }
             boolean keyMatched = targetKeys.contains(key);
             if (allowMode && keyMatched) {
-                skipValue(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
+                skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
                 continue;
             }
             if (!allowMode && !keyMatched) {
@@ -187,8 +187,7 @@ public final class KeyContainsMasker implements JsonMasker {
                 (maskingConfig.isArrayMaskingEnabled() && AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndex()))
                 || (maskingConfig.isNumberMaskingEnabled()
                 && AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())) || (
-                maskingConfig.isObjectValuesMaskingEnabled()
-                        && AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex()));
+                AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex()));
     }
 
     /**
@@ -299,12 +298,11 @@ public final class KeyContainsMasker implements JsonMasker {
             } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
                     && maskingConfig.isNumberMaskingEnabled()) {
                 maskNumberValueInPlace(maskingState, maskingConfig);
-            } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())
-                    && maskingConfig.isObjectValuesMaskingEnabled()) {
+            } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
                 maskObjectValueInPlace(maskingState, maskingConfig);
             } else {
                 // non-maskable values
-                skipValue(maskingState);
+                skipAllValues(maskingState);
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {
@@ -315,6 +313,7 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
+     * Masks all values (depending on the {@link JsonMaskingConfig} in the object.
      * @param maskingState  the current masking state
      * @param maskingConfig the masking configuration
      */
@@ -361,8 +360,7 @@ public final class KeyContainsMasker implements JsonMasker {
                 } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
                         && maskingConfig.isNumberMaskingEnabled()) {
                     maskNumberValueInPlace(maskingState, maskingConfig);
-                } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())
-                        && maskingConfig.isObjectValuesMaskingEnabled()) {
+                } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
                     maskObjectValueInPlace(maskingState, maskingConfig);
                 } else {
                     while (!AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())
@@ -372,7 +370,7 @@ public final class KeyContainsMasker implements JsonMasker {
                     }
                 }
             } else {
-                skipValue(maskingState);
+                skipAllValues(maskingState);
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {
@@ -438,7 +436,7 @@ public final class KeyContainsMasker implements JsonMasker {
      * Note: in case the value is an object or array, it skips the entire object and array and all the included elements
      * in it (e.g. nested arrays, objects, etc.)
      */
-    private static void skipValue(MaskingState maskingState) {
+    private static void skipAllValues(MaskingState maskingState) {
         if (AsciiCharacter.isLowercaseN(maskingState.byteAtCurrentIndex())
                 || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex())) { // null and true
             maskingState.setCurrentIndex(maskingState.currentIndex() + 4);

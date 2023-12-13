@@ -18,8 +18,8 @@ Supporting arrays of mixed types (number + strings + arrays + objects) possesses
 challenge: Up to now, the json-masker did not have to keep track of current nesting level. I.e.: it did not matter where
 we found `"maskMe": "a"`, since all such instances are masked.
 
-To bring support for masking of strings and numbers inside arrays, we will have to know exactly which field is being
-processed right now, to correctly mask a JSON like this:
+To bring support for masking of strings and numbers inside arrays, we will have to know the depth of the field which is
+being processed right now, to correctly mask a JSON like this:
 
 ```json
 {
@@ -47,7 +47,7 @@ We could simply not support arrays with mixed types, considering that those are 
 in most strongly typed languages such as Java).
 \
 However, given that the purpose of this library is to provide high-performance with as correct semantics as
-possible, we only have the following options that would be obvious for the user:
+possible for any JSON, we only have the following options that would be obvious for the user:
 
 1. Mask all mixed values of an array (Solution 1)
 2. Fail if a maskable array contains anything different than string/number

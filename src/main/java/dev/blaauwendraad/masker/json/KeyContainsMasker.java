@@ -184,7 +184,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private boolean isStartOfMaskableValue(MaskingState maskingState) {
         return isDoubleQuote(maskingState.byteAtCurrentIndex()) ||
-                (maskingConfig.isArrayMaskingEnabled() && AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndex()))
+                AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndex())
                 || (maskingConfig.isNumberMaskingEnabled()
                 && AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())) || (
                 AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex()));
@@ -314,6 +314,7 @@ public final class KeyContainsMasker implements JsonMasker {
 
     /**
      * Masks all values (depending on the {@link JsonMaskingConfig} in the object.
+     *
      * @param maskingState  the current masking state
      * @param maskingConfig the masking configuration
      */

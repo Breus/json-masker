@@ -11,16 +11,15 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
-final class NoObjectValueMaskingTest {
+final class MaskObjectInNonMaskedArray {
     @ParameterizedTest
-    @MethodSource("noObjectMaskingFile")
-    void multiTargetKey(JsonMaskerTestInstance testInstance) {
+    @MethodSource("objectInNonMaskedArrayValues")
+    void maskObjectInNonMaskedArray(JsonMaskerTestInstance testInstance) {
         Assertions.assertEquals(testInstance.expectedOutput(), testInstance.jsonMasker().mask(testInstance.input()));
     }
 
-    private static Stream<JsonMaskerTestInstance> noObjectMaskingFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-no-object-value-masking.json", Set.of(
+    private static Stream<JsonMaskerTestInstance> objectInNonMaskedArrayValues() throws IOException {
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-object-in-non-masked-array.json", Set.of(
                 JsonMaskerAlgorithmType.values())).stream();
     }
-
 }

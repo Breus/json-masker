@@ -26,14 +26,6 @@ public class JsonMaskingConfig {
      */
     private final int maskNumericValuesWith;
     /**
-     * @see JsonMaskingConfig.Builder#maskObjectValues
-     */
-    private final boolean maskObjectValues;
-    /**
-     * @see JsonMaskingConfig.Builder#maskArrayValues
-     */
-    private final boolean maskArrayValues;
-    /**
      * @see JsonMaskingConfig.Builder#obfuscationLength(int)
      */
     private final int obfuscationLength;
@@ -42,29 +34,20 @@ public class JsonMaskingConfig {
      */
     private final boolean caseSensitiveTargetKeys;
 
-    /**
-     * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder. The logic
-     * for this is as follows:
-     * <p>
-     * If an algorithm type override is set, this will always be the algorithm used.
-     * <p>
-     *
-     * @param builder the builder object
-     */
     JsonMaskingConfig(Builder builder) {
-        Set<String> targets = builder.targets;
-        targetKeyMode = builder.targetKeyMode;
+        algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         obfuscationLength = builder.obfuscationLength;
-        maskArrayValues = builder.maskArrayValues;
-        maskObjectValues = builder.maskObjectValues;
-        if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
-                || builder.maskNumberValuesWith == -1)) {
-            throw new IllegalArgumentException(
-                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
-        }
+        targetKeyMode = builder.targetKeyMode;
+        Set<String> targets = builder.targets;
         if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
             throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
         }
+        caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
+        if (!caseSensitiveTargetKeys) {
+            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
+        }
+        targetKeys = targets;
+        maskNumericValuesWith = builder.maskNumberValuesWith;
         if (builder.maskNumberValuesWith == 0) {
             if (builder.obfuscationLength < 0 || builder.obfuscationLength > 1) {
                 throw new IllegalArgumentException(
@@ -77,21 +60,10 @@ public class JsonMaskingConfig {
                         "Mask number values with must be a digit between 1 and 9 when length obfuscation is disabled or obfuscation length is larger than than 0");
             }
         }
-        maskNumericValuesWith = builder.maskNumberValuesWith;
-
-        caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
-        if (!caseSensitiveTargetKeys) {
-            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
-        }
-
-        if (builder.algorithmTypeOverride != null) {
-            algorithmType = builder.algorithmTypeOverride;
-        } else {
-            algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
-        }
-        switch (algorithmType) {
-            case KEYS_CONTAIN -> targetKeys = targets;
-            default -> throw new IllegalStateException("Unknown JSON masking algorithm");
+        if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
+                || builder.maskNumberValuesWith == -1)) {
+            throw new IllegalArgumentException(
+                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
     }
 
@@ -131,22 +103,6 @@ public class JsonMaskingConfig {
      */
     public boolean isNumberMaskingEnabled() {
         return maskNumericValuesWith != -1;
-    }
-
-    /**
-     * Tests if object values masking is enabled
-     */
-    public boolean isObjectValuesMaskingEnabled() {
-        return maskObjectValues;
-    }
-
-    /**
-     * Tests if array values masking is enabled
-     *
-     * @return true if array value masking is enabled and false otherwise.
-     */
-    public boolean isArrayMaskingEnabled() {
-        return maskArrayValues;
     }
 
     public TargetKeyMode getTargetKeyMode() {
@@ -193,9 +149,6 @@ public class JsonMaskingConfig {
         private final TargetKeyMode targetKeyMode;
         private int maskNumberValuesWith;
 
-        private boolean maskArrayValues;
-
-        private boolean maskObjectValues;
         private JsonMaskerAlgorithmType algorithmTypeOverride;
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
@@ -206,10 +159,6 @@ public class JsonMaskingConfig {
             this.targetKeyMode = targetKeyMode;
             // by default, mask number values with is -1 which means number value masking is disabled
             this.maskNumberValuesWith = -1;
-            // by default, array value masking is enabled
-            this.maskArrayValues = true;
-            // by default, object value masking is enabled
-            this.maskObjectValues = true;
             // by default, length obfuscation is disabled
             this.obfuscationLength = -1;
             // by default, target keys are considered case-insensitive
@@ -226,17 +175,6 @@ public class JsonMaskingConfig {
          */
         public Builder maskNumericValuesWith(int maskNumericValuesWith) {
             this.maskNumberValuesWith = maskNumericValuesWith;
-            return this;
-        }
-
-        /**
-         * Overrides the automatically chosen masking algorithm {@link JsonMaskerAlgorithmType#KEYS_CONTAIN}.
-         *
-         * @param algorithmType the override algorithm which will be used
-         * @return the builder instance
-         */
-        public Builder algorithmTypeOverride(JsonMaskerAlgorithmType algorithmType) {
-            this.algorithmTypeOverride = algorithmType;
             return this;
         }
 
@@ -264,25 +202,6 @@ public class JsonMaskingConfig {
             return this;
         }
 
-        /**
-         * Disable array value masking, which is enabled by default
-         * <p>
-         * Default value: array value masking is enabled by default
-         */
-        public Builder disableArrayValueMasking() {
-            this.maskArrayValues = false;
-            return this;
-        }
-
-        /**
-         * Disable object value masking, which is enabled by default
-         * <p>
-         * Default value: object value masking is enabled by default
-         */
-        public Builder disableObjectValueMasking() {
-            this.maskObjectValues = false;
-            return this;
-        }
 
         /**
          * Creates a new {@link JsonMaskingConfig} instance.

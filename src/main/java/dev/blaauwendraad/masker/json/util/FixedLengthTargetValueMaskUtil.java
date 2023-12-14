@@ -18,8 +18,6 @@ public final class FixedLengthTargetValueMaskUtil {
      * @param fixedMaskLength   the length of the fixed-length mask byte string.
      * @param targetValueLength the length of the target value slice.
      * @param maskByte          the byte used for each byte in the mask
-     * @return a new array corresponding to the input bytes array with the target value replaced with a fixed length
-     * mask
      */
     public static void replaceTargetValueWithFixedLengthMask(
             MaskingState maskingState,

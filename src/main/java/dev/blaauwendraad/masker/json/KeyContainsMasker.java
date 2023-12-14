@@ -6,7 +6,6 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
@@ -115,9 +114,11 @@ public final class KeyContainsMasker implements JsonMasker {
              * or object. Now let's verify the found JSON key is a target key.
              */
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
-            byte[] keyBytesBuffer = new byte[keyLength];
-            System.arraycopy(maskingState.getMessage(), openingQuoteIndex + 1, keyBytesBuffer, 0, keyLength);
-            String key = new String(keyBytesBuffer, StandardCharsets.UTF_8);
+            String key = new String(
+                    maskingState.getMessage(),
+                    openingQuoteIndex + 1 /* plus one for the opening quote */,
+                    keyLength
+            );
             if (!maskingConfig.caseSensitiveTargetKeys()) {
                 key = key.toLowerCase();
             }
@@ -333,9 +334,11 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
                 int closingQuoteIndex = maskingState.currentIndex();
                 int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
-                byte[] keyBytesBuffer = new byte[keyLength];
-                System.arraycopy(maskingState.getMessage(), openingQuoteIndex + 1, keyBytesBuffer, 0, keyLength);
-                String key = new String(keyBytesBuffer, StandardCharsets.UTF_8);
+                String key = new String(
+                        maskingState.getMessage(),
+                        openingQuoteIndex + 1
+                        /* plus one for the opening quote */, keyLength
+                );
                 if (!maskingConfig.caseSensitiveTargetKeys()) {
                     key = key.toLowerCase();
                 }

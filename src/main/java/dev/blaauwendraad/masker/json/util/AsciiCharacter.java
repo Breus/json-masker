@@ -123,11 +123,11 @@ public enum AsciiCharacter {
     }
 
     /**
-     * Tests if the given byte corresponds to an opening curly bracket '{@literal {}' in ASCII encoding.
+     * Tests if the given byte corresponds to an opening curly bracket '{@literal {}}' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to an opening curly
-     * bracket'{@literal {}' in ASCII encoding and false otherwise.
+     * @return true if the byte corresponds to an opening curly bracket '{@literal {}}' in ASCII encoding and false
+     * otherwise.i
      */
     public static boolean isCurlyBracketOpen(byte inputByte) {
         return CURLY_BRACKET_OPEN.getAsciiByteValue() == inputByte;

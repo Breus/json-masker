@@ -3,7 +3,10 @@ package randomgen.json;
 import java.math.BigInteger;
 import java.util.Set;
 
-import static randomgen.json.JsonStringCharacters.*;
+import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
+import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
+import static randomgen.json.JsonStringCharacters.getUnicodeControlCharacters;
+import static randomgen.json.JsonStringCharacters.mergeCharSets;
 
 public class RandomJsonGeneratorConfig {
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4");
@@ -16,21 +19,25 @@ public class RandomJsonGeneratorConfig {
     private final int maxStringLength;
     private final int maxObjectKeys;
     private final int maxNodeDepth;
-    private final int targetKeyPercentage; // percentage of object keys which are target keys
+    private final double targetKeyPercentage; // percentage of object keys which are target keys
     private final Set<Character> stringCharacters;
     private final Set<String> targetKeys;
+    private final int targetJsonSizeBytes;
 
-    public RandomJsonGeneratorConfig(int maxArraySize,
-                                     float maxFloat,
-                                     double maxDouble,
-                                     long maxLong,
-                                     BigInteger maxBigInt,
-                                     int maxStringLength,
-                                     int maxObjectKeys,
-                                     int maxNodeDepth,
-                                     int targetKeyPercentage,
-                                     Set<Character> stringCharacters,
-                                     Set<String> targetKeys) {
+    public RandomJsonGeneratorConfig(
+            int maxArraySize,
+            float maxFloat,
+            double maxDouble,
+            long maxLong,
+            BigInteger maxBigInt,
+            int maxStringLength,
+            int maxObjectKeys,
+            int maxNodeDepth,
+            double targetKeyPercentage,
+            Set<Character> stringCharacters,
+            Set<String> targetKeys,
+            int targetJsonSizeBytes
+    ) {
         this.maxArraySize = maxArraySize;
         this.maxFloat = maxFloat;
         this.maxDouble = maxDouble;
@@ -42,6 +49,7 @@ public class RandomJsonGeneratorConfig {
         this.stringCharacters = stringCharacters;
         this.targetKeys = targetKeys;
         this.maxStringLength = maxStringLength;
+        this.targetJsonSizeBytes = targetJsonSizeBytes;
     }
 
     public static Builder builder() {
@@ -96,7 +104,7 @@ public class RandomJsonGeneratorConfig {
         return targetKeys;
     }
 
-    public int getTargetKeyPercentage() {
+    public double getTargetKeyPercentage() {
         return targetKeyPercentage;
     }
 
@@ -104,20 +112,31 @@ public class RandomJsonGeneratorConfig {
         return stringCharacters;
     }
 
+    public int getTargetJsonSizeBytes() {
+        return targetJsonSizeBytes;
+    }
+
+    public boolean hasTargetSize() {
+        return targetJsonSizeBytes != -1;
+    }
+
     public static class Builder {
-        private int maxArraySize = 2;
+        private int maxArraySize = 10;
         private float maxFloat = Float.MAX_VALUE;
         private double maxDouble = Double.MAX_VALUE;
         private long maxLong = Long.MAX_VALUE; // because we already have long, we don't add byte, short and int
         private BigInteger maxBigInt = BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.valueOf(Long.MAX_VALUE));
-        private int maxStringLength = 10;
+        private int maxStringLength = 30;
         private int maxObjectKeys = 5;
-        private int maxNodeDepth = 5;
-        private int targetKeyPercentage = 50;
-        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(getPrintableAsciiCharacters(),
-                                                                               getUnicodeControlCharacters(),
-                                                                               getRandomPrintableUnicodeCharacters()));
+        private int maxNodeDepth = 10;
+        private double targetKeyPercentage = 0.2;
+        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(
+                getPrintableAsciiCharacters(),
+                getUnicodeControlCharacters(),
+                getRandomPrintableUnicodeCharacters()
+        ));
         private Set<String> targetKeys = defaultTargetKeys;
+        private int targetJsonSizeBytes = -1; // no target, random size depending on other constraints
 
         public Builder setMaxArraySize(int maxArraySize) {
             this.maxArraySize = maxArraySize;
@@ -156,7 +175,10 @@ public class RandomJsonGeneratorConfig {
             return this;
         }
 
-        public Builder setTargetKeyPercentage(int targetKeyPercentage) {
+        public Builder setTargetKeyPercentage(double targetKeyPercentage) {
+            if (targetKeyPercentage < 0 || targetKeyPercentage > 1) {
+                throw new IllegalArgumentException("targetKeyPercentage must be between 0 and 1");
+            }
             this.targetKeyPercentage = targetKeyPercentage;
             return this;
         }
@@ -171,18 +193,26 @@ public class RandomJsonGeneratorConfig {
             return this;
         }
 
+        public Builder setTargetJsonSizeBytes(int targetJsonSizeBytes) {
+            this.targetJsonSizeBytes = targetJsonSizeBytes;
+            return this;
+        }
+
         public RandomJsonGeneratorConfig createConfig() {
-            return new RandomJsonGeneratorConfig(maxArraySize,
-                                                 maxFloat,
-                                                 maxDouble,
-                                                 maxLong,
-                                                 maxBigInt,
-                                                 maxStringLength,
-                                                 maxObjectKeys,
-                                                 maxNodeDepth,
-                                                 targetKeyPercentage,
-                                                 allowedCharacters,
-                                                 targetKeys);
+            return new RandomJsonGeneratorConfig(
+                    maxArraySize,
+                    maxFloat,
+                    maxDouble,
+                    maxLong,
+                    maxBigInt,
+                    maxStringLength,
+                    maxObjectKeys,
+                    maxNodeDepth,
+                    targetKeyPercentage,
+                    allowedCharacters,
+                    targetKeys,
+                    targetJsonSizeBytes
+            );
         }
     }
 }

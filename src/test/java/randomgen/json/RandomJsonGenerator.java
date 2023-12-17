@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.*;
 
 import java.math.BigInteger;
-import java.util.Random;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomJsonGenerator {
     private final RandomJsonGeneratorConfig config;
-    private int arrayOrObjectNodes; // equal or larger than the max node depth
+    private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
     private enum NodeType {
         arrayNode, objectNode, booleanNode, nullNode, stringNode, numberNode
@@ -16,67 +17,101 @@ public class RandomJsonGenerator {
 
     public RandomJsonGenerator(RandomJsonGeneratorConfig config) {
         this.config = config;
-        this.arrayOrObjectNodes = 0;
     }
 
     public JsonNode createRandomJsonNode() {
-        NodeType nodeType = getRandomNodeType();
-        if (arrayOrObjectNodes >= config.getMaxNodeDepth()) {
-            nodeType = NodeType.stringNode; // don't add depth, just value (String) nodes.
-        }
-        if ((arrayOrObjectNodes < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode && nodeType != NodeType.arrayNode)) {
+        return createRandomJsonNode(new Context(), 0);
+    }
+
+    private JsonNode createRandomJsonNode(Context context, int depth) {
+        boolean primitiveOnly = depth >= config.getMaxNodeDepth();
+        NodeType nodeType = getRandomNodeType(primitiveOnly);
+        if (reachedTargetSize(context.estimatedSizeBytes + 4)) {
+            nodeType = NodeType.nullNode;
+        } else if (config.hasTargetSize() && depth == 0) {
+            // always start with an object root if generating json of certain size
             nodeType = NodeType.objectNode;
+        } else if ((depth < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode && nodeType != NodeType.arrayNode)) {
+            // forcefully override chance to 50% to create an object if only <33% of max node depth is reached
+            if (random.nextBoolean()) {
+                nodeType = NodeType.objectNode;
+            }
         }
         return switch (nodeType) {
-            case arrayNode -> createRandomArrayNode();
-            case numberNode -> createRandomNumericNode();
-            case objectNode -> createRandomObjectNode();
-            case booleanNode -> createRandomBooleanNode();
-            case stringNode -> createRandomTextNode();
-            case nullNode -> JsonNodeFactory.instance.nullNode();
+            case arrayNode -> createRandomArrayNode(context, depth + 1);
+            case objectNode -> createRandomObjectNode(context, depth + 1);
+            case numberNode -> createRandomNumericNode(context);
+            case booleanNode -> createRandomBooleanNode(context);
+            case stringNode -> createRandomTextNode(context);
+            case nullNode -> createNullNode(context);
         };
     }
 
-    public NodeType getRandomNodeType() {
-        int rnd = new Random().nextInt(NodeType.values().length);
+    private JsonNode createNullNode(Context context) {
+        NullNode node = JsonNodeFactory.instance.nullNode();
+        context.estimatedSizeBytes += sizeOf(node);
+        return node;
+    }
+
+    private NodeType getRandomNodeType(boolean primitiveOnly) {
+        int offset = primitiveOnly ? NodeType.objectNode.ordinal() + 1 : 0;
+        int rnd = random.nextInt(offset, NodeType.values().length);
         return NodeType.values()[rnd];
     }
 
-    private TextNode createRandomTextNode() {
-        return JsonNodeFactory.instance.textNode(getRandomString());
+    private TextNode createRandomTextNode(Context context) {
+        TextNode node = JsonNodeFactory.instance.textNode(getRandomString());
+        context.estimatedSizeBytes += sizeOf(node);
+        return node;
     }
 
-    private BooleanNode createRandomBooleanNode() {
-        int rnd = new Random().nextInt(3); // 1 or 2
-        return JsonNodeFactory.instance.booleanNode(rnd == 2);
+    private BooleanNode createRandomBooleanNode(Context context) {
+        BooleanNode node = JsonNodeFactory.instance.booleanNode(random.nextBoolean());
+        context.estimatedSizeBytes += sizeOf(node);
+        return node;
     }
 
-    private ObjectNode createRandomObjectNode() {
+    private ObjectNode createRandomObjectNode(Context context, int depth) {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-        int nrOfObjectKeys = new Random().nextInt(config.getMaxObjectKeys());
+        context.estimatedSizeBytes += sizeOf(objectNode);
+        int nrOfObjectKeys;
+        if (depth == 1 && config.hasTargetSize()) {
+            // the root object to be populated until we reach the target size
+            nrOfObjectKeys = Integer.MAX_VALUE;
+        } else {
+            nrOfObjectKeys = random.nextInt(config.getMaxObjectKeys());
+        }
         for (int i = 0; i < nrOfObjectKeys; i++) {
-            if (keyIsTargetKey()) {
-                objectNode.set(getRandomTargetKey(), createRandomJsonNode());
-            } else {
-                objectNode.set(getRandomString(), createRandomJsonNode());
+            String key = randomKey();
+            while (objectNode.has(key)) {
+                key = randomKey();
+            }
+            context.estimatedSizeBytes += sizeOf(JsonNodeFactory.instance.textNode(key));
+            context.estimatedSizeBytes += 1; // for the semicolon
+            if (i > 0) {
+                context.estimatedSizeBytes += 1; // for the comma
+            }
+            JsonNode child = createRandomJsonNode(context, depth);
+            objectNode.set(key, child);
+            if (reachedTargetSize(context.estimatedSizeBytes)) {
+                break;
             }
         }
-        arrayOrObjectNodes++;
         return objectNode;
     }
 
-    private boolean keyIsTargetKey() {
-        int rnd = new Random().nextInt(1, 101);
-        return rnd <= config.getTargetKeyPercentage();
+    private String randomKey() {
+        double rnd = random.nextDouble(0, 1);
+        return rnd <= config.getTargetKeyPercentage() ? getRandomTargetKey() : getRandomString();
     }
 
     private String getRandomTargetKey() {
-        int rnd = new Random().nextInt(config.getTargetKeys().size());
+        int rnd = random.nextInt(config.getTargetKeys().size());
         return (String) config.getTargetKeys().toArray()[rnd];
     }
 
     private String getRandomString() {
-        int stringLength = new Random().nextInt(config.getMaxStringLength());
+        int stringLength = random.nextInt(config.getMaxStringLength());
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < stringLength; i++) {
             sb.append(getRandomCharacter());
@@ -86,31 +121,49 @@ public class RandomJsonGenerator {
 
     private Character getRandomCharacter() {
         Character[] characters = config.getStringCharacters().toArray(new Character[0]);
-        int randomIndex = new Random().nextInt(characters.length - 1);
+        int randomIndex = random.nextInt(characters.length - 1);
         return characters[randomIndex];
     }
 
-    private NumericNode createRandomNumericNode() {
-        int rnd = new Random().nextInt(1, 5);
-        Random random = new Random();
-        return switch (rnd) {
+    private NumericNode createRandomNumericNode(Context context) {
+        int rnd = random.nextInt(1, 5);
+        NumericNode node = switch (rnd) {
             case 1 -> JsonNodeFactory.instance.numberNode(random.nextLong(config.getMaxLong()));
             case 2 -> JsonNodeFactory.instance.numberNode(random.nextFloat(config.getMaxFloat()));
             case 3 -> JsonNodeFactory.instance.numberNode(random.nextDouble(config.getMaxDouble()));
-            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), new Random()));
+            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), random));
             default -> throw new IllegalStateException("Unexpected value: " + rnd);
         };
+        context.estimatedSizeBytes += sizeOf(node);
+        return node;
     }
 
-    private ArrayNode createRandomArrayNode() {
+    private ArrayNode createRandomArrayNode(Context context, int depth) {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-        int nrOfArrayElements = new Random().nextInt(config.getMaxArraySize());
+        context.estimatedSizeBytes += sizeOf(arrayNode);
+        int nrOfArrayElements = random.nextInt(config.getMaxArraySize());
         for (int i = 0; i < nrOfArrayElements; i++) {
-            arrayNode.add(createRandomJsonNode());
+            if (i > 0) {
+                context.estimatedSizeBytes += 1; // for the comma
+            }
+            arrayNode.add(createRandomJsonNode(context, depth));
+            if (reachedTargetSize(context.estimatedSizeBytes)) {
+                break;
+            }
         }
-        arrayOrObjectNodes++;
         return arrayNode;
     }
 
+    private boolean reachedTargetSize(int estimatedSizeBytes) {
+        boolean didIt = config.hasTargetSize() && estimatedSizeBytes >= config.getTargetJsonSizeBytes();
+        return didIt;
+    }
 
+    private int sizeOf(JsonNode node) {
+        return node.toString().getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    private static class Context {
+        int estimatedSizeBytes;
+    }
 }

@@ -156,16 +156,16 @@ Additionally, the target key set size has negligible impact on the performance.
 
 [source]
 ----
-Benchmark                           (jsonSize)  (numberOfKeys)   Mode        Score  Units
-BaselineBenchmark.noop                     4kb             100  thrpt  1567094.010  ops/s
-BaselineBenchmark.jackson                  4kb             100  thrpt    75569.597  ops/s
-JsonMaskerBenchmark.maskJsonBytes          4kb             100  thrpt   405496.513  ops/s
-JsonMaskerBenchmark.maskJsonString         4kb             100  thrpt   346559.740  ops/s
+Benchmark                               (jsonSize)  (maskedKeyProbability)  (obfuscationLength)   Mode  Cnt        Score   Error  Units
+JsonMaskerBenchmark.baselineCountBytes         1kb                     0.1                 none  thrpt       3973935.739          ops/s
+JsonMaskerBenchmark.jacksonString              1kb                     0.1                 none  thrpt        112680.854          ops/s
+JsonMaskerBenchmark.jsonMaskerBytes            1kb                     0.1                 none  thrpt       1225579.252          ops/s
+JsonMaskerBenchmark.jsonMaskerString           1kb                     0.1                 none  thrpt        476463.063          ops/s
 
-BaselineBenchmark.noop                     2mb             100  thrpt     2263.683  ops/s
-BaselineBenchmark.jackson                  2mb             100  thrpt        7.923  ops/s
-JsonMaskerBenchmark.maskJsonBytes          2mb             100  thrpt     2493.899  ops/s
-JsonMaskerBenchmark.maskJsonString         2mb             100  thrpt     1312.198  ops/s
+JsonMaskerBenchmark.baselineCountBytes         2mb                    0.01                 none  thrpt          2269.735          ops/s
+JsonMaskerBenchmark.jacksonString              2mb                    0.01                 none  thrpt            29.844          ops/s
+JsonMaskerBenchmark.jsonMaskerBytes            2mb                    0.01                 none  thrpt           419.823          ops/s
+JsonMaskerBenchmark.jsonMaskerString           2mb                    0.01                 none  thrpt            86.108          ops/s
 ----
 
 For full benchmark results see link:src/jmh/benchmark-history[benchmark-history]

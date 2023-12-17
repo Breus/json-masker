@@ -11,17 +11,14 @@ No additional third-party runtime dependencies are required for this library.
 
 == Features
 
-- Mask strings in any JSON structure corresponding to configured target keys (default)
-- Mask numbers in any JSON structure corresponding to configured target keys (optional)
-- Obfuscate the original length of the masked value by using a fixed-length mask (optional)
-- Target key case sensitivity configuration (default: `false`)
-- Block-list (`masked`) or allow-list (`allowed`) interpretation of target key set (default: `masked`)
+- Mask **strings** in any JSON structure that correspond to a configured target key (default)
+- Mask all values in **(nested) JSON arrays** that correspond to a configured target key (default)
+- Maks all values in **(nested) JSON objects** that correspond to a configured target key (default)
+- Mask **numbers** in any JSON structure that correspond to a configured target key (optional)
+- **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
+- Target key **case sensitivity configuration** (default: `false`)
+- **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
 - The implementation only supports JSON in UTF-8 character encoding
-
-== Roadmap features
-
-- Support for masking strings and numbers inside (nested) arrays
-- JSONPath support for target keys
 
 == Usage examples
 
@@ -140,17 +137,15 @@ String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
 == Dependencies
 
 * **The library has no third-party runtime dependencies**
-* The library only has a single JSR-305 compilation dependency
+* The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
 
 == Performance considerations
 
-This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set
-contains this key in constant time.
+This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
 
 The time complexity of this algorithm scales only linear in the message input length.
 Additionally, the target key set size has negligible impact on the performance.
-
 
 == Benchmarks
 

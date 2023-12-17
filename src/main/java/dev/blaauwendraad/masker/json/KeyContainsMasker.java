@@ -6,7 +6,8 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
@@ -25,7 +26,8 @@ public final class KeyContainsMasker implements JsonMasker {
      * Minimum JSON for which masking could be required is: {"":""}, so minimum length at least 7 bytes.
      */
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
-    private final Set<String> targetKeys;
+
+    private final Trie targetKeysTrie;
     private final boolean allowMode;
     private final JsonMaskingConfig maskingConfig;
 
@@ -35,9 +37,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param maskingConfig the masking configurations for the created masker
      */
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
-        this.targetKeys = maskingConfig.getTargetKeys();
         this.allowMode = maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW;
         this.maskingConfig = maskingConfig;
+        this.targetKeysTrie = new Trie(!maskingConfig.caseSensitiveTargetKeys());
+        for (String key : maskingConfig.getTargetKeys()) {
+            this.targetKeysTrie.insert(key);
+        }
     }
 
     /**
@@ -119,10 +124,7 @@ public final class KeyContainsMasker implements JsonMasker {
                     openingQuoteIndex + 1 /* plus one for the opening quote */,
                     keyLength
             );
-            if (!maskingConfig.caseSensitiveTargetKeys()) {
-                key = key.toLowerCase();
-            }
-            boolean keyMatched = targetKeys.contains(key);
+            boolean keyMatched = targetKeysTrie.search(key);
             if (allowMode && keyMatched) {
                 skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
                 continue;
@@ -487,5 +489,62 @@ public final class KeyContainsMasker implements JsonMasker {
             maskingState.incrementCurrentIndex(); // step over the string content
         }
         maskingState.incrementCurrentIndex(); // step over the closing quote
+    }
+
+    public static class Trie {
+        private final TrieNode root;
+        private final boolean caseInsensitive;
+
+        public Trie(boolean caseInsensitive) {
+            this.caseInsensitive = caseInsensitive;
+            this.root = new TrieNode();
+        }
+
+        /**
+         * Inserts a word into the trie.
+         */
+        public void insert(String word) {
+            TrieNode node = root;
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
+                if (caseInsensitive) {
+                    c = Character.toLowerCase(c);
+                }
+                node = node.children.computeIfAbsent(c, k -> new TrieNode());
+            }
+            node.endOfWord = true;
+        }
+
+        /**
+         * Returns if the word is in the trie.
+         */
+        public boolean search(String word) {
+            TrieNode node = searchNode(word);
+            if (node == null) return false;
+            return node.endOfWord;
+        }
+
+        public TrieNode searchNode(String str) {
+            TrieNode node = root;
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                if (caseInsensitive) {
+                    c = Character.toLowerCase(c);
+                }
+
+                if (node.children.containsKey(c)) {
+                    node = node.children.get(c);
+                } else {
+                    return null;
+                }
+            }
+
+            return node;
+        }
+    }
+
+    public static class TrieNode {
+        private final Map<Character, TrieNode> children = new HashMap<>();
+        private boolean endOfWord = false;
     }
 }

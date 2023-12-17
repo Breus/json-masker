@@ -519,27 +519,21 @@ public final class KeyContainsMasker implements JsonMasker {
          * Returns if the word is in the trie.
          */
         public boolean search(String word) {
-            TrieNode node = searchNode(word);
-            if (node == null) return false;
-            return node.endOfWord;
-        }
-
-        public TrieNode searchNode(String str) {
             TrieNode node = root;
-            for (int i = 0; i < str.length(); i++) {
-                char c = str.charAt(i);
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
                 if (caseInsensitive) {
                     c = Character.toLowerCase(c);
                 }
 
-                if (node.children.containsKey(c)) {
-                    node = node.children.get(c);
-                } else {
-                    return null;
+                node = node.children.get(c);
+
+                if (node == null) {
+                    return false;
                 }
             }
 
-            return node;
+            return node.endOfWord;
         }
     }
 

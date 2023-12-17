@@ -5,12 +5,85 @@
     ],
     "input": {
       "targetKey:1": {
+        "yes": ":val:ue\\::",
+        "someKey": {
+          "\":\"": "\":\""
+        }
+      }
+    },
+    "expectedOutput": {
+      "targetKey:1": {
+        "yes": "**********",
+        "someKey": {
+          "\":\"": "***"
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey:1"
+    ],
+    "input": {
+      "targetKey:1": {
+        "targetKey:1": ":val:ue\\::",
+        "someKey": {
+          "\":\"": "\":\""
+        },
+        "hello": [
+          ",:\",:",
+          ",,\"::"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "targetKey:1": {
+        "targetKey:1": "**********",
+        "someKey": {
+          "\":\"": "***"
+        },
+        "hello": [
+          "*****",
+          "*****"
+        ]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey:1"
+    ],
+    "input": {
+      "targetKey:1": {
         "targetKey:1": ":val:ue\\::"
       }
     },
     "expectedOutput": {
       "targetKey:1": {
         "targetKey:1": "**********"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey:1"
+    ],
+    "input": {
+      "targetKey:1": {
+        "targetKey:1": ":val:ue\\::",
+        "hello": [
+          ",:,:\"",
+          ",,::"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "targetKey:1": {
+        "targetKey:1": "**********",
+        "hello": [
+          "*****",
+          "****"
+        ]
       }
     }
   },

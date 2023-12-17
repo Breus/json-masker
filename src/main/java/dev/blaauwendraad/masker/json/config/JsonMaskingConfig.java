@@ -34,27 +34,20 @@ public class JsonMaskingConfig {
      */
     private final boolean caseSensitiveTargetKeys;
 
-    /**
-     * By default, the correct {@link JsonMaskerAlgorithmType} is resolved based on the input of the builder. The logic
-     * for this is as follows:
-     * <p>
-     * If an algorithm type override is set, this will always be the algorithm used.
-     * <p>
-     *
-     * @param builder the builder object
-     */
     JsonMaskingConfig(Builder builder) {
-        Set<String> targets = builder.targets;
-        targetKeyMode = builder.targetKeyMode;
+        algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         obfuscationLength = builder.obfuscationLength;
-        if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
-                || builder.maskNumberValuesWith == -1)) {
-            throw new IllegalArgumentException(
-                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
-        }
+        targetKeyMode = builder.targetKeyMode;
+        Set<String> targets = builder.targets;
         if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
             throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
         }
+        caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
+        if (!caseSensitiveTargetKeys) {
+            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
+        }
+        targetKeys = targets;
+        maskNumericValuesWith = builder.maskNumberValuesWith;
         if (builder.maskNumberValuesWith == 0) {
             if (builder.obfuscationLength < 0 || builder.obfuscationLength > 1) {
                 throw new IllegalArgumentException(
@@ -67,21 +60,10 @@ public class JsonMaskingConfig {
                         "Mask number values with must be a digit between 1 and 9 when length obfuscation is disabled or obfuscation length is larger than than 0");
             }
         }
-        maskNumericValuesWith = builder.maskNumberValuesWith;
-
-        caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
-        if (!caseSensitiveTargetKeys) {
-            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
-        }
-
-        if (builder.algorithmTypeOverride != null) {
-            algorithmType = builder.algorithmTypeOverride;
-        } else {
-            algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
-        }
-        switch (algorithmType) {
-            case KEYS_CONTAIN -> targetKeys = targets;
-            default -> throw new IllegalStateException("Unknown JSON masking algorithm");
+        if (builder.obfuscationLength == 0 && !(builder.maskNumberValuesWith == 0
+                || builder.maskNumberValuesWith == -1)) {
+            throw new IllegalArgumentException(
+                    "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
     }
 
@@ -166,6 +148,7 @@ public class JsonMaskingConfig {
         private final Set<String> targets;
         private final TargetKeyMode targetKeyMode;
         private int maskNumberValuesWith;
+
         private JsonMaskerAlgorithmType algorithmTypeOverride;
         private int obfuscationLength;
         private boolean caseSensitiveTargetKeys;
@@ -196,17 +179,6 @@ public class JsonMaskingConfig {
         }
 
         /**
-         * Overrides the automatically chosen masking algorithm {@link JsonMaskerAlgorithmType#KEYS_CONTAIN}.
-         *
-         * @param algorithmType the override algorithm which will be used
-         * @return the builder instance
-         */
-        public Builder algorithmTypeOverride(JsonMaskerAlgorithmType algorithmType) {
-            this.algorithmTypeOverride = algorithmType;
-            return this;
-        }
-
-        /**
          * @param obfuscationLength specifies the fixed length of the mask when target value lengths is obfuscated. E.g.
          *                          masking any string value with obfuscation length 2 results in "**".
          *                          <p>
@@ -229,6 +201,7 @@ public class JsonMaskingConfig {
             this.caseSensitiveTargetKeys = true;
             return this;
         }
+
 
         /**
          * Creates a new {@link JsonMaskingConfig} instance.

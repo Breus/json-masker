@@ -108,4 +108,12 @@ public final class AsciiJsonUtil {
         }
         return false;
     }
+
+    public static boolean isArrayStart(byte utf8Character) {
+        return utf8Character == AsciiCharacter.SQUARE_BRACKET_OPEN.byteValue;
+    }
+
+    public static boolean isObjectStart(Byte utf8Character) {
+        return utf8Character == AsciiCharacter.CURLY_BRACKET_OPEN.byteValue;
+    }
 }

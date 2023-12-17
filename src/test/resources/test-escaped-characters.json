@@ -1,6 +1,45 @@
 [
   {
-    "targetKeys": ["someKey", "someKey2"],
+    "targetKeys": [
+      "someKey",
+      "someKey2"
+    ],
+    "input": {
+      "someKey": "\\hello",
+      "someKey2": "\"hi\""
+    },
+    "expectedOutput": {
+      "someKey": "******",
+      "someKey2": "****"
+    }
+  },
+  {
+    "targetKeys": [
+      "targetKey1"
+    ],
+    "input": {
+      "targetKey1": "\u001F"
+    },
+    "expectedOutput": {
+      "targetKey1": "*"
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": "\\"
+    },
+    "expectedOutput": {
+      "maskMe": "*"
+    }
+  },
+  {
+    "targetKeys": [
+      "someKey",
+      "someKey2"
+    ],
     "input": {
       "someKey": "\\hello",
       "someKey2": "\"hi\"",
@@ -13,39 +52,64 @@
     }
   },
   {
-    "targetKeys": ["someKey", "someKey2", "someKey4"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey4"
+    ],
     "input": {
       "someKey": "/h:ello",
       "someKey2": "\bhi",
       "someKey3": "hey\\\u00f7",
-      "someKey4": [{"someKey4":  "value"}]
-
+      "someKey4": [
+        {
+          "someKey4": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "someKey": "*******",
       "someKey2": "***",
       "someKey3": "hey\\\u00f7",
-      "someKey4": [{"someKey4":  "*****"}]
+      "someKey4": [
+        {
+          "someKey4": "*****"
+        }
+      ]
     }
   },
   {
-    "targetKeys": ["someKey", "someKey2", "someKey3", "someKey4"],
+    "targetKeys": [
+      "someKey",
+      "someKey2",
+      "someKey3",
+      "someKey4"
+    ],
     "input": {
       "someKey": "\nhello",
       "someKey2": "\rhi",
       "someKey3": "\they",
-      "someKey4": [{"someKey4":  "\uffffvalue"}]
-
+      "someKey4": [
+        {
+          "someKey4": "\uffffvalue"
+        }
+      ]
     },
     "expectedOutput": {
       "someKey": "******",
       "someKey2": "***",
       "someKey3": "****",
-      "someKey4": [{"someKey4":  "******"}]
+      "someKey4": [
+        {
+          "someKey4": "******"
+        }
+      ]
     }
   },
   {
-    "targetKeys": ["someKey"],
+    "targetKeys": [
+      "someKey"
+    ],
     "input": {
       "someKey": "\u00f8v"
     },
@@ -54,11 +118,12 @@
     }
   },
   {
-    "targetKeys": ["k1"],
+    "targetKeys": [
+      "k1"
+    ],
     "input": {
       "k1": "s\uffff",
       "k2": "value"
-
     },
     "expectedOutput": {
       "k1": "**",
@@ -66,11 +131,12 @@
     }
   },
   {
-    "targetKeys": ["k2"],
+    "targetKeys": [
+      "k2"
+    ],
     "input": {
       "k1": "\uffff",
       "k2": "val"
-
     },
     "expectedOutput": {
       "k1": "\uffff",
@@ -78,19 +144,31 @@
     }
   },
   {
-    "targetKeys": ["\\\"a","b"],
+    "targetKeys": [
+      "\\\"a",
+      "b"
+    ],
     "input": {
       "\"a": "\u00ff",
-      "b": [{"b":  "value"}]
-
+      "b": [
+        {
+          "b": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "\"a": "*",
-      "b": [{"b":  "*****"}]
+      "b": [
+        {
+          "b": "*****"
+        }
+      ]
     }
   },
   {
-    "targetKeys": ["a"],
+    "targetKeys": [
+      "a"
+    ],
     "input": {
       "f]-E\"ESn$": {
         "(Vtx": {
@@ -111,38 +189,45 @@
     }
   },
   {
-    "targetKeys": ["a"],
+    "targetKeys": [
+      "a"
+    ],
     "input": {
       "a": "  ",
-      "b": [{"b":  "value"}]
-
+      "b": [
+        {
+          "b": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "a": "**",
-      "b": [{"b":  "value"}]
+      "b": [
+        {
+          "b": "value"
+        }
+      ]
     }
   },
   {
-    "targetKeys": ["a"],
+    "targetKeys": [
+      "a"
+    ],
     "input": {
       "a": "\u0020\u0020",
-      "b": [{"b":  "value"}]
-
+      "b": [
+        {
+          "b": "value"
+        }
+      ]
     },
     "expectedOutput": {
       "a": "**",
-      "b": [{"b":  "value"}]
-    }
-  },
-  {
-    "targetKeys": ["targetKey1","targetKey2"],
-    "input": {
-      "targetKey1" : "\u001F",
-      "targetKey2" : "<"
-    },
-    "expectedOutput": {
-      "targetKey1": "**",
-      "targetKey2": "*"
+      "b": [
+        {
+          "b": "value"
+        }
+      ]
     }
   }
 ]

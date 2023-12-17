@@ -1,14 +1,17 @@
 package randomgen.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dev.blaauwendraad.masker.json.JsonMasker;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.util.DoubleSummaryStatistics;
+import java.util.Set;
+
+import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
 
 public class RandomJsonGeneratorTest {
     @ParameterizedTest
@@ -30,14 +33,21 @@ public class RandomJsonGeneratorTest {
             // we risk having more than 1% difference due to requirement to return a valid json
             int targetJsonSizeBytes = (i + 5) * 1024;
             RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetJsonSizeBytes(targetJsonSizeBytes).createConfig());
+                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                    .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                                                    .createConfig());
 
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
             int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
             double allowedDifference = targetJsonSizeBytes * 0.01;
-            Assertions.assertEquals(targetJsonSizeBytes, actualSizeBytes, allowedDifference, () -> "Expected json to be of size " + targetJsonSizeBytes + " (±1%), got: " + actualSizeBytes);
+            Assertions.assertEquals(
+                    targetJsonSizeBytes,
+                    actualSizeBytes,
+                    allowedDifference,
+                    () -> "Expected json to be of size " + targetJsonSizeBytes + " (±1%), got: " + actualSizeBytes
+            );
         }
     }
 
@@ -45,27 +55,65 @@ public class RandomJsonGeneratorTest {
     void testGenerate1MbJson() {
         int targetJsonSizeBytes = 1024 * 1024;
         RandomJsonGenerator randomJsonGenerator =
-                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetJsonSizeBytes(targetJsonSizeBytes).createConfig());
+                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                                                .createConfig());
 
         JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
         double allowedDifference = targetJsonSizeBytes * 0.001;
-        Assertions.assertEquals(targetJsonSizeBytes, actualSizeBytes, allowedDifference, () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes);
+        Assertions.assertEquals(
+                targetJsonSizeBytes,
+                actualSizeBytes,
+                allowedDifference,
+                () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes
+        );
     }
 
     @Test
     void testGenerate10MbJson() {
         int targetJsonSizeBytes = 10 * 1024 * 1024;
         RandomJsonGenerator randomJsonGenerator =
-                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetJsonSizeBytes(targetJsonSizeBytes).createConfig());
+                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                                                .createConfig());
 
         JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
         double allowedDifference = targetJsonSizeBytes * 0.001;
-        Assertions.assertEquals(targetJsonSizeBytes, actualSizeBytes, allowedDifference, () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes);
+        Assertions.assertEquals(
+                targetJsonSizeBytes,
+                actualSizeBytes,
+                allowedDifference,
+                () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes
+        );
+    }
+
+    @Test
+    @Disabled
+    void profileMasker() {
+        int targetJsonSizeBytes = 1024 * 1024;
+        RandomJsonGenerator randomJsonGenerator =
+                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                .setAllowedCharacters(getPrintableAsciiCharacters())
+                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                                                .createConfig());
+
+        JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
+
+        var json = randomJsonNode.toString();
+
+        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4"));
+
+        int size = 0;
+        for (int i = 0; i < 500; i++) {
+            size += jsonMasker.mask(json).length();
+        }
+
+        System.out.println(size);
     }
 }

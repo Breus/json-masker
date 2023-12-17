@@ -12,23 +12,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 class PrettyPrintTest {
-    @Test
-    void prettyPrintMaskingSingleTargetLoop() throws JsonProcessingException {
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
-        JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
-        String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = new SingleTargetMasker(JsonMaskingConfig.getDefault(Set.of("Test")));
-        String mask = jsonMasker.mask(prettyString);
-
-        Assertions.assertEquals(
-                "*****",
-                JsonMapper.builder()
-                        .build()
-                        .readValue(mask, JsonNode.class)
-                        .findValue("Test")
-                        .textValue()
-        );
-    }
 
     @Test
     void prettyPrintMaskingKeyContains() throws JsonProcessingException {

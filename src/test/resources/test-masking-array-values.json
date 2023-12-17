@@ -1,0 +1,326 @@
+[
+  {
+    "targetKeys": [
+      "maskMe",
+      "andMe"
+    ],
+    "input": {
+      "maskMe": [
+        [
+          [
+            "hello",
+            123,
+            true,
+            {
+              "hello": "hi",
+              "bye": "cya",
+              "array": [
+                "hello"
+              ]
+            }
+          ]
+        ]
+      ],
+      "andMe": {
+        "hello": "yes"
+      }
+    },
+    "expectedOutput": {
+      "maskMe": [
+        [
+          [
+            "*****",
+            123,
+            true,
+            {
+              "hello": "**",
+              "bye": "***",
+              "array": [
+                "*****"
+              ]
+            }
+          ]
+        ]
+      ],
+      "andMe": {
+        "hello": "***"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe",
+      "andMe"
+    ],
+    "input": {
+      "maskMe": [
+        [
+          [
+            "hello",
+            123,
+            true,
+            {
+              "hello": "hi",
+              "bye": "cya",
+              "array": [
+                "hello"
+              ],
+              "num": 12
+            }
+          ]
+        ]
+      ],
+      "andMe": {
+        "hello": "yes"
+      }
+    },
+    "expectedOutput": {
+      "maskMe": [
+        [
+          [
+            "*****",
+            123,
+            true,
+            {
+              "hello": "**",
+              "bye": "***",
+              "array": [
+                "*****"
+              ],
+              "num": 12
+            }
+          ]
+        ]
+      ],
+      "andMe": {
+        "hello": "***"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe",
+      "andMe"
+    ],
+    "input": {
+      "maskMe": [
+        "hello",
+        {
+          "andMe": "hi",
+          "he": 12
+        }
+      ],
+      "andMe": []
+    },
+    "expectedOutput": {
+      "maskMe": [
+        "*****",
+        {
+          "andMe": "**",
+          "he": 12
+        }
+      ],
+      "andMe": []
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": [
+        [
+          {
+            "no": 12
+          }
+        ]
+      ]
+    },
+    "expectedOutput": {
+      "maskMe": [
+        [
+          {
+            "no": 12
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": [
+        {
+          "hello": [
+            [
+              {}
+            ]
+          ]
+        },
+        {},
+        123,
+        "hello"
+      ]
+    },
+    "expectedOutput": {
+      "maskMe": [
+        {
+          "hello": [
+            [
+              {}
+            ]
+          ]
+        },
+        {},
+        123,
+        "*****"
+      ]
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": [
+        true,
+        false,
+        123,
+        "hello"
+      ]
+    },
+    "expectedOutput": {
+      "maskMe": [
+        true,
+        false,
+        123,
+        "*****"
+      ]
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": [
+        [],
+        [
+          "hello"
+        ]
+      ]
+    },
+    "expectedOutput": {
+      "maskMe": [
+        [],
+        [
+          "*****"
+        ]
+      ]
+    }
+  },
+  {
+    "maskerConfig": {
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": {
+        "maskMe": [
+          "yes",
+          "no"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "maskMe": [
+          "***",
+          "**"
+        ]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": [
+        "hello"
+      ]
+    },
+    "expectedOutput": {
+      "maskMe": [
+        "*****"
+      ]
+    }
+  },
+  {
+    "maskerConfig": {
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": {
+        "maskMe": [
+          null,
+          true,
+          123,
+          "yes",
+          "no"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "maskMe": [
+          null,
+          true,
+          123,
+          "***",
+          "**"
+        ]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "secret"
+    ],
+    "input": {
+      "secret": [
+        [],
+        null,
+        "no",
+        [
+          {
+            "secret": [
+              "no"
+            ]
+          }
+        ],
+        "yes"
+      ]
+    },
+    "expectedOutput": {
+      "secret": [
+        [],
+        null,
+        "**",
+        [
+          {
+            "secret": [
+              "**"
+            ]
+          }
+        ],
+        "***"
+      ]
+    }
+  }
+]

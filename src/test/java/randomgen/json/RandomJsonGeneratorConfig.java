@@ -20,7 +20,7 @@ public class RandomJsonGeneratorConfig {
     private final int maxObjectKeys;
     private final int maxNodeDepth;
     private final double targetKeyPercentage; // percentage of object keys which are target keys
-    private final Set<Character> stringCharacters;
+    private final Set<Character> allowedCharacters;
     private final Set<String> targetKeys;
     private final int targetJsonSizeBytes;
 
@@ -34,7 +34,7 @@ public class RandomJsonGeneratorConfig {
             int maxObjectKeys,
             int maxNodeDepth,
             double targetKeyPercentage,
-            Set<Character> stringCharacters,
+            Set<Character> allowedCharacters,
             Set<String> targetKeys,
             int targetJsonSizeBytes
     ) {
@@ -46,7 +46,7 @@ public class RandomJsonGeneratorConfig {
         this.maxObjectKeys = maxObjectKeys;
         this.maxNodeDepth = maxNodeDepth;
         this.targetKeyPercentage = targetKeyPercentage;
-        this.stringCharacters = stringCharacters;
+        this.allowedCharacters = allowedCharacters;
         this.targetKeys = targetKeys;
         this.maxStringLength = maxStringLength;
         this.targetJsonSizeBytes = targetJsonSizeBytes;
@@ -108,8 +108,8 @@ public class RandomJsonGeneratorConfig {
         return targetKeyPercentage;
     }
 
-    public Set<Character> getStringCharacters() {
-        return stringCharacters;
+    public Set<Character> getAllowedCharacters() {
+        return allowedCharacters;
     }
 
     public int getTargetJsonSizeBytes() {
@@ -130,11 +130,11 @@ public class RandomJsonGeneratorConfig {
         private int maxObjectKeys = 5;
         private int maxNodeDepth = 10;
         private double targetKeyPercentage = 0.2;
-        private Set<Character> allowedCharacters = mergeCharSets(mergeCharSets(
+        private Set<Character> allowedCharacters = mergeCharSets(
                 getPrintableAsciiCharacters(),
                 getUnicodeControlCharacters(),
                 getRandomPrintableUnicodeCharacters()
-        ));
+        );
         private Set<String> targetKeys = defaultTargetKeys;
         private int targetJsonSizeBytes = -1; // no target, random size depending on other constraints
 
@@ -183,8 +183,8 @@ public class RandomJsonGeneratorConfig {
             return this;
         }
 
-        public Builder setStringCharacters(Set<Character> stringCharacters) {
-            this.allowedCharacters = stringCharacters;
+        public Builder setAllowedCharacters(Set<Character> allowedCharacters) {
+            this.allowedCharacters = allowedCharacters;
             return this;
         }
 

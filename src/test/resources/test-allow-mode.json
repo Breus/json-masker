@@ -7,6 +7,27 @@
       "allowedKey"
     ],
     "input": {
+      "yetAnotherOne": {
+        "allowedKey": "yes"
+      },
+      "allowedKey": "someValue"
+    },
+    "expectedOutput": {
+      "yetAnotherOne": {
+        "allowedKey": "yes"
+      },
+      "allowedKey": "someValue"
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "allowedKey",
+      "alsoAllowed"
+    ],
+    "input": {
       "someKey": {
         "jsonKey": "value",
         "someKey": {
@@ -17,6 +38,17 @@
           }
         },
         "allowedKey": "someValue"
+      },
+      "alsoAllowed": {
+        "someKey": [
+          "hello",
+          null,
+          123,
+          true,
+          {
+            "stillAllowed": "yes!"
+          }
+        ]
       }
     },
     "expectedOutput": {
@@ -30,6 +62,54 @@
           }
         },
         "allowedKey": "someValue"
+      },
+      "alsoAllowed": {
+        "someKey": [
+          "hello",
+          null,
+          123,
+          true,
+          {
+            "stillAllowed": "yes!"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "jsonKey",
+      "someOtherKey",
+      "alrightLastOne",
+      "oneMoreKey"
+    ],
+    "input": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no"
+          },
+          "emptyArray": []
+        },
+        "oneMoreKey": "someValue"
+      }
+    },
+    "expectedOutput": {
+      "someKey": {
+        "jsonKey": "value",
+        "someKey": {
+          "someOtherKey": "yes!",
+          "yetAnotherOne": {
+            "alrightLastOne": "no"
+          },
+          "emptyArray": []
+        },
+        "oneMoreKey": "someValue"
       }
     }
   },
@@ -67,29 +147,74 @@
     "maskerConfig": {
       "targetKeyMode": "allow"
     },
-    "targetKeys": ["jsonKey", "someOtherKey", "alrightLastOne", "oneMoreKey"],
+    "targetKeys": [
+      "allowed"
+    ],
     "input": {
-      "someKey": {
-        "jsonKey": "value",
-        "someKey": {
-          "someOtherKey": "yes!",
-          "yetAnotherOne": {
-            "alrightLastOne": "no"
-          }
-        },
-        "oneMoreKey": "someValue"
+      "allowed": {
+        "someKey": "hello"
       }
     },
     "expectedOutput": {
-      "someKey": {
-        "jsonKey": "value",
-        "someKey": {
-          "someOtherKey": "yes!",
-          "yetAnotherOne": {
-            "alrightLastOne": "no"
-          }
-        },
-        "oneMoreKey": "someValue"
+      "allowed": {
+        "someKey": "hello"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "allowed",
+      "alsoAllowed"
+    ],
+    "input": {
+      "allowed": "hello",
+      "numberNotMasked": 12,
+      "nullNotMasked": null,
+      "booleanNotMasked": true,
+      "notAllowed": "hey",
+      "alsoAllowed": [
+        "hi",
+        "there"
+      ],
+      "notAllowedArray": [
+        "**",
+        "*****"
+      ]
+    },
+    "expectedOutput": {
+      "allowed": "hello",
+      "numberNotMasked": 12,
+      "nullNotMasked": null,
+      "booleanNotMasked": true,
+      "notAllowed": "***",
+      "alsoAllowed": [
+        "hi",
+        "there"
+      ],
+      "notAllowedArray": [
+        "**",
+        "*****"
+      ]
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "allowedKey"
+    ],
+    "input": {
+      "hello": {
+        "allowedKey": "yes"
+      }
+    },
+    "expectedOutput": {
+      "hello": {
+        "allowedKey": "yes"
       }
     }
   }

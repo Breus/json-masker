@@ -67,6 +67,10 @@ public final class JsonMaskerTestUtil {
                 if (caseSensitiveTargetKeys != null && caseSensitiveTargetKeys.booleanValue()) {
                     configBuilder.caseSensitiveTargetKeys();
                 }
+//                JsonNode objectValueMasking = maskerConfig.findValue("objectValueMasking");
+//                if (objectValueMasking != null && !objectValueMasking.asBoolean()) {
+//                    configBuilder.disableObjectValueMasking();
+//                }
             }
             JsonMaskingConfig maskingConfig = configBuilder.build();
             var input = jsonNode.get("input").toString();

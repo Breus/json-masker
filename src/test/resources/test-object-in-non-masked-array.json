@@ -1,0 +1,82 @@
+[
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": [
+        "hello",
+        123,
+        {
+          "maskMe": {
+            "hello": "hi",
+            "bye": {
+              "cya": "adios"
+            }
+          }
+        }
+      ]
+    },
+    "expectedOutput": {
+      "someKey": [
+        "hello",
+        123,
+        {
+          "maskMe": {
+            "hello": "**",
+            "bye": {
+              "cya": "*****"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": [
+        "hello",
+        123,
+        {
+          "maskMe": {
+            "hello": "hi",
+            "bye": {
+              "cya": [
+                "hello",
+                123,
+                "bye",
+                {
+                  "hello": "bye"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "expectedOutput": {
+      "someKey": [
+        "hello",
+        123,
+        {
+          "maskMe": {
+            "hello": "**",
+            "bye": {
+              "cya": [
+                "*****",
+                123,
+                "***",
+                {
+                  "hello": "***"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+]

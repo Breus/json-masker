@@ -1,0 +1,126 @@
+[
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": {
+        "array": [
+          "hey"
+        ],
+        "number": 123,
+        "number2": 321
+      }
+    },
+    "expectedOutput": {
+      "maskMe": {
+        "array": [
+          "***"
+        ],
+        "number": 123,
+        "number2": 321
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "array"
+    ],
+    "input": {
+      "maskMe": {
+        "array": [
+          "hey"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "maskMe": {
+        "array": [
+          "***"
+        ]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": "value",
+      "maskMe": {
+        "hello": "hi",
+        "bye": 123,
+        "array": [
+          "hey"
+        ]
+      }
+    },
+    "expectedOutput": {
+      "someKey": "value",
+      "maskMe": {
+        "hello": "**",
+        "bye": 123,
+        "array": [
+          "***"
+        ]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "someKey": "value",
+      "maskMe": {
+        "hello": "hi"
+      }
+    },
+    "expectedOutput": {
+      "someKey": "value",
+      "maskMe": {
+        "hello": "**"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": {
+        "hello": {
+          "bye": "cya"
+        }
+      }
+    },
+    "expectedOutput": {
+      "maskMe": {
+        "hello": {
+          "bye": "***"
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": {
+        "hello": "there",
+        "somethingElse": {
+          "key": "hi"
+        }
+      }
+    },
+    "expectedOutput": {
+      "maskMe": {
+        "hello": "*****",
+        "somethingElse": {
+          "key": "**"
+        }
+      }
+    }
+  }
+]

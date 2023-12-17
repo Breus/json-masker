@@ -1,7 +1,14 @@
 package randomgen.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BigIntegerNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.NumericNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +19,12 @@ public class RandomJsonGenerator {
     private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
     private enum NodeType {
-        arrayNode, objectNode, booleanNode, nullNode, stringNode, numberNode
+        arrayNode,
+        objectNode,
+        booleanNode,
+        nullNode,
+        stringNode,
+        numberNode
     }
 
     public RandomJsonGenerator(RandomJsonGeneratorConfig config) {
@@ -31,7 +43,8 @@ public class RandomJsonGenerator {
         } else if (config.hasTargetSize() && depth == 0) {
             // always start with an object root if generating json of certain size
             nodeType = NodeType.objectNode;
-        } else if ((depth < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode && nodeType != NodeType.arrayNode)) {
+        } else if ((depth < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode
+                && nodeType != NodeType.arrayNode)) {
             // forcefully override chance to 50% to create an object if only <33% of max node depth is reached
             if (random.nextBoolean()) {
                 nodeType = NodeType.objectNode;
@@ -120,7 +133,7 @@ public class RandomJsonGenerator {
     }
 
     private Character getRandomCharacter() {
-        Character[] characters = config.getStringCharacters().toArray(new Character[0]);
+        Character[] characters = config.getAllowedCharacters().toArray(new Character[0]);
         int randomIndex = random.nextInt(characters.length - 1);
         return characters[randomIndex];
     }

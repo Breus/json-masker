@@ -491,54 +491,5 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.incrementCurrentIndex(); // step over the closing quote
     }
 
-    public static class Trie {
-        private final TrieNode root;
-        private final boolean caseInsensitive;
 
-        public Trie(boolean caseInsensitive) {
-            this.caseInsensitive = caseInsensitive;
-            this.root = new TrieNode();
-        }
-
-        /**
-         * Inserts a word into the trie.
-         */
-        public void insert(String word) {
-            TrieNode node = root;
-            for (int i = 0; i < word.length(); i++) {
-                char c = word.charAt(i);
-                if (caseInsensitive) {
-                    c = Character.toLowerCase(c);
-                }
-                node = node.children.computeIfAbsent(c, k -> new TrieNode());
-            }
-            node.endOfWord = true;
-        }
-
-        /**
-         * Returns if the word is in the trie.
-         */
-        public boolean search(String word) {
-            TrieNode node = root;
-            for (int i = 0; i < word.length(); i++) {
-                char c = word.charAt(i);
-                if (caseInsensitive) {
-                    c = Character.toLowerCase(c);
-                }
-
-                node = node.children.get(c);
-
-                if (node == null) {
-                    return false;
-                }
-            }
-
-            return node.endOfWord;
-        }
-    }
-
-    public static class TrieNode {
-        private final Map<Character, TrieNode> children = new HashMap<>();
-        private boolean endOfWord = false;
-    }
 }

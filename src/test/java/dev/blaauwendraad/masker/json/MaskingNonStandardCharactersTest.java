@@ -10,16 +10,16 @@ class MaskingNonStandardCharactersTest {
 
     @Test
     void maskingNonStandardCharacters() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("привет", "💩"));
+        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("привіт", "💩"));
 
         Assertions.assertEquals(
                 """
                 {
-                  "привет": "*****",
+                  "привіт": "*****",
                   "otherKey": null,
                   "💩": "************",
                   "someObject": {
-                    "привет": "*****",
+                    "привіт": "*****",
                     "otherKey": null,
                     "💩": {
                         "💩": "************"
@@ -29,7 +29,7 @@ class MaskingNonStandardCharactersTest {
                     "💩",
                     "💩".
                     {
-                      "привет": "*****",
+                      "привіт": "*****",
                       "otherKey": null,
                       "💩": {
                           "💩": "************"
@@ -41,11 +41,11 @@ class MaskingNonStandardCharactersTest {
                 jsonMasker.mask(
                         """
                         {
-                          "привет": "hello",
+                          "привіт": "hello",
                           "otherKey": null,
                           "💩": "shit happens",
                           "someObject": {
-                            "привет": "hello",
+                            "привіт": "hello",
                             "otherKey": null,
                             "💩": {
                                 "💩": "shit happens"
@@ -55,7 +55,7 @@ class MaskingNonStandardCharactersTest {
                             "💩",
                             "💩".
                             {
-                              "привет": "hello",
+                              "привіт": "hello",
                               "otherKey": null,
                               "💩": {
                                   "💩": "shit happens"
@@ -71,17 +71,17 @@ class MaskingNonStandardCharactersTest {
     @Test
     void maskingNonStandardCharactersInAllowMode() {
         JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.custom(Set.of("привет", "otherKey", "someArray"), JsonMaskingConfig.TargetKeyMode.ALLOW).build()
+                JsonMaskingConfig.custom(Set.of("привіт", "otherKey", "someArray"), JsonMaskingConfig.TargetKeyMode.ALLOW).build()
         );
 
         Assertions.assertEquals(
                 """
                 {
-                  "привет": "hello",
+                  "привіт": "hello",
                   "otherKey": null,
                   "💩": "************",
                   "someObject": {
-                    "привет": "hello",
+                    "привіт": "hello",
                     "otherKey": null,
                     "💩": {
                         "💩": "************"
@@ -91,7 +91,7 @@ class MaskingNonStandardCharactersTest {
                     "💩",
                     "💩".
                     {
-                      "привет": "hello",
+                      "привіт": "hello",
                       "otherKey": null,
                       "💩": {
                           "💩": "shit happens"
@@ -103,11 +103,11 @@ class MaskingNonStandardCharactersTest {
                 jsonMasker.mask(
                         """
                         {
-                          "привет": "hello",
+                          "привіт": "hello",
                           "otherKey": null,
                           "💩": "shit happens",
                           "someObject": {
-                            "привет": "hello",
+                            "привіт": "hello",
                             "otherKey": null,
                             "💩": {
                                 "💩": "shit happens"
@@ -117,7 +117,7 @@ class MaskingNonStandardCharactersTest {
                             "💩",
                             "💩".
                             {
-                              "привет": "hello",
+                              "привіт": "hello",
                               "otherKey": null,
                               "💩": {
                                   "💩": "shit happens"

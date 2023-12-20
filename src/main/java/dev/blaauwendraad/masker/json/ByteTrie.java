@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * This Trie structure is used as look-up optimization for JSON keys in the target key set.
  * <p>
- *
+ * <p>
  * The main idea is that we need to know whether a JSON key is in the target key set, one could do a contains on
  * the hash set, which would compute a hashcode for the whole key before doing a "fast" lookup. Another option would be
  * to iterate over target keys and compare characters one by one for each key, given that in reality most keys would
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
  *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every incoming key</li>
  * </ul>
  *
- * <p> For masking, we only care whether the key matched or not, so we can use a Trie structure to optimize the lookups.
+ * <p> For masking, we only care whether the key matched or not, so we can use a Trie structure to optimize the look-ups.
  * <p> Further we can construct a Trie that is case-insensitive, so that for we can avoid any transformations on
  * the incoming keys.
  * <p> We can also make a Trie that looks at bytes instead of characters, so that we can use the bytes and offsets
@@ -29,9 +29,10 @@ import java.nio.charset.StandardCharsets;
  * we can fail fast if the incoming key is not of the same length.
  */
 final class ByteTrie {
+    private static final int MAX_BYTE_SIZE = 128;
     private final TrieNode root;
     private final boolean caseInsensitive;
-    private final boolean[] knownByteLengths = new boolean[256];
+    private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
 
     public ByteTrie(boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
@@ -66,10 +67,10 @@ final class ByteTrie {
         TrieNode node = root;
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
-            TrieNode child = node.children[b + 128];
+            TrieNode child = node.children[b + MAX_BYTE_SIZE];
             if (child == null) {
                 child = new TrieNode();
-                node.children[b + 128] = child;
+                node.children[b + MAX_BYTE_SIZE] = child;
                 if (caseInsensitive) {
                     /*
                       when case-insensitive we need to keep track of siblings to be able to find the correct node
@@ -83,8 +84,8 @@ final class ByteTrie {
                         1. Locale issues (see String#equalsIgnoreCase)
                         2. So we don't have to convert when searching
                      */
-                    node.children[lowerBytes[i] + 128] = child;
-                    node.children[upperBytes[i] + 128] = child;
+                    node.children[lowerBytes[i] + MAX_BYTE_SIZE] = child;
+                    node.children[upperBytes[i] + MAX_BYTE_SIZE] = child;
                 }
             }
             node = child;
@@ -103,7 +104,7 @@ final class ByteTrie {
 
         for (int i = offset; i < offset + length; i++) {
             int b = bytes[i];
-            node = node.children[b + 128];
+            node = node.children[b + MAX_BYTE_SIZE];
 
             if (node == null) {
                 return false;
@@ -114,8 +115,9 @@ final class ByteTrie {
     }
 
     /**
-     * A node in the Trie, represents part of the character (if character is ASCII, then represents a single character)
-     * has a padded by 128 children array to store reference to the next positive and negative bytes.
+     * A node in the Trie, represents part of the character (if character is ASCII, then represents a single character).
+     * A padding of 128 is used to store references to the next positive and negative bytes (which range from -128 to
+     * 128, hence the padding).
      */
     private static class TrieNode {
         private final TrieNode[] children = new TrieNode[256];

@@ -20,14 +20,18 @@ final class ByteTrieTest {
         }
         for (String someKey : someKeys) {
             Assertions.assertTrue(transformToBytesAndSearch(trie, someKey));
+            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey));
         }
         for (String someKey : someKeys) {
             Assertions.assertTrue(transformToBytesAndSearch(trie, someKey.toLowerCase(Locale.ROOT)));
+            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey.toLowerCase(Locale.ROOT)));
         }
         for (String someKey : someKeys) {
             Assertions.assertTrue(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
+            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
         }
         Assertions.assertFalse(transformToBytesAndSearch(trie, "notAKey"));
+        Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, "notAKey"));
     }
 
     @Test
@@ -38,15 +42,24 @@ final class ByteTrieTest {
         }
         for (String someKey : someKeys) {
             Assertions.assertTrue(transformToBytesAndSearch(trie, someKey));
+            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey));
         }
         for (String someKey : someKeys) {
             Assertions.assertFalse(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
+            Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
         }
         Assertions.assertFalse(transformToBytesAndSearch(trie, "notAKey"));
+        Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, "notAKey"));
     }
 
     private boolean transformToBytesAndSearch(ByteTrie trie, String key) {
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
         return trie.search(bytes, 0, bytes.length);
+    }
+
+    private boolean transformToBytesWithPaddingAndSearch(ByteTrie trie, String key) {
+        // searching by offsets
+        byte[] bytes = ("{\"" + key + "\": \"some value\"}\"").getBytes(StandardCharsets.UTF_8);
+        return trie.search(bytes, 2, key.getBytes(StandardCharsets.UTF_8).length);
     }
 }

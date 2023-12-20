@@ -140,15 +140,15 @@ public final class KeyContainsMasker implements JsonMasker {
              * Now let's mask the value.
              */
             if (AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndex())) {
-                maskArrayValueInPlace(maskingState, maskingConfig);
+                maskArrayValueInPlace(maskingState);
             } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
-                maskObjectValueInPlace(maskingState, maskingConfig);
+                maskObjectValueInPlace(maskingState);
             } else if (maskingConfig.isNumberMaskingEnabled()
                     && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
-                maskNumberValueInPlace(maskingState, maskingConfig);
+                maskNumberValueInPlace(maskingState);
             } else {
                 // This block deals with masking strings target values.
-                maskStringValueInPlace(maskingState, maskingConfig);
+                maskStringValueInPlace(maskingState);
             }
         }
         return maskingState.getMessage();
@@ -202,7 +202,7 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param maskingState the current masking state where for which the current index must correspond to the opening
      *                     quote of the string value in the input array of the current index
      */
-    private static void maskStringValueInPlace(MaskingState maskingState, JsonMaskingConfig maskingConfig) {
+    private void maskStringValueInPlace(MaskingState maskingState) {
         maskingState.incrementCurrentIndex(); // step over the string value opening quote
         int targetValueLength = 0;
         int noOfEscapeCharacters = 0;
@@ -286,7 +286,7 @@ public final class KeyContainsMasker implements JsonMasker {
      *
      * @param maskingState the current masking state in which the array will be masked
      */
-    private static void maskArrayValueInPlace(MaskingState maskingState, JsonMaskingConfig maskingConfig) {
+    private void maskArrayValueInPlace(MaskingState maskingState) {
         // This block deals with masking arrays
         int arrayDepth = 1;
         maskingState.incrementCurrentIndex(); // step over array opening square bracket
@@ -299,12 +299,12 @@ public final class KeyContainsMasker implements JsonMasker {
                 arrayDepth--;
                 maskingState.incrementCurrentIndex(); // step over closing bracket
             } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-                maskStringValueInPlace(maskingState, maskingConfig); // mask string and step over it
+                maskStringValueInPlace(maskingState); // mask string and step over it
             } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
                     && maskingConfig.isNumberMaskingEnabled()) {
-                maskNumberValueInPlace(maskingState, maskingConfig);
+                maskNumberValueInPlace(maskingState);
             } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
-                maskObjectValueInPlace(maskingState, maskingConfig);
+                maskObjectValueInPlace(maskingState);
             } else {
                 // non-maskable values
                 skipAllValues(maskingState);
@@ -321,15 +321,14 @@ public final class KeyContainsMasker implements JsonMasker {
      * Masks all values (depending on the {@link JsonMaskingConfig} in the object.
      *
      * @param maskingState  the current masking state
-     * @param maskingConfig the masking configuration
      */
-    private static void maskObjectValueInPlace(MaskingState maskingState, JsonMaskingConfig maskingConfig) {
+    private void maskObjectValueInPlace(MaskingState maskingState) {
         maskingState.incrementCurrentIndex(); // step over opening curly bracket
         skipWhitespaceCharacters(maskingState);
         while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
             boolean valueMustBeMasked = true;
             // step over the JSON key closing quote
-            if (maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW) {
+            if (allowMode) {
                 // In case target keys should be considered as allow list, we need to NOT mask certain keys
                 int openingQuoteIndex = maskingState.currentIndex();
                 maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
@@ -344,13 +343,7 @@ public final class KeyContainsMasker implements JsonMasker {
                         /* plus one for the opening quote */, keyLength,
                         StandardCharsets.UTF_8
                 );
-                if (!maskingConfig.caseSensitiveTargetKeys()) {
-                    key = key.toLowerCase();
-                }
-                if (maskingConfig.getTargetKeys().contains(key)) {
-                    // the value belongs to an allowed target key, the value must be skipped.
-                    valueMustBeMasked = false;
-                }
+                valueMustBeMasked = !targetKeysTrie.search(key);
             } else {
                 maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
                 while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
@@ -363,14 +356,14 @@ public final class KeyContainsMasker implements JsonMasker {
             skipWhitespaceCharacters(maskingState);
             if (valueMustBeMasked) {
                 if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
-                    maskArrayValueInPlace(maskingState, maskingConfig);
+                    maskArrayValueInPlace(maskingState);
                 } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-                    maskStringValueInPlace(maskingState, maskingConfig); // mask string and step over it
+                    maskStringValueInPlace(maskingState); // mask string and step over it
                 } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
                         && maskingConfig.isNumberMaskingEnabled()) {
-                    maskNumberValueInPlace(maskingState, maskingConfig);
+                    maskNumberValueInPlace(maskingState);
                 } else if (AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
-                    maskObjectValueInPlace(maskingState, maskingConfig);
+                    maskObjectValueInPlace(maskingState);
                 } else {
                     while (!AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())
                             && !AsciiCharacter.isCurlyBracketClose(
@@ -390,7 +383,7 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.incrementCurrentIndex(); // step over closing curly bracket
     }
 
-    private static void maskNumberValueInPlace(MaskingState maskingState, JsonMaskingConfig maskingConfig) {
+    private void maskNumberValueInPlace(MaskingState maskingState) {
         int obfuscationLength = maskingConfig.getObfuscationLength();
         // This block deals with numeric values
         int targetValueLength = 0;

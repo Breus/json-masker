@@ -507,10 +507,28 @@ public final class KeyContainsMasker implements JsonMasker {
             TrieNode node = root;
             for (int i = 0; i < word.length(); i++) {
                 char c = word.charAt(i);
-                if (caseInsensitive) {
-                    c = Character.toLowerCase(c);
+                TrieNode child = node.children.get(c);
+                if (child == null) {
+                    child = new TrieNode();
+                    node.children.put(c, child);
+                    if (caseInsensitive) {
+                        /*
+                          when case-insensitive we need to keep track of siblings to be able to find the correct node
+                          so that we have this structure:
+                          <p>
+                          (h | H) -> (e | E) -> (l | L) -> (l | L) -> (o | O)
+                          <p>
+                          and we can travel the tree forward and sideways
+
+                          Also using both toLowerCase and toUpperCase due to
+                            1. Locale issues (see String#equalsIgnoreCase)
+                            2. So we don't have to convert when searching
+                         */
+                        node.children.put(Character.toLowerCase(c), child);
+                        node.children.put(Character.toUpperCase(c), child);
+                    }
                 }
-                node = node.children.computeIfAbsent(c, k -> new TrieNode());
+                node = child;
             }
             node.endOfWord = true;
         }
@@ -522,10 +540,6 @@ public final class KeyContainsMasker implements JsonMasker {
             TrieNode node = root;
             for (int i = 0; i < word.length(); i++) {
                 char c = word.charAt(i);
-                if (caseInsensitive) {
-                    c = Character.toLowerCase(c);
-                }
-
                 node = node.children.get(c);
 
                 if (node == null) {

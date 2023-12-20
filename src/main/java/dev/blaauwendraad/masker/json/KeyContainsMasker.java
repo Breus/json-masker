@@ -6,10 +6,6 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
 
@@ -28,7 +24,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
 
-    private final Trie targetKeysTrie;
+    private final ByteTrie targetKeysTrie;
     private final boolean allowMode;
     private final JsonMaskingConfig maskingConfig;
 
@@ -40,7 +36,7 @@ public final class KeyContainsMasker implements JsonMasker {
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.allowMode = maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW;
         this.maskingConfig = maskingConfig;
-        this.targetKeysTrie = new Trie(!maskingConfig.caseSensitiveTargetKeys());
+        this.targetKeysTrie = new ByteTrie(!maskingConfig.caseSensitiveTargetKeys());
         for (String key : maskingConfig.getTargetKeys()) {
             this.targetKeysTrie.insert(key);
         }
@@ -120,13 +116,11 @@ public final class KeyContainsMasker implements JsonMasker {
              * or object. Now let's verify the found JSON key is a target key.
              */
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
-            String key = new String(
+            boolean keyMatched = targetKeysTrie.search(
                     maskingState.getMessage(),
-                    openingQuoteIndex + 1 /* plus one for the opening quote */,
-                    keyLength,
-                    StandardCharsets.UTF_8
+                    openingQuoteIndex + 1, // plus one for the opening quote
+                    keyLength
             );
-            boolean keyMatched = targetKeysTrie.search(key);
             if (allowMode && keyMatched) {
                 skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
                 continue;
@@ -337,13 +331,11 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
                 int closingQuoteIndex = maskingState.currentIndex();
                 int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
-                String key = new String(
+                valueMustBeMasked = !targetKeysTrie.search(
                         maskingState.getMessage(),
-                        openingQuoteIndex + 1
-                        /* plus one for the opening quote */, keyLength,
-                        StandardCharsets.UTF_8
+                        openingQuoteIndex + 1, // plus one for the opening quote
+                        keyLength
                 );
-                valueMustBeMasked = !targetKeysTrie.search(key);
             } else {
                 maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
                 while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
@@ -486,6 +478,4 @@ public final class KeyContainsMasker implements JsonMasker {
         }
         maskingState.incrementCurrentIndex(); // step over the closing quote
     }
-
-
 }

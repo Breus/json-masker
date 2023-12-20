@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
 
@@ -96,22 +97,25 @@ public class RandomJsonGeneratorTest {
     @Test
     @Disabled
     void profileMasker() {
-        int targetJsonSizeBytes = 1024 * 1024;
-        RandomJsonGenerator randomJsonGenerator =
-                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                .setAllowedCharacters(getPrintableAsciiCharacters())
-                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
-                                                .createConfig());
+        int targetJsonSizeBytes = 10 * 1024 * 1024;
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setAllowedCharacters(
+                                getPrintableAsciiCharacters().stream().filter(c -> c != '"').collect(Collectors.toSet())
+                        )
+                        .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                        .createConfig()
+        );
 
         JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
-        var json = randomJsonNode.toString();
+        var json = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8);
 
         JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4"));
 
         int size = 0;
         for (int i = 0; i < 500; i++) {
-            size += jsonMasker.mask(json).length();
+            size += jsonMasker.mask(json).length;
         }
 
         System.out.println(size);

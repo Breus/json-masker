@@ -6,6 +6,7 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,7 +123,8 @@ public final class KeyContainsMasker implements JsonMasker {
             String key = new String(
                     maskingState.getMessage(),
                     openingQuoteIndex + 1 /* plus one for the opening quote */,
-                    keyLength
+                    keyLength,
+                    StandardCharsets.UTF_8
             );
             boolean keyMatched = targetKeysTrie.search(key);
             if (allowMode && keyMatched) {
@@ -339,7 +341,8 @@ public final class KeyContainsMasker implements JsonMasker {
                 String key = new String(
                         maskingState.getMessage(),
                         openingQuoteIndex + 1
-                        /* plus one for the opening quote */, keyLength
+                        /* plus one for the opening quote */, keyLength,
+                        StandardCharsets.UTF_8
                 );
                 if (!maskingConfig.caseSensitiveTargetKeys()) {
                     key = key.toLowerCase();

@@ -142,7 +142,6 @@ jmh {
             "maskedKeyProbability": rootProject.objects.listProperty(String).value(["0.01"]),
             "obfuscationLength"   : rootProject.objects.listProperty(String).value(["none"])
         ]
-        includes = ['.*JsonMaskerBenchmark.jsonMasker.*']
         iterations = 4
     }
     // if you have async profiler installed, you can uncomment this to get a flamegraphs

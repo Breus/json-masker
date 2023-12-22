@@ -14,10 +14,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 @ParametersAreNonnullByDefault
 final class NoFailingExecutionFuzzingTest {
     private static final Duration DEFAULT_TEST_INSTANCE_DURATION = Duration.ofSeconds(2);
+    private static final Duration JSON_MASKING_TIMEOUT = Duration.ofMillis(500);
 
     @ParameterizedTest
     @MethodSource("failureFuzzingConfigurations")
@@ -43,13 +44,12 @@ final class NoFailingExecutionFuzzingTest {
         Instant startTime = Instant.now();
         AtomicInteger randomTestsExecuted = new AtomicInteger();
         AtomicReference<String> lastExecutedJson = new AtomicReference<>();
-        AtomicBoolean testGotStuck = new AtomicBoolean(false);
-        ExecutorService threadPoolExecutor = Executors.newSingleThreadExecutor();
-        threadPoolExecutor.execute(() -> {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        CompletableFuture<Void> backgroundTest = CompletableFuture.runAsync(() -> {
             while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
                 KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
                 RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                                                          .createConfig());
+                        .createConfig());
                 JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
                 String jsonString = randomJsonNode.toPrettyString();
                 lastExecutedJson.set(jsonString);
@@ -59,24 +59,39 @@ final class NoFailingExecutionFuzzingTest {
                 );
                 randomTestsExecuted.incrementAndGet();
             }
-        });
+        }, executor);
         int lastCheckedNumberOfTests = 0;
         while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(JSON_MASKING_TIMEOUT.toMillis());
+                if (backgroundTest.isCompletedExceptionally()) {
+                    // test got completed exceptionally before the timeout, fail fast here as we're not supposed to get any exceptions
+                    executor.shutdownNow();
+                    Assertions.fail(String.format(
+                            "The test was completed with exception after executing %d test when the following JSON was being processed: \n %s",
+                            randomTestsExecuted.get(),
+                            lastExecutedJson
+                    ));
+                }
                 int currentNumberOfExecutedTests = randomTestsExecuted.get();
                 if (currentNumberOfExecutedTests == lastCheckedNumberOfTests) {
-                    // This means the masker didn't mask any message in the past 50 milliseconds and is most likely stuck
-                    testGotStuck.set(true);
+                    // This means the masker didn't mask any message in the past 500 milliseconds and is most likely stuck
+                    break;
                 }
                 lastCheckedNumberOfTests = currentNumberOfExecutedTests;
             } catch (InterruptedException e) {
-                threadPoolExecutor.shutdownNow();
-                throw new RuntimeException(e);
+                executor.shutdownNow();
+                Assertions.fail(String.format(
+                        "The test was interrupted after executing %d test when the following JSON was being processed: \n %s",
+                        randomTestsExecuted.get(),
+                        lastExecutedJson
+                ));
             }
         }
-        threadPoolExecutor.awaitTermination(durationToRunEachTest.getSeconds(), TimeUnit.SECONDS);
-        if (testGotStuck.get()) {
+        executor.shutdown();
+        // wait for no longer than timeout for the last execution to terminate
+        if (!executor.awaitTermination(JSON_MASKING_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
+            executor.shutdownNow();
             Assertions.fail(String.format(
                     "The test got stuck after executing %d test when the following JSON was being processed: \n %s",
                     randomTestsExecuted.get(),

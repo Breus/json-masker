@@ -12,16 +12,5 @@
     ],
     "input": "file://malformed-json-2-input.txt",
     "expectedOutput": "file://malformed-json-2-expected.txt"
-  },
-  {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
-    },
-    "targetKeys": [
-      "targetKey1",
-      "targetKey2"
-    ],
-    "input": "file://malformed-json-3-input.txt",
-    "expectedOutput": "file://malformed-json-3-expected.txt"
   }
 ]

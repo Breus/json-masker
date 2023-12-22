@@ -12,11 +12,11 @@ import randomgen.json.RandomJsonGeneratorConfig;
 import java.util.Set;
 
 //TODO
-@Disabled("Have to implement objecta and array masking first in the Jackson masker")
+@Disabled("Have to implement object and array masking first in the Jackson masker")
 final class FuzzingTest {
     private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 10;
 
-    @ValueSource(ints = {SECONDS_FOR_EACH_TEST_TO_RUN})
+    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
         // duration in seconds the tests runs for
     void fuzzing_NoArrayNoObjectValueMasking(int secondsToRunTest) {
         long startTime = System.currentTimeMillis();
@@ -52,7 +52,7 @@ final class FuzzingTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {SECONDS_FOR_EACH_TEST_TO_RUN})
+    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
         // duration in seconds the tests runs for
     void fuzzing_AllowKeys_NoObjectArrayValuesMasking(int secondsToRunTest) {
         long startTime = System.currentTimeMillis();

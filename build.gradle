@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
-    id 'com.adarshr.test-logger' version '4.0.0'
+//    id 'com.adarshr.test-logger' version '4.0.0'
 }
 
 compileJava { options.encoding = "UTF-8" }
@@ -138,9 +138,9 @@ jmh {
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
         benchmarkParameters = [
-            "jsonSize"            : rootProject.objects.listProperty(String).value(["128kb"]),
-            "maskedKeyProbability": rootProject.objects.listProperty(String).value(["0.01"]),
-            "obfuscationLength"   : rootProject.objects.listProperty(String).value(["none"])
+                "jsonSize"            : rootProject.objects.listProperty(String).value(["128kb"]),
+                "maskedKeyProbability": rootProject.objects.listProperty(String).value(["0.01"]),
+                "obfuscationLength"   : rootProject.objects.listProperty(String).value(["none"])
         ]
         iterations = 4
     }

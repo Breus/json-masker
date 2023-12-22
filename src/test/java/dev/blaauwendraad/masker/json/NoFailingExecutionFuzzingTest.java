@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -60,13 +61,12 @@ final class NoFailingExecutionFuzzingTest {
                 randomTestsExecuted.incrementAndGet();
             }
         }, executor);
-        int lastCheckedNumberOfTests = 0;
-        while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
-            try {
+        try {
+            int lastCheckedNumberOfTests = 0;
+            while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
                 Thread.sleep(JSON_MASKING_TIMEOUT.toMillis());
                 if (backgroundTest.isCompletedExceptionally()) {
                     // test got completed exceptionally before the timeout, fail fast here as we're not supposed to get any exceptions
-                    executor.shutdownNow();
                     Assertions.fail(String.format(
                             "The test was completed with exception after executing %d test when the following JSON was being processed: \n %s",
                             randomTestsExecuted.get(),
@@ -75,28 +75,22 @@ final class NoFailingExecutionFuzzingTest {
                 }
                 int currentNumberOfExecutedTests = randomTestsExecuted.get();
                 if (currentNumberOfExecutedTests == lastCheckedNumberOfTests) {
-                    // This means the masker didn't mask any message in the past 500 milliseconds and is most likely stuck
-                    break;
+                    Assertions.fail(String.format(
+                            "The test got stuck after executing %d test when the following JSON was being processed: \n %s",
+                            randomTestsExecuted.get(),
+                            lastExecutedJson
+                    ));
                 }
                 lastCheckedNumberOfTests = currentNumberOfExecutedTests;
-            } catch (InterruptedException e) {
-                executor.shutdownNow();
-                Assertions.fail(String.format(
-                        "The test was interrupted after executing %d test when the following JSON was being processed: \n %s",
-                        randomTestsExecuted.get(),
-                        lastExecutedJson
-                ));
             }
-        }
-        executor.shutdown();
-        // wait for no longer than timeout for the last execution to terminate
-        if (!executor.awaitTermination(JSON_MASKING_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
-            executor.shutdownNow();
+        } catch (InterruptedException e) {
             Assertions.fail(String.format(
-                    "The test got stuck after executing %d test when the following JSON was being processed: \n %s",
+                    "The test was interrupted after executing %d test when the following JSON was being processed: \n %s",
                     randomTestsExecuted.get(),
                     lastExecutedJson
             ));
+        } finally {
+            executor.shutdownNow();
         }
         System.out.printf(
                 "Successfully executed %d randomly generated test scenarios in %d seconds. ",

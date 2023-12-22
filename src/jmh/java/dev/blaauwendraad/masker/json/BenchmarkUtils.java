@@ -1,6 +1,15 @@
 package dev.blaauwendraad.masker.json;
 
+import randomgen.json.RandomJsonGenerator;
+import randomgen.json.RandomJsonGeneratorConfig;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static randomgen.json.JsonStringCharacters.*;
+import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
 
 public class BenchmarkUtils {
 
@@ -24,5 +33,37 @@ public class BenchmarkUtils {
                 throw new IllegalArgumentException("Invalid size param: " + size);
         }
         return sizeBytes;
+    }
+
+    public static Set<String> getTargetKeys(int count) {
+        Set<String> targetKeys = new HashSet<>();
+        for (int i = 0; i < count; i++) {
+            targetKeys.add("someSecret" + i);
+        }
+        return targetKeys;
+    }
+
+    public static String randomJson(Set<String> targetKeys, String jsonSize, String characters, double targetKeyPercentage) {
+        Set<Character> allowedCharacters = switch (characters) {
+            case "ascii (no quote)" -> getPrintableAsciiCharacters()
+                        .stream()
+                        .filter(c -> c != '"')
+                        .collect(Collectors.toSet());
+            case "ascii" -> getPrintableAsciiCharacters();
+            case "unicode" -> mergeCharSets(
+                    getPrintableAsciiCharacters(),
+                    getUnicodeControlCharacters(),
+                    getRandomPrintableUnicodeCharacters()
+            );
+            default -> throw new IllegalArgumentException("Invalid characters param: " + characters + ", must be one of: 'ascii (no quote)', 'ascii', 'unicode'");
+        };
+        RandomJsonGeneratorConfig config = RandomJsonGeneratorConfig.builder()
+                .setAllowedCharacters(allowedCharacters)
+                .setTargetKeys(targetKeys)
+                .setTargetKeyPercentage(targetKeyPercentage)
+                .setTargetJsonSizeBytes(BenchmarkUtils.parseSize(jsonSize))
+                .createConfig();
+
+        return new RandomJsonGenerator(config).createRandomJsonNode().toString();
     }
 }

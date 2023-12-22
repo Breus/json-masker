@@ -67,11 +67,8 @@ final class NoFailingExecutionFuzzingTest {
                 Thread.sleep(JSON_MASKING_TIMEOUT.toMillis());
                 if (backgroundTest.isCompletedExceptionally()) {
                     // test got completed exceptionally before the timeout, fail fast here as we're not supposed to get any exceptions
-                    Assertions.fail(String.format(
-                            "The test was completed with exception after executing %d test when the following JSON was being processed: \n %s",
-                            randomTestsExecuted.get(),
-                            lastExecutedJson
-                    ));
+                    // joining to rethrow the underlying exception
+                    backgroundTest.join();
                 }
                 int currentNumberOfExecutedTests = randomTestsExecuted.get();
                 if (currentNumberOfExecutedTests == lastCheckedNumberOfTests) {

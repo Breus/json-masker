@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json.config;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Contains the JSON masker configurations.
@@ -38,15 +37,11 @@ public class JsonMaskingConfig {
         algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         obfuscationLength = builder.obfuscationLength;
         targetKeyMode = builder.targetKeyMode;
-        Set<String> targets = builder.targets;
-        if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
+        targetKeys = builder.targets;
+        if (targetKeyMode == TargetKeyMode.MASK && targetKeys.isEmpty()) {
             throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
         }
         caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
-        if (!caseSensitiveTargetKeys) {
-            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
-        }
-        targetKeys = targets;
         maskNumericValuesWith = builder.maskNumberValuesWith;
         if (builder.maskNumberValuesWith == 0) {
             if (builder.obfuscationLength < 0 || builder.obfuscationLength > 1) {

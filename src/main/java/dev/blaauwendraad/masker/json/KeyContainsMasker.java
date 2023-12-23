@@ -38,7 +38,11 @@ public final class KeyContainsMasker implements JsonMasker {
         this.maskingConfig = maskingConfig;
         this.targetKeysTrie = new ByteTrie(!maskingConfig.caseSensitiveTargetKeys());
         for (String key : maskingConfig.getTargetKeys()) {
-            this.targetKeysTrie.insert(key);
+            if (maskingConfig.caseSensitiveTargetKeys()) {
+                this.targetKeysTrie.insert(key);
+            } else {
+                this.targetKeysTrie.insert(key.toLowerCase());
+            }
         }
     }
 
@@ -314,7 +318,7 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Masks all values (depending on the {@link JsonMaskingConfig} in the object.
      *
-     * @param maskingState  the current masking state
+     * @param maskingState the current masking state
      */
     private void maskObjectValueInPlace(MaskingState maskingState) {
         maskingState.incrementCurrentIndex(); // step over opening curly bracket

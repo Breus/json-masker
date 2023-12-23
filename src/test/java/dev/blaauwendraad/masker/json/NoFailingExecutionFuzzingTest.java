@@ -17,8 +17,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -32,16 +30,15 @@ import java.util.stream.Stream;
  */
 @ParametersAreNonnullByDefault
 final class NoFailingExecutionFuzzingTest {
-    private static final Duration DEFAULT_TEST_INSTANCE_DURATION = Duration.ofSeconds(2);
+    private static final Duration DEFAULT_TEST_INSTANCE_DURATION = Duration.ofSeconds(4);
     private static final Duration JSON_MASKING_TIMEOUT = Duration.ofMillis(500);
 
     @ParameterizedTest
     @MethodSource("failureFuzzingConfigurations")
         // duration in seconds the tests runs for
-    void defaultJsonMasker(JsonMaskingConfig jsonMaskingConfig, Duration durationToRunEachTest)
-            throws InterruptedException {
-        System.out.println("Running tests with the following JSON masking configuration: \n%s\n".formatted(
-                jsonMaskingConfig.toString()));
+    void defaultJsonMasker(JsonMaskingConfig jsonMaskingConfig, Duration durationToRunEachTest) {
+        System.out.printf(
+                "Running tests with the following JSON masking configuration: \n%s\n%n", jsonMaskingConfig);
         Instant startTime = Instant.now();
         AtomicInteger randomTestsExecuted = new AtomicInteger();
         AtomicReference<String> lastExecutedJson = new AtomicReference<>();
@@ -50,7 +47,7 @@ final class NoFailingExecutionFuzzingTest {
             while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
                 KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
                 RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                        .createConfig());
+                                                                                          .createConfig());
                 JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
                 String jsonString = randomJsonNode.toPrettyString();
                 lastExecutedJson.set(jsonString);
@@ -100,52 +97,31 @@ final class NoFailingExecutionFuzzingTest {
     private static Stream<Arguments> failureFuzzingConfigurations() {
         Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
         return Stream.of(
-//                Arguments.of(
-//                        JsonMaskingConfig.getDefault(targetKeys), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .caseSensitiveTargetKeys().build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .maskNumericValuesWith(1)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .obfuscationLength(1)
-//                                .maskNumericValuesWith(1)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .obfuscationLength(2)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.getDefault(targetKeys), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .caseSensitiveTargetKeys().build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .maskNumericValuesWith(1)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .obfuscationLength(1)
-//                                .maskNumericValuesWith(1)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
-//                Arguments.of(
-//                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-//                                .obfuscationLength(2)
-//                                .build(), DEFAULT_TEST_INSTANCE_DURATION
-//                ),
+                // Mask mode
+                Arguments.of(
+                        JsonMaskingConfig.getDefault(targetKeys), DEFAULT_TEST_INSTANCE_DURATION
+                ),
+                Arguments.of(
+                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                                .caseSensitiveTargetKeys().build(), DEFAULT_TEST_INSTANCE_DURATION
+                ),
+                Arguments.of(
+                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                                .maskNumericValuesWith(1)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION
+                ),
+                Arguments.of(
+                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                                .obfuscationLength(1)
+                                .maskNumericValuesWith(1)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION
+                ),
+                Arguments.of(
+                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                                .obfuscationLength(2)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION
+                ),
+                // Allow mode
                 Arguments.of(
                         JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW).build(),
                         DEFAULT_TEST_INSTANCE_DURATION
@@ -163,7 +139,6 @@ final class NoFailingExecutionFuzzingTest {
                 Arguments.of(JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW)
                                      .obfuscationLength(2)
                                      .build(), DEFAULT_TEST_INSTANCE_DURATION)
-
         );
     }
 }

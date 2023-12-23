@@ -138,9 +138,9 @@ jmh {
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
         benchmarkParameters = [
-            "jsonSize"            : rootProject.objects.listProperty(String).value(["128kb"]),
-            "maskedKeyProbability": rootProject.objects.listProperty(String).value(["0.01"]),
-            "obfuscationLength"   : rootProject.objects.listProperty(String).value(["none"])
+                "jsonSize"            : rootProject.objects.listProperty(String).value(["128kb"]),
+                "maskedKeyProbability": rootProject.objects.listProperty(String).value(["0.01"]),
+                "obfuscationLength"   : rootProject.objects.listProperty(String).value(["none"])
         ]
         iterations = 4
     }

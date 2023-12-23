@@ -321,7 +321,6 @@ public final class KeyContainsMasker implements JsonMasker {
         skipWhitespaceCharacters(maskingState);
         while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
             boolean valueMustBeMasked = true;
-            // step over the JSON key closing quote
             if (allowMode) {
                 // In case target keys should be considered as allow list, we need to NOT mask certain keys
                 int openingQuoteIndex = maskingState.currentIndex();
@@ -456,7 +455,7 @@ public final class KeyContainsMasker implements JsonMasker {
         } else if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) { // array
             maskingState.incrementCurrentIndex(); // step over opening square bracket
             // We need to specifically skip strings to not consider square brackets which are part of a string
-            while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+            while (!AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
                     skipStringValue(maskingState);
                 } else {

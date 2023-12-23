@@ -202,7 +202,6 @@ public class JsonMaskingConfig {
             return this;
         }
 
-
         /**
          * Creates a new {@link JsonMaskingConfig} instance.
          *
@@ -227,5 +226,17 @@ public class JsonMaskingConfig {
          * masked.
          */
         MASK
+    }
+
+    @Override
+    public String toString() {
+        return "JsonMaskingConfig{" +
+                "targetKeys=" + targetKeys +
+                ", targetKeyMode=" + targetKeyMode +
+                ", algorithmType=" + algorithmType +
+                ", maskNumericValuesWith=" + maskNumericValuesWith +
+                ", obfuscationLength=" + obfuscationLength +
+                ", caseSensitiveTargetKeys=" + caseSensitiveTargetKeys +
+                '}';
     }
 }

@@ -122,5 +122,42 @@
         }
       }
     }
+  },
+  {
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": {
+        "hello": []
+      },
+      "somethingElse": []
+    },
+    "expectedOutput": {
+      "maskMe": {
+        "hello": []
+      },
+      "somethingElse": []
+    }
+  },
+  {
+    "targetKeys": [
+      "dontMaskMe"
+    ],
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "input": {
+      "hello": {
+        "dontMaskMe": []
+      },
+      "dontMaskMe": []
+    },
+    "expectedOutput": {
+      "hello": {
+        "dontMaskMe": []
+      },
+      "dontMaskMe": []
+    }
   }
 ]

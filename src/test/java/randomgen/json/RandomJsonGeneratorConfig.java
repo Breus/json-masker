@@ -121,14 +121,14 @@ public class RandomJsonGeneratorConfig {
     }
 
     public static class Builder {
-        private int maxArraySize = 10;
+        private int maxArraySize = 3;
         private float maxFloat = Float.MAX_VALUE;
         private double maxDouble = Double.MAX_VALUE;
         private long maxLong = Long.MAX_VALUE; // because we already have long, we don't add byte, short and int
         private BigInteger maxBigInt = BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.valueOf(Long.MAX_VALUE));
-        private int maxStringLength = 30;
+        private int maxStringLength = 4;
         private int maxObjectKeys = 5;
-        private int maxNodeDepth = 10;
+        private int maxNodeDepth = 3;
         private double targetKeyPercentage = 0.2;
         private Set<Character> allowedCharacters = mergeCharSets(
                 getPrintableAsciiCharacters(),

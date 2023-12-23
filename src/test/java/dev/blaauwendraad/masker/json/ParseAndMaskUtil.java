@@ -35,7 +35,7 @@ public final class ParseAndMaskUtil {
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
                     key -> {
-                        if (targetKeys.contains(key)) {
+                        if (jsonMaskingConfig.isInMaskMode() && targetKeys.contains(key)) {
                             objectNode.replace(key, maskJsonValue(objectNode.get(key), targetKeys));
                         } else {
                             mask(jsonNode.get(key), jsonMaskingConfig);

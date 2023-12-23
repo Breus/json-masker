@@ -223,6 +223,26 @@ public class JsonMaskingConfig {
         MASK
     }
 
+    /**
+     * Checks if the target key mode is set to "ALLOW". If the mode is set to "ALLOW", it means that the target keys are
+     * interpreted as the only JSON keys for which the corresponding property is allowed (should not be masked).
+     *
+     * @return true if the target key mode is set to "ALLOW", false otherwise
+     */
+    public boolean isInAllowMode() {
+        return targetKeyMode == TargetKeyMode.ALLOW;
+    }
+
+    /**
+     * Checks if the target key mode is set to "MASK". If the mode is set to "MASK", it means that the properties
+     * corresponding to the target keys should be masked.
+     *
+     * @return true if the current target key mode is in "MASK" mode, false otherwise
+     */
+    public boolean isInMaskMode() {
+        return targetKeyMode == TargetKeyMode.MASK;
+    }
+
     @Override
     public String toString() {
         return "JsonMaskingConfig{" +

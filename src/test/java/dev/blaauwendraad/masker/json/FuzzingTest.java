@@ -4,38 +4,36 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import randomgen.json.RandomJsonGenerator;
 import randomgen.json.RandomJsonGeneratorConfig;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.stream.Stream;
 
 final class FuzzingTest {
-    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 10;
+    private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
+    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 2;
 
     @ParameterizedTest
-    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
-        // duration in seconds the tests runs for
-    void defaultMaskingConfiguration(int secondsToRunTest) {
+    @MethodSource("jsonMaskingConfigs")
+    void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) {
         Instant startTime = Instant.now();
         int randomTestExecuted = 0;
-        while (Duration.between(startTime, Instant.now()).getSeconds() < secondsToRunTest) {
-            Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.getDefault(
-                    targetKeys
-            ));
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
+        RandomJsonGenerator randomJsonGenerator =
+                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                .setTargetKeys(jsonMaskingConfig.getTargetKeys())
+                                                .createConfig());
+        JsonMasker masker = JsonMasker.getMasker(jsonMaskingConfig);
+        while (Duration.between(startTime, Instant.now()).getSeconds() < SECONDS_FOR_EACH_TEST_TO_RUN) {
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             String randomJsonNodeString = randomJsonNode.toPrettyString();
-            String keyContainsOutput = keyContainsMasker.mask(randomJsonNodeString);
-            String jacksonMaskingOutput = ParseAndMaskUtil.mask(
-                    randomJsonNode,
-                    targetKeys,
-                    JsonMaskingConfig.TargetKeyMode.MASK
-            ).toPrettyString();
+            String keyContainsOutput = masker.mask(randomJsonNodeString);
+            String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig)
+                    .toPrettyString();
             Assertions.assertEquals(
                     jacksonMaskingOutput,
                     keyContainsOutput,
@@ -46,7 +44,14 @@ final class FuzzingTest {
         System.out.printf(
                 "Executed %d randomly generated test scenarios in %d seconds%n",
                 randomTestExecuted,
-                secondsToRunTest
+                SECONDS_FOR_EACH_TEST_TO_RUN
+        );
+    }
+
+    @Nonnull
+    private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
+        return Stream.of(
+                JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS)
         );
     }
 }

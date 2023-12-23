@@ -35,9 +35,10 @@ public final class ParseAndMaskUtil {
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
                     key -> {
-                        if (jsonMaskingConfig.isInMaskMode() && targetKeys.contains(key)) {
-                            objectNode.replace(key, maskJsonValue(objectNode.get(key), targetKeys));
-                        } else {
+                        if (jsonMaskingConfig.isInMaskMode() && targetKeys.contains(key)
+                                || jsonMaskingConfig.isInAllowMode() && !targetKeys.contains(key)) {
+                            objectNode.replace(key, maskJsonValue(objectNode.get(key), jsonMaskingConfig));
+                        } else if (!jsonMaskingConfig.isInAllowMode() || !targetKeys.contains(key)) {
                             mask(jsonNode.get(key), jsonMaskingConfig);
                         }
                     }
@@ -53,11 +54,11 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static JsonNode maskJsonValue(JsonNode jsonNode, Set<String> targetKeys) {
+    private static JsonNode maskJsonValue(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
         return switch (jsonNode.getNodeType()) {
             case STRING -> maskTextNode((TextNode) jsonNode);
-            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, targetKeys);
-            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, targetKeys);
+            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig);
+            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig);
             default -> jsonNode;
         };
     }
@@ -68,23 +69,28 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static ArrayNode maskArrayNodeValue(ArrayNode arrayNode, Set<String> targetKeys) {
+    private static ArrayNode maskArrayNodeValue(ArrayNode arrayNode, JsonMaskingConfig jsonMaskingConfig) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
-            maskedArrayNode.add(maskJsonValue(element, targetKeys));
+            maskedArrayNode.add(maskJsonValue(element, jsonMaskingConfig));
         }
         return maskedArrayNode;
     }
 
     @Nonnull
-    private static ObjectNode maskObjectNodeValue(ObjectNode objectNode, Set<String> targetKeys) {
+    private static ObjectNode maskObjectNodeValue(ObjectNode objectNode, JsonMaskingConfig jsonMaskingConfig) {
         ObjectNode maskedObjectNode = JsonNodeFactory.instance.objectNode();
         Iterator<String> fieldNames = objectNode.fieldNames();
 
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
-            JsonNode fieldValue = objectNode.get(fieldName);
-            maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, targetKeys));
+            if (jsonMaskingConfig.isInAllowMode() && jsonMaskingConfig.getTargetKeys().contains(fieldName)) {
+                // field is explicitly allowed, so just put the original field back
+                maskedObjectNode.set(fieldName, objectNode.get(fieldName));
+            } else {
+                JsonNode fieldValue = objectNode.get(fieldName);
+                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, jsonMaskingConfig));
+            }
         }
         return maskedObjectNode;
     }

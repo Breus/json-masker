@@ -4,6 +4,45 @@
       "targetKeyMode": "allow"
     },
     "targetKeys": [
+      "allowedKey",
+      "allowed"
+    ],
+    "input": {
+      "hello": {
+        "allowedKey": "yes",
+        "allowed": [
+          {
+            "nestedArray": [
+              "123",
+              {},
+              [],
+              123
+            ]
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "hello": {
+        "allowedKey": "yes",
+        "allowed": [
+          {
+            "nestedArray": [
+              "123",
+              {},
+              [],
+              123
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
       "targetKey1"
     ],
     "input": {

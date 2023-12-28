@@ -450,10 +450,9 @@ public final class KeyContainsMasker implements JsonMasker {
             }
         } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) { // object
             maskingState.incrementCurrentIndex(); // step over opening curly bracket
-            // We need to specifically skip strings to not consider curly brackets which are part of a string
             int objectDepth = 1;
             while (objectDepth > 0) {
-
+                // We need to specifically skip strings to not consider curly brackets which are part of a string
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
                     // this makes sure that we skip curly brackets (open and close) which are part of strings
                     skipStringValue(maskingState);
@@ -466,18 +465,22 @@ public final class KeyContainsMasker implements JsonMasker {
                     maskingState.incrementCurrentIndex();
                 }
             }
-            maskingState.incrementCurrentIndex(); // step over closing curly bracket
         } else if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) { // array
             maskingState.incrementCurrentIndex(); // step over opening square bracket
-            // We need to specifically skip strings to not consider square brackets which are part of a string
-            while (!AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
+            int arrayDepth = 1;
+            while (arrayDepth > 0) {
+                // We need to specifically skip strings to not consider square brackets which are part of a string
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
                     skipStringValue(maskingState);
                 } else {
+                    if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
+                        arrayDepth++;
+                    } else if (AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
+                        arrayDepth--;
+                    }
                     maskingState.incrementCurrentIndex();
                 }
             }
-            maskingState.incrementCurrentIndex(); // step over closing square bracket
         }
     }
 

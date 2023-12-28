@@ -4,6 +4,26 @@
       "targetKeyMode": "allow"
     },
     "targetKeys": [
+      "targetKey1"
+    ],
+    "input": {
+      "targetKey1": {
+        "]key1": {},
+        "key2": "8"
+      }
+    },
+    "expectedOutput": {
+      "targetKey1": {
+        "]key1": {},
+        "key2": "8"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
       "targetKey3"
     ],
     "input": {

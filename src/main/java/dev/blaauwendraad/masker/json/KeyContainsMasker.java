@@ -451,10 +451,18 @@ public final class KeyContainsMasker implements JsonMasker {
         } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) { // object
             maskingState.incrementCurrentIndex(); // step over opening curly bracket
             // We need to specifically skip strings to not consider curly brackets which are part of a string
-            while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+            int objectDepth = 1;
+            while (objectDepth > 0) {
+
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
+                    // this makes sure that we skip curly brackets (open and close) which are part of strings
                     skipStringValue(maskingState);
                 } else {
+                    if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
+                        objectDepth++;
+                    } else if (AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+                        objectDepth--;
+                    }
                     maskingState.incrementCurrentIndex();
                 }
             }

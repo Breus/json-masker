@@ -41,11 +41,7 @@ public final class KeyContainsMasker implements JsonMasker {
         this.maskingConfig = maskingConfig;
         this.targetKeysTrie = new ByteTrie(!maskingConfig.caseSensitiveTargetKeys());
         for (String key : maskingConfig.getTargetKeys()) {
-            if (maskingConfig.caseSensitiveTargetKeys()) {
-                this.targetKeysTrie.insert(key);
-            } else {
-                this.targetKeysTrie.insert(key.toLowerCase());
-            }
+            this.targetKeysTrie.insert(key);
         }
     }
 

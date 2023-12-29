@@ -4,6 +4,111 @@
       "targetKeyMode": "allow"
     },
     "targetKeys": [
+      "allowedKey",
+      "allowed"
+    ],
+    "input": {
+      "hello": {
+        "allowedKey": "yes",
+        "allowed": [
+          {
+            "nestedArray": [
+              "123",
+              {},
+              [],
+              123
+            ]
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "hello": {
+        "allowedKey": "yes",
+        "allowed": [
+          {
+            "nestedArray": [
+              "123",
+              {},
+              [],
+              123
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "targetKey1"
+    ],
+    "input": {
+      "targetKey1": {
+        "]key1": {},
+        "key2": "8"
+      }
+    },
+    "expectedOutput": {
+      "targetKey1": {
+        "]key1": {},
+        "key2": "8"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "targetKey3"
+    ],
+    "input": {
+      "": null,
+      "လ": {
+        "\u0005rဘ": {
+          "N": "\u0003",
+          "": null,
+          "\u0012": false
+        },
+        "": {},
+        ">": {}
+      },
+      "\u0010uရ": null,
+      "=": {
+        "targetKey3": [
+          "\u001A",
+          ""
+        ]
+      }
+    },
+    "expectedOutput": {
+      "": null,
+      "လ": {
+        "\u0005rဘ": {
+          "N": "**",
+          "": null,
+          "\u0012": false
+        },
+        "": {},
+        ">": {}
+      },
+      "\u0010uရ": null,
+      "=": {
+        "targetKey3": [
+          "\u001A",
+          ""
+        ]
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
       "allowedKey"
     ],
     "input": {

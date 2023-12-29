@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json.config;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Contains the JSON masker configurations.
@@ -38,15 +37,11 @@ public class JsonMaskingConfig {
         algorithmType = JsonMaskerAlgorithmType.KEYS_CONTAIN;
         obfuscationLength = builder.obfuscationLength;
         targetKeyMode = builder.targetKeyMode;
-        Set<String> targets = builder.targets;
-        if (targetKeyMode == TargetKeyMode.MASK && targets.isEmpty()) {
+        targetKeys = builder.targets;
+        if (targetKeyMode == TargetKeyMode.MASK && targetKeys.isEmpty()) {
             throw new IllegalArgumentException("Target keys set in mask mode must contain at least a single target key");
         }
         caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys;
-        if (!caseSensitiveTargetKeys) {
-            targets = targets.stream().map(String::toLowerCase).collect(Collectors.toSet());
-        }
-        targetKeys = targets;
         maskNumericValuesWith = builder.maskNumberValuesWith;
         if (builder.maskNumberValuesWith == 0) {
             if (builder.obfuscationLength < 0 || builder.obfuscationLength > 1) {
@@ -226,6 +221,26 @@ public class JsonMaskingConfig {
          * masked.
          */
         MASK
+    }
+
+    /**
+     * Checks if the target key mode is set to "ALLOW". If the mode is set to "ALLOW", it means that the target keys are
+     * interpreted as the only JSON keys for which the corresponding property is allowed (should not be masked).
+     *
+     * @return true if the target key mode is set to "ALLOW", false otherwise
+     */
+    public boolean isInAllowMode() {
+        return targetKeyMode == TargetKeyMode.ALLOW;
+    }
+
+    /**
+     * Checks if the target key mode is set to "MASK". If the mode is set to "MASK", it means that the properties
+     * corresponding to the target keys should be masked.
+     *
+     * @return true if the current target key mode is in "MASK" mode, false otherwise
+     */
+    public boolean isInMaskMode() {
+        return targetKeyMode == TargetKeyMode.MASK;
     }
 
     @Override

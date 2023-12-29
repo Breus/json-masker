@@ -3,87 +3,51 @@ package dev.blaauwendraad.masker.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import randomgen.json.RandomJsonGenerator;
 import randomgen.json.RandomJsonGeneratorConfig;
 
+import javax.annotation.Nonnull;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Set;
+import java.util.stream.Stream;
 
-//TODO
-@Disabled("Have to implement object and array masking first in the Jackson masker")
 final class FuzzingTest {
-    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 10;
+    private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
+    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 2;
 
-    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
-        // duration in seconds the tests runs for
-    void fuzzing_NoArrayNoObjectValueMasking(int secondsToRunTest) {
-        long startTime = System.currentTimeMillis();
+    @ParameterizedTest
+    @MethodSource("jsonMaskingConfigs")
+    void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) {
+        Instant startTime = Instant.now();
         int randomTestExecuted = 0;
-        while (System.currentTimeMillis() < startTime + 10 * 1000) {
-            Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.custom(
-                    targetKeys,
-                    JsonMaskingConfig.TargetKeyMode.MASK
-            ).build());
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
+                                                                                  .setTargetKeys(jsonMaskingConfig.getTargetKeys())
+                                                                                  .createConfig());
+        JsonMasker masker = JsonMasker.getMasker(jsonMaskingConfig);
+        while (Duration.between(startTime, Instant.now()).getSeconds() < SECONDS_FOR_EACH_TEST_TO_RUN) {
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             String randomJsonNodeString = randomJsonNode.toPrettyString();
-            String keyContainsOutput = keyContainsMasker.mask(randomJsonNodeString);
-            String jacksonMaskingOutput = ParseAndMaskUtil.mask(
-                    randomJsonNode,
-                    targetKeys,
-                    JsonMaskingConfig.TargetKeyMode.MASK
-            ).toPrettyString();
-            Assertions.assertEquals(
-                    jacksonMaskingOutput,
-                    keyContainsOutput,
-                    "Failed for input: " + randomJsonNodeString
+            String keyContainsOutput = masker.mask(randomJsonNodeString);
+            String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig).toPrettyString();
+            Assertions.assertEquals(jacksonMaskingOutput,
+                                    keyContainsOutput,
+                                    "Failed for input: " + randomJsonNodeString
             );
             randomTestExecuted++;
         }
-        System.out.printf(
-                "Executed %d randomly generated test scenarios in %d seconds%n",
-                randomTestExecuted,
-                secondsToRunTest
+        System.out.printf("Executed %d randomly generated test scenarios in %d seconds%n",
+                          randomTestExecuted,
+                          SECONDS_FOR_EACH_TEST_TO_RUN
         );
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = { SECONDS_FOR_EACH_TEST_TO_RUN })
-        // duration in seconds the tests runs for
-    void fuzzing_AllowKeys_NoObjectArrayValuesMasking(int secondsToRunTest) {
-        long startTime = System.currentTimeMillis();
-        int randomTestExecuted = 0;
-        while (System.currentTimeMillis() < startTime + 10 * 1000) {
-            Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
-            JsonMasker keyContainsMasker = new KeyContainsMasker(JsonMaskingConfig.custom(
-                    targetKeys,
-                    JsonMaskingConfig.TargetKeyMode.ALLOW
-            ).build());
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
-            JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
-            String randomJsonNodeString = randomJsonNode.toPrettyString();
-            String keyContainsOutput = keyContainsMasker.mask(randomJsonNodeString);
-            String jacksonMaskingOutput = ParseAndMaskUtil.mask(
-                    randomJsonNode,
-                    targetKeys,
-                    JsonMaskingConfig.TargetKeyMode.ALLOW
-            ).toPrettyString();
-            Assertions.assertEquals(
-                    jacksonMaskingOutput,
-                    keyContainsOutput,
-                    "Failed for input: " + randomJsonNodeString
-            );
-            randomTestExecuted++;
-        }
-        System.out.printf(
-                "Executed %d randomly generated test scenarios in %d seconds%n",
-                randomTestExecuted,
-                secondsToRunTest
+    @Nonnull
+    private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
+        return Stream.of(JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS),
+                         JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW).build()
         );
     }
 }

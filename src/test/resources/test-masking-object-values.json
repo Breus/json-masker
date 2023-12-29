@@ -1,6 +1,33 @@
 [
   {
     "targetKeys": [
+      "dontMaskMe",
+      "alsoNotMe"
+    ],
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "input": {
+      "hello": {
+        "dontMaskMe": [],
+        "alsoNotMe": {
+          "hello": {}
+        }
+      },
+      "dontMaskMe": []
+    },
+    "expectedOutput": {
+      "hello": {
+        "dontMaskMe": [],
+        "alsoNotMe": {
+          "hello": {}
+        }
+      },
+      "dontMaskMe": []
+    }
+  },
+  {
+    "targetKeys": [
       "maskMe"
     ],
     "input": {
@@ -138,26 +165,6 @@
         "hello": []
       },
       "somethingElse": []
-    }
-  },
-  {
-    "targetKeys": [
-      "dontMaskMe"
-    ],
-    "maskerConfig": {
-      "targetKeyMode": "allow"
-    },
-    "input": {
-      "hello": {
-        "dontMaskMe": []
-      },
-      "dontMaskMe": []
-    },
-    "expectedOutput": {
-      "hello": {
-        "dontMaskMe": []
-      },
-      "dontMaskMe": []
     }
   }
 ]

@@ -14,18 +14,22 @@ import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacte
  * {@link JsonMasker} implementation.
  */
 public final class KeyContainsMasker implements JsonMasker {
-    /*
+    /**
      * We are looking for targeted JSON keys with a maskable JSON value, so the closing quote can appear at minimum 3
-     *  characters till the end of the JSON in the following minimal case: '{"":1}'
+     * characters till the end of the JSON in the following minimal case: '{"":1}'
      */
     private static final int MIN_OFFSET_JSON_KEY_QUOTE = 3;
-    /*
+    /**
      * Minimum JSON for which masking could be required is: {"":""}, so minimum length at least 7 bytes.
      */
     private static final int MIN_MASKABLE_JSON_LENGTH = 7;
-
+    /**
+     * Look-up trie containing the target keys.
+     */
     private final ByteTrie targetKeysTrie;
-    private final boolean allowMode;
+    /**
+     * The masking configuration for the JSON masking process.
+     */
     private final JsonMaskingConfig maskingConfig;
 
     /**
@@ -34,7 +38,6 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param maskingConfig the masking configurations for the created masker
      */
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
-        this.allowMode = maskingConfig.getTargetKeyMode() == JsonMaskingConfig.TargetKeyMode.ALLOW;
         this.maskingConfig = maskingConfig;
         this.targetKeysTrie = new ByteTrie(!maskingConfig.caseSensitiveTargetKeys());
         for (String key : maskingConfig.getTargetKeys()) {
@@ -121,11 +124,11 @@ public final class KeyContainsMasker implements JsonMasker {
                     openingQuoteIndex + 1, // plus one for the opening quote
                     keyLength
             );
-            if (allowMode && keyMatched) {
+            if (maskingConfig.isInAllowMode() && keyMatched) {
                 skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
                 continue;
             }
-            if (!allowMode && !keyMatched) {
+            if (maskingConfig.isInMaskMode() && !keyMatched) {
                 continue mainLoop; // The found JSON key is not a target key, so continue looking from where we left of.
             }
 
@@ -314,14 +317,14 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Masks all values (depending on the {@link JsonMaskingConfig} in the object.
      *
-     * @param maskingState  the current masking state
+     * @param maskingState the current masking state
      */
     private void maskObjectValueInPlace(MaskingState maskingState) {
         maskingState.incrementCurrentIndex(); // step over opening curly bracket
         skipWhitespaceCharacters(maskingState);
         while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
             boolean valueMustBeMasked = true;
-            if (allowMode) {
+            if (maskingConfig.isInAllowMode()) {
                 // In case target keys should be considered as allow list, we need to NOT mask certain keys
                 int openingQuoteIndex = maskingState.currentIndex();
                 maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
@@ -443,26 +446,37 @@ public final class KeyContainsMasker implements JsonMasker {
             }
         } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) { // object
             maskingState.incrementCurrentIndex(); // step over opening curly bracket
-            // We need to specifically skip strings to not consider curly brackets which are part of a string
-            while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+            int objectDepth = 1;
+            while (objectDepth > 0) {
+                // We need to specifically skip strings to not consider curly brackets which are part of a string
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
+                    // this makes sure that we skip curly brackets (open and close) which are part of strings
                     skipStringValue(maskingState);
                 } else {
+                    if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
+                        objectDepth++;
+                    } else if (AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+                        objectDepth--;
+                    }
                     maskingState.incrementCurrentIndex();
                 }
             }
-            maskingState.incrementCurrentIndex(); // step over closing curly bracket
         } else if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) { // array
             maskingState.incrementCurrentIndex(); // step over opening square bracket
-            // We need to specifically skip strings to not consider square brackets which are part of a string
-            while (!AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
+            int arrayDepth = 1;
+            while (arrayDepth > 0) {
+                // We need to specifically skip strings to not consider square brackets which are part of a string
                 if (currentByteIsUnescapedDoubleQuote(maskingState)) {
                     skipStringValue(maskingState);
                 } else {
+                    if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
+                        arrayDepth++;
+                    } else if (AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
+                        arrayDepth--;
+                    }
                     maskingState.incrementCurrentIndex();
                 }
             }
-            maskingState.incrementCurrentIndex(); // step over closing square bracket
         }
     }
 

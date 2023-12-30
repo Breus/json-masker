@@ -59,7 +59,7 @@ public final class ParseAndMaskUtil {
     @Nonnull
     private static JsonNode maskJsonValue(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
         return switch (jsonNode.getNodeType()) {
-            case STRING -> maskTextNode((TextNode) jsonNode);
+            case STRING -> maskTextNode((TextNode) jsonNode, jsonMaskingConfig);
             case NUMBER -> maskNumericNode((NumericNode) jsonNode, jsonMaskingConfig);
             case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig);
             case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig);
@@ -68,8 +68,8 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static TextNode maskTextNode(TextNode textNode) {
-        return new TextNode(maskText(textNode.textValue()));
+    private static TextNode maskTextNode(TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
+        return new TextNode(maskText(textNode.textValue(), jsonMaskingConfig));
     }
 
     @Nonnull
@@ -112,7 +112,10 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static String maskText(String text) {
-        return "*".repeat(text.length());
+    private static String maskText(String text, JsonMaskingConfig jsonMaskingConfig) {
+        int numberOfAsterisks = jsonMaskingConfig.isLengthObfuscationEnabled()
+                ? jsonMaskingConfig.getObfuscationLength()
+                : text.length();
+        return "*".repeat(numberOfAsterisks);
     }
 }

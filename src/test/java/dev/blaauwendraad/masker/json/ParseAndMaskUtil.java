@@ -78,7 +78,9 @@ public final class ParseAndMaskUtil {
             return numericNode;
         }
         String text = numericNode.asText();
-        int numericLength = text.length();
+        int numericLength = jsonMaskingConfig.isLengthObfuscationEnabled()
+                ? jsonMaskingConfig.getObfuscationLength()
+                : text.length();
         int theNumber = jsonMaskingConfig.getMaskNumericValuesWith();
         String repeatingNumber = String.valueOf(theNumber).repeat(numericLength);
         return new BigIntegerNode(new BigInteger(repeatingNumber));

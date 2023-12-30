@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
-    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 2;
+    private static final int SECONDS_FOR_EACH_TEST_TO_RUN = 3;
 
     @ParameterizedTest
     @MethodSource("jsonMaskingConfigs")
@@ -32,22 +32,31 @@ final class FuzzingTest {
             String randomJsonNodeString = randomJsonNode.toPrettyString();
             String keyContainsOutput = masker.mask(randomJsonNodeString);
             String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig).toPrettyString();
-            Assertions.assertEquals(jacksonMaskingOutput,
-                                    keyContainsOutput,
-                                    "Failed for input: " + randomJsonNodeString
+            Assertions.assertEquals(
+                    jacksonMaskingOutput,
+                    keyContainsOutput,
+                    "Failed for input: " + randomJsonNodeString
             );
             randomTestExecuted++;
         }
-        System.out.printf("Executed %d randomly generated test scenarios in %d seconds%n",
-                          randomTestExecuted,
-                          SECONDS_FOR_EACH_TEST_TO_RUN
+        System.out.printf(
+                "Executed %d randomly generated test scenarios in %d seconds%n",
+                randomTestExecuted,
+                SECONDS_FOR_EACH_TEST_TO_RUN
         );
     }
 
     @Nonnull
     private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
-        return Stream.of(JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS),
-                         JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW).build()
+        return Stream.of(
+                JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS),
+                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
+                        .maskNumericValuesWith(1)
+                        .build(),
+                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW).build(),
+                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
+                        .maskNumericValuesWith(2)
+                        .build()
         );
     }
 }

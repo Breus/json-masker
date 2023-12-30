@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BigIntegerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import javax.annotation.Nonnull;
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -57,6 +60,7 @@ public final class ParseAndMaskUtil {
     private static JsonNode maskJsonValue(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
         return switch (jsonNode.getNodeType()) {
             case STRING -> maskTextNode((TextNode) jsonNode);
+            case NUMBER -> maskNumericNode((NumericNode) jsonNode, jsonMaskingConfig);
             case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig);
             case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig);
             default -> jsonNode;
@@ -66,6 +70,18 @@ public final class ParseAndMaskUtil {
     @Nonnull
     private static TextNode maskTextNode(TextNode textNode) {
         return new TextNode(maskText(textNode.textValue()));
+    }
+
+    @Nonnull
+    private static NumericNode maskNumericNode(NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
+        if (!jsonMaskingConfig.isNumberMaskingEnabled()) {
+            return numericNode;
+        }
+        String text = numericNode.asText();
+        int numericLength = text.length();
+        int theNumber = jsonMaskingConfig.getMaskNumericValuesWith();
+        String repeatingNumber = String.valueOf(theNumber).repeat(numericLength);
+        return new BigIntegerNode(new BigInteger(repeatingNumber));
     }
 
     @Nonnull

@@ -120,7 +120,24 @@ public class RandomJsonGenerator {
 
     private String getRandomTargetKey() {
         int rnd = random.nextInt(config.getTargetKeys().size());
-        return (String) config.getTargetKeys().toArray()[rnd];
+        return randomizeCase((String) config.getTargetKeys().toArray()[rnd]);
+    }
+
+    private String randomizeCase(String input) {
+        StringBuilder resultBuilder = new StringBuilder();
+
+        for (char c : input.toCharArray()) {
+            // Generate a random boolean to decide whether to convert to uppercase or lowercase
+            boolean toUpperCase = random.nextBoolean();
+
+            // Convert the character to uppercase or lowercase based on the random boolean
+            char convertedChar = toUpperCase ? Character.toUpperCase(c) : Character.toLowerCase(c);
+
+            // Append the converted character to the result string
+            resultBuilder.append(convertedChar);
+        }
+
+        return resultBuilder.toString();
     }
 
     private String getRandomString() {
@@ -168,8 +185,7 @@ public class RandomJsonGenerator {
     }
 
     private boolean reachedTargetSize(int estimatedSizeBytes) {
-        boolean didIt = config.hasTargetSize() && estimatedSizeBytes >= config.getTargetJsonSizeBytes();
-        return didIt;
+        return config.hasTargetSize() && estimatedSizeBytes >= config.getTargetJsonSizeBytes();
     }
 
     private int sizeOf(JsonNode node) {

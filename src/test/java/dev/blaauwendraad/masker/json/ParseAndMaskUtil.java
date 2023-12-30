@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class ParseAndMaskUtil {
 
@@ -31,17 +32,38 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
-        Set<String> targetKeys = jsonMaskingConfig.getTargetKeys();
-        if (targetKeys.isEmpty()) {
+        Set<String> casingAppliedTargetKeys;
+        if (jsonMaskingConfig.caseSensitiveTargetKeys()) {
+            casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys();
+        } else {
+            casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys()
+                    .stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toSet());
+        }
+        if (casingAppliedTargetKeys.isEmpty()) {
             return jsonNode;
         }
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
                     key -> {
-                        if (jsonMaskingConfig.isInMaskMode() && targetKeys.contains(key)
-                                || jsonMaskingConfig.isInAllowMode() && !targetKeys.contains(key)) {
-                            objectNode.replace(key, maskJsonValue(objectNode.get(key), jsonMaskingConfig));
-                        } else if (!jsonMaskingConfig.isInAllowMode() || !targetKeys.contains(key)) {
+                        String casingAppliedKey = jsonMaskingConfig.caseSensitiveTargetKeys()
+                                ? key
+                                : key.toLowerCase();
+                        if (jsonMaskingConfig.isInMaskMode()
+                                && casingAppliedTargetKeys.contains(casingAppliedKey)
+                                || jsonMaskingConfig.isInAllowMode() && !casingAppliedTargetKeys.contains(
+                                casingAppliedKey)) {
+                            objectNode.replace(
+                                    key,
+                                    maskJsonValue(
+                                            objectNode.get(key),
+                                            jsonMaskingConfig,
+                                            casingAppliedTargetKeys
+                                    )
+                            );
+                        } else if (!jsonMaskingConfig.isInAllowMode()
+                                || !casingAppliedTargetKeys.contains(casingAppliedKey)) {
                             mask(jsonNode.get(key), jsonMaskingConfig);
                         }
                     }
@@ -57,12 +79,16 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static JsonNode maskJsonValue(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
+    private static JsonNode maskJsonValue(
+            JsonNode jsonNode,
+            JsonMaskingConfig jsonMaskingConfig,
+            Set<String> casingAppliedTargetKeys
+    ) {
         return switch (jsonNode.getNodeType()) {
             case STRING -> maskTextNode((TextNode) jsonNode, jsonMaskingConfig);
             case NUMBER -> maskNumericNode((NumericNode) jsonNode, jsonMaskingConfig);
-            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig);
-            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig);
+            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
             default -> jsonNode;
         };
     }
@@ -87,27 +113,36 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static ArrayNode maskArrayNodeValue(ArrayNode arrayNode, JsonMaskingConfig jsonMaskingConfig) {
+    private static ArrayNode maskArrayNodeValue(
+            ArrayNode arrayNode,
+            JsonMaskingConfig jsonMaskingConfig,
+            Set<String> casingAppliedTargetKeys
+    ) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
-            maskedArrayNode.add(maskJsonValue(element, jsonMaskingConfig));
+            maskedArrayNode.add(maskJsonValue(element, jsonMaskingConfig, casingAppliedTargetKeys));
         }
         return maskedArrayNode;
     }
 
     @Nonnull
-    private static ObjectNode maskObjectNodeValue(ObjectNode objectNode, JsonMaskingConfig jsonMaskingConfig) {
+    private static ObjectNode maskObjectNodeValue(
+            ObjectNode objectNode,
+            JsonMaskingConfig jsonMaskingConfig,
+            Set<String> casingAppliedTargetKeys
+    ) {
         ObjectNode maskedObjectNode = JsonNodeFactory.instance.objectNode();
         Iterator<String> fieldNames = objectNode.fieldNames();
 
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
-            if (jsonMaskingConfig.isInAllowMode() && jsonMaskingConfig.getTargetKeys().contains(fieldName)) {
+            if (jsonMaskingConfig.isInAllowMode() && casingAppliedTargetKeys
+                    .contains(jsonMaskingConfig.caseSensitiveTargetKeys() ? fieldName : fieldName.toLowerCase())) {
                 // field is explicitly allowed, so just put the original field back
                 maskedObjectNode.set(fieldName, objectNode.get(fieldName));
             } else {
                 JsonNode fieldValue = objectNode.get(fieldName);
-                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, jsonMaskingConfig));
+                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
             }
         }
         return maskedObjectNode;

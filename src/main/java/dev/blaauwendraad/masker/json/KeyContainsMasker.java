@@ -241,8 +241,8 @@ public final class KeyContainsMasker implements JsonMasker {
             maskingState.incrementCurrentIndex();
         }
         int obfuscationLength = maskingConfig.getObfuscationLength();
-        if (obfuscationLength != -1
-                && obfuscationLength != (targetValueLength - noOfEscapeCharacters)) {
+        if (maskingConfig.isLengthObfuscationEnabled()
+                && obfuscationLength != targetValueLength) {
             FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
                     maskingState,
                     obfuscationLength,
@@ -253,7 +253,8 @@ public final class KeyContainsMasker implements JsonMasker {
              * double quote of the string value.
              */
             maskingState.setCurrentIndex(maskingState.currentIndex() - (targetValueLength - obfuscationLength));
-        } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) {
+        } else if (!maskingConfig.isLengthObfuscationEnabled() && (noOfEscapeCharacters > 0
+                || additionalBytesForEncoding > 0)) {
             // So we don't add asterisks for escape characters or additional encoding bytes (which
             // are not part of the String length)
 

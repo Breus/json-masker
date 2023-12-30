@@ -53,9 +53,15 @@ final class FuzzingTest {
                 JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
                         .maskNumericValuesWith(1)
                         .build(),
+                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
+                        .obfuscationLength(3)
+                        .build(),
                 JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW).build(),
                 JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
                         .maskNumericValuesWith(2)
+                        .build(),
+                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
+                        .obfuscationLength(4)
                         .build()
         );
     }

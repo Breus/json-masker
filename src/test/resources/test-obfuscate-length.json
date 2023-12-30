@@ -1,6 +1,62 @@
 [
   {
     "maskerConfig": {
+      "obfuscationLength": 3
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "maskMe": "#\f\t",
+      "(J": [
+        [
+          "l",
+          1.7931133E38
+        ],
+        null
+      ],
+      "": [
+        1.8640192E38,
+        true
+      ],
+      "q\u0007": true
+    },
+    "expectedOutput": {
+      "maskMe": "***",
+      "(J": [
+        [
+          "l",
+          1.7931133E38
+        ],
+        null
+      ],
+      "": [
+        1.8640192E38,
+        true
+      ],
+      "q\u0007": true
+    }
+  },
+  {
+    "maskerConfig": {
+      "obfuscationLength": 3
+    },
+    "targetKeys": [
+      "maskMe"
+    ],
+    "input": {
+      "5F": true,
+      "": "ဗ",
+      "maskMe": "D"
+    },
+    "expectedOutput": {
+      "5F": true,
+      "": "ဗ",
+      "maskMe": "***"
+    }
+  },
+  {
+    "maskerConfig": {
       "obfuscationLength": 2
     },
     "targetKeys": [

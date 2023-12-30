@@ -163,6 +163,9 @@ public class JsonMaskingConfig {
         /**
          * Specifies the number with which numeric values should be replaced. -1 denotes number masking is disabled.
          * <p>
+         * In case maskNumericValuesWith is set to 0, obfuscationLength must be set to either 0 or 1 in which both case
+         * numbers are replaced with a single 0. This is in order to preserve valid JSON.
+         * <p>
          * Default value: -1 (numeric values are not masked)
          *
          * @param maskNumericValuesWith the number to mask numeric JSON properties with
@@ -176,6 +179,10 @@ public class JsonMaskingConfig {
         /**
          * @param obfuscationLength specifies the fixed length of the mask when target value lengths is obfuscated. E.g.
          *                          masking any string value with obfuscation length 2 results in "**".
+         *                          <p>
+         *                          In case obfuscationLength is set to 0 and number masking is enabled, it must be 0
+         *                          (i.e. each numeric value is replaced with a single 0 because JSON does not support
+         *                          empty values).
          *                          <p>
          *                          Default value: -1 (length obfuscation disabled).
          * @return the builder instance

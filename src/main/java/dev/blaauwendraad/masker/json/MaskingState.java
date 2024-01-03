@@ -34,10 +34,6 @@ public final class MaskingState {
         return message[currentIndex];
     }
 
-    public void setByteAtCurrentIndex(byte newByte) {
-        message[currentIndex] = newByte;
-    }
-
     public byte byteAtCurrentIndexMinusOne() {
         return message[currentIndex - 1];
     }

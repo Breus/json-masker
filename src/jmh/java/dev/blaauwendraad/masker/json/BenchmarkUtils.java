@@ -62,6 +62,7 @@ public class BenchmarkUtils {
                 .setTargetKeys(targetKeys)
                 .setTargetKeyPercentage(targetKeyPercentage)
                 .setTargetJsonSizeBytes(BenchmarkUtils.parseSize(jsonSize))
+                .setRandomSeed(1285756302517652226L)
                 .createConfig();
 
         return new RandomJsonGenerator(config).createRandomJsonNode().toString();

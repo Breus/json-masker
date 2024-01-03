@@ -5,6 +5,8 @@ on:
       - master
     tags-ignore:
       - '*'
+    paths-ignore:
+      - README.adoc
   pull_request:
     branches:
       - master

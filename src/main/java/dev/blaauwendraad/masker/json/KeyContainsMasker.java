@@ -3,7 +3,7 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
-import dev.blaauwendraad.masker.json.util.FixedLengthTargetValueMaskUtil;
+import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
@@ -149,7 +149,7 @@ public final class KeyContainsMasker implements JsonMasker {
             }
         }
 
-        FixedLengthTargetValueMaskUtil.flushReplacementOperations(maskingState);
+        ValueMaskingUtil.flushReplacementOperations(maskingState);
 
         return maskingState.getMessage();
     }
@@ -255,7 +255,7 @@ public final class KeyContainsMasker implements JsonMasker {
              */
             maskLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
         }
-        FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+        ValueMaskingUtil.replaceTargetValueWithFixedLengthAsteriskMask(
                 maskingState,
                 maskLength,
                 targetValueLength
@@ -378,7 +378,7 @@ public final class KeyContainsMasker implements JsonMasker {
         if (maskingConfig.isLengthObfuscationEnabled()) {
             maskLength = obfuscationLength > 0 ? obfuscationLength : 1;
         }
-        FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+        ValueMaskingUtil.replaceTargetValueWithFixedLengthMask(
                 maskingState,
                 maskLength,
                 targetValueLength,

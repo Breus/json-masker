@@ -5,17 +5,18 @@ import dev.blaauwendraad.masker.json.MaskingState;
 import java.util.Arrays;
 
 /**
- * Class containing utility methods to set a particular target value length to a fixed size mask. This can be used for
+ * Class containing utility methods to replace a particular target value with a mask. This can be used for
  * length obfuscation and ignoring escaping characters in string values.
  */
-public final class FixedLengthTargetValueMaskUtil {
-    private FixedLengthTargetValueMaskUtil() {
+public final class ValueMaskingUtil {
+    private ValueMaskingUtil() {
         // util
     }
 
     /**
-     * Replaces a target value (byte slice) with a fixed length string consisting only of the mask bytes inside the
-     * input bytes array.
+     * Replaces a target value (byte slice) with a mask byte. If lengths of both target value and mask are equal, the
+     * replacement is done in-place, otherwise a replacement operation is recorded to be performed as a batch using
+     * {@link #flushReplacementOperations}.
      *
      * @param maskLength        the length of the fixed-length mask byte string.
      * @param targetValueLength the length of the target value slice.

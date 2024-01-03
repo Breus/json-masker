@@ -23,6 +23,7 @@ public class RandomJsonGeneratorConfig {
     private final Set<Character> allowedCharacters;
     private final Set<String> targetKeys;
     private final int targetJsonSizeBytes;
+    private final long randomSeed;
 
     public RandomJsonGeneratorConfig(
             int maxArraySize,
@@ -36,7 +37,8 @@ public class RandomJsonGeneratorConfig {
             double targetKeyPercentage,
             Set<Character> allowedCharacters,
             Set<String> targetKeys,
-            int targetJsonSizeBytes
+            int targetJsonSizeBytes,
+            long randomSeed
     ) {
         this.maxArraySize = maxArraySize;
         this.maxFloat = maxFloat;
@@ -50,6 +52,7 @@ public class RandomJsonGeneratorConfig {
         this.targetKeys = targetKeys;
         this.maxStringLength = maxStringLength;
         this.targetJsonSizeBytes = targetJsonSizeBytes;
+        this.randomSeed = randomSeed;
     }
 
     public static Builder builder() {
@@ -120,6 +123,10 @@ public class RandomJsonGeneratorConfig {
         return targetJsonSizeBytes != -1;
     }
 
+    public long getRandomSeed() {
+        return randomSeed;
+    }
+
     public static class Builder {
         private int maxArraySize = 5;
         private float maxFloat = Float.MAX_VALUE;
@@ -137,6 +144,7 @@ public class RandomJsonGeneratorConfig {
         );
         private Set<String> targetKeys = defaultTargetKeys;
         private int targetJsonSizeBytes = -1; // no target, random size depending on other constraints
+        private long randomSeed = 0; // no seed, using the ThreadLocalRandom()
 
         public Builder setMaxArraySize(int maxArraySize) {
             this.maxArraySize = maxArraySize;
@@ -198,6 +206,11 @@ public class RandomJsonGeneratorConfig {
             return this;
         }
 
+        public Builder setRandomSeed(long randomSeed) {
+            this.randomSeed = randomSeed;
+            return this;
+        }
+
         public RandomJsonGeneratorConfig createConfig() {
             return new RandomJsonGeneratorConfig(
                     maxArraySize,
@@ -211,7 +224,8 @@ public class RandomJsonGeneratorConfig {
                     targetKeyPercentage,
                     allowedCharacters,
                     targetKeys,
-                    targetJsonSizeBytes
+                    targetJsonSizeBytes,
+                    randomSeed
             );
         }
     }

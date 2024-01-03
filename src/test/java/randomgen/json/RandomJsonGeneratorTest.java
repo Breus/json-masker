@@ -19,8 +19,9 @@ public class RandomJsonGeneratorTest {
     @ValueSource(ints = 100)
     void testRandomGenerator(int numberOfTests) {
         for (int i = 0; i < numberOfTests; i++) {
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
+            RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                    RandomJsonGeneratorConfig.builder().createConfig()
+            );
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             System.out.println(randomJsonNode.toPrettyString());
         }
@@ -33,10 +34,11 @@ public class RandomJsonGeneratorTest {
             // let's start with at least 5kb json size, on smaller sizes (e.g. 1kb)
             // we risk having more than 1% difference due to requirement to return a valid json
             int targetJsonSizeBytes = (i + 5) * 1024;
-            RandomJsonGenerator randomJsonGenerator =
-                    new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                    .setTargetJsonSizeBytes(targetJsonSizeBytes)
-                                                    .createConfig());
+            RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                    RandomJsonGeneratorConfig.builder()
+                            .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                            .createConfig()
+            );
 
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
@@ -55,10 +57,11 @@ public class RandomJsonGeneratorTest {
     @Test
     void testGenerate1MbJson() {
         int targetJsonSizeBytes = 1024 * 1024;
-        RandomJsonGenerator randomJsonGenerator =
-                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
-                                                .createConfig());
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                        .createConfig()
+        );
 
         JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
@@ -76,10 +79,11 @@ public class RandomJsonGeneratorTest {
     @Test
     void testGenerate10MbJson() {
         int targetJsonSizeBytes = 10 * 1024 * 1024;
-        RandomJsonGenerator randomJsonGenerator =
-                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                .setTargetJsonSizeBytes(targetJsonSizeBytes)
-                                                .createConfig());
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(targetJsonSizeBytes)
+                        .createConfig()
+        );
 
         JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
 
@@ -119,5 +123,55 @@ public class RandomJsonGeneratorTest {
         }
 
         System.out.println(size);
+    }
+
+    @Test
+    void shouldReturnIdenticalJsonsForTheSameSeed() {
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(10 * 1024)
+                        .setRandomSeed(1285756302517652226L)
+                        .createConfig()
+        );
+
+        String json1 = randomJsonGenerator.createRandomJsonNode().toString();
+        String json2 = randomJsonGenerator.createRandomJsonNode().toString();
+
+        Assertions.assertEquals(json1, json2);
+    }
+
+    @Test
+    void shouldReturnDifferentJsonsIfSeedIsNotSet() {
+        RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(10 * 1024)
+                        .createConfig()
+        );
+
+        String json1 = randomJsonGenerator.createRandomJsonNode().toString();
+        String json2 = randomJsonGenerator.createRandomJsonNode().toString();
+
+        Assertions.assertNotEquals(json1, json2);
+    }
+
+    @Test
+    void shouldReturnDifferentJsonsForDifferentParameters() {
+        RandomJsonGenerator randomJsonGenerator1 = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(10 * 1024)
+                        .setRandomSeed(1285756302517652226L)
+                        .createConfig()
+        );
+        RandomJsonGenerator randomJsonGenerator2 = new RandomJsonGenerator(
+                RandomJsonGeneratorConfig.builder()
+                        .setTargetJsonSizeBytes(10 * 1024 + 100)
+                        .setRandomSeed(1285756302517652226L)
+                        .createConfig()
+        );
+
+        String json1 = randomJsonGenerator1.createRandomJsonNode().toString();
+        String json2 = randomJsonGenerator2.createRandomJsonNode().toString();
+
+        Assertions.assertNotEquals(json1, json2);
     }
 }

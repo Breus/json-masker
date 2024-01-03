@@ -10,7 +10,7 @@ import java.util.List;
 public final class MaskingState {
     private byte[] message;
     private int currentIndex;
-    private List<ReplacementOperation> replacementOperations = new ArrayList<>();
+    private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
 
     public MaskingState(byte[] message, int currentIndex) {

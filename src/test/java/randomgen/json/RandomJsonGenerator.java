@@ -12,11 +12,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomJsonGenerator {
     private final RandomJsonGeneratorConfig config;
-    private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
     private enum NodeType {
         arrayNode,
@@ -32,12 +32,18 @@ public class RandomJsonGenerator {
     }
 
     public JsonNode createRandomJsonNode() {
-        return createRandomJsonNode(new Context(), 0);
+        Random random;
+        if (config.getRandomSeed() != 0) {
+            random = new Random(config.getRandomSeed());
+        } else {
+            random = ThreadLocalRandom.current();
+        }
+        return createRandomJsonNode(new Context(random), 0);
     }
 
     private JsonNode createRandomJsonNode(Context context, int depth) {
         boolean primitiveOnly = depth >= config.getMaxNodeDepth();
-        NodeType nodeType = getRandomNodeType(primitiveOnly);
+        NodeType nodeType = getRandomNodeType(context, primitiveOnly);
         if (reachedTargetSize(context.estimatedSizeBytes + 4)) {
             nodeType = NodeType.nullNode;
         } else if (config.hasTargetSize() && depth == 0) {
@@ -46,7 +52,7 @@ public class RandomJsonGenerator {
         } else if ((depth < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode
                 && nodeType != NodeType.arrayNode)) {
             // forcefully override chance to 50% to create an object if only <33% of max node depth is reached
-            if (random.nextBoolean()) {
+            if (context.random.nextBoolean()) {
                 nodeType = NodeType.objectNode;
             }
         }
@@ -66,20 +72,20 @@ public class RandomJsonGenerator {
         return node;
     }
 
-    private NodeType getRandomNodeType(boolean primitiveOnly) {
+    private NodeType getRandomNodeType(Context context, boolean primitiveOnly) {
         int offset = primitiveOnly ? NodeType.objectNode.ordinal() + 1 : 0;
-        int rnd = random.nextInt(offset, NodeType.values().length);
+        int rnd = context.random.nextInt(offset, NodeType.values().length);
         return NodeType.values()[rnd];
     }
 
     private TextNode createRandomTextNode(Context context) {
-        TextNode node = JsonNodeFactory.instance.textNode(getRandomString());
+        TextNode node = JsonNodeFactory.instance.textNode(getRandomString(context));
         context.estimatedSizeBytes += sizeOf(node);
         return node;
     }
 
     private BooleanNode createRandomBooleanNode(Context context) {
-        BooleanNode node = JsonNodeFactory.instance.booleanNode(random.nextBoolean());
+        BooleanNode node = JsonNodeFactory.instance.booleanNode(context.random.nextBoolean());
         context.estimatedSizeBytes += sizeOf(node);
         return node;
     }
@@ -92,12 +98,12 @@ public class RandomJsonGenerator {
             // the root object to be populated until we reach the target size
             nrOfObjectKeys = Integer.MAX_VALUE;
         } else {
-            nrOfObjectKeys = random.nextInt(config.getMaxObjectKeys());
+            nrOfObjectKeys = context.random.nextInt(config.getMaxObjectKeys());
         }
         for (int i = 0; i < nrOfObjectKeys; i++) {
-            String key = randomKey();
+            String key = randomKey(context);
             while (objectNode.has(key)) {
-                key = randomKey();
+                key = randomKey(context);
             }
             context.estimatedSizeBytes += sizeOf(JsonNodeFactory.instance.textNode(key));
             context.estimatedSizeBytes += 1; // for the semicolon
@@ -113,22 +119,22 @@ public class RandomJsonGenerator {
         return objectNode;
     }
 
-    private String randomKey() {
-        double rnd = random.nextDouble(0, 1);
-        return rnd <= config.getTargetKeyPercentage() ? getRandomTargetKey() : getRandomString();
+    private String randomKey(Context context) {
+        double rnd = context.random.nextDouble(0, 1);
+        return rnd <= config.getTargetKeyPercentage() ? getRandomTargetKey(context) : getRandomString(context);
     }
 
-    private String getRandomTargetKey() {
-        int rnd = random.nextInt(config.getTargetKeys().size());
-        return randomizeCase((String) config.getTargetKeys().toArray()[rnd]);
+    private String getRandomTargetKey(Context context) {
+        int rnd = context.random.nextInt(config.getTargetKeys().size());
+        return randomizeCase(context, (String) config.getTargetKeys().toArray()[rnd]);
     }
 
-    private String randomizeCase(String input) {
+    private String randomizeCase(Context context, String input) {
         StringBuilder resultBuilder = new StringBuilder();
 
         for (char c : input.toCharArray()) {
             // Generate a random boolean to decide whether to convert to uppercase or lowercase
-            boolean toUpperCase = random.nextBoolean();
+            boolean toUpperCase = context.random.nextBoolean();
 
             // Convert the character to uppercase or lowercase based on the random boolean
             char convertedChar = toUpperCase ? Character.toUpperCase(c) : Character.toLowerCase(c);
@@ -140,28 +146,28 @@ public class RandomJsonGenerator {
         return resultBuilder.toString();
     }
 
-    private String getRandomString() {
-        int stringLength = random.nextInt(config.getMaxStringLength());
+    private String getRandomString(Context context) {
+        int stringLength = context.random.nextInt(config.getMaxStringLength());
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < stringLength; i++) {
-            sb.append(getRandomCharacter());
+            sb.append(getRandomCharacter(context));
         }
         return sb.toString();
     }
 
-    private Character getRandomCharacter() {
+    private Character getRandomCharacter(Context context) {
         Character[] characters = config.getAllowedCharacters().toArray(new Character[0]);
-        int randomIndex = random.nextInt(characters.length - 1);
+        int randomIndex = context.random.nextInt(characters.length - 1);
         return characters[randomIndex];
     }
 
     private NumericNode createRandomNumericNode(Context context) {
-        int rnd = random.nextInt(1, 5);
+        int rnd = context.random.nextInt(1, 5);
         NumericNode node = switch (rnd) {
-            case 1 -> JsonNodeFactory.instance.numberNode(random.nextLong(config.getMaxLong()));
-            case 2 -> JsonNodeFactory.instance.numberNode(random.nextFloat(config.getMaxFloat()));
-            case 3 -> JsonNodeFactory.instance.numberNode(random.nextDouble(config.getMaxDouble()));
-            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), random));
+            case 1 -> JsonNodeFactory.instance.numberNode(context.random.nextLong(config.getMaxLong()));
+            case 2 -> JsonNodeFactory.instance.numberNode(context.random.nextFloat(config.getMaxFloat()));
+            case 3 -> JsonNodeFactory.instance.numberNode(context.random.nextDouble(config.getMaxDouble()));
+            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), context.random));
             default -> throw new IllegalStateException("Unexpected value: " + rnd);
         };
         context.estimatedSizeBytes += sizeOf(node);
@@ -171,7 +177,7 @@ public class RandomJsonGenerator {
     private ArrayNode createRandomArrayNode(Context context, int depth) {
         ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
         context.estimatedSizeBytes += sizeOf(arrayNode);
-        int nrOfArrayElements = random.nextInt(config.getMaxArraySize());
+        int nrOfArrayElements = context.random.nextInt(config.getMaxArraySize());
         for (int i = 0; i < nrOfArrayElements; i++) {
             if (i > 0) {
                 context.estimatedSizeBytes += 1; // for the comma
@@ -193,6 +199,11 @@ public class RandomJsonGenerator {
     }
 
     private static class Context {
+        private final Random random;
         int estimatedSizeBytes;
+
+        public Context(Random random) {
+            this.random = random;
+        }
     }
 }

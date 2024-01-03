@@ -1,5 +1,8 @@
 package dev.blaauwendraad.masker.json;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(byte[])}
  * operation.
@@ -7,6 +10,8 @@ package dev.blaauwendraad.masker.json;
 public final class MaskingState {
     private byte[] message;
     private int currentIndex;
+    private List<ReplacementOperation> replacementOperations = new ArrayList<>();
+    private int replacementOperationsTotalDifference = 0;
 
     public MaskingState(byte[] message, int currentIndex) {
         this.message = message;
@@ -49,10 +54,32 @@ public final class MaskingState {
         return message;
     }
 
+    public void addReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
+        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, maskLength, maskByte);
+        replacementOperations.add(replacementOperation);
+        replacementOperationsTotalDifference += replacementOperation.difference();
+    }
+
+    public List<ReplacementOperation> getReplacementOperations() {
+        return replacementOperations;
+    }
+
     // for debugging purposes, shows the current state of message traversal
-    public String peek() {
+    @Override
+    public String toString() {
         return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
                 " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
                 " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
+    }
+
+    public int getReplacementOperationsTotalDifference() {
+        return replacementOperationsTotalDifference;
+    }
+
+    public record ReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
+
+        public int difference() {
+            return maskLength - (endIndex - startIndex);
+        }
     }
 }

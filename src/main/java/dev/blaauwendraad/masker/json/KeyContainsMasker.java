@@ -148,6 +148,9 @@ public final class KeyContainsMasker implements JsonMasker {
                 maskStringValueInPlace(maskingState);
             }
         }
+
+        FixedLengthTargetValueMaskUtil.flushReplacementOperations(maskingState);
+
         return maskingState.getMessage();
     }
 
@@ -236,7 +239,6 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
                 previousCharacterCountedAsEscapeCharacter = false;
             }
-            maskingState.setByteAtCurrentIndex(AsciiCharacter.ASTERISK.getAsciiByteValue());
             targetValueLength++;
             maskingState.incrementCurrentIndex();
         }
@@ -248,11 +250,6 @@ public final class KeyContainsMasker implements JsonMasker {
                     obfuscationLength,
                     targetValueLength
             );
-            /*
-             * Compensate the maskingState.currentIndex() for shortening the input by setting fixed length to be at the closing
-             * double quote of the string value.
-             */
-            maskingState.setCurrentIndex(maskingState.currentIndex() - (targetValueLength - obfuscationLength));
         } else if (!maskingConfig.isLengthObfuscationEnabled() && (noOfEscapeCharacters > 0
                 || additionalBytesForEncoding > 0)) {
             // So we don't add asterisks for escape characters or additional encoding bytes (which
@@ -269,12 +266,12 @@ public final class KeyContainsMasker implements JsonMasker {
                     actualStringLength,
                     targetValueLength
             );
-            /*
-             * Compensate the maskingState.currentIndex() for shortening the input with noOfEscapeCharacters to be at closing
-             * double quote of the String value.
-             */
-            maskingState.setCurrentIndex(
-                    maskingState.currentIndex() - noOfEscapeCharacters - additionalBytesForEncoding);
+        } else {
+            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                    maskingState,
+                    targetValueLength,
+                    targetValueLength
+            );
         }
         maskingState.incrementCurrentIndex(); // step over closing quote of string value to start looking for the next JSON key.
     }
@@ -392,36 +389,16 @@ public final class KeyContainsMasker implements JsonMasker {
             maskingState.incrementCurrentIndex();
         }
         if (maskingConfig.isLengthObfuscationEnabled() && obfuscationLength != targetValueLength) {
-            if (obfuscationLength == 0) {
-                /*
-                 * For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an
-                 * empty numeric value is illegal JSON.
-                 */
-                FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
-                        maskingState,
-                        1,
-                        targetValueLength,
-                        AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
-                );
-                /*
-                 * The length of the input got changed, so we need to compensate that on our maskingState.currentIndex() by
-                 * stepping the difference between value length and obfuscation length back.
-                 */
-                maskingState.setCurrentIndex(maskingState.currentIndex() - (targetValueLength - 1));
-            } else {
-                FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
-                        maskingState,
-                        obfuscationLength,
-                        targetValueLength,
-                        AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
-                );
-                /*
-                 * The length of the input got changed, so we need to compensate that on our maskingState.currentIndex() by
-                 * stepping the difference between value length and obfuscation length back.
-                 */
-                maskingState.setCurrentIndex(
-                        maskingState.currentIndex() - (targetValueLength - obfuscationLength));
-            }
+            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                    maskingState,
+                    /*
+                     For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an
+                     empty numeric value is illegal JSON.
+                     */
+                    obfuscationLength > 0 ? obfuscationLength : 1,
+                    targetValueLength,
+                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
+            );
         }
     }
 

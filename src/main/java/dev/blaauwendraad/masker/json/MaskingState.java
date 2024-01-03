@@ -64,16 +64,16 @@ public final class MaskingState {
         return replacementOperations;
     }
 
+    public int getReplacementOperationsTotalDifference() {
+        return replacementOperationsTotalDifference;
+    }
+
     // for debugging purposes, shows the current state of message traversal
     @Override
     public String toString() {
         return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
                 " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
                 " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
-    }
-
-    public int getReplacementOperationsTotalDifference() {
-        return replacementOperationsTotalDifference;
     }
 
     public record ReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {

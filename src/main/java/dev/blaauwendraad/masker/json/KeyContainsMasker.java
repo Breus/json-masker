@@ -242,37 +242,24 @@ public final class KeyContainsMasker implements JsonMasker {
             targetValueLength++;
             maskingState.incrementCurrentIndex();
         }
-        int obfuscationLength = maskingConfig.getObfuscationLength();
-        if (maskingConfig.isLengthObfuscationEnabled()
-                && obfuscationLength != targetValueLength) {
-            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
-                    maskingState,
-                    obfuscationLength,
-                    targetValueLength
-            );
-        } else if (!maskingConfig.isLengthObfuscationEnabled() && (noOfEscapeCharacters > 0
-                || additionalBytesForEncoding > 0)) {
-            // So we don't add asterisks for escape characters or additional encoding bytes (which
-            // are not part of the String length)
-
+        int maskLength = targetValueLength;
+        if (maskingConfig.isLengthObfuscationEnabled()) {
+            maskLength = maskingConfig.getObfuscationLength();
+        } else if (noOfEscapeCharacters > 0 || additionalBytesForEncoding > 0) {
             /*
-             * The actual length of the string is the length minus escape characters (which are not part of the
-             * string length). Also, unicode characters are denoted as 4-hex digits but represent actually
-             * just one character, so for each of them 3 asterisks should be removed.
+            So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
+
+            The actual length of the string is the length minus escape characters (which are not part of the
+            string length). Also, unicode characters are denoted as 4-hex digits but represent actually
+            just one character, so for each of them 3 asterisks should be removed.
              */
-            int actualStringLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
-            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
-                    maskingState,
-                    actualStringLength,
-                    targetValueLength
-            );
-        } else {
-            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
-                    maskingState,
-                    targetValueLength,
-                    targetValueLength
-            );
+            maskLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
         }
+        FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthAsteriskMask(
+                maskingState,
+                maskLength,
+                targetValueLength
+        );
         maskingState.incrementCurrentIndex(); // step over closing quote of string value to start looking for the next JSON key.
     }
 

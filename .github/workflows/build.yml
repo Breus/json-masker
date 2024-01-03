@@ -1,4 +1,3 @@
-
 name: Build
 on:
   push:
@@ -55,7 +54,12 @@ jobs:
           fi
 
       - name: Build
-        run: ./gradlew -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} build
+        run: |
+          ./gradlew \
+            -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            build jacocoTestReport sonar
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v4
@@ -72,7 +76,3 @@ jobs:
           GPG_PRIV_KEY: ${{ secrets.GPG_PRIV_KEY }}
           GPG_PASS_PHRASE: ${{ secrets.GPG_PASS_PHRASE }}
         run: ./gradlew -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} publishAllPublicationsToSonatypeRepository closeSonatypeStagingRepository
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

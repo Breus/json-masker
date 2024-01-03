@@ -381,25 +381,22 @@ public final class KeyContainsMasker implements JsonMasker {
         int targetValueLength = 0;
         while (AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
             targetValueLength++;
-            maskingState.setByteAtCurrentIndex(AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith()));
             /*
              * Following line cannot result in ArrayOutOfBound because of the early return after checking for
              * first char being a double quote.
              */
             maskingState.incrementCurrentIndex();
         }
-        if (maskingConfig.isLengthObfuscationEnabled() && obfuscationLength != targetValueLength) {
-            FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
-                    maskingState,
-                    /*
-                     For obfuscation length 0, we want to obfuscate numeric values with a single 0 because an
-                     empty numeric value is illegal JSON.
-                     */
-                    obfuscationLength > 0 ? obfuscationLength : 1,
-                    targetValueLength,
-                    AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
-            );
+        int maskLength = targetValueLength;
+        if (maskingConfig.isLengthObfuscationEnabled()) {
+            maskLength = obfuscationLength > 0 ? obfuscationLength : 1;
         }
+        FixedLengthTargetValueMaskUtil.replaceTargetValueWithFixedLengthMask(
+                maskingState,
+                maskLength,
+                targetValueLength,
+                AsciiCharacter.toAsciiByteValue(maskingConfig.getMaskNumericValuesWith())
+        );
     }
 
     /**

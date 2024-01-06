@@ -1,3 +1,5 @@
+import org.sonarqube.gradle.SonarTask
+
 plugins {
     `maven-publish`
     `java-library`
@@ -164,6 +166,9 @@ tasks {
         reports {
             xml.required = true
         }
-        mustRunAfter(test)
+    }
+
+    withType<SonarTask> {
+        dependsOn(jacocoTestReport)
     }
 }

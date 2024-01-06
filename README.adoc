@@ -3,11 +3,12 @@ image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven
 
 = High-performance JSON masker
 
-JSON masker which can be used to mask strings and numbers from JSON messages, corresponding to a (set of) target key(s).
-Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the target keys.
+JSON masker library which can be used to mask strings and numbers inside JSON objects and arrays, corresponding to a set of target keys.
+Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the (allowed) target keys.
 
-The library provides a convenient API and its implementation is focused on maximum (time) performance using Java.
-No additional third-party runtime dependencies are required for this library.
+The library provides a convenient API and its implementation is focused on maximum (time) performance and minimal heap allocations.
+
+No additional third-party runtime dependencies are required to use this library.
 
 == Features
 
@@ -18,6 +19,7 @@ No additional third-party runtime dependencies are required for this library.
 - **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
 - Target key **case sensitivity configuration** (default: `false`)
 - **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
+- Masking valid JSON will always result in valid JSON
 - The implementation only supports JSON in UTF-8 character encoding
 
 == Usage examples
@@ -142,26 +144,29 @@ String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
 
 == Performance considerations
 
-This library uses a dedicated multi-target algorithm by looking for a JSON key and checking whether the target key set contains this key in constant time.
-
-The time complexity of this algorithm scales only linear in the message input length.
+The library uses an algorithm that looks for a JSON key and checks whether the target key set contains this key in constant time.
+Hence, the time complexity of this algorithm scales only linear in the message input length.
 Additionally, the target key set size has negligible impact on the performance.
+
+The algorithm makes use of the heap and resizing the original byte array is done at most once per run.
 
 == Benchmarks
 
 [source]
 ----
-Benchmark                               (jsonSize)  (maskedKeyProbability)  (obfuscationLength)   Mode  Cnt        Score   Error  Units
-JsonMaskerBenchmark.baselineCountBytes         1kb                     0.1                 none  thrpt       3973935.739          ops/s
-JsonMaskerBenchmark.jacksonString              1kb                     0.1                 none  thrpt        112680.854          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes            1kb                     0.1                 none  thrpt       1225579.252          ops/s
-JsonMaskerBenchmark.jsonMaskerString           1kb                     0.1                 none  thrpt        476463.063          ops/s
+Benchmark                              (characters)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score  Units
+BaselineBenchmark.countBytes                unicode         1kb                    0.01  thrpt       3315041,920  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         1kb                    0.01  thrpt         16054,766  ops/s
+BaselineBenchmark.regexReplace              unicode         1kb                    0.01  thrpt         10196,652  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode         1kb                    0.01  thrpt        801846,357  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode         1kb                    0.01  thrpt        372591,315  ops/s
 
-JsonMaskerBenchmark.baselineCountBytes         2mb                    0.01                 none  thrpt          2269.735          ops/s
-JsonMaskerBenchmark.jacksonString              2mb                    0.01                 none  thrpt            29.844          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes            2mb                    0.01                 none  thrpt           419.823          ops/s
-JsonMaskerBenchmark.jsonMaskerString           2mb                    0.01                 none  thrpt            86.108          ops/s
+BaselineBenchmark.countBytes                unicode         2mb                    0.01  thrpt          1497,087  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         2mb                    0.01  thrpt             5,798  ops/s
+BaselineBenchmark.regexReplace              unicode         2mb                    0.01  thrpt             3,745  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode         2mb                    0.01  thrpt           304,560  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode         2mb                    0.01  thrpt           129,351  ops/s
 ----
 
-For full benchmark results see link:src/jmh/benchmark-history[benchmark-history]
+For full benchmark results and additional details see link:src/jmh/benchmark-history[benchmark-history]
 

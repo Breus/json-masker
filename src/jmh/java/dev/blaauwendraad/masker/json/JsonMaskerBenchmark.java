@@ -26,13 +26,13 @@ public class JsonMaskerBenchmark {
 
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     public static class State {
-        @Param({"1kb", "128kb", "2mb"})
+        @Param({ "1kb", "128kb", "2mb" })
         String jsonSize;
-        @Param({"ascii (no quote)", "ascii", "unicode"})
+        @Param({ "ascii (no quote)", "ascii", "unicode" })
         String characters;
-        @Param({"0.01", "0.1"})
+        @Param({ "0.01", "0.1" })
         double maskedKeyProbability;
-        @Param({"none", "8"})
+        @Param({ "none", "8" })
         String obfuscationLength;
 
         private String jsonString;
@@ -49,8 +49,8 @@ public class JsonMaskerBenchmark {
             jsonMasker = JsonMasker.getMasker(
                     JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
                             .obfuscationLength(Objects.equals(obfuscationLength, "none")
-                                    ? -1
-                                    : Integer.parseInt(obfuscationLength))
+                                                       ? -1
+                                                       : Integer.parseInt(obfuscationLength))
                             .build()
             );
         }

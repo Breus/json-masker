@@ -8,9 +8,6 @@ on:
   pull_request:
     branches:
       - master
-    paths-ignore:
-      - README.adoc
-
 jobs:
   build:
     runs-on: ubuntu-latest

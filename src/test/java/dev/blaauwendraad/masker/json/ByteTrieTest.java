@@ -1,12 +1,13 @@
 package dev.blaauwendraad.masker.json;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ParametersAreNonnullByDefault
 final class ByteTrieTest {
@@ -19,19 +20,19 @@ final class ByteTrieTest {
             trie.insert(someKey);
         }
         for (String someKey : someKeys) {
-            Assertions.assertTrue(transformToBytesAndSearch(trie, someKey));
-            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey));
+            assertThat(transformToBytesAndSearch(trie, someKey)).isTrue();
+            assertThat(transformToBytesWithPaddingAndSearch(trie, someKey)).isTrue();
         }
         for (String someKey : someKeys) {
-            Assertions.assertTrue(transformToBytesAndSearch(trie, someKey.toLowerCase(Locale.ROOT)));
-            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey.toLowerCase(Locale.ROOT)));
+            assertThat(transformToBytesAndSearch(trie, someKey.toLowerCase(Locale.ROOT))).isTrue();
+            assertThat(transformToBytesWithPaddingAndSearch(trie, someKey.toLowerCase(Locale.ROOT))).isTrue();
         }
         for (String someKey : someKeys) {
-            Assertions.assertTrue(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
-            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
+            assertThat(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT))).isTrue();
+            assertThat(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT))).isTrue();
         }
-        Assertions.assertFalse(transformToBytesAndSearch(trie, "notAKey"));
-        Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, "notAKey"));
+        assertThat(transformToBytesAndSearch(trie, "notAKey")).isFalse();
+        assertThat(transformToBytesWithPaddingAndSearch(trie, "notAKey")).isFalse();
     }
 
     @Test
@@ -41,15 +42,15 @@ final class ByteTrieTest {
             trie.insert(someKey);
         }
         for (String someKey : someKeys) {
-            Assertions.assertTrue(transformToBytesAndSearch(trie, someKey));
-            Assertions.assertTrue(transformToBytesWithPaddingAndSearch(trie, someKey));
+            assertThat(transformToBytesAndSearch(trie, someKey)).isTrue();
+            assertThat(transformToBytesWithPaddingAndSearch(trie, someKey)).isTrue();
         }
         for (String someKey : someKeys) {
-            Assertions.assertFalse(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
-            Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT)));
+            assertThat(transformToBytesAndSearch(trie, someKey.toUpperCase(Locale.ROOT))).isFalse();
+            assertThat(transformToBytesWithPaddingAndSearch(trie, someKey.toUpperCase(Locale.ROOT))).isFalse();
         }
-        Assertions.assertFalse(transformToBytesAndSearch(trie, "notAKey"));
-        Assertions.assertFalse(transformToBytesWithPaddingAndSearch(trie, "notAKey"));
+        assertThat(transformToBytesAndSearch(trie, "notAKey")).isFalse();
+        assertThat(transformToBytesWithPaddingAndSearch(trie, "notAKey")).isFalse();
     }
 
     private boolean transformToBytesAndSearch(ByteTrie trie, String key) {

@@ -4,10 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 final class ParseAndMaskUtilTest {
     @Test
@@ -25,10 +26,10 @@ final class ParseAndMaskUtilTest {
                 """,
                 JsonMaskingConfig.getDefault(Set.of("someSecret", "someSecret2"))
         );
-        Assertions.assertEquals("*********", jsonNode.get("someSecret").textValue());
-        Assertions.assertEquals("*****", jsonNode.get("someOtherKey").get("someSecret2").textValue());
-        Assertions.assertEquals("hello", jsonNode.get("someOtherKey").get("noneSecret").textValue());
-        Assertions.assertEquals(123, jsonNode.get("someOtherKey").get("numericKey").numberValue());
+        assertThat(jsonNode.get("someSecret").textValue()).isEqualTo("*********");
+        assertThat(jsonNode.get("someOtherKey").get("someSecret2").textValue()).isEqualTo("*****");
+        assertThat(jsonNode.get("someOtherKey").get("noneSecret").textValue()).isEqualTo("hello");
+        assertThat(jsonNode.get("someOtherKey").get("numericKey").numberValue()).isEqualTo(123);
     }
 
     @Test
@@ -45,8 +46,8 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.getDefault(Set.of("maskMe"))
         );
         JsonNode maskedNode = jsonNode.get("maskMe");
-        Assertions.assertEquals("****", maskedNode.get("someOtherKey").textValue());
-        Assertions.assertEquals("*********", maskedNode.get("someKey").textValue());
+        assertThat(maskedNode.get("someOtherKey").textValue()).isEqualTo("****");
+        assertThat(maskedNode.get("someKey").textValue()).isEqualTo("*********");
     }
 
     @Test
@@ -61,9 +62,9 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.getDefault(Set.of("maskMe", "alsoMaskMe"))
         );
         JsonNode maskedNode = jsonNode.get("maskMe");
-        Assertions.assertEquals("*****", maskedNode.get(0).textValue());
-        Assertions.assertEquals("*****", maskedNode.get(1).textValue());
-        Assertions.assertEquals("**", jsonNode.get("dontMaskMe").get(0).get("alsoMaskMe").textValue());
+        assertThat(maskedNode.get(0).textValue()).isEqualTo("*****");
+        assertThat(maskedNode.get(1).textValue()).isEqualTo("*****");
+        assertThat(jsonNode.get("dontMaskMe").get(0).get("alsoMaskMe").textValue()).isEqualTo("**");
     }
 
     @Test
@@ -86,10 +87,7 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.custom(Set.of("targetKey1", "targetKey2"), JsonMaskingConfig.TargetKeyMode.ALLOW)
                         .build()
         );
-        Assertions.assertEquals(
-                new ObjectMapper().readTree("\"c\\u0014x\"").asText(),
-                jsonNode.get("&I").get("targetKey1").asText()
-        );
+        assertThat(jsonNode.get("&I").get("targetKey1").asText()).isEqualTo(new ObjectMapper().readTree("\"c\\u0014x\"").asText());
     }
 
     @Test
@@ -109,10 +107,7 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.custom(Set.of("targetKey1", "targetKey2"), JsonMaskingConfig.TargetKeyMode.ALLOW)
                         .build()
         );
-        Assertions.assertEquals(
-                new ObjectMapper().readTree("\"p\\u000FE\"").asText(),
-                jsonNode.get("targetKey2").get("").asText()
-        );
+        assertThat(jsonNode.get("targetKey2").get("").asText()).isEqualTo(new ObjectMapper().readTree("\"p\\u000FE\"").asText());
     }
 
     @Test
@@ -133,9 +128,6 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.custom(Set.of("targetKey1", "targetKey2"), JsonMaskingConfig.TargetKeyMode.ALLOW)
                         .build()
         );
-        Assertions.assertEquals(
-                new ObjectMapper().readTree("\"\\r\\u0014\"").asText(),
-                jsonNode.get("targetKey1").get(">").asText()
-        );
+        assertThat(jsonNode.get("targetKey1").get(">").asText()).isEqualTo(new ObjectMapper().readTree("\"\\r\\u0014\"").asText());
     }
 }

@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json.config;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -8,12 +7,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+
 final class JsonMaskingConfigTest {
 
     @ParameterizedTest
     @MethodSource("invalidBuilders")
     void invalidBuilders(JsonMaskingConfig.Builder builder) {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new JsonMaskingConfig(builder));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> new JsonMaskingConfig(builder));
     }
 
     private static Stream<JsonMaskingConfig.Builder> invalidBuilders() {

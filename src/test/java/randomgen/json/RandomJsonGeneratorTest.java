@@ -2,7 +2,6 @@ package randomgen.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.JsonMasker;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.withinPercentage;
 import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
 
 public class RandomJsonGeneratorTest {
@@ -45,12 +46,9 @@ public class RandomJsonGeneratorTest {
             int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
             double allowedDifference = targetJsonSizeBytes * 0.01;
-            Assertions.assertEquals(
-                    targetJsonSizeBytes,
-                    actualSizeBytes,
-                    allowedDifference,
-                    () -> "Expected json to be of size " + targetJsonSizeBytes + " (±1%), got: " + actualSizeBytes
-            );
+            assertThat(actualSizeBytes)
+                    .as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±1%), got: " + actualSizeBytes)
+                    .isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
         }
     }
 
@@ -68,12 +66,9 @@ public class RandomJsonGeneratorTest {
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
         double allowedDifference = targetJsonSizeBytes * 0.001;
-        Assertions.assertEquals(
-                targetJsonSizeBytes,
-                actualSizeBytes,
-                allowedDifference,
-                () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes
-        );
+        assertThat(actualSizeBytes)
+                .as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes)
+                .isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
     }
 
     @Test
@@ -90,12 +85,8 @@ public class RandomJsonGeneratorTest {
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
         double allowedDifference = targetJsonSizeBytes * 0.001;
-        Assertions.assertEquals(
-                targetJsonSizeBytes,
-                actualSizeBytes,
-                allowedDifference,
-                () -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes
-        );
+        assertThat(actualSizeBytes).as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: "
+                + actualSizeBytes).isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
     }
 
     @Test
@@ -137,7 +128,7 @@ public class RandomJsonGeneratorTest {
         String json1 = randomJsonGenerator.createRandomJsonNode().toString();
         String json2 = randomJsonGenerator.createRandomJsonNode().toString();
 
-        Assertions.assertEquals(json1, json2);
+        assertThat(json2).isEqualTo(json1);
     }
 
     @Test
@@ -151,7 +142,7 @@ public class RandomJsonGeneratorTest {
         String json1 = randomJsonGenerator.createRandomJsonNode().toString();
         String json2 = randomJsonGenerator.createRandomJsonNode().toString();
 
-        Assertions.assertNotEquals(json1, json2);
+        assertThat(json2).isNotEqualTo(json1);
     }
 
     @Test
@@ -172,6 +163,6 @@ public class RandomJsonGeneratorTest {
         String json1 = randomJsonGenerator1.createRandomJsonNode().toString();
         String json2 = randomJsonGenerator2.createRandomJsonNode().toString();
 
-        Assertions.assertNotEquals(json1, json2);
+        assertThat(json2).isNotEqualTo(json1);
     }
 }

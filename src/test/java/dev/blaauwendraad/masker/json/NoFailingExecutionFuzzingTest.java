@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.fail;
+
 /**
  * This class contains fuzzing tests which are meant to spot infinite loops and program failures for all combination of
  * {@link JsonMasker} and {@link JsonMaskingConfig}.
@@ -69,7 +71,7 @@ final class NoFailingExecutionFuzzingTest {
                 }
                 int currentNumberOfExecutedTests = randomTestsExecuted.get();
                 if (currentNumberOfExecutedTests == lastCheckedNumberOfTests) {
-                    Assertions.fail(String.format(
+                    fail("", String.format(
                             "The test got stuck after executing %d test when the following JSON was being processed: \n %s",
                             randomTestsExecuted.get(),
                             lastExecutedJson
@@ -78,7 +80,7 @@ final class NoFailingExecutionFuzzingTest {
                 lastCheckedNumberOfTests = currentNumberOfExecutedTests;
             }
         } catch (InterruptedException e) {
-            Assertions.fail(String.format(
+            fail("", String.format(
                     "The test was interrupted after executing %d test when the following JSON was being processed: \n %s",
                     randomTestsExecuted.get(),
                     lastExecutedJson

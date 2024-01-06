@@ -2,9 +2,11 @@ plugins {
     `maven-publish`
     `java-library`
     signing
+    jacoco
     id("me.champeau.jmh") version "0.7.2"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     id("com.adarshr.test-logger") version "4.0.0"
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 description = "High-performance JSON masker in Java with no runtime dependencies"
@@ -131,6 +133,14 @@ jmh {
     // profilers = ["async:libPath=<path-to-async-profiler>/build/libasyncProfiler.so;output=flamegraph;dir=profile-results"]
 }
 
+sonar {
+    properties {
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.organization", "breus")
+        property("sonar.projectKey", "Breus_json-masker")
+    }
+}
+
 tasks {
     test {
         useJUnitPlatform()
@@ -148,5 +158,12 @@ tasks {
         val options = options as StandardJavadocDocletOptions
         options.addBooleanOption("html5", true)
         options.addStringOption("Xdoclint:all,-missing", "-quiet")
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+        }
+        mustRunAfter(test)
     }
 }

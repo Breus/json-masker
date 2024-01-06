@@ -101,10 +101,10 @@ val gpgPassphrase = System.getenv("GPG_PASS_PHRASE")
 nexusPublishing {
     repositories {
         sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-            username.set(sonatypeUser)
-            password.set(sonatypePassword)
+            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
+            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            username = sonatypeUser
+            password = sonatypePassword
         }
     }
 }
@@ -118,13 +118,12 @@ signing {
 jmh {
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
-        benchmarkParameters.set(
-            mapOf(
-                "jsonSize" to rootProject.objects.listProperty<String>().value(listOf("128kb")),
-                "maskedKeyProbability" to rootProject.objects.listProperty<String>().value(listOf("0.01")),
-                "obfuscationLength" to rootProject.objects.listProperty<String>().value(listOf("none"))
-            )
+        benchmarkParameters = mapOf(
+            "jsonSize" to rootProject.objects.listProperty<String>().value(listOf("128kb")),
+            "maskedKeyProbability" to rootProject.objects.listProperty<String>().value(listOf("0.01")),
+            "obfuscationLength" to rootProject.objects.listProperty<String>().value(listOf("none"))
         )
+
         iterations = 4
     }
     // if you have async profiler installed, you can uncomment this to get a flamegraphs
@@ -143,7 +142,7 @@ tasks {
     compileTestJava {
         options.encoding = "UTF-8"
     }
-    
+
     javadoc {
         val options = options as StandardJavadocDocletOptions
         options.addBooleanOption("html5", true)

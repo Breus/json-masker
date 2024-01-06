@@ -1,10 +1,9 @@
 image:https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml[GitHub Workflow Status (with event),link="https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster"]
 image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven Central,link="https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker"]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status[Sonar Quality Gate]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage[Sonar Coverage]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating[Sonar Reliability]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating[Sonar Security]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=vulnerabilities[Sonar Vulnerabilities]
+image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status[Sonar Quality Gate,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
+image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage[Sonar Coverage,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
+image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating[Sonar Reliability,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
+image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating[Sonar Security,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
 
 = High-performance JSON masker
 

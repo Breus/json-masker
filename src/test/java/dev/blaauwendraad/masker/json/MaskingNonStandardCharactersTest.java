@@ -1,10 +1,11 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MaskingNonStandardCharactersTest {
 
@@ -12,8 +13,33 @@ class MaskingNonStandardCharactersTest {
     void maskingNonStandardCharacters() {
         JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("привіт", "💩"));
 
-        Assertions.assertEquals(
+        assertThat(jsonMasker.mask(
                 """
+                        {
+                          "привіт": "hello",
+                          "otherKey": null,
+                          "💩": "shit happens",
+                          "someObject": {
+                            "привіт": "hello",
+                            "otherKey": null,
+                            "💩": {
+                                "💩": "shit happens"
+                            }
+                          },
+                          "someArray": [
+                            "💩",
+                            "💩".
+                            {
+                              "привіт": "hello",
+                              "otherKey": null,
+                              "💩": {
+                                  "💩": "shit happens"
+                              }
+                            }
+                          ]
+                        }
+                        """
+        )).isEqualTo("""
                 {
                   "привіт": "*****",
                   "otherKey": null,
@@ -37,9 +63,17 @@ class MaskingNonStandardCharactersTest {
                     }
                   ]
                 }
-                """,
-                jsonMasker.mask(
-                        """
+                """);
+    }
+
+    @Test
+    void maskingNonStandardCharactersInAllowMode() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(
+                JsonMaskingConfig.custom(Set.of("привіт", "otherKey", "someArray"), JsonMaskingConfig.TargetKeyMode.ALLOW).build()
+        );
+
+        assertThat(jsonMasker.mask(
+                """
                         {
                           "привіт": "hello",
                           "otherKey": null,
@@ -64,18 +98,7 @@ class MaskingNonStandardCharactersTest {
                           ]
                         }
                         """
-                )
-        );
-    }
-
-    @Test
-    void maskingNonStandardCharactersInAllowMode() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.custom(Set.of("привіт", "otherKey", "someArray"), JsonMaskingConfig.TargetKeyMode.ALLOW).build()
-        );
-
-        Assertions.assertEquals(
-                """
+        )).isEqualTo("""
                 {
                   "привіт": "hello",
                   "otherKey": null,
@@ -99,34 +122,6 @@ class MaskingNonStandardCharactersTest {
                     }
                   ]
                 }
-                """,
-                jsonMasker.mask(
-                        """
-                        {
-                          "привіт": "hello",
-                          "otherKey": null,
-                          "💩": "shit happens",
-                          "someObject": {
-                            "привіт": "hello",
-                            "otherKey": null,
-                            "💩": {
-                                "💩": "shit happens"
-                            }
-                          },
-                          "someArray": [
-                            "💩",
-                            "💩".
-                            {
-                              "привіт": "hello",
-                              "otherKey": null,
-                              "💩": {
-                                  "💩": "shit happens"
-                              }
-                            }
-                          ]
-                        }
-                        """
-                )
-        );
+                """);
     }
 }

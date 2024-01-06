@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json.util;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -9,22 +8,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class Utf8UtilTest {
 
     @Test
     void asciiCharacters() {
         for (AsciiCharacter asciiCharacter : AsciiCharacter.values()) {
-            Assertions.assertEquals(1, Utf8Util.getCodePointByteLength(asciiCharacter.getAsciiByteValue()));
+            assertThat(Utf8Util.getCodePointByteLength(asciiCharacter.getAsciiByteValue())).isEqualTo(1);
         }
     }
 
     @ParameterizedTest
     @MethodSource("unicodeCharactersLength")
     void unicodeCharacters(String character, int utf8ByteLength) {
-        Assertions.assertEquals(
-                utf8ByteLength,
-                Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0])
-        );
+        assertThat(Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0])).isEqualTo(utf8ByteLength);
     }
 
     private static Stream<Arguments> unicodeCharactersLength() {

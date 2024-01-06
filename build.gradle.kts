@@ -29,6 +29,7 @@ java {
 dependencies {
     "nullabilityAnnotationsImplementation"("com.google.code.findbugs:jsr305:3.0.2")
 
+    testImplementation("org.assertj:assertj-core:3.25.1")
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")

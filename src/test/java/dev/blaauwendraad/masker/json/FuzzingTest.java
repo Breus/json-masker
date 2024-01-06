@@ -2,7 +2,6 @@ package dev.blaauwendraad.masker.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import randomgen.json.RandomJsonGenerator;
@@ -13,6 +12,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
@@ -32,11 +33,7 @@ final class FuzzingTest {
             String randomJsonNodeString = randomJsonNode.toPrettyString();
             String keyContainsOutput = masker.mask(randomJsonNodeString);
             String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig).toPrettyString();
-            Assertions.assertEquals(
-                    jacksonMaskingOutput,
-                    keyContainsOutput,
-                    "Failed for input: " + randomJsonNodeString
-            );
+            assertThat(keyContainsOutput).as("Failed for input: " + randomJsonNodeString).isEqualTo(jacksonMaskingOutput);
             randomTestExecuted++;
         }
         System.out.printf(

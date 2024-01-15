@@ -69,20 +69,18 @@ public class JsonMaskingConfig {
                     "If obfuscation length is set to 0, numeric values are replaced with a single 0, so mask number values with must be 0 or number masking must be disabled");
         }
 
-        Set<String> jsonPathLiterals = targets.stream()
-                .filter(t -> t.startsWith("$."))
-                .collect(Collectors.toSet());
-        if (!jsonPathLiterals.isEmpty() && builder.resolveJsonPaths) {
-            targetJsonPaths = resolveJsonPaths(jsonPathLiterals);
-            targets.removeIf(jsonPathLiterals::contains);
+        if (builder.resolveJsonPaths) {
+            targetJsonPaths = targets.stream()
+                    .filter(t -> t.startsWith("$."))
+                    .map(JsonPath::from)
+                    .collect(Collectors.toSet());
+            targetKeys = targets.stream()
+                    .filter(t -> !t.startsWith("$."))
+                    .collect(Collectors.toSet());
         } else {
             targetJsonPaths = Collections.emptySet();
+            targetKeys = targets;
         }
-        targetKeys = targets;
-    }
-
-    private Set<JsonPath> resolveJsonPaths(Set<String> targets) {
-        return targets.stream().map(JsonPath::from).collect(Collectors.toSet());
     }
 
     public static JsonMaskingConfig getDefault(Set<String> targets) {

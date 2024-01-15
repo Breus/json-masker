@@ -1,7 +1,9 @@
 package dev.blaauwendraad.masker.json.path;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A {@link JsonPath} expression is used to traverse, select and extract fields and values from a JSON document.
@@ -38,7 +40,9 @@ import java.util.Arrays;
  * These are all the parts of JSONPath considered for this library, to be able to denote a target key matching one and
  * only one value in the JSON document to be masked. This is useful in cases where the same JSON key appears multiple
  * times in the same JSON document (i.e. in different objects).
- *
+ * <p>
+ * JsonPath can contain empty keys.
+ * For example, "$.a..b." denotes the path to the "target" value in the following json: {"a":{"":{"b":{"":"target"}}}}
  */
 public class JsonPath {
     private final String[] pathComponents;
@@ -49,26 +53,34 @@ public class JsonPath {
 
     @Nonnull
     public static JsonPath from(String jsonPathLiteral) {
-        if (!jsonPathLiteral.startsWith("$.")) {
-            throw new IllegalArgumentException("JSONPath literal must start with a \"$.\"");
+        if (!jsonPathLiteral.startsWith("$")) {
+            throw new IllegalArgumentException("JSONPath literal must start with a \"$\"");
         }
-        if (jsonPathLiteral.length() < 3) {
-            throw new IllegalArgumentException("JSONPath must contain at least one name selector");
+        List<String> components = new ArrayList<>();
+        StringBuilder component = new StringBuilder();
+        for (char ch : jsonPathLiteral.toCharArray()) {
+            if (ch == '.') {
+                components.add(component.toString());
+                component = new StringBuilder();
+            } else {
+                component.append(ch);
+            }
         }
-        if (jsonPathLiteral.charAt(jsonPathLiteral.length() - 1) == '.') {
-            throw new IllegalArgumentException("JSONPath cannot end with a component separator ('.')");
-        }
-        var jsonPathLiteralTmp = jsonPathLiteral.substring(2);
-        return new JsonPath(jsonPathLiteralTmp.split("\\."));
+        components.add(component.toString());
+        return new JsonPath(components.toArray(String[]::new));
     }
 
     public String[] getPathComponents() {
         return pathComponents;
     }
 
+    public String getLastComponent() {
+        return pathComponents[pathComponents.length-1];
+    }
+
     @Override
     public String toString() {
-        return "$." + String.join(".", pathComponents);
+        return String.join(".", pathComponents);
     }
 
     @Override

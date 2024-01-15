@@ -1,0 +1,54 @@
+[
+  {
+    "targetKeys": [
+      "normalKey",
+      "$.json.path.key",
+      "$.json.path.array[3].key",
+      "anotherNormalKey"
+    ],
+    "input": {
+      "normalKey": "mask",
+      "json": {
+        "path": {
+          "key": "mask",
+          "wrongKey": "do not mask"
+        },
+        "wrongPath": {
+          "wrongKey": "do not mask",
+          "key": "do not mask"
+        },
+        "array": [0, 1, 2, {
+          "wrongKey": "do not mask",
+          "key": {
+            "nestedKey": "mask",
+            "anotherNestedKey": "mask",
+            "anyKey": "mask"
+          }
+        }],
+        "wrongArray": ["do not mask", 0],
+        "anotherNormalKey": "mask",
+        "key": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "normalKey": "****",
+      "json": {
+        "path": {
+          "key": "****",
+          "wrongKey": "do not mask"
+        },
+        "wrongPath": {
+          "wrongKey": "do not mask",
+          "key": "do not mask"
+        },
+        "array": [0, 1, 2, {
+          "wrongKey": "do not mask",
+          "key": "****"
+        }],
+        "wrongArray": ["do not mask", 0],
+        "anotherNormalKey": "****",
+        "key": "do not mask"
+      }
+    }
+  }
+]

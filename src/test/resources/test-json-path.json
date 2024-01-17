@@ -50,5 +50,105 @@
         "key": "do not mask"
       }
     }
+  },
+  {
+    "targetKeys": [
+      "normalKey",
+      "$..jsonpath.key"
+    ],
+    "input": {
+      "normalKey": "mask",
+      "": {
+        "jsonpath": {
+          "key": "mask",
+          "wrongKey": "do not mask"
+        },
+        "randomKey": ["do not mask"]
+      }
+    },
+    "expectedOutput": {
+      "normalKey": "****",
+      "": {
+        "jsonpath": {
+          "key": "****",
+          "wrongKey": "do not mask"
+        },
+        "randomKey": ["do not mask"]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "normalKey",
+      "$[2].json[1]..path.key"
+    ],
+    "input": [
+      "do not mask",
+      100,
+      {
+        "json": [
+          "do not mask",
+          {
+            "": {
+              "path": {
+                "wrongKey": "do not mask",
+                "key": "mask"
+              }
+            },
+            "normalKey": "mask"
+          }
+        ],
+        "normalKey": "mask",
+        "key": "do not mask"
+      }
+    ],
+    "expectedOutput": [
+      "do not mask",
+      100,
+      {
+        "json": [
+          "do not mask",
+          {
+            "": {
+              "path": {
+                "wrongKey": "do not mask",
+                "key": "****"
+              }
+            },
+            "normalKey": "****"
+          }
+        ],
+        "normalKey": "****",
+        "key": "do not mask"
+      }
+    ]
+  },
+  {
+    "targetKeys": [
+      "$"
+    ],
+    "input": {
+      "key": "mask",
+      "nestedObject": {
+        "nestedKey": "mask"
+      }
+    },
+    "expectedOutput": {
+      "key": "****",
+      "nestedObject": {
+        "nestedKey": "****"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.array[2]"
+    ],
+    "input": {
+      "array": ["do not mask", "do not mask"]
+    },
+    "expectedOutput": {
+      "array": ["do not mask", "do not mask"]
+    }
   }
 ]

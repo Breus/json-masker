@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 
 /**
  * This Trie structure is used as look-up optimization for JSON keys in the target key set.
@@ -111,6 +112,36 @@ final class ByteTrie {
             }
         }
 
+        return node.endOfWord;
+    }
+
+    /**
+     * Returns if the json path is in the trie.
+     * JsonPath is represented as an iterator over references of the json path components in the byte array.
+     * A reference is represented as a (keyStartIndex, keyLength) pair.
+     */
+    public boolean searchForJsonPathKey(byte[] bytes, Iterator<int[]> jsonPath) {
+        TrieNode node = root;
+        node = node.children['$' + MAX_BYTE_SIZE];
+        if (node == null) {
+            return false;
+        }
+        while (jsonPath.hasNext()) {
+            node = node.children['.' + MAX_BYTE_SIZE];
+            if (node == null) {
+                return false;
+            }
+            int[] jsonPathComponentReference = jsonPath.next();
+            int keyStartIndex = jsonPathComponentReference[0];
+            int keyLength = jsonPathComponentReference[1];
+            for (int i = keyStartIndex; i < keyStartIndex + keyLength; i++) {
+                int b = bytes[i];
+                node = node.children[b + MAX_BYTE_SIZE];
+                if (node == null) {
+                    return false;
+                }
+            }
+        }
         return node.endOfWord;
     }
 

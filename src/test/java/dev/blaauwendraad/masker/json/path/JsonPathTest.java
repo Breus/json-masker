@@ -18,8 +18,7 @@ final class JsonPathTest {
         return Stream.of(
                 "$.a.b",
                 "$.a",
-                "$.a[0].b",
-                "$.a.b.c[1].d"
+                "$..a.b."
         );
     }
 }

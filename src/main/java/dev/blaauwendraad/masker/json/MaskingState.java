@@ -1,6 +1,9 @@
 package dev.blaauwendraad.masker.json;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -12,6 +15,13 @@ public final class MaskingState {
     private int currentIndex;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
+
+    /**
+     * Current json path is represented by a dequeue of pairs of integers.
+     * A pair is interpreted as (keyStartIndex, keyLength), where "keyStartIndex" is the index of the key start in
+     * message byte array, and "keyLength" is the length of the key.
+     */
+    private final Deque<int[]> currentJsonPath = new ArrayDeque<>();
 
     public MaskingState(byte[] message, int currentIndex) {
         this.message = message;
@@ -71,6 +81,28 @@ public final class MaskingState {
      */
     public int getReplacementOperationsTotalDifference() {
         return replacementOperationsTotalDifference;
+    }
+
+
+    /**
+     * Expands current json path with the key reference
+     */
+    public void expandCurrentJsonPath(int keyStartIndex, int keyLength) {
+        currentJsonPath.push(new int[]{keyStartIndex, keyLength});
+    }
+
+    /**
+     * Backtracks to the previous json path component
+     */
+    public void backtrackCurrentJsonPath() {
+        currentJsonPath.pop();
+    }
+
+    /**
+     * Returns the iterator over the json path component references from head to tail
+     */
+    public Iterator<int[]> getCurrentJsonPath() {
+        return currentJsonPath.descendingIterator();
     }
 
     // for debugging purposes, shows the current state of message traversal

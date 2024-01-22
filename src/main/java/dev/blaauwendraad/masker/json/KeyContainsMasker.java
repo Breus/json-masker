@@ -1,11 +1,13 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isCurlyBracketClose;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
 
@@ -43,6 +45,9 @@ public final class KeyContainsMasker implements JsonMasker {
         for (String key : maskingConfig.getTargetKeys()) {
             this.targetKeysTrie.insert(key);
         }
+        for (JsonPath jsonPathKey : maskingConfig.getTargetJsonPaths()) {
+            this.targetKeysTrie.insert(jsonPathKey.toString());
+        }
     }
 
     /**
@@ -70,6 +75,10 @@ public final class KeyContainsMasker implements JsonMasker {
         while (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE) {
             // Find JSON strings by looking for unescaped double quotes
             while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
+                // Check if this is the end of the current json object by looking for an unescaped curly bracket close
+                if (currentByteIsUnescapedCurlyBracketClose(maskingState)) {
+                    maskingState.backtrackCurrentJsonPath();
+                }
                 if (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE - 1) {
                     maskingState.incrementCurrentIndex();
                 } else {
@@ -106,8 +115,10 @@ public final class KeyContainsMasker implements JsonMasker {
              * At this point, we found a string which is in fact a JSON key.
              * Now let's verify that the value is maskable (a number, string, array or object).
              */
+            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
             maskingState.incrementCurrentIndex(); //  The current index is at the colon between the key and value, step over the colon.
             skipWhitespaceCharacters(maskingState); // Step over all white characters after the colon,
+            maskingState.expandCurrentJsonPath(openingQuoteIndex+1, keyLength);
             // Depending on the masking configuration, Strings, Numbers, Arrays and/or Objects should be masked.
             if (!isStartOfMaskableValue(maskingState)) {
                 // The JSON key found did not have a maskable value, continue looking from where we left of.
@@ -118,12 +129,18 @@ public final class KeyContainsMasker implements JsonMasker {
              * At this point, we found a JSON key with a maskable value, which is either a string, number, array,
              * or object. Now let's verify the found JSON key is a target key.
              */
-            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
             boolean keyMatched = targetKeysTrie.search(
                     maskingState.getMessage(),
                     openingQuoteIndex + 1, // plus one for the opening quote
                     keyLength
-            );
+            ) || targetKeysTrie.searchForJsonPathKey(maskingState.getMessage(), maskingState.getCurrentJsonPath());
+
+            // Check if the current key does not open a new json object
+            if (!AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
+                // Backtrack current json path
+                maskingState.backtrackCurrentJsonPath();
+            }
+
             if (maskingConfig.isInAllowMode() && keyMatched) {
                 skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
                 continue;
@@ -162,6 +179,11 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static boolean currentByteIsUnescapedDoubleQuote(MaskingState maskingState) {
         return isDoubleQuote(maskingState.byteAtCurrentIndex())
+                && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+    }
+
+    private static boolean currentByteIsUnescapedCurlyBracketClose(MaskingState maskingState) {
+        return isCurlyBracketClose(maskingState.byteAtCurrentIndex())
                 && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
     }
 

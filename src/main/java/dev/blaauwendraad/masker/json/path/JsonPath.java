@@ -56,6 +56,12 @@ public class JsonPath {
         if (!jsonPathLiteral.startsWith("$")) {
             throw new IllegalArgumentException("JSONPath literal must start with a \"$\"");
         }
+        if (jsonPathLiteral.length() < 2) {
+            throw new IllegalArgumentException("JSONPath must have at least one component.");
+        }
+        if (jsonPathLiteral.contains("[") && !jsonPathLiteral.contains("\\[")) {
+            throw new IllegalArgumentException("Array indexing is not supported in json path masking.");
+        }
         List<String> components = new ArrayList<>();
         StringBuilder component = new StringBuilder();
         for (char ch : jsonPathLiteral.toCharArray()) {
@@ -68,10 +74,6 @@ public class JsonPath {
         }
         components.add(component.toString());
         return new JsonPath(components.toArray(String[]::new));
-    }
-
-    public String[] getPathComponents() {
-        return pathComponents;
     }
 
     public String getLastComponent() {

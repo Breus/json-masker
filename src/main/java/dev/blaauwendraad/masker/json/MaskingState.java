@@ -99,6 +99,17 @@ public final class MaskingState {
     }
 
     /**
+     * Checks if the masker is in json array node
+     */
+    public boolean isInArray() {
+        return !currentJsonPath.isEmpty() && currentJsonPath.peek()[1] == -1;
+    }
+
+    public void incrementCurrentJsonPathArrayIndex() {
+        currentJsonPath.peek()[0]++;
+    }
+
+    /**
      * Returns the iterator over the json path component references from head to tail
      */
     public Iterator<int[]> getCurrentJsonPath() {

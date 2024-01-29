@@ -59,9 +59,6 @@ public class JsonPath {
         if (jsonPathLiteral.length() < 2) {
             throw new IllegalArgumentException("JSONPath must have at least one component.");
         }
-        if (jsonPathLiteral.contains("[") && !jsonPathLiteral.contains("\\[")) {
-            throw new IllegalArgumentException("Array indexing is not supported in json path masking.");
-        }
         List<String> components = new ArrayList<>();
         StringBuilder component = new StringBuilder();
         for (char ch : jsonPathLiteral.toCharArray()) {

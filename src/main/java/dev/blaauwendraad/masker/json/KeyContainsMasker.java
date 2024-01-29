@@ -7,9 +7,12 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isComma;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isCurlyBracketClose;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isDoubleQuote;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isSquareBracketClose;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isSquareBracketOpen;
 
 /**
  * {@link JsonMasker} that is optimized to mask the JSON properties for one or multiple target keys. This is the default
@@ -71,14 +74,14 @@ public final class KeyContainsMasker implements JsonMasker {
          * This also ensures we can safely check for unescaped double quotes (without masking JSON string values).
          */
         MaskingState maskingState = new MaskingState(input, 1);
+        if (AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndexMinusOne())) {
+            maskingState.expandCurrentJsonPath(0, -1);
+        }
         mainLoop:
         while (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE) {
             // Find JSON strings by looking for unescaped double quotes
             while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
-                // Check if this is the end of the current json object by looking for an unescaped curly bracket close
-                if (currentByteIsUnescapedCurlyBracketClose(maskingState)) {
-                    maskingState.backtrackCurrentJsonPath();
-                }
+                trackCurrentJsonPath(maskingState);
                 if (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE - 1) {
                     maskingState.incrementCurrentIndex();
                 } else {
@@ -118,7 +121,6 @@ public final class KeyContainsMasker implements JsonMasker {
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
             maskingState.incrementCurrentIndex(); //  The current index is at the colon between the key and value, step over the colon.
             skipWhitespaceCharacters(maskingState); // Step over all white characters after the colon,
-            maskingState.expandCurrentJsonPath(openingQuoteIndex+1, keyLength);
             // Depending on the masking configuration, Strings, Numbers, Arrays and/or Objects should be masked.
             if (!isStartOfMaskableValue(maskingState)) {
                 // The JSON key found did not have a maskable value, continue looking from where we left of.
@@ -129,23 +131,24 @@ public final class KeyContainsMasker implements JsonMasker {
              * At this point, we found a JSON key with a maskable value, which is either a string, number, array,
              * or object. Now let's verify the found JSON key is a target key.
              */
+            maskingState.expandCurrentJsonPath(openingQuoteIndex+1, keyLength);
             boolean keyMatched = targetKeysTrie.search(
                     maskingState.getMessage(),
                     openingQuoteIndex + 1, // plus one for the opening quote
                     keyLength
             ) || targetKeysTrie.searchForJsonPathKey(maskingState.getMessage(), maskingState.getCurrentJsonPath());
 
-            // Check if the current key does not open a new json object
-            if (!AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())) {
-                // Backtrack current json path
-                maskingState.backtrackCurrentJsonPath();
-            }
-
             if (maskingConfig.isInAllowMode() && keyMatched) {
                 skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
+                maskingState.backtrackCurrentJsonPath();
                 continue;
             }
             if (maskingConfig.isInMaskMode() && !keyMatched) {
+                // Check if the current key does not open a new json object or json array
+                if (!(AsciiJsonUtil.isObjectStart(maskingState.byteAtCurrentIndex())
+                        || AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndex()))) {
+                    maskingState.backtrackCurrentJsonPath();
+                }
                 continue mainLoop; // The found JSON key is not a target key, so continue looking from where we left of.
             }
 
@@ -164,11 +167,39 @@ public final class KeyContainsMasker implements JsonMasker {
                 // This block deals with masking strings target values.
                 maskStringValueInPlace(maskingState);
             }
+            // the value for the current key has been masked
+            maskingState.backtrackCurrentJsonPath();
         }
 
         ValueMaskingUtil.flushReplacementOperations(maskingState);
 
         return maskingState.getMessage();
+    }
+
+    /**
+     * Checks if the current byte changes the current json path. If so, updates current json path.
+     */
+    private void trackCurrentJsonPath(MaskingState maskingState) {
+        // Check if this is the end of the current json object
+        if (!maskingState.isInArray() && currentByteIsUnescapedCurlyBracketClose(maskingState)) {
+            maskingState.backtrackCurrentJsonPath();
+        }
+        // Check if this is the end of the current json array
+        if (maskingState.isInArray() && currentByteIsUnescapedSquareBracketClose(maskingState)) {
+            maskingState.backtrackCurrentJsonPath();
+            // if it is not a nested array, backtrack the parent key component as well
+            if (!maskingState.isInArray()) {
+                maskingState.backtrackCurrentJsonPath();
+            }
+        }
+        // Check if this is the end of the current json array element
+        if (maskingState.isInArray() && currentByteIsUnescapedComma(maskingState)) {
+            maskingState.incrementCurrentJsonPathArrayIndex();
+        }
+        // Check if this is the start of a json array
+        if (currentByteIsUnescapedSquareBracketOpen(maskingState)) {
+            maskingState.expandCurrentJsonPath(0, -1);
+        }
     }
 
     /**
@@ -184,6 +215,21 @@ public final class KeyContainsMasker implements JsonMasker {
 
     private static boolean currentByteIsUnescapedCurlyBracketClose(MaskingState maskingState) {
         return isCurlyBracketClose(maskingState.byteAtCurrentIndex())
+                && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+    }
+
+    private static boolean currentByteIsUnescapedSquareBracketClose(MaskingState maskingState) {
+        return (isSquareBracketClose(maskingState.byteAtCurrentIndex()))
+                && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+    }
+
+    private static boolean currentByteIsUnescapedSquareBracketOpen(MaskingState maskingState) {
+        return (isSquareBracketOpen(maskingState.byteAtCurrentIndex()))
+                && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+    }
+
+    private static boolean currentByteIsUnescapedComma(MaskingState maskingState) {
+        return isComma(maskingState.byteAtCurrentIndex())
                 && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
     }
 

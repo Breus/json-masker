@@ -136,5 +136,51 @@
         }
       }
     }
+  },
+  {
+    "targetKeys": [
+      "$.json.path"
+    ],
+    "input": {
+      "key": [[{}, null, true, []], {}],
+      "json": {
+        "": [[{"path": "do not mask"}]],
+        "path": "mask"
+      }
+    },
+    "expectedOutput": {
+      "key": [[{}, null, true, []], {}],
+      "json": {
+        "": [[{"path": "do not mask"}]],
+        "path": "****"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.key"
+    ],
+    "input": {
+      "wrongKey" : null,
+      "key" : {
+        "nestedKey" : [ [ ], null, {
+          "numberKey" : 7,
+          "booleanKey" : true
+        } ],
+        "stringKey" : "mask"
+      },
+      "nullKey" : null
+    },
+    "expectedOutput": {
+      "wrongKey" : null,
+      "key" : {
+        "nestedKey" : [ [ ], null, {
+          "numberKey" : 7,
+          "booleanKey" : true
+        } ],
+        "stringKey" : "****"
+      },
+      "nullKey" : null
+    }
   }
 ]

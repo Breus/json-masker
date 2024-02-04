@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.path.JsonPath;
+import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
 import java.util.Collections;
 import java.util.Set;
@@ -70,12 +71,13 @@ public class JsonMaskingConfig {
         }
 
         if (builder.resolveJsonPaths) {
+            JsonPathParser jsonPathParser = new JsonPathParser();
             targetJsonPaths = targets.stream()
-                    .filter(t -> t.startsWith("$."))
-                    .map(JsonPath::from)
+                    .filter(t -> t.startsWith("$"))
+                    .map(jsonPathParser::parse)
                     .collect(Collectors.toSet());
             targetKeys = targets.stream()
-                    .filter(t -> !t.startsWith("$."))
+                    .filter(t -> !t.startsWith("$"))
                     .collect(Collectors.toSet());
         } else {
             targetJsonPaths = Collections.emptySet();

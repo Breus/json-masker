@@ -41,7 +41,7 @@
   {
     "targetKeys": [
       "normalKey",
-      "$..jsonpath.key"
+      "$[].jsonpath.key"
     ],
     "input": {
       "normalKey": "mask",

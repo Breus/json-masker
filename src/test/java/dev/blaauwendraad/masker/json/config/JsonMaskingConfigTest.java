@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.path.JsonPath;
+import dev.blaauwendraad.masker.json.path.JsonPathParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -31,15 +32,16 @@ final class JsonMaskingConfigTest {
     }
 
     private static Stream<Arguments> jsonPathsResolved() {
+        JsonPathParser jsonPathParser = new JsonPathParser();
         return Stream.of(
                 Arguments.of(
                         Set.of("hello"), Set.of("hello"), Set.of()
                 ),
                 Arguments.of(
-                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(JsonPath.from("$.hello"))
+                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(jsonPathParser.parse("$.hello"))
                 ),
                 Arguments.of(
-                        Set.of("$.hello"), Set.of(), Set.of(JsonPath.from("$.hello"))
+                        Set.of("$.hello"), Set.of(), Set.of(jsonPathParser.parse("$.hello"))
                 )
         );
     }

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
+import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public final class ParseAndMaskUtil {
 
     private static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+    private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
     private ParseAndMaskUtil() {
         // util
@@ -44,6 +46,7 @@ public final class ParseAndMaskUtil {
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys();
             casingAppliedTargetJsonPathKeys = jsonMaskingConfig.getTargetJsonPaths();
         } else {
+            JsonPathParser jsonPathParser = new JsonPathParser();
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys()
                     .stream()
                     .map(String::toLowerCase)
@@ -52,7 +55,7 @@ public final class ParseAndMaskUtil {
                     .stream()
                     .map(JsonPath::toString)
                     .map(String::toLowerCase)
-                    .map(JsonPath::from)
+                    .map(jsonPathParser::parse)
                     .collect(Collectors.toSet());
 
         }
@@ -96,7 +99,7 @@ public final class ParseAndMaskUtil {
 
     private static boolean isTargetKey(String jsonPathKey, Set<String> targetKeys, Set<JsonPath> targetJsonPathKeys) {
         return targetKeys.contains(jsonPathKey.substring(jsonPathKey.lastIndexOf('.') + 1))
-                || targetJsonPathKeys.contains(JsonPath.from(jsonPathKey));
+                || targetJsonPathKeys.contains(JSON_PATH_PARSER.tryParse(jsonPathKey));
     }
 
     @Nonnull

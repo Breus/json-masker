@@ -17,9 +17,14 @@ import java.util.Set;
 public class JsonPathTestUtils {
 
     /**
-     * Transforms the keys form the input set to json path keys bound to the input json.
-     * In case a key occurs multiple times, the first occurrence is selected.
-     * In case a key does not occur, it is prefixed with any non-terminating json path from the input json
+     * Transforms an input set of keys into a set of json path keys for a given json.
+     * The input set of keys are assumed not to be jsonpath keys already.
+     * If a key from the input set does not exist in the json,
+     * then a path from the down-left most key in the json is used as a prefix to the key
+     *
+     * @param keys a set of keys to be transformed into jason path keys. Assumed not to be jsonpath keys already.
+     * @param json a target json.
+     * @return a set of json path keys transformed from <code>keys</code>.
      */
     public static Set<String> transformToJsonPathKeys(Set<String> keys, String json) {
         JsonNode root;
@@ -46,7 +51,7 @@ public class JsonPathTestUtils {
                     }
                 } else if (curr.getValue() instanceof ArrayNode currArray) {
                     for (int i = 0; i < currArray.size(); i++) {
-                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + ".[" + i + "]", currArray.get(i)));
+                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[" + i + "]", currArray.get(i)));
                     }
                 }
                 if (stack.isEmpty()) {

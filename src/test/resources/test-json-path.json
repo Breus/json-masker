@@ -48,7 +48,11 @@
       "": {
         "jsonpath": {
           "key": "mask",
-          "wrongKey": "do not mask"
+          "wrongKey": "do not mask",
+          "jsonpath": {
+            "key": "do not mask",
+            "wrongKey": "do not mask"
+          }
         },
         "randomKey": ["do not mask"]
       }
@@ -58,7 +62,11 @@
       "": {
         "jsonpath": {
           "key": "****",
-          "wrongKey": "do not mask"
+          "wrongKey": "do not mask",
+          "jsonpath": {
+            "key": "do not mask",
+            "wrongKey": "do not mask"
+          }
         },
         "randomKey": ["do not mask"]
       }
@@ -181,6 +189,157 @@
         "stringKey" : "****"
       },
       "nullKey" : null
+    }
+  },
+  {
+    "targetKeys": [
+      "$[duplicate][segments][].key"
+    ],
+    "input": {
+      "wrongKey": "do not maks",
+      "wrongObject": {
+        "key": "do not mask"
+      },
+      "duplicate": {
+        "": {
+          "key": "do not mask"
+        },
+        "segments": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          },
+          "": {
+            "key": "mask",
+            "wrongKey": "do not mask"
+          }
+        },
+        "duplicate": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          }
+        }
+      }
+    },
+    "expectedOutput": {
+      "wrongKey": "do not maks",
+      "wrongObject": {
+        "key": "do not mask"
+      },
+      "duplicate": {
+        "": {
+          "key": "do not mask"
+        },
+        "segments": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          },
+          "": {
+            "key": "****",
+            "wrongKey": "do not mask"
+          }
+        },
+        "duplicate": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.caSe.InsenSItive"
+    ],
+    "input": {
+      "wrongKey": 7,
+      "case": {
+        "insensitive": "mask",
+        "wrongKey": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "wrongKey": 7,
+      "case": {
+        "insensitive": "****",
+        "wrongKey": "do not mask"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "caseSensitiveTargetKeys": true
+    },
+    "targetKeys": [
+      "$.caSe.SenSItive"
+    ],
+    "input": {
+      "case": {
+        "sensitive": "do not mask"
+      },
+      "caSe": {
+        "SENSItive": "do not mask",
+        "SenSItive": "mask"
+      }
+    },
+    "expectedOutput": {
+      "case": {
+        "sensitive": "do not mask"
+      },
+      "caSe": {
+        "SENSItive": "do not mask",
+        "SenSItive": "****"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "$.json.path.key",
+      "$[normalKey]"
+    ],
+    "input": {
+      "json": {
+        "wrongPath": {
+          "wrongKey": "mask",
+          "key": "mask"
+        },
+        "path": {
+          "key": "do not mask",
+          "wrongKey": "mask"
+        }
+      },
+      "wrongArray": ["mask", 0],
+      "normalKey": "do not mask",
+      "key": "mask"
+    },
+    "expectedOutput": {
+      "json": {
+        "wrongPath": {
+          "wrongKey": "****",
+          "key": "****"
+        },
+        "path": {
+          "key": "do not mask",
+          "wrongKey": "****"
+        }
+      },
+      "wrongArray": ["****", 0],
+      "normalKey": "do not mask",
+      "key": "****"
     }
   }
 ]

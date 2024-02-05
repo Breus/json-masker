@@ -83,30 +83,39 @@ public final class MaskingState {
         return replacementOperationsTotalDifference;
     }
 
-
     /**
-     * Expands current json path with the key reference
+     * Expands current jsonpath with a new segment. A new segment is either a json key or an array index.
+     * @param keyStartIndex the index of a new segment start in <code>message</code>
+     * @param keyLength the length of a new segment.
      */
     public void expandCurrentJsonPath(int keyStartIndex, int keyLength) {
         currentJsonPath.push(new int[]{keyStartIndex, keyLength});
     }
 
     /**
-     * Backtracks to the previous json path component
+     * Backtracks current jsonpath to the previous segment.
      */
     public void backtrackCurrentJsonPath() {
         currentJsonPath.pop();
     }
 
     /**
-     * Checks if the masker is in json array node
+     * Checks if the last segment of the current jsonpath is an array index.
      */
     public boolean isInArray() {
         return !currentJsonPath.isEmpty() && currentJsonPath.peek()[1] == -1;
     }
 
+    /**
+     * Increments an array index in the last segment of the current jsonpath.
+     * Throws {@link java.lang.IllegalStateException} if the last segment is not an array index.
+     */
     public void incrementCurrentJsonPathArrayIndex() {
-        currentJsonPath.peek()[0]++;
+        if (!isInArray()) {
+            throw new IllegalStateException("The last segment of the current jsonpath is not an array index.");
+        }
+        int[] lastSegment = currentJsonPath.peek();
+        lastSegment[0]++;
     }
 
     /**

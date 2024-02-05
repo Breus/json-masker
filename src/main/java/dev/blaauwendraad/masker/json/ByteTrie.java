@@ -116,9 +116,12 @@ final class ByteTrie {
     }
 
     /**
-     * Returns if the json path is in the trie.
-     * JsonPath is represented as an iterator over references of the json path components in the byte array.
+     * Returns whether the json path is in the trie.
+     * JsonPath is represented as an iterator over references of the json path segments in the byte array.
      * A reference is represented as a (keyStartIndex, keyLength) pair.
+     * @param bytes byte array representation fo the json
+     * @param jsonPath an interator over references of json path segments in <code>bytes</code>.
+     * @return true if the json path key is in the trie, false otherwise.
      */
     public boolean searchForJsonPathKey(byte[] bytes, Iterator<int[]> jsonPath) {
         TrieNode node = root;

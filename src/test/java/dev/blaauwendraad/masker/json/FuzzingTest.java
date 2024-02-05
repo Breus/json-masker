@@ -29,7 +29,7 @@ final class FuzzingTest {
         Instant startTime = Instant.now();
         int randomTestExecuted = 0;
         Set<String> allKeys = new HashSet<>(jsonMaskingConfig.getTargetKeys());
-        allKeys.addAll(jsonMaskingConfig.getTargetJsonPaths().stream().map(JsonPath::getLastComponent).collect(Collectors.toSet()));
+        allKeys.addAll(jsonMaskingConfig.getTargetJsonPaths().stream().map(JsonPath::getLastSegment).collect(Collectors.toSet()));
         RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
                 .setTargetKeys(allKeys)
                 .createConfig());
@@ -139,11 +139,5 @@ final class FuzzingTest {
                 JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
                         .obfuscationLength(4)
                         .build());
-    }
-
-    private static RandomJsonGenerator createRandomJsonGeneratorForDefaultKeys() {
-        return new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                .setTargetKeys(DEFAULT_TARGET_KEYS)
-                .createConfig());
     }
 }

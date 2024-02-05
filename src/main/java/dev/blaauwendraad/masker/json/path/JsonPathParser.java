@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.path;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,16 @@ import java.util.List;
  *  <li>Escape characters</li>
  * </ul>
  */
+@ParametersAreNonnullByDefault
 public class JsonPathParser {
 
+    /**
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
+     * Throws {@link java.lang.IllegalArgumentException} when the input literal does not follow the jsonpath specification.
+     *
+     * @param literal a jsonpath literal to be parsed.
+     * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
+     */
     @Nonnull
     public JsonPath parse(String literal) {
         if (!literal.startsWith("$")) {
@@ -39,19 +48,26 @@ public class JsonPathParser {
         return new JsonPath(segments.toArray(String[]::new));
     }
 
+    /**
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
+     * Returns null when the input literal does not follow the jsonpath specification.
+     *
+     * @param literal a jsonpath literal to be parsed.
+     * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
+     */
     public JsonPath tryParse(String literal) {
-        JsonPath jsonPath = null;
         try {
-            jsonPath = parse(literal);
-        } catch (IllegalArgumentException ignore) {}
-        return jsonPath;
+            return parse(literal);
+        } catch (IllegalArgumentException ignore) {
+            return null;
+        }
     }
 
     private List<String> parseSegments(String literal) {
         List<String> segments = new ArrayList<>();
         segments.add("$");
         StringBuilder segment = new StringBuilder();
-        for (int i = 2; i < literal.length()-1; i++) {
+        for (int i = 2; i < literal.length() - 1; i++) {
             char symbol = literal.charAt(i);
             char nextSymbol = literal.charAt(i + 1);
             if (symbol == '.' || (symbol == '[' && !segment.isEmpty())) {
@@ -65,8 +81,8 @@ public class JsonPathParser {
                 segment.append(symbol);
             }
         }
-        if (literal.charAt(literal.length()-1) != ']' && literal.charAt(literal.length()-1) != '.') {
-            segment.append(literal.charAt(literal.length()-1));
+        if (literal.charAt(literal.length() - 1) != ']' && literal.charAt(literal.length() - 1) != '.') {
+            segment.append(literal.charAt(literal.length() - 1));
         }
         if (!segment.isEmpty() || literal.endsWith("[]")) {
             segments.add(segment.toString());

@@ -1,20 +1,21 @@
 package dev.blaauwendraad.masker.json.path;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 
 /**
- * Library's representation of JSONPath.
+ * The library represents a jsonpath as an array of segments.
  * See {@link JsonPathParser} for details.
  */
-public class JsonPath {
-    private final String[] segments;
+@ParametersAreNonnullByDefault
+public record JsonPath(String[] segments) {
 
-    JsonPath(String[] segments) {
-        this.segments = segments;
-    }
-
-    public String getLastComponent() {
-        return segments[segments.length-1];
+    /**
+     * The last segment of the jsonpath key is an actual target key.
+     * @return the last segment of the jsonpath key.
+     */
+    public String getLastSegment() {
+        return segments.length != 0 ? segments[segments.length - 1] : null;
     }
 
     @Override

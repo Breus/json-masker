@@ -312,14 +312,15 @@
       "$[normalKey]"
     ],
     "input": {
+      "wrongKey": "mask",
       "json": {
         "wrongPath": {
           "wrongKey": "mask",
           "key": "mask"
         },
         "path": {
-          "key": "do not mask",
-          "wrongKey": "mask"
+          "wrongKey": "mask",
+          "key": "do not mask"
         }
       },
       "wrongArray": ["mask", 0],
@@ -327,14 +328,74 @@
       "key": "mask"
     },
     "expectedOutput": {
+      "wrongKey": "****",
       "json": {
         "wrongPath": {
           "wrongKey": "****",
           "key": "****"
         },
         "path": {
-          "key": "do not mask",
-          "wrongKey": "****"
+          "wrongKey": "****",
+          "key": "do not mask"
+        }
+      },
+      "wrongArray": ["****", 0],
+      "normalKey": "do not mask",
+      "key": "****"
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "$.jsonpath.key",
+      "normalKey"
+    ],
+    "input": {
+      "wrongPath": {
+        "key": {
+          "nestedKey": "mask",
+          "normalKey": "do not mask"
+        }
+      },
+      "jsonpath": {
+        "wrongKey": {
+          "nestedKey": "mask",
+          "otherNestedKey": "mask"
+        },
+        "key": {
+          "nestedKey": "do not mask",
+          "otherNestedKey": "do not mask"
+        },
+        "otherWrongKey": {
+          "nestedKey": "mask",
+          "otherNestedKey": "mask"
+        }
+      },
+      "wrongArray": ["mask", 0],
+      "normalKey": "do not mask",
+      "key": "mask"
+    },
+    "expectedOutput": {
+      "wrongPath": {
+        "key": {
+          "nestedKey": "****",
+          "normalKey": "do not mask"
+        }
+      },
+      "jsonpath": {
+        "wrongKey": {
+          "nestedKey": "****",
+          "otherNestedKey": "****"
+        },
+        "key": {
+          "nestedKey": "do not mask",
+          "otherNestedKey": "do not mask"
+        },
+        "otherWrongKey": {
+          "nestedKey": "****",
+          "otherNestedKey": "****"
         }
       },
       "wrongArray": ["****", 0],

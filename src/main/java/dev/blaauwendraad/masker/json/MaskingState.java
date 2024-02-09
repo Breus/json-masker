@@ -21,7 +21,7 @@ public final class MaskingState {
      * A pair is interpreted as (keyStartIndex, keyLength), where "keyStartIndex" is the index of the key start in
      * message byte array, and "keyLength" is the length of the key.
      */
-    private final Deque<int[]> currentJsonPath = new ArrayDeque<>();
+    private final Deque<SegmentReference> currentJsonPath = new ArrayDeque<>();
 
     public MaskingState(byte[] message, int currentIndex) {
         this.message = message;
@@ -85,11 +85,11 @@ public final class MaskingState {
 
     /**
      * Expands current jsonpath with a new segment. A new segment is either a json key or an array index.
-     * @param keyStartIndex the index of a new segment start in <code>message</code>
-     * @param keyLength the length of a new segment.
+     * @param start the index of a new segment start in <code>message</code>
+     * @param offset the length of a new segment.
      */
-    public void expandCurrentJsonPath(int keyStartIndex, int keyLength) {
-        currentJsonPath.push(new int[]{keyStartIndex, keyLength});
+    public void expandCurrentJsonPath(int start, int offset) {
+        currentJsonPath.push(new SegmentReference(start, offset));
     }
 
     /**
@@ -103,7 +103,7 @@ public final class MaskingState {
      * Checks if the last segment of the current jsonpath is an array index.
      */
     public boolean isInArray() {
-        return !currentJsonPath.isEmpty() && currentJsonPath.peek()[1] == -1;
+        return !currentJsonPath.isEmpty() && currentJsonPath.peek().offset == -1;
     }
 
     /**
@@ -111,17 +111,15 @@ public final class MaskingState {
      * Throws {@link java.lang.IllegalStateException} if the last segment is not an array index.
      */
     public void incrementCurrentJsonPathArrayIndex() {
-        if (!isInArray()) {
-            throw new IllegalStateException("The last segment of the current jsonpath is not an array index.");
-        }
-        int[] lastSegment = currentJsonPath.peek();
-        lastSegment[0]++;
+        SegmentReference lastSegment = currentJsonPath.peek();
+        assert isInArray() && lastSegment != null;
+        lastSegment.start++;
     }
 
     /**
      * Returns the iterator over the json path component references from head to tail
      */
-    public Iterator<int[]> getCurrentJsonPath() {
+    public Iterator<SegmentReference> getCurrentJsonPath() {
         return currentJsonPath.descendingIterator();
     }
 
@@ -153,4 +151,21 @@ public final class MaskingState {
             return maskLength - (endIndex - startIndex);
         }
     }
+
+    /**
+     * A mutable reference to a sequence of bytes in the target byte array. It is used to represent json path segments.
+     * A "key" segment type reference is represented as a (start, offset) pair.
+     * For an "array index" segment type reference, a (start, offset) pair is interpreted as (index, -1).
+     *
+     */
+    public static class SegmentReference {
+        int start;
+        int offset;
+
+        SegmentReference(int start, int offset) {
+            this.start = start;
+            this.offset = offset;
+        }
+    }
+
 }

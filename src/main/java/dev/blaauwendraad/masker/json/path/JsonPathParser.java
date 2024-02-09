@@ -31,11 +31,8 @@ public class JsonPathParser {
      */
     @Nonnull
     public JsonPath parse(String literal) {
-        if (!literal.startsWith("$")) {
-            throw new IllegalArgumentException("Illegal jsonpath literal. JSONPath must start with a root node identifier \"$\".");
-        }
-        if (literal.length() <= 2) {
-            throw new IllegalArgumentException("Illegal jsonpath literal. JSONPath must contain at least one segment.");
+        if (!(literal.startsWith("$.") || literal.startsWith("$["))) {
+            throw new IllegalArgumentException("Illegal jsonpath literal. JSONPath must start with a root node identifier and contain at least one segment.");
         }
         if (literal.contains("'") || literal.contains("\\")) {
             throw new IllegalArgumentException("Illegal jsonpath literal. Escape characters are not supported.");
@@ -76,7 +73,7 @@ public class JsonPathParser {
             } else if ((symbol == ']' && nextSymbol == '.') || (symbol == ']' && nextSymbol == '[')) {
                 segments.add(segment.toString());
                 segment = new StringBuilder();
-                i++;
+                i++; // NOSONAR this statement skips the next segment delimiter symbol
             } else if (symbol != '[') {
                 segment.append(symbol);
             }

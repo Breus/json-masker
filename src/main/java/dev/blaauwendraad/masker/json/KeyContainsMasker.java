@@ -386,11 +386,12 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
                 int closingQuoteIndex = maskingState.currentIndex();
                 int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
-                valueMustBeMasked = !targetKeysTrie.search(
+                maskingState.expandCurrentJsonPath(openingQuoteIndex + 1, keyLength);
+                valueMustBeMasked = !(targetKeysTrie.search(
                         maskingState.getMessage(),
                         openingQuoteIndex + 1, // plus one for the opening quote
                         keyLength
-                );
+                ) || targetKeysTrie.searchForJsonPathKey(maskingState.getMessage(), maskingState.getCurrentJsonPath()));
             } else {
                 maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
                 while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
@@ -420,6 +421,9 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
             } else {
                 skipAllValues(maskingState);
+            }
+            if (maskingConfig.isInAllowMode()) {
+                maskingState.backtrackCurrentJsonPath();
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {

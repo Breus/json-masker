@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.path;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,6 +24,14 @@ class JsonPathParserTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(literal));
     }
 
+    @Test
+    void twoJsonPathAreEqual() {
+        JsonPathParser parser = new JsonPathParser();
+        JsonPath bracketNotationJsonPath = parser.parse("$[a][b]");
+        JsonPath dotNotationJsonPath = parser.parse("$.a.b");
+        Assertions.assertEquals(bracketNotationJsonPath, dotNotationJsonPath);
+    }
+
     private static Stream<Arguments> legalJsonPathLiterals() {
         return Stream.of(
                 Arguments.of("$.a", new JsonPath(new String[]{"$", "a"})),
@@ -41,6 +50,7 @@ class JsonPathParserTest {
     private static Stream<String> illegalJsonPathLiterals() {
         return Stream.of(
                 "$..a.b.c",
+                "$a.b.c",
                 "$.a[?@].b",
                 "$.a.'b'.c",
                 "$.a.\\..b",

@@ -123,7 +123,7 @@ final class ByteTrie {
      * @param jsonPath an interator over references of json path segments in <code>bytes</code>.
      * @return true if the json path key is in the trie, false otherwise.
      */
-    public boolean searchForJsonPathKey(byte[] bytes, Iterator<int[]> jsonPath) {
+    public boolean searchForJsonPathKey(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
         TrieNode node = root;
         node = node.children['$' + MAX_BYTE_SIZE];
         if (node == null) {
@@ -134,9 +134,9 @@ final class ByteTrie {
             if (node == null) {
                 return false;
             }
-            int[] jsonPathComponentReference = jsonPath.next();
-            int keyStartIndex = jsonPathComponentReference[0];
-            int keyLength = jsonPathComponentReference[1];
+            MaskingState.SegmentReference segmentReference = jsonPath.next();
+            int keyStartIndex = segmentReference.start;
+            int keyLength = segmentReference.offset;
             for (int i = keyStartIndex; i < keyStartIndex + keyLength; i++) {
                 int b = bytes[i];
                 node = node.children[b + MAX_BYTE_SIZE];

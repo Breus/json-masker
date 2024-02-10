@@ -75,7 +75,7 @@ public final class KeyContainsMasker implements JsonMasker {
          */
         MaskingState maskingState = new MaskingState(input, 1);
         if (AsciiJsonUtil.isArrayStart(maskingState.byteAtCurrentIndexMinusOne())) {
-            maskingState.expandCurrentJsonPath(0, -1);
+            maskingState.expandCurrentJsonPath();
         }
         mainLoop:
         while (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE) {
@@ -198,7 +198,7 @@ public final class KeyContainsMasker implements JsonMasker {
         }
         // Check if this is the start of a json array
         if (currentByteIsUnescapedSquareBracketOpen(maskingState)) {
-            maskingState.expandCurrentJsonPath(0, -1);
+            maskingState.expandCurrentJsonPath();
         }
     }
 

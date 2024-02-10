@@ -17,9 +17,7 @@ public final class MaskingState {
     private int replacementOperationsTotalDifference = 0;
 
     /**
-     * Current json path is represented by a dequeue of pairs of integers.
-     * A pair is interpreted as (keyStartIndex, keyLength), where "keyStartIndex" is the index of the key start in
-     * message byte array, and "keyLength" is the length of the key.
+     * Current json path is represented by a dequeue of segment references.
      */
     private final Deque<SegmentReference> currentJsonPath = new ArrayDeque<>();
 
@@ -84,12 +82,19 @@ public final class MaskingState {
     }
 
     /**
-     * Expands current jsonpath with a new segment. A new segment is either a json key or an array index.
+     * Expands current jsonpath with a new "key "segment.
      * @param start the index of a new segment start in <code>message</code>
      * @param offset the length of a new segment.
      */
     public void expandCurrentJsonPath(int start, int offset) {
         currentJsonPath.push(new SegmentReference(start, offset));
+    }
+
+    /**
+     * Expands current jsonpath with a new array segment.
+     */
+    public void expandCurrentJsonPath() {
+        currentJsonPath.push(new SegmentReference(0, -1));
     }
 
     /**
@@ -153,10 +158,9 @@ public final class MaskingState {
     }
 
     /**
-     * A mutable reference to a sequence of bytes in the target byte array. It is used to represent json path segments.
+     * A mutable reference to a sequence of bytes in <code>message</code>. It is used to represent json path segments.
      * A "key" segment type reference is represented as a (start, offset) pair.
      * For an "array index" segment type reference, a (start, offset) pair is interpreted as (index, -1).
-     *
      */
     public static class SegmentReference {
         int start;

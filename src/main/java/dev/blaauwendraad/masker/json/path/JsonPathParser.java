@@ -1,7 +1,7 @@
 package dev.blaauwendraad.masker.json.path;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +19,11 @@ import java.util.List;
  *  <li>Escape characters</li>
  * </ul>
  */
-@ParametersAreNonnullByDefault
 public class JsonPathParser {
 
     /**
-     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
-     * Throws {@link java.lang.IllegalArgumentException} when the input literal does not follow the jsonpath specification.
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object. Throws
+     * {@link java.lang.IllegalArgumentException} when the input literal does not follow the jsonpath specification.
      *
      * @param literal a jsonpath literal to be parsed.
      * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
@@ -32,7 +31,8 @@ public class JsonPathParser {
     @Nonnull
     public JsonPath parse(String literal) {
         if (!(literal.startsWith("$.") || literal.startsWith("$["))) {
-            throw new IllegalArgumentException("Illegal jsonpath literal. JSONPath must start with a root node identifier and contain at least one segment.");
+            throw new IllegalArgumentException(
+                    "Illegal jsonpath literal. JSONPath must start with a root node identifier and contain at least one segment.");
         }
         if (literal.contains("'") || literal.contains("\\")) {
             throw new IllegalArgumentException("Illegal jsonpath literal. Escape characters are not supported.");
@@ -46,12 +46,13 @@ public class JsonPathParser {
     }
 
     /**
-     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
-     * Returns null when the input literal does not follow the jsonpath specification.
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object. Returns null when the
+     * input literal does not follow the jsonpath specification.
      *
      * @param literal a jsonpath literal to be parsed.
      * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
      */
+    @CheckForNull
     public JsonPath tryParse(String literal) {
         try {
             return parse(literal);
@@ -60,6 +61,7 @@ public class JsonPathParser {
         }
     }
 
+    @Nonnull
     private List<String> parseSegments(String literal) {
         List<String> segments = new ArrayList<>();
         segments.add("$");
@@ -98,5 +100,4 @@ public class JsonPathParser {
             throw new IllegalArgumentException("Illegal jsonpath literal. Function extensions are not supported.");
         }
     }
-
 }

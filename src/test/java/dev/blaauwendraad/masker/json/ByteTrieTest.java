@@ -2,14 +2,12 @@ package dev.blaauwendraad.masker.json;
 
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ParametersAreNonnullByDefault
 final class ByteTrieTest {
     private static final Set<String> someKeys = Set.of("maskMe", "maskme", "\u000F\u0017\u0017\u000Bs\b\u0014X");
 

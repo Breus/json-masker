@@ -11,11 +11,17 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
+import randomgen.json.JsonPathTestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
@@ -34,6 +40,8 @@ public class JsonMaskerBenchmark {
         double maskedKeyProbability;
         @Param({ "none", "8" })
         String obfuscationLength;
+        @Param({"false", "true"})
+        String disableJsonPathResolving;
 
         private String jsonString;
         private byte[] jsonBytes;
@@ -42,18 +50,32 @@ public class JsonMaskerBenchmark {
         @Setup
         public synchronized void setup() {
             Set<String> targetKeys = BenchmarkUtils.getTargetKeys(20);
-
             jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 
-            jsonMasker = JsonMasker.getMasker(
-                    JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-                            .obfuscationLength(Objects.equals(obfuscationLength, "none")
-                                                       ? -1
-                                                       : Integer.parseInt(obfuscationLength))
-                            .build()
-            );
+            if (!Boolean.parseBoolean(disableJsonPathResolving)) {
+                // transform random half of keys into json path keys
+                Set<String> halfTargetKeys = selectRandomHalf(targetKeys);
+                targetKeys.removeAll(halfTargetKeys);
+                targetKeys.addAll(JsonPathTestUtils.transformToJsonPathKeys(halfTargetKeys, jsonString));
+            }
+
+            JsonMaskingConfig.Builder jsonMaskedBuilder = JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                    .obfuscationLength(Objects.equals(obfuscationLength, "none")
+                            ? -1
+                            : Integer.parseInt(obfuscationLength));
+            if (Boolean.parseBoolean(disableJsonPathResolving)) {
+                jsonMaskedBuilder = jsonMaskedBuilder.disableJsonPathResolving();
+            }
+            jsonMasker = JsonMasker.getMasker(jsonMaskedBuilder.build());
         }
+
+        private <T> Set<T> selectRandomHalf(Set<T> set) {
+            List<T> list = new ArrayList<>(new HashSet<>(set).stream().toList());
+            Collections.shuffle(list);
+            return list.stream().limit(set.size()/2).collect(Collectors.toSet());
+        }
+
     }
 
     @Benchmark

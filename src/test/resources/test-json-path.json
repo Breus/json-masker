@@ -1,0 +1,406 @@
+[
+  {
+    "targetKeys": [
+      "normalKey",
+      "$.json.path.key",
+      "anotherNormalKey"
+    ],
+    "input": {
+      "normalKey": "mask",
+      "json": {
+        "path": {
+          "key": "mask",
+          "wrongKey": "do not mask"
+        },
+        "wrongPath": {
+          "wrongKey": "do not mask",
+          "key": "do not mask"
+        },
+        "wrongArray": ["do not mask", 0],
+        "anotherNormalKey": "mask",
+        "key": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "normalKey": "****",
+      "json": {
+        "path": {
+          "key": "****",
+          "wrongKey": "do not mask"
+        },
+        "wrongPath": {
+          "wrongKey": "do not mask",
+          "key": "do not mask"
+        },
+        "wrongArray": ["do not mask", 0],
+        "anotherNormalKey": "****",
+        "key": "do not mask"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "normalKey",
+      "$[].jsonpath.key"
+    ],
+    "input": {
+      "normalKey": "mask",
+      "": {
+        "jsonpath": {
+          "key": "mask",
+          "wrongKey": "do not mask",
+          "jsonpath": {
+            "key": "do not mask",
+            "wrongKey": "do not mask"
+          }
+        },
+        "randomKey": ["do not mask"]
+      }
+    },
+    "expectedOutput": {
+      "normalKey": "****",
+      "": {
+        "jsonpath": {
+          "key": "****",
+          "wrongKey": "do not mask",
+          "jsonpath": {
+            "key": "do not mask",
+            "wrongKey": "do not mask"
+          }
+        },
+        "randomKey": ["do not mask"]
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.targetKey"
+    ],
+    "input": {
+      "wrongKey": "do not mask",
+      "targetKey": {
+        "key": "mask",
+        "nestedObject": {
+          "nestedKey": "mask"
+        }
+      }
+    },
+    "expectedOutput": {
+      "wrongKey": "do not mask",
+      "targetKey": {
+        "key": "****",
+        "nestedObject": {
+          "nestedKey": "****"
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.p{a}th{.key"
+    ],
+    "input": {
+      "p{a}th{": {
+        "key": "mask"
+      },
+      "path": {
+        "key": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "p{a}th{": {
+        "key": "****"
+      },
+      "path": {
+        "key": "do not mask"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.js.on.path"
+    ],
+    "input": {
+      "js": {
+        "on": {
+          "path": "mask"
+        }
+      },
+      "js.o": {
+        "n": {
+          "path": "do not mask"
+        }
+      }
+    },
+    "expectedOutput": {
+      "js": {
+        "on": {
+          "path": "****"
+        }
+      },
+      "js.o": {
+        "n": {
+          "path": "do not mask"
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.json.path"
+    ],
+    "input": {
+      "key": [[{}, null, true, []], {}],
+      "json": {
+        "": [[{"path": "do not mask"}]],
+        "path": "mask"
+      }
+    },
+    "expectedOutput": {
+      "key": [[{}, null, true, []], {}],
+      "json": {
+        "": [[{"path": "do not mask"}]],
+        "path": "****"
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.key"
+    ],
+    "input": {
+      "wrongKey" : null,
+      "key" : {
+        "nestedKey" : [ [ ], null, {
+          "numberKey" : 7,
+          "booleanKey" : true
+        } ],
+        "stringKey" : "mask"
+      },
+      "nullKey" : null
+    },
+    "expectedOutput": {
+      "wrongKey" : null,
+      "key" : {
+        "nestedKey" : [ [ ], null, {
+          "numberKey" : 7,
+          "booleanKey" : true
+        } ],
+        "stringKey" : "****"
+      },
+      "nullKey" : null
+    }
+  },
+  {
+    "targetKeys": [
+      "$[duplicate][segments][].key"
+    ],
+    "input": {
+      "wrongKey": "do not maks",
+      "wrongObject": {
+        "key": "do not mask"
+      },
+      "duplicate": {
+        "": {
+          "key": "do not mask"
+        },
+        "segments": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          },
+          "": {
+            "key": "mask",
+            "wrongKey": "do not mask"
+          }
+        },
+        "duplicate": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          }
+        }
+      }
+    },
+    "expectedOutput": {
+      "wrongKey": "do not maks",
+      "wrongObject": {
+        "key": "do not mask"
+      },
+      "duplicate": {
+        "": {
+          "key": "do not mask"
+        },
+        "segments": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          },
+          "": {
+            "key": "****",
+            "wrongKey": "do not mask"
+          }
+        },
+        "duplicate": {
+          "segments": {
+            "": {
+              "key": "do not mask",
+              "wrongKey": "do not mask"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "targetKeys": [
+      "$.caSe.InsenSItive"
+    ],
+    "input": {
+      "wrongKey": 7,
+      "case": {
+        "insensitive": "mask",
+        "wrongKey": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "wrongKey": 7,
+      "case": {
+        "insensitive": "****",
+        "wrongKey": "do not mask"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "caseSensitiveTargetKeys": true
+    },
+    "targetKeys": [
+      "$.caSe.SenSItive"
+    ],
+    "input": {
+      "case": {
+        "sensitive": "do not mask"
+      },
+      "caSe": {
+        "SENSItive": "do not mask",
+        "SenSItive": "mask"
+      }
+    },
+    "expectedOutput": {
+      "case": {
+        "sensitive": "do not mask"
+      },
+      "caSe": {
+        "SENSItive": "do not mask",
+        "SenSItive": "****"
+      }
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "$.json.path.key",
+      "$[normalKey]"
+    ],
+    "input": {
+      "wrongKey": "mask",
+      "json": {
+        "wrongPath": {
+          "wrongKey": "mask",
+          "key": "mask"
+        },
+        "path": {
+          "wrongKey": "mask",
+          "key": "do not mask"
+        }
+      },
+      "wrongArray": ["mask", 0],
+      "normalKey": "do not mask",
+      "key": "mask"
+    },
+    "expectedOutput": {
+      "wrongKey": "****",
+      "json": {
+        "wrongPath": {
+          "wrongKey": "****",
+          "key": "****"
+        },
+        "path": {
+          "wrongKey": "****",
+          "key": "do not mask"
+        }
+      },
+      "wrongArray": ["****", 0],
+      "normalKey": "do not mask",
+      "key": "****"
+    }
+  },
+  {
+    "maskerConfig": {
+      "targetKeyMode": "allow"
+    },
+    "targetKeys": [
+      "$.jsonpath.key",
+      "normalKey"
+    ],
+    "input": {
+      "wrongPath": {
+        "key": {
+          "nestedKey": "mask",
+          "normalKey": "do not mask"
+        }
+      },
+      "jsonpath": {
+        "wrongKey": {
+          "nestedKey": "mask",
+          "otherNestedKey": "mask"
+        },
+        "key": {
+          "nestedKey": "do not mask",
+          "otherNestedKey": "do not mask"
+        },
+        "otherWrongKey": {
+          "nestedKey": "mask",
+          "otherNestedKey": "mask"
+        }
+      },
+      "wrongArray": ["mask", 0],
+      "normalKey": "do not mask",
+      "key": "mask"
+    },
+    "expectedOutput": {
+      "wrongPath": {
+        "key": {
+          "nestedKey": "****",
+          "normalKey": "do not mask"
+        }
+      },
+      "jsonpath": {
+        "wrongKey": {
+          "nestedKey": "****",
+          "otherNestedKey": "****"
+        },
+        "key": {
+          "nestedKey": "do not mask",
+          "otherNestedKey": "do not mask"
+        },
+        "otherWrongKey": {
+          "nestedKey": "****",
+          "otherNestedKey": "****"
+        }
+      },
+      "wrongArray": ["****", 0],
+      "normalKey": "do not mask",
+      "key": "****"
+    }
+  }
+]

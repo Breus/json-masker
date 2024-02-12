@@ -1,5 +1,8 @@
 package dev.blaauwendraad.masker.json.config;
 
+import dev.blaauwendraad.masker.json.path.JsonPath;
+import dev.blaauwendraad.masker.json.path.JsonPathParser;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,9 +15,35 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 final class JsonMaskingConfigTest {
 
     @ParameterizedTest
+    @MethodSource("jsonPathsResolved")
+    void jsonPathsCorrectlyResolved(
+            Set<String> targets,
+            Set<String> expectedTargetKeys,
+            Set<JsonPath> expectedJsonPaths
+    ) {
+        Assertions.assertEquals(expectedJsonPaths, JsonMaskingConfig.getDefault(targets).getTargetJsonPaths());
+        Assertions.assertEquals(expectedTargetKeys, JsonMaskingConfig.getDefault(targets).getTargetKeys());
+    }
+
+    @ParameterizedTest
     @MethodSource("invalidBuilders")
     void invalidBuilders(JsonMaskingConfig.Builder builder) {
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> new JsonMaskingConfig(builder));
+    }
+
+    private static Stream<Arguments> jsonPathsResolved() {
+        JsonPathParser jsonPathParser = new JsonPathParser();
+        return Stream.of(
+                Arguments.of(
+                        Set.of("hello"), Set.of("hello"), Set.of()
+                ),
+                Arguments.of(
+                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(jsonPathParser.parse("$.hello"))
+                ),
+                Arguments.of(
+                        Set.of("$.hello"), Set.of(), Set.of(jsonPathParser.parse("$.hello"))
+                )
+        );
     }
 
     private static Stream<JsonMaskingConfig.Builder> invalidBuilders() {

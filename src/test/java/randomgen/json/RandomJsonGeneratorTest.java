@@ -1,19 +1,14 @@
 package randomgen.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dev.blaauwendraad.masker.json.JsonMasker;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
-import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
 
 public class RandomJsonGeneratorTest {
 

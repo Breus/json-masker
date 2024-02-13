@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json.path;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +18,6 @@ import java.util.List;
  *  <li>Escape characters</li>
  * </ul>
  */
-@ParametersAreNonnullByDefault
 public class JsonPathParser {
 
     /**

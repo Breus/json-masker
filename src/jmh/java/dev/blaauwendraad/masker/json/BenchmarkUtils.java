@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static randomgen.json.JsonStringCharacters.*;
-import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
 
 public class BenchmarkUtils {
 

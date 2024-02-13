@@ -10,7 +10,6 @@ import randomgen.json.RandomJsonGenerator;
 import randomgen.json.RandomJsonGeneratorConfig;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -30,7 +29,6 @@ import static org.assertj.core.api.Assertions.fail;
  * For each {@link JsonMaskingConfig}, random JSON inputs are generated against which the masker runs and the only thing
  * that is tested it doesn't cause an exception or gets stuck in a loop.
  */
-@ParametersAreNonnullByDefault
 final class NoFailingExecutionFuzzingTest {
     private static final Duration DEFAULT_TEST_INSTANCE_DURATION = Duration.ofSeconds(4);
     private static final Duration JSON_MASKING_TIMEOUT = Duration.ofMillis(500);

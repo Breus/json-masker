@@ -4,7 +4,6 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
@@ -34,7 +33,6 @@ import java.util.Iterator;
  * <p> And lastly, we can make a small optimization to remember all the distinct lengths of the target keys, so that
  * we can fail fast if the incoming key is not of the same length.
  */
-@ParametersAreNonnullByDefault
 final class ByteTrie {
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
     private final JsonMaskingConfig config;

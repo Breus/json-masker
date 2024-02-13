@@ -3,14 +3,12 @@ package dev.blaauwendraad.masker.json;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ParametersAreNonnullByDefault
-final class MaskObjectInNonMaskedArray {
+final class MaskObjectInNonMaskedArrayTest {
     @ParameterizedTest
     @MethodSource("objectInNonMaskedArrayValues")
     void maskObjectInNonMaskedArray(JsonMaskerTestInstance testInstance) {

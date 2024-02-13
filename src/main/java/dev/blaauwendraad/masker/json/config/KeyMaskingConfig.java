@@ -344,14 +344,16 @@ public class KeyMaskingConfig {
             if (disableBooleanMasking == null && maskBooleansWithString == null && maskBooleansWith == null) {
                 maskBooleansWithString = "&&&";
             }
+            boolean disableBooleanMasking = this.disableBooleanMasking != null && this.disableBooleanMasking;
+            boolean disableNumberMasking = this.disableNumberMasking != null && this.disableNumberMasking;
             return new KeyMaskingConfig(
                     maskStringsWith,
                     maskStringCharactersWith,
-                    disableNumberMasking != null && disableNumberMasking,
+                    disableNumberMasking,
                     maskNumbersWithString,
                     maskNumbersWith,
                     maskNumberDigitsWith,
-                    disableBooleanMasking != null && disableBooleanMasking,
+                    disableBooleanMasking,
                     maskBooleansWithString,
                     maskBooleansWith);
         }

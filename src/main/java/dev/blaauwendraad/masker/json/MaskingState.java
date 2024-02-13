@@ -146,6 +146,7 @@ public final class MaskingState {
      * @param mask       byte array mask to use as replacement for the value
      * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
      */
+    @SuppressWarnings("java:S6218") // never used for comparison
     public record ReplacementOperation(int startIndex, int endIndex, byte[] mask, int maskRepeat) {
 
         /**

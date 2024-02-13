@@ -18,17 +18,16 @@ public final class ValueMaskingUtil {
      *
      * @param maskingState      the masking state
      * @param targetValueLength the length of the target value slice.
-     * @param replacementBytes  the bytes to replace the value slice with.
+     * @param mask              the bytes to replace the value slice with.
      */
     public static void replaceTargetValueWith(
             MaskingState maskingState,
             int targetValueLength,
-            byte[] replacementBytes
+            byte[] mask,
+            int maskRepeat
     ) {
-        // TODO: we use this method to replace the value with a fixed string including quotes (if any)
-        //  that would add more allocations, for the values we could actually cache, but that's for later
         int targetValueStartIndex = maskingState.currentIndex() - targetValueLength;
-        maskingState.addReplacementOperation(targetValueStartIndex, maskingState.currentIndex(), replacementBytes);
+        maskingState.addReplacementOperation(targetValueStartIndex, maskingState.currentIndex(), mask, maskRepeat);
     }
 
     /**
@@ -67,13 +66,16 @@ public final class ValueMaskingUtil {
                     replacementOperation.startIndex() - index
             );
             // Insert the mask bytes
-            System.arraycopy(
-                    replacementOperation.maskBytes(),
-                    0,
-                    newMessage,
-                    replacementOperation.startIndex() + offset,
-                    replacementOperation.maskBytes().length
-            );
+            int length = replacementOperation.mask().length;
+            for (int i = 0; i < replacementOperation.maskRepeat(); i++) {
+                System.arraycopy(
+                        replacementOperation.mask(),
+                        0,
+                        newMessage,
+                        replacementOperation.startIndex() + offset + i * length,
+                        length
+                );
+            }
             // Adjust index and offset to continue copying from the end of the replacement operation
             index = replacementOperation.endIndex();
             offset += replacementOperation.difference();

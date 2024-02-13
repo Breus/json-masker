@@ -80,11 +80,13 @@ final class ByteTrieTest {
         assertThat(transformToBytesAndSearch(trie, "maskMe")).isFalse();
         assertThat(transformToBytesAndGetConfig(trie, "maskMe"))
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
                 .isEqualTo("[redacted]");
 
         assertThat(transformToBytesAndSearch(trie, "notAKey")).isFalse();
         assertThat(transformToBytesAndGetConfig(trie, "notAKey"))
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
                 .isEqualTo("***");
     }
 

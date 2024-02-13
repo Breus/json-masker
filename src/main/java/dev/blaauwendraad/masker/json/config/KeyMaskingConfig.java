@@ -1,18 +1,22 @@
 package dev.blaauwendraad.masker.json.config;
 
 import javax.annotation.CheckForNull;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class KeyMaskingConfig {
-    private final String maskStringsWith;
-    private final String maskStringCharactersWith;
+    @CheckForNull
+    private final byte[] maskStringsWith;
+    @CheckForNull
+    private final byte[] maskStringCharactersWith;
     private final boolean disableNumberMasking;
-    private final String maskNumbersWithString;
-    private final Integer maskNumbersWith;
-    private final Integer maskNumberDigitsWith;
+    @CheckForNull
+    private final byte[] maskNumbersWith;
+    @CheckForNull
+    private final byte[] maskNumberDigitsWith;
     private final boolean disableBooleanMasking;
-    private final String maskBooleansWithString;
-    private final Boolean maskBooleansWith;
+    @CheckForNull
+    private final byte[] maskBooleansWith;
 
     KeyMaskingConfig(
             @CheckForNull String maskStringsWith,
@@ -24,15 +28,37 @@ public class KeyMaskingConfig {
             boolean disableBooleanMasking,
             @CheckForNull String maskBooleansWithString,
             @CheckForNull Boolean maskBooleansWith) {
-        this.maskStringsWith = maskStringsWith;
-        this.maskStringCharactersWith = maskStringCharactersWith;
+        if (maskStringsWith != null) {
+            this.maskStringsWith = maskStringsWith.getBytes(StandardCharsets.UTF_8);
+            this.maskStringCharactersWith = null;
+        } else if (maskStringCharactersWith != null) {
+            this.maskStringsWith = null;
+            this.maskStringCharactersWith = maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
+        } else {
+            throw new IllegalStateException("One of two string masking options must be set");
+        }
         this.disableNumberMasking = disableNumberMasking;
-        this.maskNumbersWithString = maskNumbersWithString;
-        this.maskNumbersWith = maskNumbersWith;
-        this.maskNumberDigitsWith = maskNumberDigitsWith;
+        if (maskNumbersWithString != null) {
+            this.maskNumbersWith = ("\"" + maskNumbersWithString + "\"").getBytes(StandardCharsets.UTF_8);
+            this.maskNumberDigitsWith = null;
+        } else if (maskNumbersWith != null) {
+            this.maskNumbersWith = maskNumbersWith.toString().getBytes(StandardCharsets.UTF_8);
+            this.maskNumberDigitsWith = null;
+        } else if (maskNumberDigitsWith != null) {
+            this.maskNumbersWith = null;
+            this.maskNumberDigitsWith = maskNumberDigitsWith.toString().getBytes(StandardCharsets.UTF_8);
+        } else {
+            this.maskNumbersWith = null;
+            this.maskNumberDigitsWith = null;
+        }
         this.disableBooleanMasking = disableBooleanMasking;
-        this.maskBooleansWithString = maskBooleansWithString;
-        this.maskBooleansWith = maskBooleansWith;
+        if (maskBooleansWithString != null) {
+            this.maskBooleansWith = ("\"" + maskBooleansWithString + "\"").getBytes(StandardCharsets.UTF_8);
+        } else if (maskBooleansWith != null) {
+            this.maskBooleansWith = maskBooleansWith.toString().getBytes(StandardCharsets.UTF_8);
+        } else {
+            this.maskBooleansWith = null;
+        }
     }
 
     /**
@@ -48,7 +74,7 @@ public class KeyMaskingConfig {
      * @see Builder#maskStringsWith(String)
      */
     @CheckForNull
-    public String getMaskStringsWith() {
+    public byte[] getMaskStringsWith() {
         return maskStringsWith;
     }
 
@@ -56,7 +82,7 @@ public class KeyMaskingConfig {
      * @see Builder#maskStringCharactersWith(String)
      */
     @CheckForNull
-    public String getMaskStringCharactersWith() {
+    public byte[] getMaskStringCharactersWith() {
         return maskStringCharactersWith;
     }
 
@@ -68,18 +94,10 @@ public class KeyMaskingConfig {
     }
 
     /**
-     * @see Builder#maskNumbersWith(String)
-     */
-    @CheckForNull
-    public String getMaskNumbersWithString() {
-        return maskNumbersWithString;
-    }
-
-    /**
      * @see Builder#maskNumbersWith(int)
      */
     @CheckForNull
-    public Integer getMaskNumbersWith() {
+    public byte[] getMaskNumbersWith() {
         return maskNumbersWith;
     }
 
@@ -87,7 +105,7 @@ public class KeyMaskingConfig {
      * @see Builder#maskNumberDigitsWith(int)
      */
     @CheckForNull
-    public Integer getMaskNumberDigitsWith() {
+    public byte[] getMaskNumberDigitsWith() {
         return maskNumberDigitsWith;
     }
 
@@ -99,34 +117,28 @@ public class KeyMaskingConfig {
     }
 
     /**
-     * @see Builder#maskBooleansWith(String)
-     */
-    @CheckForNull
-    public String getMaskBooleansWithString() {
-        return maskBooleansWithString;
-    }
-
-    /**
      * @see Builder#maskBooleansWith(boolean)
      */
     @CheckForNull
-    public Boolean getMaskBooleansWith() {
+    public byte[] getMaskBooleansWith() {
         return maskBooleansWith;
     }
 
     @Override
     public String toString() {
         return "KeyMaskingConfig{" +
-                "maskStringsWith='" + maskStringsWith + '\'' +
-                ", maskStringCharactersWith='" + maskStringCharactersWith + '\'' +
+                "maskStringsWith='" + bytesToString(maskStringsWith) + '\'' +
+                ", maskStringCharactersWith='" + bytesToString(maskStringCharactersWith) + '\'' +
                 ", disableNumberMasking=" + disableNumberMasking +
-                ", maskNumbersWithString='" + maskNumbersWithString + '\'' +
-                ", maskNumbersWith=" + maskNumbersWith +
-                ", maskNumberDigitsWith=" + maskNumberDigitsWith +
+                ", maskNumbersWith=" + bytesToString(maskNumbersWith) +
+                ", maskNumberDigitsWith=" + bytesToString(maskNumberDigitsWith) +
                 ", disableBooleanMasking=" + disableBooleanMasking +
-                ", maskBooleansWithString='" + maskBooleansWithString + '\'' +
-                ", maskBooleansWith=" + maskBooleansWith +
+                ", maskBooleansWith=" + bytesToString(maskBooleansWith) +
                 '}';
+    }
+
+    private String bytesToString(@CheckForNull byte[] bytes) {
+        return bytes != null ? new String(bytes, StandardCharsets.UTF_8) : null;
     }
 
     public static class Builder {

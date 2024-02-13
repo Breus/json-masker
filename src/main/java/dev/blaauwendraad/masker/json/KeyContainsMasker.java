@@ -7,8 +7,6 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Objects;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isComma;
@@ -314,8 +312,8 @@ public final class KeyContainsMasker implements JsonMasker {
             ValueMaskingUtil.replaceTargetValueWith(
                     maskingState,
                     targetValueLength,
-                    // TODO transform this to bytes in the config
-                    keyMaskingConfig.getMaskStringsWith().getBytes(StandardCharsets.UTF_8)
+                    keyMaskingConfig.getMaskStringsWith(),
+                    1
             );
         } else if (keyMaskingConfig.getMaskStringCharactersWith() != null) {
             /*
@@ -327,21 +325,12 @@ public final class KeyContainsMasker implements JsonMasker {
              */
             int maskLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
 
-            byte[] characterMaskBytes = keyMaskingConfig.getMaskStringCharactersWith().getBytes(StandardCharsets.UTF_8);
-
-            // TODO ReplacementOperation might be changed to either support byte + length or byte[] directly
-            // repeat the character mask for the length of the string
-            // if the mask is a single byte character (i.e. ASCII), then characterMaskBytes.length == 1
-            byte[] mask = new byte[maskLength * characterMaskBytes.length];
-            for (int i = 0; i < maskLength; i++) {
-                System.arraycopy(characterMaskBytes, 0, mask, i * characterMaskBytes.length, characterMaskBytes.length);
-            }
             ValueMaskingUtil.replaceTargetValueWith(
                     maskingState,
                     targetValueLength,
-                    mask
+                    keyMaskingConfig.getMaskStringCharactersWith(),
+                    maskLength
             );
-
         } else {
             throw new IllegalStateException("Invalid string masking configuration");
         }
@@ -483,24 +472,15 @@ public final class KeyContainsMasker implements JsonMasker {
             ValueMaskingUtil.replaceTargetValueWith(
                     maskingState,
                     targetValueLength,
-                    // TODO transform this to bytes in the config
-                    keyMaskingConfig.getMaskNumbersWith().toString().getBytes(StandardCharsets.UTF_8)
+                    keyMaskingConfig.getMaskNumbersWith(),
+                    1
             );
         } else if (keyMaskingConfig.getMaskNumberDigitsWith() != null) {
-            // TODO ReplacementOperation might be changed to either support byte + length or byte[] directly
-            byte[] mask = new byte[targetValueLength];
-            Arrays.fill(mask, AsciiCharacter.toAsciiByteValue(keyMaskingConfig.getMaskNumberDigitsWith()));
             ValueMaskingUtil.replaceTargetValueWith(
                     maskingState,
                     targetValueLength,
-                    mask
-            );
-        } else if (keyMaskingConfig.getMaskNumbersWithString() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
-                    targetValueLength,
-                    // TODO transform this to bytes in the config
-                    ("\"" + keyMaskingConfig.getMaskNumbersWithString() + "\"").getBytes(StandardCharsets.UTF_8)
+                    keyMaskingConfig.getMaskNumberDigitsWith(),
+                    targetValueLength
             );
         } else {
             throw new IllegalStateException("Invalid number masking configuration");
@@ -575,15 +555,8 @@ public final class KeyContainsMasker implements JsonMasker {
             ValueMaskingUtil.replaceTargetValueWith(
                     maskingState,
                     targetValueLength,
-                    // TODO transform this to bytes in the config
-                    keyMaskingConfig.getMaskBooleansWith().toString().getBytes(StandardCharsets.UTF_8)
-            );
-        } else if (keyMaskingConfig.getMaskBooleansWithString() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
-                    targetValueLength,
-                    // TODO transform this to bytes in the config
-                    ("\"" + keyMaskingConfig.getMaskBooleansWithString() + "\"").getBytes(StandardCharsets.UTF_8)
+                    keyMaskingConfig.getMaskBooleansWith(),
+                    1
             );
         } else {
             throw new IllegalStateException("Invalid boolean masking configuration");

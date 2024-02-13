@@ -11,6 +11,7 @@ import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -121,12 +122,14 @@ public final class ParseAndMaskUtil {
         if (config.isDisableBooleanMasking()) {
             return booleanNode;
         }
-        if (config.getMaskBooleansWith() != null) {
-            return BooleanNode.valueOf(config.getMaskBooleansWith());
-        } else if (config.getMaskBooleansWithString() != null) {
-            return new TextNode(config.getMaskBooleansWithString());
-        } else {
+        if (config.getMaskBooleansWith() == null) {
             throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
+        String maskBooleansWith = new String(config.getMaskBooleansWith(), StandardCharsets.UTF_8);
+        if (maskBooleansWith.startsWith("\"")) {
+            return new TextNode(maskBooleansWith.substring(1, maskBooleansWith.length() - 1));
+        } else {
+            return BooleanNode.valueOf(Boolean.parseBoolean(maskBooleansWith));
         }
     }
 
@@ -143,16 +146,20 @@ public final class ParseAndMaskUtil {
         }
         String text = numericNode.asText();
         if (config.getMaskNumbersWith() != null) {
-            return new BigIntegerNode(BigInteger.valueOf(config.getMaskNumbersWith()));
+            String maskNumbersWith = new String(config.getMaskNumbersWith(), StandardCharsets.UTF_8);
+            if (maskNumbersWith.startsWith("\"")) {
+                return new TextNode(maskNumbersWith.substring(1, maskNumbersWith.length() - 1));
+            } else {
+                return new BigIntegerNode(BigInteger.valueOf(Long.parseLong(maskNumbersWith)));
+            }
         } else if (config.getMaskNumberDigitsWith() != null) {
-            BigInteger mask = BigInteger.valueOf(config.getMaskNumberDigitsWith());
+            int maskNumberDigitsWith = Integer.parseInt(new String(config.getMaskNumberDigitsWith(), StandardCharsets.UTF_8));
+            BigInteger mask = BigInteger.valueOf(maskNumberDigitsWith);
             for (int i = 1; i < text.length(); i++) {
                 mask = mask.multiply(BigInteger.TEN);
-                mask = mask.add(BigInteger.valueOf(config.getMaskNumberDigitsWith()));
+                mask = mask.add(BigInteger.valueOf(maskNumberDigitsWith));
             }
             return new BigIntegerNode(mask);
-        } else if (config.getMaskNumbersWithString() != null) {
-            return new TextNode(config.getMaskNumbersWithString());
         } else {
             throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
         }
@@ -198,9 +205,9 @@ public final class ParseAndMaskUtil {
     private static String maskText(String key, String text, JsonMaskingConfig jsonMaskingConfig) {
         KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
         if (config.getMaskStringsWith() != null) {
-            return config.getMaskStringsWith();
+            return new String(config.getMaskStringsWith(), StandardCharsets.UTF_8);
         } else if (config.getMaskStringCharactersWith() != null) {
-            return config.getMaskStringCharactersWith().repeat(text.length());
+            return new String(config.getMaskStringCharactersWith(), StandardCharsets.UTF_8).repeat(text.length());
         } else {
             throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
         }

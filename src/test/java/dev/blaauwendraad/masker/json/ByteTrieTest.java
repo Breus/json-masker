@@ -20,7 +20,7 @@ final class ByteTrieTest {
     void caseInsensitiveInsertAndSearch() {
         ByteTrie trie = new ByteTrie(JsonMaskingConfig.builder().maskKeys(someKeys).build());
         for (String someKey : someKeys) {
-            trie.insert(someKey, KeyMaskingConfig.builder().build(), false);
+            trie.insert(someKey, false);
         }
         for (String someKey : someKeys) {
             assertThat(transformToBytesAndSearch(trie, someKey)).isTrue();
@@ -46,7 +46,7 @@ final class ByteTrieTest {
     void caseSensitiveInsertAndSearch() {
         ByteTrie trie = new ByteTrie(JsonMaskingConfig.builder().maskKeys(someKeys).caseSensitiveTargetKeys().build());
         for (String someKey : someKeys) {
-            trie.insert(someKey, KeyMaskingConfig.builder().build(), false);
+            trie.insert(someKey, false);
         }
         for (String someKey : someKeys) {
             assertThat(transformToBytesAndSearch(trie, someKey)).isTrue();
@@ -71,8 +71,8 @@ final class ByteTrieTest {
                 .build();
         ByteTrie trie = new ByteTrie(config);
 
-        trie.insert("allowMe", config.getConfig("allowMe"), false);
-        trie.insert("maskMe", config.getConfig("maskMe"), true);
+        trie.insert("allowMe", false);
+        trie.insert("maskMe", true);
 
         assertThat(transformToBytesAndSearch(trie, "allowMe")).isTrue();
         assertThatThrownBy(() -> transformToBytesAndGetConfig(trie, "allowMe"));

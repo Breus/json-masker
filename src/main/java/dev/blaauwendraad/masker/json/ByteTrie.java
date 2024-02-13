@@ -50,7 +50,6 @@ final class ByteTrie {
      * Inserts a word into the trie.
      *
      * @param word             the word to insert.
-     * @param keyMaskingConfig the masking configuration for the key.
      * @param negativeMatch    if true, the key is not allowed and the trie is in ALLOW mode.
      *                         for example config
      *                         {@code
@@ -62,7 +61,7 @@ final class ByteTrie {
      *                         insert a "negative match" node, that would not be treated as a target key, but provide
      *                         a fast lookup for the configuration
      */
-    public void insert(String word, KeyMaskingConfig keyMaskingConfig, boolean negativeMatch) {
+    public void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !config.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         knownByteLengths[bytes.length] = true;
@@ -111,7 +110,7 @@ final class ByteTrie {
             }
             node = child;
         }
-        node.keyMaskingConfig = keyMaskingConfig;
+        node.keyMaskingConfig = config.getConfig(word);
         node.endOfWord = true;
         node.negativeMatch = negativeMatch;
     }

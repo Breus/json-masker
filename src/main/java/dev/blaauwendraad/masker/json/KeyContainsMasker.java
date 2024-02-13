@@ -49,14 +49,13 @@ public final class KeyContainsMasker implements JsonMasker {
         this.maskingConfig = maskingConfig;
         this.targetKeysTrie = new ByteTrie(maskingConfig);
         maskingConfig.getTargetKeys()
-                .forEach(key -> this.targetKeysTrie.insert(key, maskingConfig.getConfig(key), false));
+                .forEach(key -> this.targetKeysTrie.insert(key, false));
         maskingConfig.getTargetJsonPaths()
-                .forEach(jsonPath -> this.targetKeysTrie.insert(jsonPath.toString(), maskingConfig.getConfig(jsonPath.toString()), false));
+                .forEach(jsonPath -> this.targetKeysTrie.insert(jsonPath.toString(), false));
         if (maskingConfig.isInAllowMode()) {
             // in allow mode we might have a specific configuration for the masking key
             // see ByteTrie#insert documentation for more details
-            maskingConfig.getKeyConfigs()
-                    .forEach((key, config) -> this.targetKeysTrie.insert(key, config, true));
+            maskingConfig.getKeyConfigs().keySet().forEach(key -> this.targetKeysTrie.insert(key, true));
         }
     }
 

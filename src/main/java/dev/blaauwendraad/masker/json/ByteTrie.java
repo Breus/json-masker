@@ -1,5 +1,10 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
@@ -29,21 +34,36 @@ import java.util.Iterator;
  * <p> And lastly, we can make a small optimization to remember all the distinct lengths of the target keys, so that
  * we can fail fast if the incoming key is not of the same length.
  */
+@ParametersAreNonnullByDefault
 final class ByteTrie {
-    private static final int MAX_BYTE_SIZE = 128;
+    private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
+    private final JsonMaskingConfig config;
     private final TrieNode root;
-    private final boolean caseInsensitive;
     private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
 
-    public ByteTrie(boolean caseInsensitive) {
-        this.caseInsensitive = caseInsensitive;
+    public ByteTrie(JsonMaskingConfig config) {
+        this.config = config;
         this.root = new TrieNode();
     }
 
     /**
      * Inserts a word into the trie.
+     *
+     * @param word             the word to insert.
+     * @param keyMaskingConfig the masking configuration for the key.
+     * @param negativeMatch    if true, the key is not allowed and the trie is in ALLOW mode.
+     *                         for example config
+     *                         {@code
+     *                         builder.allow("name", "age").mask("ssn", k -> k.maskStringsWith("[redacted]"))
+     *                         }
+     *                         would only allow {@code name} and {@code age} to be present in the JSON, it would use
+     *                         default configuration to mask any other key, but would specifically mask {@code ssn} with
+     *                         a string "[redacted]". To make it possible to store just the masking configuration we
+     *                         insert a "negative match" node, that would not be treated as a target key, but provide
+     *                         a fast lookup for the configuration
      */
-    public void insert(String word) {
+    public void insert(String word, KeyMaskingConfig keyMaskingConfig, boolean negativeMatch) {
+        boolean caseInsensitive = !config.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         knownByteLengths[bytes.length] = true;
         byte[] lowerBytes = null;
@@ -68,10 +88,10 @@ final class ByteTrie {
         TrieNode node = root;
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
-            TrieNode child = node.children[b + MAX_BYTE_SIZE];
+            TrieNode child = node.children[b + BYTE_OFFSET];
             if (child == null) {
                 child = new TrieNode();
-                node.children[b + MAX_BYTE_SIZE] = child;
+                node.children[b + BYTE_OFFSET] = child;
                 if (caseInsensitive) {
                     /*
                       when case-insensitive we need to keep track of siblings to be able to find the correct node
@@ -85,67 +105,108 @@ final class ByteTrie {
                         1. Locale issues (see String#equalsIgnoreCase)
                         2. So we don't have to convert when searching
                      */
-                    node.children[lowerBytes[i] + MAX_BYTE_SIZE] = child;
-                    node.children[upperBytes[i] + MAX_BYTE_SIZE] = child;
+                    node.children[lowerBytes[i] + BYTE_OFFSET] = child;
+                    node.children[upperBytes[i] + BYTE_OFFSET] = child;
                 }
             }
             node = child;
         }
+        node.keyMaskingConfig = keyMaskingConfig;
         node.endOfWord = true;
+        node.negativeMatch = negativeMatch;
     }
 
     /**
-     * Returns if the word is in the trie.
+     * If the key matches - returns its masking configuration, otherwise returns null.
      */
     public boolean search(byte[] bytes, int offset, int length) {
+        TrieNode node = searchNode(bytes, offset, length);
+        return node != null && !node.negativeMatch;
+    }
+
+    /**
+     * Must be called only if the key has matched or in allow mode, for key that did not match
+     * returns its masking configuration, otherwise returns default config.
+     */
+    public KeyMaskingConfig config(byte[] bytes, int offset, int length) {
+        TrieNode node = searchNode(bytes, offset, length);
+        // in allow mode we explicitly forbid requesting configs for allowed keys
+        // this would not make sense and likely means error in the logic
+        // though for mask mode we cannot make the same assumption, as we might mask any
+        // arbitrary key with a specific config, if that key is part of the object being masked
+        if (config.isInAllowMode()) {
+            if (node != null && !node.negativeMatch) {
+                throw new IllegalArgumentException("getting masking config for allowed key in ALLOW mode is not allowed");
+            }
+        }
+        return node != null ? node.keyMaskingConfig : config.getDefaultConfig();
+    }
+
+    @CheckForNull
+    private TrieNode searchNode(byte[] bytes, int offset, int length) {
         if (!knownByteLengths[length]) {
-            return false;
+            return null;
         }
         TrieNode node = root;
 
         for (int i = offset; i < offset + length; i++) {
             int b = bytes[i];
-            node = node.children[b + MAX_BYTE_SIZE];
+            node = node.children[b + BYTE_OFFSET];
 
             if (node == null) {
-                return false;
+                return null;
             }
         }
 
-        return node.endOfWord;
+        if (!node.endOfWord) {
+            return null;
+        }
+
+        return node;
     }
 
     /**
      * Returns whether the json path is in the trie.
      * JsonPath is represented as an iterator over references of the json path segments in the byte array.
      * A reference is represented as a (keyStartIndex, keyLength) pair.
-     * @param bytes byte array representation fo the json
-     * @param jsonPath an interator over references of json path segments in <code>bytes</code>.
+     *
+     * @param bytes    byte array representation fo the json
+     * @param jsonPath an iterator over references of json path segments in <code>bytes</code>.
      * @return true if the json path key is in the trie, false otherwise.
      */
     public boolean searchForJsonPathKey(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
+        TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
+        return node != null && !node.negativeMatch;
+    }
+
+    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
         TrieNode node = root;
-        node = node.children['$' + MAX_BYTE_SIZE];
+        node = node.children['$' + BYTE_OFFSET];
         if (node == null) {
-            return false;
+            return null;
         }
         while (jsonPath.hasNext()) {
-            node = node.children['.' + MAX_BYTE_SIZE];
+            node = node.children['.' + BYTE_OFFSET];
             if (node == null) {
-                return false;
+                return null;
             }
             MaskingState.SegmentReference segmentReference = jsonPath.next();
             int keyStartIndex = segmentReference.start;
             int keyLength = segmentReference.offset;
             for (int i = keyStartIndex; i < keyStartIndex + keyLength; i++) {
                 int b = bytes[i];
-                node = node.children[b + MAX_BYTE_SIZE];
+                node = node.children[b + BYTE_OFFSET];
                 if (node == null) {
-                    return false;
+                    return null;
                 }
             }
         }
-        return node.endOfWord;
+
+        if (!node.endOfWord) {
+            return null;
+        }
+
+        return node;
     }
 
     /**
@@ -155,6 +216,18 @@ final class ByteTrie {
      */
     private static class TrieNode {
         private final TrieNode[] children = new TrieNode[256];
+        /**
+         * A marker that the character indicates that the key ends at this node.
+         */
         private boolean endOfWord = false;
+        /**
+         * Masking configuration for the key that ends at this node.
+         */
+        @CheckForNull
+        private KeyMaskingConfig keyMaskingConfig = null;
+        /**
+         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
+         */
+        private boolean negativeMatch = false;
     }
 }

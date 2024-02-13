@@ -1,9 +1,11 @@
 [
   {
-    "targetKeys": [
-      "maskMe",
-      "andMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe",
+        "andMe"
+      ]
+    },
     "input": {
       "maskMe": [
         [
@@ -29,14 +31,14 @@
       "maskMe": [
         [
           [
-            "*****",
-            123,
-            true,
+            "***",
+            "###",
+            "&&&",
             {
-              "hello": "**",
+              "hello": "***",
               "bye": "***",
               "array": [
-                "*****"
+                "***"
               ]
             }
           ]
@@ -48,10 +50,12 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe",
-      "andMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe",
+        "andMe"
+      ]
+    },
     "input": {
       "maskMe": [
         [
@@ -78,16 +82,16 @@
       "maskMe": [
         [
           [
-            "*****",
-            123,
-            true,
+            "***",
+            "###",
+            "&&&",
             {
-              "hello": "**",
+              "hello": "***",
               "bye": "***",
               "array": [
-                "*****"
+                "***"
               ],
-              "num": 12
+              "num": "###"
             }
           ]
         ]
@@ -98,10 +102,12 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe",
-      "andMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe",
+        "andMe"
+      ]
+    },
     "input": {
       "maskMe": [
         "hello",
@@ -114,19 +120,21 @@
     },
     "expectedOutput": {
       "maskMe": [
-        "*****",
+        "***",
         {
-          "andMe": "**",
-          "he": 12
+          "andMe": "***",
+          "he": "###"
         }
       ],
       "andMe": []
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": [
         [
@@ -140,16 +148,18 @@
       "maskMe": [
         [
           {
-            "no": 12
+            "no": "###"
           }
         ]
       ]
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": [
         {
@@ -174,15 +184,17 @@
           ]
         },
         {},
-        123,
-        "*****"
+        "###",
+        "***"
       ]
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": [
         true,
@@ -193,17 +205,19 @@
     },
     "expectedOutput": {
       "maskMe": [
-        true,
-        false,
-        123,
-        "*****"
+        "&&&",
+        "&&&",
+        "###",
+        "***"
       ]
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": [
         [],
@@ -216,17 +230,17 @@
       "maskMe": [
         [],
         [
-          "*****"
+          "***"
         ]
       ]
     }
   },
   {
-    "maskerConfig": {
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
     },
-    "targetKeys": [
-      "maskMe"
-    ],
     "input": {
       "someKey": {
         "maskMe": [
@@ -239,15 +253,17 @@
       "someKey": {
         "maskMe": [
           "***",
-          "**"
+          "***"
         ]
       }
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": [
         "hello"
@@ -255,16 +271,16 @@
     },
     "expectedOutput": {
       "maskMe": [
-        "*****"
+        "***"
       ]
     }
   },
   {
-    "maskerConfig": {
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
     },
-    "targetKeys": [
-      "maskMe"
-    ],
     "input": {
       "someKey": {
         "maskMe": [
@@ -280,18 +296,20 @@
       "someKey": {
         "maskMe": [
           null,
-          true,
-          123,
+          "&&&",
+          "###",
           "***",
-          "**"
+          "***"
         ]
       }
     }
   },
   {
-    "targetKeys": [
-      "secret"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "secret"
+      ]
+    },
     "input": {
       "secret": [
         [],
@@ -311,11 +329,11 @@
       "secret": [
         [],
         null,
-        "**",
+        "***",
         [
           {
             "secret": [
-              "**"
+              "***"
             ]
           }
         ],

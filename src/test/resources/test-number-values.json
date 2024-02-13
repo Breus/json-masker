@@ -1,11 +1,11 @@
 [
   {
-    "maskerConfig": {
-      "maskNumberValuesWith": 1
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ],
+      "maskNumbersWith": 1
     },
-    "targetKeys": [
-      "maskMe"
-    ],
     "input": {
       "maskMe": 2
     },
@@ -14,144 +14,99 @@
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 4,
-      "maskNumberValuesWith": 1
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey4"
+      ],
+      "maskNumbersWith": 1111
     },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey4"
-    ],
     "input": {
       "someKey": "o",
       "someKey2": 123456
     },
     "expectedOutput": {
-      "someKey": "****",
+      "someKey": "***",
       "someKey2": 1111
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 4,
-      "maskNumberValuesWith": 8
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey3"
+      ],
+      "maskNumbersWith": 8888
     },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
     "input": {
       "someKey": "hello",
       "someKey2": 0.12e+1,
       "someKey3": 12345
     },
     "expectedOutput": {
-      "someKey": "****",
+      "someKey": "***",
       "someKey2": 8888,
       "someKey3": 8888
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 4,
-      "maskNumberValuesWith": 9
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey3"
+      ],
+      "maskNumberDigitsWith": 9
     },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
-    "input": {
-      "someKey": "hello",
-      "someKey2": -0.12E-1,
-      "someKey3": -0.5
-    },
-    "expectedOutput": {
-      "someKey": "****",
-      "someKey2": 9999,
-      "someKey3": 9999
-    }
-  },
-  {
-    "maskerConfig": {
-      "maskNumberValuesWith": 9
-    },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-11,
       "someKey3": -0.5
     },
     "expectedOutput": {
-      "someKey": "*****",
+      "someKey": "***",
       "someKey2": 99999999,
       "someKey3": 9999
     }
   },
   {
-    "maskerConfig": {
-      "maskNumberValuesWith": 9
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey3"
+      ],
+      "maskNumberDigitsWith": 9
     },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
     "input": {
       "someKey": "hello",
       "someKey2": 123,
       "someKey3": 23
     },
     "expectedOutput": {
-      "someKey": "*****",
+      "someKey": "***",
       "someKey2": 999,
       "someKey3": 99
     }
   },
   {
-    "maskerConfig": {
-      "obfuscationLength": 0,
-      "maskNumberValuesWith": 0
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey3"
+      ],
+      "maskNumbersWith": 0
     },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
     "input": {
       "someKey": "hello",
       "someKey2": -0.12E-1,
       "someKey3": -0.5
     },
     "expectedOutput": {
-      "someKey": "",
-      "someKey2": 0,
-      "someKey3": 0
-    }
-  },
-  {
-    "maskerConfig": {
-      "obfuscationLength": 1,
-      "maskNumberValuesWith": 0
-    },
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3"
-    ],
-    "input": {
-      "someKey": "hello",
-      "someKey2": -0.12E-1,
-      "someKey3": -0.5
-    },
-    "expectedOutput": {
-      "someKey": "*",
+      "someKey": "***",
       "someKey2": 0,
       "someKey3": 0
     }

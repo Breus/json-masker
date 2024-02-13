@@ -1,8 +1,10 @@
 [
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "someKey": [
         "hello",
@@ -23,9 +25,9 @@
         123,
         {
           "maskMe": {
-            "hello": "**",
+            "hello": "***",
             "bye": {
-              "cya": "*****"
+              "cya": "***"
             }
           }
         }
@@ -33,9 +35,11 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "someKey": [
         "hello",
@@ -63,11 +67,11 @@
         123,
         {
           "maskMe": {
-            "hello": "**",
+            "hello": "***",
             "bye": {
               "cya": [
-                "*****",
-                123,
+                "***",
+                "###",
                 "***",
                 {
                   "hello": "***"

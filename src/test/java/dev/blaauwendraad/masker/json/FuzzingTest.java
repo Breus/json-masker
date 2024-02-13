@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
@@ -37,7 +38,16 @@ final class FuzzingTest {
         while (Duration.between(startTime, Instant.now()).getSeconds() < SECONDS_FOR_EACH_TEST_TO_RUN) {
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             String randomJsonNodeString = randomJsonNode.toPrettyString();
-            String keyContainsOutput = masker.mask(randomJsonNodeString);
+            String keyContainsOutput;
+            try {
+                keyContainsOutput = masker.mask(randomJsonNodeString);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed for input: " + randomJsonNodeString);
+            }
+            assertThatNoException()
+                    .as("Failed for input: " + randomJsonNodeString)
+                    .isThrownBy(() -> {
+                    });
             String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig).toPrettyString();
             assertThat(keyContainsOutput).as("Failed for input: " + randomJsonNodeString).isEqualTo(jacksonMaskingOutput);
             randomTestExecuted++;
@@ -52,92 +62,51 @@ final class FuzzingTest {
     @Nonnull
     private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
         return Stream.of(
-                JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS),
-                JsonMaskingConfig.getDefault(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .maskNumericValuesWith(1)
-                        .disableJsonPathResolving()
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS).build(),
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringCharactersWith("*")
+                        .maskNumberDigitsWith(1)
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .caseSensitiveTargetKeys()
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(3)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(0)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(1)
-                        .maskNumericValuesWith(1)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(3)
-                        .maskNumericValuesWith(3)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW).disableJsonPathResolving().build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .caseSensitiveTargetKeys()
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .maskNumericValuesWith(2)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(0)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(4)
-                        .maskNumericValuesWith(8)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(4)
-                        .disableJsonPathResolving()
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .maskNumericValuesWith(1)
-                        .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
                         .caseSensitiveTargetKeys()
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(3)
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("***")
+                        .disableNumberMasking()
+                        .disableBooleanMasking()
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(0)
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("")
+                        .disableNumberMasking()
+                        .disableBooleanMasking()
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(1)
-                        .maskNumericValuesWith(1)
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("*")
+                        .maskNumbersWith(1)
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.MASK)
-                        .obfuscationLength(3)
-                        .maskNumericValuesWith(3)
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("***")
+                        .maskNumbersWith(111)
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW).build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS).build(),
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
                         .caseSensitiveTargetKeys()
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .maskNumericValuesWith(2)
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
+                        .maskNumberDigitsWith(2)
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(0)
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("")
+                        .disableNumberMasking()
+                        .disableBooleanMasking()
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(4)
-                        .maskNumericValuesWith(8)
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("****")
+                        .maskNumbersWith(11111111)
                         .build(),
-                JsonMaskingConfig.custom(DEFAULT_TARGET_KEYS_WITH_JSON_PATH_KEY, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                        .obfuscationLength(4)
-                        .build());
+                JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
+                        .maskStringsWith("****")
+                        .build()
+        );
     }
 }

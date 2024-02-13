@@ -1,11 +1,11 @@
 [
   {
-    "maskerConfig": {
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ],
       "caseSensitiveTargetKeys": true
     },
-    "targetKeys": [
-      "maskMe"
-    ],
     "input": {
       "someKey": {
         "maskme": "value",
@@ -15,14 +15,16 @@
     "expectedOutput": {
       "someKey": {
         "maskme": "value",
-        "maskMe": "*****"
+        "maskMe": "***"
       }
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "someKey": {
         "maskme": "value",
@@ -31,8 +33,8 @@
     },
     "expectedOutput": {
       "someKey": {
-        "maskme": "*****",
-        "maskMe": "*****"
+        "maskme": "***",
+        "maskMe": "***"
       }
     }
   }

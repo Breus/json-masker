@@ -61,8 +61,8 @@ public final class MaskingState {
     /**
      * Adds new delayed replacement operation to the list of operations to be applied to the message.
      */
-    public void addReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
-        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, maskLength, maskByte);
+    public void addReplacementOperation(int startIndex, int endIndex, byte[] mask) {
+        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, mask);
         replacementOperations.add(replacementOperation);
         replacementOperationsTotalDifference += replacementOperation.difference();
     }
@@ -143,17 +143,16 @@ public final class MaskingState {
      *
      * @param startIndex index from which to start replacing
      * @param endIndex   index at which to stop replacing
-     * @param maskLength length of the mask to apply
-     * @param maskByte   byte to use for the mask
+     * @param maskBytes  byte array mask to use as replacement for the value
      */
-    public record ReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
+    public record ReplacementOperation(int startIndex, int endIndex, byte[] maskBytes) {
 
         /**
          * The difference between the mask length and the length of the target value to replace.
          * Used to calculate keep track of the offset during replacements.
          */
         public int difference() {
-            return maskLength - (endIndex - startIndex);
+            return maskBytes.length - (endIndex - startIndex);
         }
     }
 

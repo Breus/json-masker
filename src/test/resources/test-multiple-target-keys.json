@@ -1,26 +1,30 @@
 [
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2"
+      ]
+    },
     "input": {
       "someKey": "hello",
       "otherKey": null,
       "someKey2": "hi"
     },
     "expectedOutput": {
-      "someKey": "*****",
+      "someKey": "***",
       "otherKey": null,
-      "someKey2": "**"
+      "someKey2": "***"
     }
   },
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey4"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey4"
+      ]
+    },
     "input": {
       "someKey": "hello",
       "someKey2": "hi",
@@ -32,22 +36,24 @@
       ]
     },
     "expectedOutput": {
-      "someKey": "*****",
-      "someKey2": "**",
+      "someKey": "***",
+      "someKey2": "***",
       "someKey3": "hey",
       "someKey4": [
         {
-          "someKey4": "*****"
+          "someKey4": "***"
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey4"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey4"
+      ]
+    },
     "input": {
       "someKey": "hello",
       "someKey2": "hi",
@@ -61,23 +67,25 @@
       ]
     },
     "expectedOutput": {
-      "someKey": "*****",
-      "someKey2": "**",
-      "someKey2": 2123,
+      "someKey": "***",
+      "someKey2": "***",
+      "someKey2": "###",
       "otherKey": null,
       "someKey3": "hey",
       "someKey4": [
         {
-          "someKey4": "*****"
+          "someKey4": "***"
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "targetKey1",
-      "targetKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey1",
+        "targetKey2"
+      ]
+    },
     "input": {
       "targetKey1": {
         "targetKey2": "\u001C"
@@ -86,16 +94,18 @@
     },
     "expectedOutput": {
       "targetKey1": {
-        "targetKey2": "*"
+        "targetKey2": "***"
       },
-      "targetKey2": "*"
+      "targetKey2": "***"
     }
   },
   {
-    "targetKeys": [
-      "targetKey1",
-      "targetKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey1",
+        "targetKey2"
+      ]
+    },
     "input": {
       "targetKey1": {
         "targetKey2": "\u001C"
@@ -105,9 +115,9 @@
     },
     "expectedOutput": {
       "targetKey1": {
-        "targetKey2": "*"
+        "targetKey2": "***"
       },
-      "targetKey2": true,
+      "targetKey2": "&&&",
       "targetKey1": null
     }
   }

@@ -1,12 +1,11 @@
 [
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey",
+        "allowed"
+      ]
     },
-    "targetKeys": [
-      "allowedKey",
-      "allowed"
-    ],
     "input": {
       "hello": {
         "allowedKey": "yes",
@@ -39,12 +38,11 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "targetKey1"
+      ]
     },
-    "targetKeys": [
-      "targetKey1"
-    ],
     "input": {
       "targetKey1": {
         "]key1": {},
@@ -59,12 +57,11 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "targetKey3"
+      ]
     },
-    "targetKeys": [
-      "targetKey3"
-    ],
     "input": {
       "": null,
       "လ": {
@@ -88,9 +85,9 @@
       "": null,
       "လ": {
         "\u0005rဘ": {
-          "N": "**",
+          "N": "***",
           "": null,
-          "\u0012": false
+          "\u0012": "&&&"
         },
         "": {},
         ">": {}
@@ -105,12 +102,11 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
     },
-    "targetKeys": [
-      "allowedKey"
-    ],
     "input": {
       "yetAnotherOne": {
         "allowedKey": "yes"
@@ -125,13 +121,12 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey",
+        "alsoAllowed"
+      ]
     },
-    "targetKeys": [
-      "allowedKey",
-      "alsoAllowed"
-    ],
     "input": {
       "someKey": {
         "jsonKey": "value",
@@ -158,11 +153,11 @@
     },
     "expectedOutput": {
       "someKey": {
-        "jsonKey": "*****",
+        "jsonKey": "***",
         "someKey": {
-          "someOtherKey": "****",
+          "someOtherKey": "***",
           "yetAnotherOne": {
-            "alrightLastOne": "**",
+            "alrightLastOne": "***",
             "allowedKey": "yes"
           }
         },
@@ -182,15 +177,14 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "jsonKey",
+        "someOtherKey",
+        "alrightLastOne",
+        "oneMoreKey"
+      ]
     },
-    "targetKeys": [
-      "jsonKey",
-      "someOtherKey",
-      "alrightLastOne",
-      "oneMoreKey"
-    ],
     "input": {
       "someKey": {
         "jsonKey": "value",
@@ -219,10 +213,9 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": []
     },
-    "targetKeys": [],
     "input": {
       "someKey": {
         "jsonKey": "value",
@@ -237,24 +230,23 @@
     },
     "expectedOutput": {
       "someKey": {
-        "jsonKey": "*****",
+        "jsonKey": "***",
         "someKey": {
-          "someOtherKey": "****",
+          "someOtherKey": "***",
           "yetAnotherOne": {
-            "alrightLastOne": "**"
+            "alrightLastOne": "***"
           }
         },
-        "allowedKey": "*********"
+        "allowedKey": "***"
       }
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowed"
+      ]
     },
-    "targetKeys": [
-      "allowed"
-    ],
     "input": {
       "allowed": {
         "someKey": "hello"
@@ -267,18 +259,17 @@
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowed",
+        "alsoAllowed"
+      ]
     },
-    "targetKeys": [
-      "allowed",
-      "alsoAllowed"
-    ],
     "input": {
       "allowed": "hello",
-      "numberNotMasked": 12,
+      "numberMasked": 12,
       "nullNotMasked": null,
-      "booleanNotMasked": true,
+      "booleanMasked": true,
       "notAllowed": "hey",
       "alsoAllowed": [
         "hi",
@@ -291,27 +282,26 @@
     },
     "expectedOutput": {
       "allowed": "hello",
-      "numberNotMasked": 12,
+      "numberMasked": "###",
       "nullNotMasked": null,
-      "booleanNotMasked": true,
+      "booleanMasked": "&&&",
       "notAllowed": "***",
       "alsoAllowed": [
         "hi",
         "there"
       ],
       "notAllowedArray": [
-        "**",
-        "*****"
+        "***",
+        "***"
       ]
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
     },
-    "targetKeys": [
-      "allowedKey"
-    ],
     "input": {
       "hello": {
         "allowedKey": "yes"

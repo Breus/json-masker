@@ -2,8 +2,6 @@ package dev.blaauwendraad.masker.json.util;
 
 import dev.blaauwendraad.masker.json.MaskingState;
 
-import java.util.Arrays;
-
 /**
  * Class containing utility methods to replace a particular target value with a mask. This can be used for
  * length obfuscation and ignoring escaping characters in string values.
@@ -18,36 +16,19 @@ public final class ValueMaskingUtil {
      * replacement is done in-place, otherwise a replacement operation is recorded to be performed as a batch using
      * {@link #flushReplacementOperations}.
      *
-     * @param maskLength        the length of the fixed-length mask byte string.
+     * @param maskingState      the masking state
      * @param targetValueLength the length of the target value slice.
-     * @param maskByte          the byte used for each byte in the mask
+     * @param replacementBytes  the bytes to replace the value slice with.
      */
-    public static void replaceTargetValueWithFixedLengthMask(
+    public static void replaceTargetValueWith(
             MaskingState maskingState,
-            int maskLength,
             int targetValueLength,
-            byte maskByte
+            byte[] replacementBytes
     ) {
-        int lengthDifference = maskLength - targetValueLength;
+        // TODO: we use this method to replace the value with a fixed string including quotes (if any)
+        //  that would add more allocations, for the values we could actually cache, but that's for later
         int targetValueStartIndex = maskingState.currentIndex() - targetValueLength;
-        if (lengthDifference == 0) {
-            Arrays.fill(maskingState.getMessage(), targetValueStartIndex, maskingState.currentIndex(), maskByte);
-            return;
-        }
-        maskingState.addReplacementOperation(targetValueStartIndex, maskingState.currentIndex(), maskLength, maskByte);
-    }
-
-    public static void replaceTargetValueWithFixedLengthAsteriskMask(
-            MaskingState maskingState,
-            int maskLength,
-            int targetValueLength
-    ) {
-        replaceTargetValueWithFixedLengthMask(
-                maskingState,
-                maskLength,
-                targetValueLength,
-                AsciiCharacter.ASTERISK.getAsciiByteValue()
-        );
+        maskingState.addReplacementOperation(targetValueStartIndex, maskingState.currentIndex(), replacementBytes);
     }
 
     /**
@@ -86,11 +67,12 @@ public final class ValueMaskingUtil {
                     replacementOperation.startIndex() - index
             );
             // Insert the mask bytes
-            Arrays.fill(
+            System.arraycopy(
+                    replacementOperation.maskBytes(),
+                    0,
                     newMessage,
                     replacementOperation.startIndex() + offset,
-                    replacementOperation.startIndex() + offset + replacementOperation.maskLength(),
-                    replacementOperation.maskByte()
+                    replacementOperation.maskBytes().length
             );
             // Adjust index and offset to continue copying from the end of the replacement operation
             index = replacementOperation.endIndex();

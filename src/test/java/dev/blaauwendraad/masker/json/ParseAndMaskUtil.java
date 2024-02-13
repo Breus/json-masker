@@ -3,13 +3,9 @@ package dev.blaauwendraad.masker.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BigIntegerNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NumericNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.*;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
@@ -76,6 +72,7 @@ public final class ParseAndMaskUtil {
                             objectNode.replace(
                                     key,
                                     maskJsonValue(
+                                            key,
                                             objectNode.get(key),
                                             jsonMaskingConfig,
                                             casingAppliedTargetKeys
@@ -104,54 +101,79 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     private static JsonNode maskJsonValue(
+            String key,
             JsonNode jsonNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         return switch (jsonNode.getNodeType()) {
-            case STRING -> maskTextNode((TextNode) jsonNode, jsonMaskingConfig);
-            case NUMBER -> maskNumericNode((NumericNode) jsonNode, jsonMaskingConfig);
-            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
-            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case STRING -> maskTextNode(key, (TextNode) jsonNode, jsonMaskingConfig);
+            case NUMBER -> maskNumericNode(key, (NumericNode) jsonNode, jsonMaskingConfig);
+            case BOOLEAN -> maskBooleanNode(key, (BooleanNode) jsonNode, jsonMaskingConfig);
+            case ARRAY -> maskArrayNodeValue(key, (ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case OBJECT -> maskObjectNodeValue(key, (ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
             default -> jsonNode;
         };
     }
 
-    @Nonnull
-    private static TextNode maskTextNode(TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
-        return new TextNode(maskText(textNode.textValue(), jsonMaskingConfig));
+    private static JsonNode maskBooleanNode(String key, BooleanNode booleanNode, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.isDisableBooleanMasking()) {
+            return booleanNode;
+        }
+        if (config.getMaskBooleansWith() != null) {
+            return BooleanNode.valueOf(config.getMaskBooleansWith());
+        } else if (config.getMaskBooleansWithString() != null) {
+            return new TextNode(config.getMaskBooleansWithString());
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
     }
 
     @Nonnull
-    private static NumericNode maskNumericNode(NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
-        if (!jsonMaskingConfig.isNumberMaskingEnabled()) {
+    private static TextNode maskTextNode(String key, TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
+        return new TextNode(maskText(key, textNode.textValue(), jsonMaskingConfig));
+    }
+
+    @Nonnull
+    private static ValueNode maskNumericNode(String key, NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.isDisableNumberMasking()) {
             return numericNode;
         }
         String text = numericNode.asText();
-        int numericLength = jsonMaskingConfig.isLengthObfuscationEnabled()
-                ? jsonMaskingConfig.getObfuscationLength()
-                : text.length();
-        int theNumber = jsonMaskingConfig.getMaskNumericValuesWith();
-        String repeatingNumber = String.valueOf(theNumber).repeat(numericLength);
-        return new BigIntegerNode(new BigInteger(repeatingNumber));
+        if (config.getMaskNumbersWith() != null) {
+            return new BigIntegerNode(BigInteger.valueOf(config.getMaskNumbersWith()));
+        } else if (config.getMaskNumberDigitsWith() != null) {
+            BigInteger mask = BigInteger.valueOf(config.getMaskNumberDigitsWith());
+            for (int i = 1; i < text.length(); i++) {
+                mask = mask.multiply(BigInteger.TEN);
+                mask = mask.add(BigInteger.valueOf(config.getMaskNumberDigitsWith()));
+            }
+            return new BigIntegerNode(mask);
+        } else if (config.getMaskNumbersWithString() != null) {
+            return new TextNode(config.getMaskNumbersWithString());
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
     }
 
     @Nonnull
     private static ArrayNode maskArrayNodeValue(
-            ArrayNode arrayNode,
+            String key, ArrayNode arrayNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
-            maskedArrayNode.add(maskJsonValue(element, jsonMaskingConfig, casingAppliedTargetKeys));
+            maskedArrayNode.add(maskJsonValue(key, element, jsonMaskingConfig, casingAppliedTargetKeys));
         }
         return maskedArrayNode;
     }
 
     @Nonnull
     private static ObjectNode maskObjectNodeValue(
-            ObjectNode objectNode,
+            String key, ObjectNode objectNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
@@ -166,17 +188,21 @@ public final class ParseAndMaskUtil {
                 maskedObjectNode.set(fieldName, objectNode.get(fieldName));
             } else {
                 JsonNode fieldValue = objectNode.get(fieldName);
-                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
+                maskedObjectNode.set(fieldName, maskJsonValue(key, fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
             }
         }
         return maskedObjectNode;
     }
 
     @Nonnull
-    private static String maskText(String text, JsonMaskingConfig jsonMaskingConfig) {
-        int numberOfAsterisks = jsonMaskingConfig.isLengthObfuscationEnabled()
-                ? jsonMaskingConfig.getObfuscationLength()
-                : text.length();
-        return "*".repeat(numberOfAsterisks);
+    private static String maskText(String key, String text, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.getMaskStringsWith() != null) {
+            return config.getMaskStringsWith();
+        } else if (config.getMaskStringCharactersWith() != null) {
+            return config.getMaskStringCharactersWith().repeat(text.length());
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
     }
 }

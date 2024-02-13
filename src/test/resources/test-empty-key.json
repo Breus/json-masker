@@ -1,9 +1,11 @@
 [
   {
-    "targetKeys": [
-      "someKey",
-      ""
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        ""
+      ]
+    },
     "input": {
       "w&EK": [
         {
@@ -11,9 +13,9 @@
             "[": {},
             "targetKey2": {},
             "+BAU^s}d": {
-              "targetKey1": "**",
+              "targetKey1": "***",
               "": "y5dYloB",
-              "targetKey2": "**",
+              "targetKey2": "***",
               "wTMS_dT": "c",
               "$+feSlg!E": "yUInkY=",
               "\"L": "Mw;GdNc"
@@ -30,14 +32,14 @@
             "[": {},
             "targetKey2": {},
             "+BAU^s}d": {
-              "targetKey1": "**",
-              "": "*******",
-              "targetKey2": "**",
+              "targetKey1": "***",
+              "": "***",
+              "targetKey2": "***",
               "wTMS_dT": "c",
               "$+feSlg!E": "yUInkY=",
               "\"L": "Mw;GdNc"
             },
-            "": ""
+            "": "***"
           }
         }
       ]

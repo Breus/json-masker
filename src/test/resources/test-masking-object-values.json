@@ -1,11 +1,10 @@
 [
   {
-    "targetKeys": [
-      "dontMaskMe",
-      "alsoNotMe"
-    ],
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "dontMaskMe",
+        "alsoNotMe"
+      ]
     },
     "input": {
       "hello": {
@@ -27,9 +26,11 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": {
         "array": [
@@ -44,15 +45,17 @@
         "array": [
           "***"
         ],
-        "number": 123,
-        "number2": 321
+        "number": "###",
+        "number2": "###"
       }
     }
   },
   {
-    "targetKeys": [
-      "array"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "array"
+      ]
+    },
     "input": {
       "maskMe": {
         "array": [
@@ -69,9 +72,11 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "someKey": "value",
       "maskMe": {
@@ -85,8 +90,8 @@
     "expectedOutput": {
       "someKey": "value",
       "maskMe": {
-        "hello": "**",
-        "bye": 123,
+        "hello": "***",
+        "bye": "###",
         "array": [
           "***"
         ]
@@ -94,9 +99,11 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "someKey": "value",
       "maskMe": {
@@ -106,14 +113,16 @@
     "expectedOutput": {
       "someKey": "value",
       "maskMe": {
-        "hello": "**"
+        "hello": "***"
       }
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": {
         "hello": {
@@ -130,9 +139,11 @@
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": {
         "hello": "there",
@@ -143,17 +154,19 @@
     },
     "expectedOutput": {
       "maskMe": {
-        "hello": "*****",
+        "hello": "***",
         "somethingElse": {
-          "key": "**"
+          "key": "***"
         }
       }
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": {
         "hello": []

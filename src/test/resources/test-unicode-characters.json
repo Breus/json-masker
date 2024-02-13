@@ -1,9 +1,11 @@
 [
   {
-    "targetKeys": [
-      "targetKey1",
-      "targetKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey1",
+        "targetKey2"
+      ]
+    },
     "input": {
       "targetKey2": {
         "targetKey3": {}
@@ -30,22 +32,26 @@
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "\u2020",
       "otherKey": null
     },
     "expectedOutput": {
-      "someKey": "*",
+      "someKey": "***",
       "otherKey": null
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "a\u2020b",
       "otherKey": null
@@ -56,20 +62,24 @@
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "a\\\u2020b"
     },
     "expectedOutput": {
-      "someKey": "****"
+      "someKey": "***"
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": [
         {
@@ -81,43 +91,49 @@
     "expectedOutput": {
       "someKey": [
         {
-          "someKey": "**",
+          "someKey": "***",
           "otherKey": null
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "\u0014"
     },
     "expectedOutput": {
-      "someKey": "**"
+      "someKey": "***"
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "\u0014\u0085"
     },
     "expectedOutput": {
-      "someKey": "**"
+      "someKey": "***"
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "\u0085"
     },
     "expectedOutput": {
-      "someKey": "*"
+      "someKey": "***"
     }
   }
 ]

@@ -85,7 +85,7 @@ public class BaselineBenchmark {
     public String jacksonParseAndMask(State state) throws IOException {
         return ParseAndMaskUtil.mask(
                 state.jsonString,
-                JsonMaskingConfig.getDefault(state.targetKeys)
+                JsonMaskingConfig.builder().maskKeys(state.targetKeys).build()
         ).toString();
     }
 }

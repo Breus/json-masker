@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.json.config.JsonMaskerAlgorithmType;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import javax.annotation.Nonnull;
@@ -19,7 +18,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(String targetKey) {
-        return getMasker(JsonMaskingConfig.getDefault(Set.of(targetKey)));
+        return getMasker(JsonMaskingConfig.builder().maskKeys(targetKey).build());
     }
 
     /**
@@ -30,7 +29,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(Set<String> targetKeys) {
-        return getMasker(JsonMaskingConfig.getDefault(targetKeys));
+        return getMasker(JsonMaskingConfig.builder().maskKeys(targetKeys).build());
     }
 
     /**
@@ -41,11 +40,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(JsonMaskingConfig maskingConfig) {
-        if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
-            return new KeyContainsMasker(maskingConfig);
-        } else {
-            throw new IllegalArgumentException("Unknown masking algorithm type: " + maskingConfig.getAlgorithmType());
-        }
+        return new KeyContainsMasker(maskingConfig);
     }
 
     /**

@@ -1,62 +1,72 @@
 [
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2"
+      ]
+    },
     "input": {
       "someKey": "\\hello",
       "someKey2": "\"hi\""
     },
     "expectedOutput": {
-      "someKey": "******",
-      "someKey2": "****"
+      "someKey": "***",
+      "someKey2": "***"
     }
   },
   {
-    "targetKeys": [
-      "targetKey1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey1"
+      ]
+    },
     "input": {
       "targetKey1": "\u001F"
     },
     "expectedOutput": {
-      "targetKey1": "*"
+      "targetKey1": "***"
     }
   },
   {
-    "targetKeys": [
-      "maskMe"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ]
+    },
     "input": {
       "maskMe": "\\"
     },
     "expectedOutput": {
-      "maskMe": "*"
+      "maskMe": "***"
     }
   },
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2"
+      ]
+    },
     "input": {
       "someKey": "\\hello",
       "someKey2": "\"hi\"",
       "someKey3": "\"hi\""
     },
     "expectedOutput": {
-      "someKey": "******",
-      "someKey2": "****",
+      "someKey": "***",
+      "someKey2": "***",
       "someKey3": "\"hi\""
     }
   },
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey4"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey4"
+      ]
+    },
     "input": {
       "someKey": "/h:ello",
       "someKey2": "\bhi",
@@ -68,23 +78,25 @@
       ]
     },
     "expectedOutput": {
-      "someKey": "*******",
+      "someKey": "***",
       "someKey2": "***",
       "someKey3": "hey\\\u00f7",
       "someKey4": [
         {
-          "someKey4": "*****"
+          "someKey4": "***"
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2",
-      "someKey3",
-      "someKey4"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2",
+        "someKey3",
+        "someKey4"
+      ]
+    },
     "input": {
       "someKey": "\nhello",
       "someKey2": "\rhi",
@@ -96,44 +108,50 @@
       ]
     },
     "expectedOutput": {
-      "someKey": "******",
+      "someKey": "***",
       "someKey2": "***",
-      "someKey3": "****",
+      "someKey3": "***",
       "someKey4": [
         {
-          "someKey4": "******"
+          "someKey4": "***"
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "someKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
     "input": {
       "someKey": "\u00f8v"
     },
     "expectedOutput": {
-      "someKey": "**"
+      "someKey": "***"
     }
   },
   {
-    "targetKeys": [
-      "k1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "k1"
+      ]
+    },
     "input": {
       "k1": "s\uffff",
       "k2": "value"
     },
     "expectedOutput": {
-      "k1": "**",
+      "k1": "***",
       "k2": "value"
     }
   },
   {
-    "targetKeys": [
-      "k2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "k2"
+      ]
+    },
     "input": {
       "k1": "\uffff",
       "k2": "val"
@@ -144,10 +162,12 @@
     }
   },
   {
-    "targetKeys": [
-      "\\\"a",
-      "b"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "\\\"a",
+        "b"
+      ]
+    },
     "input": {
       "\"a": "\u00ff",
       "b": [
@@ -157,18 +177,20 @@
       ]
     },
     "expectedOutput": {
-      "\"a": "*",
+      "\"a": "***",
       "b": [
         {
-          "b": "*****"
+          "b": "***"
         }
       ]
     }
   },
   {
-    "targetKeys": [
-      "a"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "a"
+      ]
+    },
     "input": {
       "f]-E\"ESn$": {
         "(Vtx": {
@@ -182,16 +204,18 @@
       "f]-E\"ESn$": {
         "(Vtx": {
           "n0tI5Je;": {
-            "a": "**"
+            "a": "***"
           }
         }
       }
     }
   },
   {
-    "targetKeys": [
-      "a"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "a"
+      ]
+    },
     "input": {
       "a": "  ",
       "b": [
@@ -201,7 +225,7 @@
       ]
     },
     "expectedOutput": {
-      "a": "**",
+      "a": "***",
       "b": [
         {
           "b": "value"
@@ -210,9 +234,11 @@
     }
   },
   {
-    "targetKeys": [
-      "a"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "a"
+      ]
+    },
     "input": {
       "a": "\u0020\u0020",
       "b": [
@@ -222,7 +248,7 @@
       ]
     },
     "expectedOutput": {
-      "a": "**",
+      "a": "***",
       "b": [
         {
           "b": "value"

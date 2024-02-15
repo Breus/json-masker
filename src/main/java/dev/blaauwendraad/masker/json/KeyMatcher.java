@@ -65,6 +65,7 @@ final class KeyMatcher {
      *                      insert a "negative match" node, that would not be treated as a target key, but provide
      *                      a fast lookup for the configuration
      */
+    @SuppressWarnings("java:S2259")
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);

@@ -166,7 +166,7 @@ public final class KeyMaskingConfig {
          * Mask all string values with the provided value.
          * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
          * <p>
-         * Masking strings with {@literal '***'} is the default behaviour if no string masking option is set.
+         * Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
          *
          * @see #maskStringCharactersWith(String)
          *
@@ -220,7 +220,7 @@ public final class KeyMaskingConfig {
          * Mask all number values with the provided value.
          * For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
          * <p>
-         * Masking numbers with {@literal '###'} is the default behaviour if no number masking option is set.
+         * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
@@ -299,7 +299,7 @@ public final class KeyMaskingConfig {
          * Mask all boolean values with the provided value.
          * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
          * <p>
-         * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
+         * Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
          * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)

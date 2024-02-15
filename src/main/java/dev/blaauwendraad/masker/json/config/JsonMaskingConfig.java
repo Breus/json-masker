@@ -3,7 +3,13 @@ package dev.blaauwendraad.masker.json.config;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -196,7 +202,7 @@ public class JsonMaskingConfig {
             return maskJsonPaths(Set.of(jsonPath), configurer);
         }
 
-        private Builder maskJsonPaths(Collection<String> jsonPaths, Consumer<KeyMaskingConfig.Builder> configurer) {
+        public Builder maskJsonPaths(Collection<String> jsonPaths, Consumer<KeyMaskingConfig.Builder> configurer) {
             if (configurer == NOOP && targetKeyMode == TargetKeyMode.ALLOW) {
                 throw new IllegalArgumentException("Cannot mask json paths when in ALLOW mode, if you want" +
                         " to customize masking for specific json paths in ALLOW mode, use" +

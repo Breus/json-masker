@@ -7,8 +7,6 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 
-import java.util.Objects;
-
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isComma;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isCurlyBracketClose;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isEscapeCharacter;
@@ -32,7 +30,7 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Look-up trie containing the target keys.
      */
-    private final ByteTrie targetKeysTrie;
+    private final KeyMatcher keyMatcher;
     /**
      * The masking configuration for the JSON masking process.
      */
@@ -45,16 +43,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
-        this.targetKeysTrie = new ByteTrie(maskingConfig);
-        maskingConfig.getTargetKeys()
-                .forEach(key -> this.targetKeysTrie.insert(key, false));
-        maskingConfig.getTargetJsonPaths()
-                .forEach(jsonPath -> this.targetKeysTrie.insert(jsonPath.toString(), false));
-        if (maskingConfig.isInAllowMode()) {
-            // in allow mode we might have a specific configuration for the masking key
-            // see ByteTrie#insert documentation for more details
-            maskingConfig.getKeyConfigs().keySet().forEach(key -> this.targetKeysTrie.insert(key, true));
-        }
+        this.keyMatcher = new KeyMatcher(maskingConfig);
     }
 
     /**
@@ -132,31 +121,30 @@ public final class KeyContainsMasker implements JsonMasker {
              * or object. Now let's verify the found JSON key is a target key.
              */
             maskingState.expandCurrentJsonPath(openingQuoteIndex + 1, keyLength);
-            boolean keyMatched = targetKeysTrie.search(
+            KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
                     maskingState.getMessage(),
                     openingQuoteIndex + 1, // plus one for the opening quote
-                    keyLength
-            ) || targetKeysTrie.searchForJsonPathKey(maskingState.getMessage(), maskingState.getCurrentJsonPath());
-
-            if (maskingConfig.isInAllowMode() && keyMatched) {
-                skipAllValues(maskingState); // the value belongs to a JSON key which is explicitly allowed, so skip it
-                maskingState.backtrackCurrentJsonPath();
-                continue;
-            }
-            if (maskingConfig.isInMaskMode() && !keyMatched) {
-                // Check if the current key does not open a new json object or json array
-                if (!(AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())
-                        || AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex()))) {
-                    maskingState.backtrackCurrentJsonPath();
-                }
-                continue; // The found JSON key is not a target key, so continue looking from where we left of.
-            }
-            KeyMaskingConfig keyMaskingConfig = targetKeysTrie.config(
-                    maskingState.getMessage(),
-                    openingQuoteIndex + 1,
-                    keyLength
+                    keyLength,
+                    maskingState.getCurrentJsonPath()
             );
-            Objects.requireNonNull(keyMaskingConfig, "KeyMaskingConfig must not be null in mask mode");
+
+            // null means key should not be masked
+            if (keyMaskingConfig == null) {
+                if (maskingConfig.isInAllowMode()) {
+                    // the value belongs to a JSON key which is explicitly allowed, so skip it, even if that's object
+                    skipAllValues(maskingState);
+                    maskingState.backtrackCurrentJsonPath();
+                    continue;
+                } else {
+                    // Check if the current key does not open a new json object or json array
+                    if (!(AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())
+                            || AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex()))) {
+                        maskingState.backtrackCurrentJsonPath();
+                    }
+                    // The found JSON key is not a target key, so continue looking from where we left of.
+                    continue;
+                }
+            }
 
             // Masking value based on type
             if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
@@ -395,34 +383,34 @@ public final class KeyContainsMasker implements JsonMasker {
             while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
                 maskingState.incrementCurrentIndex();
             }
-            KeyMaskingConfig keyMaskingConfig = null;
 
             int closingQuoteIndex = maskingState.currentIndex();
             int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
             maskingState.expandCurrentJsonPath(openingQuoteIndex + 1, keyLength);
-            boolean valueMustBeMasked = maskingConfig.isInMaskMode() || !(targetKeysTrie.search(
+            KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
                     maskingState.getMessage(),
                     openingQuoteIndex + 1, // plus one for the opening quote
-                    keyLength
-            ) || targetKeysTrie.searchForJsonPathKey(maskingState.getMessage(), maskingState.getCurrentJsonPath()));
-            if (valueMustBeMasked) {
-                keyMaskingConfig = targetKeysTrie.config(
-                        maskingState.getMessage(),
-                        openingQuoteIndex + 1, // plus one for the opening quote
-                        keyLength
-                );
-                // when masking individual keys of an object, we search for a specific config for that field, but
-                // fallback to config from a parent.
-                // e.g. for '{ "a": { "b": "value" } }' we want to use config of 'b', but fallback to config of 'a'
-                if (maskingConfig.getDefaultConfig() == keyMaskingConfig) {
-                    keyMaskingConfig = parentKeyMaskingConfig;
-                }
+                    keyLength,
+                    maskingState.getCurrentJsonPath()
+            );
+            // this is where it gets confusing - this method is called when the whole object is being masked
+            // if we got a maskingConfig for the key - we need to mask this key with that config, but if the config we
+            // got was the default config, then it means that the key doesn't have a specific configuration and we
+            // should fallback to key specific config, that the object is being masked with
+            // e.g. for '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
+            // however if we're in the allow mode, then getting a null as config, means that the key has been explicitly
+            // allowed and must not be masked, even if enclosing object is being masked
+            boolean valueAllowed = maskingConfig.isInAllowMode() && keyMaskingConfig == null;
+            if (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig()) {
+                keyMaskingConfig = parentKeyMaskingConfig;
             }
             maskingState.incrementCurrentIndex();// step over the JSON key closing quote
             skipWhitespaceCharacters(maskingState);
             maskingState.incrementCurrentIndex(); // step over the colon ':'
             skipWhitespaceCharacters(maskingState);
-            if (valueMustBeMasked) {
+            if (valueAllowed) {
+                skipAllValues(maskingState);
+            } else {
                 if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
                     maskArrayValueInPlace(maskingState, keyMaskingConfig);
                 } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
@@ -443,8 +431,6 @@ public final class KeyContainsMasker implements JsonMasker {
                         maskingState.incrementCurrentIndex(); // skip non-maskable value
                     }
                 }
-            } else {
-                skipAllValues(maskingState);
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {

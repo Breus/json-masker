@@ -1,0 +1,161 @@
+package dev.blaauwendraad.masker.json;
+
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ObjectAssert;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+final class KeyMatcherTest {
+    private static final Set<String> keys = Set.of("maskMe", "maskme", "\u000F\u0017\u0017\u000Bs\b\u0014X");
+
+    @Test
+    void shouldMatchKeysCaseInsensitiveByDefault() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(keys).build());
+        for (String key : keys) {
+            assertThatConfig(keyMatcher, key).isNotNull();
+        }
+        for (String key : keys) {
+            assertThatConfig(keyMatcher, key.toLowerCase(Locale.ROOT)).isNotNull();
+        }
+        for (String key : keys) {
+            assertThatConfig(keyMatcher, key.toUpperCase(Locale.ROOT)).isNotNull();
+        }
+        assertThatConfig(keyMatcher, "notAKey").isNull();
+    }
+
+    @Test
+    void shouldMatchKeysCaseSensitiveIfSpecified() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder()
+                .maskKeys(keys)
+                .caseSensitiveTargetKeys()
+                .build()
+        );
+        for (String key : keys) {
+            assertThatConfig(keyMatcher, key).isNotNull();
+        }
+        for (String key : keys) {
+            assertThatConfig(keyMatcher, key.toUpperCase(Locale.ROOT)).isNull();
+        }
+        assertThatConfig(keyMatcher, "notAKey").isNull();
+    }
+
+    @Test
+    void shouldBeAbleToSearchByOffset() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("maskMe").build());
+        byte[] bytes = "maskMe".getBytes(StandardCharsets.UTF_8);
+        byte[] bytesWithPadding = """
+                {"maskMe": "some value"}
+                """.strip().getBytes(StandardCharsets.UTF_8);
+
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, Collections.emptyIterator())).isNotNull();
+    }
+
+    @Test
+    void shouldReturnSpecificConfigWhenMatched() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .maskKeys("maskMe")
+                .maskKeys("maskMeLikeCIA", k -> k.maskStringsWith("[redacted]"))
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+
+        assertThatConfig(keyMatcher, "maskMe")
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .isEqualTo("***");
+
+        assertThatConfig(keyMatcher, "maskMeLikeCIA")
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .isEqualTo("[redacted]");
+    }
+
+    @Test
+    void shouldReturnMaskingConfigInAllowMode() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowKeys("allowMe")
+                .maskKeys("maskMeLikeCIA", k -> k.maskStringsWith("[redacted]"))
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+
+        assertThatConfig(keyMatcher, "allowMe").isNull();
+
+        assertThatConfig(keyMatcher, "maskMe")
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .isEqualTo("***");
+
+        assertThatConfig(keyMatcher, "maskMeLikeCIA")
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getMaskStringsWith)
+                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .isEqualTo("[redacted]");
+    }
+
+    @Test
+    void shouldMatchJsonPaths() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
+        String json = """
+                {"a":{"b":1,"c":2}}
+                """;
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        Set.of(
+                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
+                                new MaskingState.SegmentReference(indexOf(bytes, 'b'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        Set.of(
+                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
+                                new MaskingState.SegmentReference(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNull();
+    }
+
+    private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
+        byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
+        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator()));
+    }
+
+    // utility to find specific char in the array, must not be duplicated
+    private int indexOf(byte[] bytes, char c) {
+        int found = -1;
+        for (int i = 0; i < bytes.length; i++) {
+            if (bytes[i] == (byte) c) {
+                if (found != -1) {
+                    throw new IllegalStateException("Char must not be duplicated, got on index %s and %s".formatted(found, i));
+                }
+                found = i;
+            }
+        }
+        if (found == -1) {
+            throw new IllegalStateException("Byte array must contain the char");
+        }
+        return found;
+    }
+}

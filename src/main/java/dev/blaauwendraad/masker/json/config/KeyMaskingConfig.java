@@ -35,9 +35,8 @@ public class KeyMaskingConfig {
             this.maskStringsWith = null;
             this.maskStringCharactersWith = maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
         } else {
-            throw new IllegalStateException("One of two string masking options must be set");
+            throw new IllegalStateException("One of string masking options must be set");
         }
-        this.disableNumberMasking = disableNumberMasking;
         if (maskNumbersWithString != null) {
             this.maskNumbersWith = ("\"" + maskNumbersWithString + "\"").getBytes(StandardCharsets.UTF_8);
             this.maskNumberDigitsWith = null;
@@ -47,18 +46,23 @@ public class KeyMaskingConfig {
         } else if (maskNumberDigitsWith != null) {
             this.maskNumbersWith = null;
             this.maskNumberDigitsWith = maskNumberDigitsWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else {
+        } else if (disableNumberMasking) {
             this.maskNumbersWith = null;
             this.maskNumberDigitsWith = null;
+        } else {
+            throw new IllegalStateException("One of number masking options must be set");
         }
-        this.disableBooleanMasking = disableBooleanMasking;
+        this.disableNumberMasking = disableNumberMasking;
         if (maskBooleansWithString != null) {
             this.maskBooleansWith = ("\"" + maskBooleansWithString + "\"").getBytes(StandardCharsets.UTF_8);
         } else if (maskBooleansWith != null) {
             this.maskBooleansWith = maskBooleansWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else {
+        } else if (disableBooleanMasking) {
             this.maskBooleansWith = null;
+        } else {
+            throw new IllegalStateException("One of boolean masking options must be set");
         }
+        this.disableBooleanMasking = disableBooleanMasking;
     }
 
     /**
@@ -170,7 +174,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskStringsWith(String value) {
             if (maskStringsWith != null) {
-                throw new IllegalStateException("'maskStringsWith(String)' was already set");
+                throw new IllegalArgumentException("'maskStringsWith(String)' was already set");
             }
             checkMutuallyExclusiveStringMaskingOptions();
             maskStringsWith = value;
@@ -187,7 +191,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskStringCharactersWith(String value) {
             if (maskStringCharactersWith != null) {
-                throw new IllegalStateException("'maskStringCharactersWith(String)' was already set");
+                throw new IllegalArgumentException("'maskStringCharactersWith(String)' was already set");
             }
             checkMutuallyExclusiveStringMaskingOptions();
             maskStringCharactersWith = value;
@@ -205,7 +209,7 @@ public class KeyMaskingConfig {
          */
         public Builder disableNumberMasking() {
             if (disableNumberMasking != null) {
-                throw new IllegalStateException("'disableNumberMasking()' was already set");
+                throw new IllegalArgumentException("'disableNumberMasking()' was already set");
             }
             checkMutuallyExclusiveNumberMaskingOptions();
             disableNumberMasking = true;
@@ -226,7 +230,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskNumbersWith(String value) {
             if (maskNumbersWithString != null) {
-                throw new IllegalStateException("'maskNumbersWith(String)' was already set");
+                throw new IllegalArgumentException("'maskNumbersWith(String)' was already set");
             }
             checkMutuallyExclusiveNumberMaskingOptions();
             maskNumbersWithString = Objects.requireNonNull(value);
@@ -245,7 +249,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskNumbersWith(int value) {
             if (maskNumbersWith != null) {
-                throw new IllegalStateException("'maskNumbersWith(int)' was already set");
+                throw new IllegalArgumentException("'maskNumbersWith(int)' was already set");
             }
             checkMutuallyExclusiveNumberMaskingOptions();
             maskNumbersWith = value;
@@ -264,7 +268,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskNumberDigitsWith(int digit) {
             if (maskNumberDigitsWith != null) {
-                throw new IllegalStateException("'maskNumberDigitsWith(int)' was already set");
+                throw new IllegalArgumentException("'maskNumberDigitsWith(int)' was already set");
             }
             checkMutuallyExclusiveNumberMaskingOptions();
             if (digit < 1 || digit > 9) {
@@ -284,7 +288,7 @@ public class KeyMaskingConfig {
          */
         public Builder disableBooleanMasking() {
             if (disableBooleanMasking != null) {
-                throw new IllegalStateException("'disableBooleanMasking()' was already set");
+                throw new IllegalArgumentException("'disableBooleanMasking()' was already set");
             }
             checkMutuallyExclusiveBooleanMaskingOptions();
             disableBooleanMasking = true;
@@ -304,7 +308,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskBooleansWith(String value) {
             if (maskBooleansWith != null) {
-                throw new IllegalStateException("'maskBooleansWith(String)' was already set");
+                throw new IllegalArgumentException("'maskBooleansWith(String)' was already set");
             }
             checkMutuallyExclusiveBooleanMaskingOptions();
             maskBooleansWithString = Objects.requireNonNull(value);
@@ -322,7 +326,7 @@ public class KeyMaskingConfig {
          */
         public Builder maskBooleansWith(boolean value) {
             if (maskBooleansWith != null) {
-                throw new IllegalStateException("'maskBooleansWith(boolean)' was already set");
+                throw new IllegalArgumentException("'maskBooleansWith(boolean)' was already set");
             }
             checkMutuallyExclusiveBooleanMaskingOptions();
             maskBooleansWith = value;
@@ -360,19 +364,19 @@ public class KeyMaskingConfig {
 
         private void checkMutuallyExclusiveStringMaskingOptions() {
             if (maskStringsWith != null || maskStringCharactersWith != null) {
-                throw new IllegalStateException("'maskStringsWith(String)' and 'maskStringCharactersWith(String)' are mutually exclusive");
+                throw new IllegalArgumentException("'maskStringsWith(String)' and 'maskStringCharactersWith(String)' are mutually exclusive");
             }
         }
 
         private void checkMutuallyExclusiveNumberMaskingOptions() {
             if (disableNumberMasking != null || maskNumbersWith != null || maskNumbersWithString != null || maskNumberDigitsWith != null) {
-                throw new IllegalStateException("'disableNumberMasking()', 'maskNumbersWith(int)', 'maskNumbersWith(String)' and 'maskNumberDigitsWith(int)' are mutually exclusive");
+                throw new IllegalArgumentException("'disableNumberMasking()', 'maskNumbersWith(int)', 'maskNumbersWith(String)' and 'maskNumberDigitsWith(int)' are mutually exclusive");
             }
         }
 
         private void checkMutuallyExclusiveBooleanMaskingOptions() {
             if (disableBooleanMasking != null || maskBooleansWith != null || maskBooleansWithString != null) {
-                throw new IllegalStateException("'disableBooleanMasking()', 'maskBooleansWith(boolean)' and 'maskBooleansWith(String)' are mutually exclusive");
+                throw new IllegalArgumentException("'disableBooleanMasking()', 'maskBooleansWith(boolean)' and 'maskBooleansWith(String)' are mutually exclusive");
             }
         }
     }

@@ -82,7 +82,7 @@ public final class MaskingState {
     }
 
     /**
-     * Expands current jsonpath with a new "key "segment.
+     * Expands current jsonpath with a new "key" segment.
      * @param start the index of a new segment start in <code>message</code>
      * @param offset the length of a new segment.
      */

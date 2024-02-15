@@ -43,7 +43,7 @@ final class FuzzingTest {
             try {
                 keyContainsOutput = masker.mask(randomJsonNodeString);
             } catch (Exception e) {
-                throw new IllegalStateException("Failed for input: " + randomJsonNodeString);
+                throw new IllegalStateException("Failed for input: " + randomJsonNodeString, e);
             }
             String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonNode, jsonMaskingConfig).toPrettyString();
             assertThat(keyContainsOutput).as("Failed for input: " + randomJsonNodeString).isEqualTo(jacksonMaskingOutput);
@@ -59,7 +59,7 @@ final class FuzzingTest {
     @Nonnull
     private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
         return Stream.of(
-                /*JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS).build(),
+                JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS).build(),
                 JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS)
                         .maskStringCharactersWith("*")
                         .maskNumberDigitsWith(1)
@@ -103,7 +103,7 @@ final class FuzzingTest {
                         .build(),
                 JsonMaskingConfig.builder().allowKeys(DEFAULT_TARGET_KEYS)
                         .maskStringsWith("****")
-                        .build(),*/
+                        .build(),
                 JsonMaskingConfig.builder().maskJsonPaths(DEFAULT_JSON_PATH_KEYS).build(),
                 JsonMaskingConfig.builder().maskJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringCharactersWith("*")

@@ -8,8 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 /**
- * This Trie structure is used as look-up optimization for JSON keys in the target key set.
- * <p>
+ * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
  * <p>
  * The main idea is that we need to know whether a JSON key is in the target key set, one could do a contains on
  * the hash set, which would compute a hashcode for the whole key before doing a "fast" lookup. Another option would be
@@ -25,47 +24,57 @@ import java.util.Iterator;
  *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every incoming key</li>
  * </ul>
  *
- * <p> For masking, we only care whether the key matched or not, so we can use a Trie structure to optimize the look-ups.
- * <p> Further we can construct a Trie that is case-insensitive, so that for we can avoid any transformations on
- * the incoming keys.
+ * <p> For masking, we only care whether the key matched or not, so we can use a Trie to optimize the look-ups.
+ * <p> Further, at initialization time we can construct a Trie that is case-insensitive, so that for we can avoid any
+ * transformations on the incoming keys during the search.
  * <p> We can also make a Trie that looks at bytes instead of characters, so that we can use the bytes and offsets
  * directly in the incoming JSON for comparison and make sure there are no allocations at all.
  * <p> And lastly, we can make a small optimization to remember all the distinct lengths of the target keys, so that
  * we can fail fast if the incoming key is not of the same length.
  */
-final class ByteTrie {
+final class KeyMatcher {
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
-    private final JsonMaskingConfig config;
+    private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
     private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
 
-    public ByteTrie(JsonMaskingConfig config) {
-        this.config = config;
+    public KeyMatcher(JsonMaskingConfig maskingConfig) {
+        this.maskingConfig = maskingConfig;
         this.root = new TrieNode();
+        maskingConfig.getTargetKeys().forEach(key -> insert(key, false));
+        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(jsonPath.toString(), false));
+        if (maskingConfig.isInAllowMode()) {
+            // in allow mode we might have a specific configuration for the masking key
+            // see ByteTrie#insert documentation for more details
+            maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(key, true));
+        }
     }
 
     /**
      * Inserts a word into the trie.
      *
-     * @param word             the word to insert.
-     * @param negativeMatch    if true, the key is not allowed and the trie is in ALLOW mode.
-     *                         for example config
-     *                         {@code
-     *                         builder.allow("name", "age").mask("ssn", k -> k.maskStringsWith("[redacted]"))
-     *                         }
-     *                         would only allow {@code name} and {@code age} to be present in the JSON, it would use
-     *                         default configuration to mask any other key, but would specifically mask {@code ssn} with
-     *                         a string "[redacted]". To make it possible to store just the masking configuration we
-     *                         insert a "negative match" node, that would not be treated as a target key, but provide
-     *                         a fast lookup for the configuration
+     * @param word          the word to insert.
+     * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode.
+     *                      for example config
+     *                      {@code
+     *                      builder.allow("name", "age").mask("ssn", k -> k.maskStringsWith("[redacted]"))
+     *                      }
+     *                      would only allow {@code name} and {@code age} to be present in the JSON, it would use
+     *                      default configuration to mask any other key, but would specifically mask {@code ssn} with
+     *                      a string "[redacted]". To make it possible to store just the masking configuration we
+     *                      insert a "negative match" node, that would not be treated as a target key, but provide
+     *                      a fast lookup for the configuration
      */
-    public void insert(String word, boolean negativeMatch) {
-        boolean caseInsensitive = !config.caseSensitiveTargetKeys();
+    private void insert(String word, boolean negativeMatch) {
+        boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         knownByteLengths[bytes.length] = true;
         byte[] lowerBytes = null;
         byte[] upperBytes = null;
         if (caseInsensitive) {
+            lowerBytes = word.toLowerCase().getBytes(StandardCharsets.UTF_8);
+            upperBytes = word.toUpperCase().getBytes(StandardCharsets.UTF_8);
+
             /*
              from inspecting the code, it looks like lower casing a character does not change the byte length
              on the same encoding, however the documentation explicitly mentions that resulting length might be
@@ -75,11 +84,8 @@ final class ByteTrie {
              Given that we're doing that only for target keys, the idea that it's going to have different lengths
              is quite unlikely
             */
-            lowerBytes = word.toLowerCase().getBytes(StandardCharsets.UTF_8);
-            upperBytes = word.toUpperCase().getBytes(StandardCharsets.UTF_8);
-
             if (bytes.length != lowerBytes.length || bytes.length != upperBytes.length) {
-                throw new IllegalArgumentException("Case insensitive trie does not support all characters");
+                throw new IllegalArgumentException("Case insensitive trie does not support all characters in " + word);
             }
         }
         TrieNode node = root;
@@ -108,35 +114,60 @@ final class ByteTrie {
             }
             node = child;
         }
-        node.keyMaskingConfig = config.getConfig(word);
+        node.keyMaskingConfig = maskingConfig.getConfig(word);
         node.endOfWord = true;
         node.negativeMatch = negativeMatch;
     }
 
     /**
-     * If the key matches - returns its masking configuration, otherwise returns null.
+     * Returns a masking configuration if the key must be masked.
+     * Handles both allow and mask mode:
+     * - in allow mode: if the key was explicitly allowed returns null, otherwise returns a config to mask the key with.
+     * - in mask mode: if the key was explicitly masked returns a config to mask the key with, otherwise returns null.
+     * <p>
+     * When key is to be masked (return value != null) and the key had specific masking config returns that, if not -
+     * returns default masking config.
+     *
+     * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
-    public boolean search(byte[] bytes, int offset, int length) {
-        TrieNode node = searchNode(bytes, offset, length);
-        return node != null && !node.negativeMatch;
-    }
-
-    /**
-     * Must be called only if the key has matched or in allow mode, for key that did not match
-     * returns its masking configuration, otherwise returns default config.
-     */
-    public KeyMaskingConfig config(byte[] bytes, int offset, int length) {
-        TrieNode node = searchNode(bytes, offset, length);
-        // in allow mode we explicitly forbid requesting configs for allowed keys
-        // this would not make sense and likely means error in the logic
-        // though for mask mode we cannot make the same assumption, as we might mask any
-        // arbitrary key with a specific config, if that key is part of the object being masked
-        if (config.isInAllowMode()) {
+    @CheckForNull
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<MaskingState.SegmentReference> jsonPath) {
+        // first search by key
+        if (maskingConfig.isInMaskMode()) {
+            TrieNode node = searchNode(bytes, keyOffset, keyLength);
+            // if found - mask with this config
+            // if not found - do not mask
             if (node != null && !node.negativeMatch) {
-                throw new IllegalArgumentException("getting masking config for allowed key in ALLOW mode is not allowed");
+                return node.keyMaskingConfig;
+            } else {
+                // also check json path
+                node = searchForJsonPathKeyNode(bytes, jsonPath);
+                if (node != null && !node.negativeMatch) {
+                    return node.keyMaskingConfig;
+                }
+                return null;
             }
+        } else {
+            TrieNode node = searchNode(bytes, keyOffset, keyLength);
+            // if found and is not negativeMatch - do not mask
+            // if found and is negative match - mask, but with a specific config
+            // if not found - mask with default config
+            if (node != null) {
+                if (node.negativeMatch) {
+                    return node.keyMaskingConfig;
+                }
+                return null;
+            }
+            // also check json path
+            node = searchForJsonPathKeyNode(bytes, jsonPath);
+            if (node != null) {
+                if (node.negativeMatch) {
+                    return node.keyMaskingConfig;
+                }
+                return null;
+            }
+            return maskingConfig.getDefaultConfig();
         }
-        return node != null ? node.keyMaskingConfig : config.getDefaultConfig();
     }
 
     @CheckForNull
@@ -160,20 +191,6 @@ final class ByteTrie {
         }
 
         return node;
-    }
-
-    /**
-     * Returns whether the json path is in the trie.
-     * JsonPath is represented as an iterator over references of the json path segments in the byte array.
-     * A reference is represented as a (keyStartIndex, keyLength) pair.
-     *
-     * @param bytes    byte array representation fo the json
-     * @param jsonPath an iterator over references of json path segments in <code>bytes</code>.
-     * @return true if the json path key is in the trie, false otherwise.
-     */
-    public boolean searchForJsonPathKey(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
-        TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
-        return node != null && !node.negativeMatch;
     }
 
     private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {

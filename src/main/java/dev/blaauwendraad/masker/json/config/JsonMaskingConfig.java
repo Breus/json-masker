@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 /**
  * Contains the JSON masker configurations.
  */
-public class JsonMaskingConfig {
+public final class JsonMaskingConfig {
     /**
      * The target key mode specifies how to the JSON properties corresponding to the target keys are processed.
      */

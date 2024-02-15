@@ -4,7 +4,7 @@ import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public class KeyMaskingConfig {
+public final class KeyMaskingConfig {
     @CheckForNull
     private final byte[] maskStringsWith;
     @CheckForNull

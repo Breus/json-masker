@@ -65,7 +65,7 @@ final class KeyMatcher {
      *                      insert a "negative match" node, that would not be treated as a target key, but provide
      *                      a fast lookup for the configuration
      */
-    @SuppressWarnings("java:S2259")
+    @SuppressWarnings("java:S2259") // sonar complains that lowerBytes can be null, but it can not
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);

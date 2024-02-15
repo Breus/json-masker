@@ -28,7 +28,7 @@ public class JsonMaskerBenchmark {
     public static class State {
         @Param({ "1kb", "128kb", "2mb" })
         String jsonSize;
-        @Param({ "ascii (no quote)", "ascii", "unicode" })
+        @Param({ "ascii", "unicode" })
         String characters;
         @Param({ "0.01", "0.1" })
         double maskedKeyProbability;

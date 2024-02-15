@@ -7,14 +7,12 @@ import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 final class KeyMatcherTest {
     private static final Set<String> keys = Set.of("maskMe", "maskme", "\u000F\u0017\u0017\u000Bs\b\u0014X");
@@ -117,7 +115,7 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        Set.of(
+                        List.of(
                                 new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
                                 new MaskingState.SegmentReference(indexOf(bytes, 'b'), 1)
                         ).iterator()
@@ -128,7 +126,7 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        Set.of(
+                        List.of(
                                 new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
                                 new MaskingState.SegmentReference(indexOf(bytes, 'c'), 1)
                         ).iterator()

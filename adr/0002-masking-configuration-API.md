@@ -30,11 +30,13 @@ By default we
 3. We will mask all types into strings.
     This is done to keep masking consistent across types and to make it apparent that the value was masked (while `"***"`
     is a good indicator for strings, the `888` or `0` for numbers, or `false` for booleans is not)
-4. We will use different masks for each original type in to keep information about the original type, the strings will 
+4. We will use different masks for each original type to keep information about the original type, the strings will 
     be masked as `"***"`, numbers as `"###"` and booleans as `"&&&"`.  
-    While this "leaks" additional information, that has only weak relation to original _data_, but more about 
-    implementation details and is more likely to be inferred by the key itself or be publically available.
-5. The `null` type (value) will remain unmasked until someone requests it, providing a good reason.
+  Keeping type information by default would be helpful when debugging and, while this leaks some information about 
+    original _data_, it does not leak the data itself, but rather an implementation detail about _how_ data is stored
+    internally. That is likely to be publicly available (e.g. by providing an OpenAPI schema) or it would be possible
+    to infer the type from the key itself.
+5. The `null` type (value) will remain unmasked, but we make the API extendable to be able to support that if someone requests it, providing a good reason.
 
 ### Allow custom masking configurations per target key
 

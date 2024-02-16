@@ -5,16 +5,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BigIntegerNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
 import javax.annotation.Nonnull;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,7 +63,7 @@ public final class ParseAndMaskUtil {
                     .collect(Collectors.toSet());
 
         }
-        if (casingAppliedTargetKeys.isEmpty()) {
+        if (casingAppliedTargetKeys.isEmpty() && casingAppliedTargetJsonPathKeys.isEmpty()) {
             return jsonNode;
         }
         if (jsonNode instanceof ObjectNode objectNode) {
@@ -76,6 +80,7 @@ public final class ParseAndMaskUtil {
                             objectNode.replace(
                                     key,
                                     maskJsonValue(
+                                            key,
                                             objectNode.get(key),
                                             jsonMaskingConfig,
                                             casingAppliedTargetKeys
@@ -104,54 +109,85 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     private static JsonNode maskJsonValue(
+            String key,
             JsonNode jsonNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         return switch (jsonNode.getNodeType()) {
-            case STRING -> maskTextNode((TextNode) jsonNode, jsonMaskingConfig);
-            case NUMBER -> maskNumericNode((NumericNode) jsonNode, jsonMaskingConfig);
-            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
-            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case STRING -> maskTextNode(key, (TextNode) jsonNode, jsonMaskingConfig);
+            case NUMBER -> maskNumericNode(key, (NumericNode) jsonNode, jsonMaskingConfig);
+            case BOOLEAN -> maskBooleanNode(key, (BooleanNode) jsonNode, jsonMaskingConfig);
+            case ARRAY -> maskArrayNodeValue(key, (ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case OBJECT -> maskObjectNodeValue(key, (ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
             default -> jsonNode;
         };
     }
 
-    @Nonnull
-    private static TextNode maskTextNode(TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
-        return new TextNode(maskText(textNode.textValue(), jsonMaskingConfig));
+    private static JsonNode maskBooleanNode(String key, BooleanNode booleanNode, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.isDisableBooleanMasking()) {
+            return booleanNode;
+        }
+        if (config.getMaskBooleansWith() == null) {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
+        String maskBooleansWith = new String(config.getMaskBooleansWith(), StandardCharsets.UTF_8);
+        if (maskBooleansWith.startsWith("\"")) {
+            return new TextNode(maskBooleansWith.substring(1, maskBooleansWith.length() - 1));
+        } else {
+            return BooleanNode.valueOf(Boolean.parseBoolean(maskBooleansWith));
+        }
     }
 
     @Nonnull
-    private static NumericNode maskNumericNode(NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
-        if (!jsonMaskingConfig.isNumberMaskingEnabled()) {
+    private static TextNode maskTextNode(String key, TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
+        return new TextNode(maskText(key, textNode.textValue(), jsonMaskingConfig));
+    }
+
+    @Nonnull
+    private static ValueNode maskNumericNode(String key, NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.isDisableNumberMasking()) {
             return numericNode;
         }
         String text = numericNode.asText();
-        int numericLength = jsonMaskingConfig.isLengthObfuscationEnabled()
-                ? jsonMaskingConfig.getObfuscationLength()
-                : text.length();
-        int theNumber = jsonMaskingConfig.getMaskNumericValuesWith();
-        String repeatingNumber = String.valueOf(theNumber).repeat(numericLength);
-        return new BigIntegerNode(new BigInteger(repeatingNumber));
+        if (config.getMaskNumbersWith() != null) {
+            String maskNumbersWith = new String(config.getMaskNumbersWith(), StandardCharsets.UTF_8);
+            if (maskNumbersWith.startsWith("\"")) {
+                return new TextNode(maskNumbersWith.substring(1, maskNumbersWith.length() - 1));
+            } else {
+                return new BigIntegerNode(BigInteger.valueOf(Long.parseLong(maskNumbersWith)));
+            }
+        } else if (config.getMaskNumberDigitsWith() != null) {
+            int maskNumberDigitsWith = Integer.parseInt(new String(config.getMaskNumberDigitsWith(), StandardCharsets.UTF_8));
+            BigInteger mask = BigInteger.valueOf(maskNumberDigitsWith);
+            for (int i = 1; i < text.length(); i++) {
+                mask = mask.multiply(BigInteger.TEN);
+                mask = mask.add(BigInteger.valueOf(maskNumberDigitsWith));
+            }
+            return new BigIntegerNode(mask);
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
     }
 
     @Nonnull
     private static ArrayNode maskArrayNodeValue(
-            ArrayNode arrayNode,
+            String key, ArrayNode arrayNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
-            maskedArrayNode.add(maskJsonValue(element, jsonMaskingConfig, casingAppliedTargetKeys));
+            maskedArrayNode.add(maskJsonValue(key, element, jsonMaskingConfig, casingAppliedTargetKeys));
         }
         return maskedArrayNode;
     }
 
     @Nonnull
     private static ObjectNode maskObjectNodeValue(
-            ObjectNode objectNode,
+            String key, ObjectNode objectNode,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
@@ -166,17 +202,21 @@ public final class ParseAndMaskUtil {
                 maskedObjectNode.set(fieldName, objectNode.get(fieldName));
             } else {
                 JsonNode fieldValue = objectNode.get(fieldName);
-                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
+                maskedObjectNode.set(fieldName, maskJsonValue(key, fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
             }
         }
         return maskedObjectNode;
     }
 
     @Nonnull
-    private static String maskText(String text, JsonMaskingConfig jsonMaskingConfig) {
-        int numberOfAsterisks = jsonMaskingConfig.isLengthObfuscationEnabled()
-                ? jsonMaskingConfig.getObfuscationLength()
-                : text.length();
-        return "*".repeat(numberOfAsterisks);
+    private static String maskText(String key, String text, JsonMaskingConfig jsonMaskingConfig) {
+        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+        if (config.getMaskStringsWith() != null) {
+            return new String(config.getMaskStringsWith(), StandardCharsets.UTF_8);
+        } else if (config.getMaskStringCharactersWith() != null) {
+            return new String(config.getMaskStringCharactersWith(), StandardCharsets.UTF_8).repeat(text.length());
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+        }
     }
 }

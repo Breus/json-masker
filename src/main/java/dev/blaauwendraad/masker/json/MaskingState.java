@@ -61,8 +61,8 @@ public final class MaskingState {
     /**
      * Adds new delayed replacement operation to the list of operations to be applied to the message.
      */
-    public void addReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
-        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, maskLength, maskByte);
+    public void addReplacementOperation(int startIndex, int endIndex, byte[] mask, int maskRepeat) {
+        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, mask, maskRepeat);
         replacementOperations.add(replacementOperation);
         replacementOperationsTotalDifference += replacementOperation.difference();
     }
@@ -82,7 +82,7 @@ public final class MaskingState {
     }
 
     /**
-     * Expands current jsonpath with a new "key "segment.
+     * Expands current jsonpath with a new "key" segment.
      * @param start the index of a new segment start in <code>message</code>
      * @param offset the length of a new segment.
      */
@@ -143,17 +143,18 @@ public final class MaskingState {
      *
      * @param startIndex index from which to start replacing
      * @param endIndex   index at which to stop replacing
-     * @param maskLength length of the mask to apply
-     * @param maskByte   byte to use for the mask
+     * @param mask       byte array mask to use as replacement for the value
+     * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
      */
-    public record ReplacementOperation(int startIndex, int endIndex, int maskLength, byte maskByte) {
+    @SuppressWarnings("java:S6218") // never used for comparison
+    public record ReplacementOperation(int startIndex, int endIndex, byte[] mask, int maskRepeat) {
 
         /**
          * The difference between the mask length and the length of the target value to replace.
          * Used to calculate keep track of the offset during replacements.
          */
         public int difference() {
-            return maskLength - (endIndex - startIndex);
+            return mask.length * maskRepeat - (endIndex - startIndex);
         }
     }
 

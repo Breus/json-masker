@@ -1,10 +1,14 @@
 [
   {
-    "targetKeys": [
-      "normalKey",
-      "$.json.path.key",
-      "anotherNormalKey"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "normalKey",
+        "anotherNormalKey"
+      ],
+      "maskJsonPaths": [
+        "$.json.path.key"
+      ]
+    },
     "input": {
       "normalKey": "mask",
       "json": {
@@ -16,33 +20,43 @@
           "wrongKey": "do not mask",
           "key": "do not mask"
         },
-        "wrongArray": ["do not mask", 0],
+        "wrongArray": [
+          "do not mask",
+          0
+        ],
         "anotherNormalKey": "mask",
         "key": "do not mask"
       }
     },
     "expectedOutput": {
-      "normalKey": "****",
+      "normalKey": "***",
       "json": {
         "path": {
-          "key": "****",
+          "key": "***",
           "wrongKey": "do not mask"
         },
         "wrongPath": {
           "wrongKey": "do not mask",
           "key": "do not mask"
         },
-        "wrongArray": ["do not mask", 0],
-        "anotherNormalKey": "****",
+        "wrongArray": [
+          "do not mask",
+          0
+        ],
+        "anotherNormalKey": "***",
         "key": "do not mask"
       }
     }
   },
   {
-    "targetKeys": [
-      "normalKey",
-      "$[].jsonpath.key"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "normalKey"
+      ],
+      "maskJsonPaths": [
+        "$[].jsonpath.key"
+      ]
+    },
     "input": {
       "normalKey": "mask",
       "": {
@@ -54,28 +68,34 @@
             "wrongKey": "do not mask"
           }
         },
-        "randomKey": ["do not mask"]
+        "randomKey": [
+          "do not mask"
+        ]
       }
     },
     "expectedOutput": {
-      "normalKey": "****",
+      "normalKey": "***",
       "": {
         "jsonpath": {
-          "key": "****",
+          "key": "***",
           "wrongKey": "do not mask",
           "jsonpath": {
             "key": "do not mask",
             "wrongKey": "do not mask"
           }
         },
-        "randomKey": ["do not mask"]
+        "randomKey": [
+          "do not mask"
+        ]
       }
     }
   },
   {
-    "targetKeys": [
-      "$.targetKey"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.targetKey"
+      ]
+    },
     "input": {
       "wrongKey": "do not mask",
       "targetKey": {
@@ -88,17 +108,19 @@
     "expectedOutput": {
       "wrongKey": "do not mask",
       "targetKey": {
-        "key": "****",
+        "key": "***",
         "nestedObject": {
-          "nestedKey": "****"
+          "nestedKey": "***"
         }
       }
     }
   },
   {
-    "targetKeys": [
-      "$.p{a}th{.key"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.p{a}th{.key"
+      ]
+    },
     "input": {
       "p{a}th{": {
         "key": "mask"
@@ -109,7 +131,7 @@
     },
     "expectedOutput": {
       "p{a}th{": {
-        "key": "****"
+        "key": "***"
       },
       "path": {
         "key": "do not mask"
@@ -117,9 +139,11 @@
     }
   },
   {
-    "targetKeys": [
-      "$.js.on.path"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.js.on.path"
+      ]
+    },
     "input": {
       "js": {
         "on": {
@@ -135,7 +159,7 @@
     "expectedOutput": {
       "js": {
         "on": {
-          "path": "****"
+          "path": "***"
         }
       },
       "js.o": {
@@ -146,55 +170,97 @@
     }
   },
   {
-    "targetKeys": [
-      "$.json.path"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.json.path"
+      ]
+    },
     "input": {
-      "key": [[{}, null, true, []], {}],
+      "key": [
+        [
+          {},
+          null,
+          true,
+          []
+        ],
+        {}
+      ],
       "json": {
-        "": [[{"path": "do not mask"}]],
+        "": [
+          [
+            {
+              "path": "do not mask"
+            }
+          ]
+        ],
         "path": "mask"
       }
     },
     "expectedOutput": {
-      "key": [[{}, null, true, []], {}],
+      "key": [
+        [
+          {},
+          null,
+          true,
+          []
+        ],
+        {}
+      ],
       "json": {
-        "": [[{"path": "do not mask"}]],
-        "path": "****"
+        "": [
+          [
+            {
+              "path": "do not mask"
+            }
+          ]
+        ],
+        "path": "***"
       }
     }
   },
   {
-    "targetKeys": [
-      "$.key"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.key"
+      ]
+    },
     "input": {
-      "wrongKey" : null,
-      "key" : {
-        "nestedKey" : [ [ ], null, {
-          "numberKey" : 7,
-          "booleanKey" : true
-        } ],
-        "stringKey" : "mask"
+      "wrongKey": null,
+      "key": {
+        "nestedKey": [
+          [],
+          null,
+          {
+            "numberKey": 7,
+            "booleanKey": true
+          }
+        ],
+        "stringKey": "mask"
       },
-      "nullKey" : null
+      "nullKey": null
     },
     "expectedOutput": {
-      "wrongKey" : null,
-      "key" : {
-        "nestedKey" : [ [ ], null, {
-          "numberKey" : 7,
-          "booleanKey" : true
-        } ],
-        "stringKey" : "****"
+      "wrongKey": null,
+      "key": {
+        "nestedKey": [
+          [],
+          null,
+          {
+            "numberKey": "###",
+            "booleanKey": "&&&"
+          }
+        ],
+        "stringKey": "***"
       },
-      "nullKey" : null
+      "nullKey": null
     }
   },
   {
-    "targetKeys": [
-      "$[duplicate][segments][].key"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$[duplicate][segments][].key"
+      ]
+    },
     "input": {
       "wrongKey": "do not maks",
       "wrongObject": {
@@ -243,7 +309,7 @@
             }
           },
           "": {
-            "key": "****",
+            "key": "***",
             "wrongKey": "do not mask"
           }
         },
@@ -259,9 +325,11 @@
     }
   },
   {
-    "targetKeys": [
-      "$.caSe.InsenSItive"
-    ],
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.caSe.InsenSItive"
+      ]
+    },
     "input": {
       "wrongKey": 7,
       "case": {
@@ -272,18 +340,18 @@
     "expectedOutput": {
       "wrongKey": 7,
       "case": {
-        "insensitive": "****",
+        "insensitive": "***",
         "wrongKey": "do not mask"
       }
     }
   },
   {
-    "maskerConfig": {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.caSe.SenSItive"
+      ],
       "caseSensitiveTargetKeys": true
     },
-    "targetKeys": [
-      "$.caSe.SenSItive"
-    ],
     "input": {
       "case": {
         "sensitive": "do not mask"
@@ -299,18 +367,17 @@
       },
       "caSe": {
         "SENSItive": "do not mask",
-        "SenSItive": "****"
+        "SenSItive": "***"
       }
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.json.path.key",
+        "$[normalKey]"
+      ]
     },
-    "targetKeys": [
-      "$.json.path.key",
-      "$[normalKey]"
-    ],
     "input": {
       "wrongKey": "mask",
       "json": {
@@ -323,35 +390,42 @@
           "key": "do not mask"
         }
       },
-      "wrongArray": ["mask", 0],
+      "wrongArray": [
+        "mask",
+        0
+      ],
       "normalKey": "do not mask",
       "key": "mask"
     },
     "expectedOutput": {
-      "wrongKey": "****",
+      "wrongKey": "***",
       "json": {
         "wrongPath": {
-          "wrongKey": "****",
-          "key": "****"
+          "wrongKey": "***",
+          "key": "***"
         },
         "path": {
-          "wrongKey": "****",
+          "wrongKey": "***",
           "key": "do not mask"
         }
       },
-      "wrongArray": ["****", 0],
+      "wrongArray": [
+        "***",
+        "###"
+      ],
       "normalKey": "do not mask",
-      "key": "****"
+      "key": "***"
     }
   },
   {
-    "maskerConfig": {
-      "targetKeyMode": "allow"
+    "maskingConfig": {
+      "allowKeys": [
+        "normalKey"
+      ],
+      "allowJsonPaths": [
+        "$.jsonpath.key"
+      ]
     },
-    "targetKeys": [
-      "$.jsonpath.key",
-      "normalKey"
-    ],
     "input": {
       "wrongPath": {
         "key": {
@@ -373,34 +447,40 @@
           "otherNestedKey": "mask"
         }
       },
-      "wrongArray": ["mask", 0],
+      "wrongArray": [
+        "mask",
+        0
+      ],
       "normalKey": "do not mask",
       "key": "mask"
     },
     "expectedOutput": {
       "wrongPath": {
         "key": {
-          "nestedKey": "****",
+          "nestedKey": "***",
           "normalKey": "do not mask"
         }
       },
       "jsonpath": {
         "wrongKey": {
-          "nestedKey": "****",
-          "otherNestedKey": "****"
+          "nestedKey": "***",
+          "otherNestedKey": "***"
         },
         "key": {
           "nestedKey": "do not mask",
           "otherNestedKey": "do not mask"
         },
         "otherWrongKey": {
-          "nestedKey": "****",
-          "otherNestedKey": "****"
+          "nestedKey": "***",
+          "otherNestedKey": "***"
         }
       },
-      "wrongArray": ["****", 0],
+      "wrongArray": [
+        "***",
+        "###"
+      ],
       "normalKey": "do not mask",
-      "key": "****"
+      "key": "***"
     }
   }
 ]

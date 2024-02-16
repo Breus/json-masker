@@ -1,8 +1,10 @@
 [
   {
-    "targetKeys": [
-      "targetKey:1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey:1"
+      ]
+    },
     "input": {
       "targetKey:1": {
         "yes": ":val:ue\\::",
@@ -13,7 +15,7 @@
     },
     "expectedOutput": {
       "targetKey:1": {
-        "yes": "**********",
+        "yes": "***",
         "someKey": {
           "\":\"": "***"
         }
@@ -21,9 +23,11 @@
     }
   },
   {
-    "targetKeys": [
-      "targetKey:1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey:1"
+      ]
+    },
     "input": {
       "targetKey:1": {
         "targetKey:1": ":val:ue\\::",
@@ -38,21 +42,23 @@
     },
     "expectedOutput": {
       "targetKey:1": {
-        "targetKey:1": "**********",
+        "targetKey:1": "***",
         "someKey": {
           "\":\"": "***"
         },
         "hello": [
-          "*****",
-          "*****"
+          "***",
+          "***"
         ]
       }
     }
   },
   {
-    "targetKeys": [
-      "targetKey:1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey:1"
+      ]
+    },
     "input": {
       "targetKey:1": {
         "targetKey:1": ":val:ue\\::"
@@ -60,14 +66,16 @@
     },
     "expectedOutput": {
       "targetKey:1": {
-        "targetKey:1": "**********"
+        "targetKey:1": "***"
       }
     }
   },
   {
-    "targetKeys": [
-      "targetKey:1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey:1"
+      ]
+    },
     "input": {
       "targetKey:1": {
         "targetKey:1": ":val:ue\\::",
@@ -79,18 +87,20 @@
     },
     "expectedOutput": {
       "targetKey:1": {
-        "targetKey:1": "**********",
+        "targetKey:1": "***",
         "hello": [
-          "*****",
-          "****"
+          "***",
+          "***"
         ]
       }
     }
   },
   {
-    "targetKeys": [
-      "targetKey:1"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey:1"
+      ]
+    },
     "input": "thisIsValidJson::",
     "expectedOutput": "thisIsValidJson::"
   }

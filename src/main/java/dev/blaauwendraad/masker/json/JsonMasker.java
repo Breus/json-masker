@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.json.config.JsonMaskerAlgorithmType;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import javax.annotation.Nonnull;
@@ -11,16 +10,6 @@ import java.util.Set;
  * Masker that can be used to mask JSON objects and arrays.
  */
 public interface JsonMasker {
-    /**
-     * Creates a default {@link JsonMasker} with the provided target key.
-     *
-     * @param targetKey the key to target
-     * @return the {@link JsonMasker} instance
-     */
-    @Nonnull
-    static JsonMasker getMasker(String targetKey) {
-        return getMasker(JsonMaskingConfig.getDefault(Set.of(targetKey)));
-    }
 
     /**
      * Creates a default {@link JsonMasker} with the provided target key(s).
@@ -30,7 +19,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(Set<String> targetKeys) {
-        return getMasker(JsonMaskingConfig.getDefault(targetKeys));
+        return getMasker(JsonMaskingConfig.builder().maskKeys(targetKeys).build());
     }
 
     /**
@@ -41,11 +30,7 @@ public interface JsonMasker {
      */
     @Nonnull
     static JsonMasker getMasker(JsonMaskingConfig maskingConfig) {
-        if (maskingConfig.getAlgorithmType() == JsonMaskerAlgorithmType.KEYS_CONTAIN) {
-            return new KeyContainsMasker(maskingConfig);
-        } else {
-            throw new IllegalArgumentException("Unknown masking algorithm type: " + maskingConfig.getAlgorithmType());
-        }
+        return new KeyContainsMasker(maskingConfig);
     }
 
     /**

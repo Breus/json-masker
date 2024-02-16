@@ -1,0 +1,66 @@
+[
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ],
+      "maskStringCharactersWith": "*",
+      "maskNumberDigitsWith": 8
+    },
+    "input": {
+      "maskMe": "#\f\ta",
+      "(J": [
+        [
+          "l",
+          1.7931133E38
+        ],
+        null
+      ],
+      "": [
+        1.8640192E38,
+        true
+      ],
+      "q\u0007": true
+    },
+    "expectedOutput": {
+      "maskMe": "****",
+      "(J": [
+        [
+          "l",
+          1.7931133E38
+        ],
+        null
+      ],
+      "": [
+        1.8640192E38,
+        true
+      ],
+      "q\u0007": true
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "stringKey",
+        "numberKey",
+        "booleanKey"
+      ],
+      "maskStringCharactersWith": "*",
+      "maskNumberDigitsWith": 8
+    },
+    "input": {
+      "stringKey": "hello",
+      "otherKey": null,
+      "numberKey": 1234,
+      "someKey2": 2,
+      "booleanKey": false
+    },
+    "expectedOutput": {
+      "stringKey": "*****",
+      "otherKey": null,
+      "numberKey": 8888,
+      "someKey2": 2,
+      "booleanKey": "&&&"
+    }
+  }
+]

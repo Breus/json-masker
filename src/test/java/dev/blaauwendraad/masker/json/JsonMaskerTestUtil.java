@@ -3,8 +3,6 @@ package dev.blaauwendraad.masker.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-import dev.blaauwendraad.masker.json.config.JsonMaskerAlgorithmType;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import java.io.IOException;
@@ -13,10 +11,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public final class JsonMaskerTestUtil {
     private JsonMaskerTestUtil() {
@@ -24,55 +24,19 @@ public final class JsonMaskerTestUtil {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static List<JsonMaskerTestInstance> getJsonMaskerTestInstancesFromFile(
-            String fileName,
-            Set<JsonMaskerAlgorithmType> algorithmTypes
-    ) throws IOException {
+    public static List<JsonMaskerTestInstance> getJsonMaskerTestInstancesFromFile(String fileName) throws IOException {
         List<JsonMaskerTestInstance> testInstances = new ArrayList<>();
-        ArrayNode jsonArray =
-                mapper.readValue(
-                        JsonMaskerTestUtil.class.getClassLoader().getResource(fileName),
-                        ArrayNode.class
-                );
-        var reader =
-                mapper.readerFor(TypeFactory.defaultInstance().constructCollectionType(Set.class, String.class));
+        ArrayNode jsonArray = mapper.readValue(
+                JsonMaskerTestUtil.class.getClassLoader().getResource(fileName),
+                ArrayNode.class
+        );
         for (JsonNode jsonNode : jsonArray) {
-            JsonNode maskerConfig = jsonNode.findValue("maskerConfig");
-            JsonMaskingConfig.TargetKeyMode targetKeyMode = JsonMaskingConfig.TargetKeyMode.MASK;
-            if (maskerConfig != null) {
-                JsonNode targetKeyModeJsonConfig = maskerConfig.findValue("targetKeyMode");
-                if (targetKeyModeJsonConfig != null) {
-                    String targetKeyModeJsonString = targetKeyModeJsonConfig.asText();
-                    JsonMaskingConfig.TargetKeyMode resolvedTargetKeyMode = Arrays.stream(JsonMaskingConfig.TargetKeyMode.values())
-                            .filter(e -> targetKeyModeJsonString.equalsIgnoreCase(e.name()))
-                            .findAny()
-                            .orElse(null);
-                    if (resolvedTargetKeyMode != null) {
-                        targetKeyMode = resolvedTargetKeyMode;
-                    }
-                }
+            JsonNode jsonMaskingConfig = jsonNode.findValue("maskingConfig");
+            JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
+            if (jsonMaskingConfig != null) {
+                applyConfig(jsonMaskingConfig, builder);
             }
-            JsonMaskingConfig.Builder configBuilder = JsonMaskingConfig.custom(reader.readValue(jsonNode.get(
-                    "targetKeys")), targetKeyMode);
-            if (maskerConfig != null) {
-                JsonNode obfuscationLength = maskerConfig.findValue("obfuscationLength");
-                if (obfuscationLength != null) {
-                    configBuilder.obfuscationLength(obfuscationLength.asInt());
-                }
-                JsonNode maskNumberValuesWith = maskerConfig.findValue("maskNumberValuesWith");
-                if (maskNumberValuesWith != null) {
-                    configBuilder.maskNumericValuesWith(maskNumberValuesWith.asInt());
-                }
-                JsonNode caseSensitiveTargetKeys = maskerConfig.findValue("caseSensitiveTargetKeys");
-                if (caseSensitiveTargetKeys != null && caseSensitiveTargetKeys.booleanValue()) {
-                    configBuilder.caseSensitiveTargetKeys();
-                }
-//                JsonNode objectValueMasking = maskerConfig.findValue("objectValueMasking");
-//                if (objectValueMasking != null && !objectValueMasking.asBoolean()) {
-//                    configBuilder.disableObjectValueMasking();
-//                }
-            }
-            JsonMaskingConfig maskingConfig = configBuilder.build();
+            JsonMaskingConfig maskingConfig = builder.build();
             var input = jsonNode.get("input").toString();
             if (jsonNode.get("input").isTextual() && jsonNode.get("input").textValue().startsWith("file://")) {
                 URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader()
@@ -95,14 +59,61 @@ public final class JsonMaskerTestUtil {
                     throw new IOException("Cannot read file " + resourceUrl, e);
                 }
             }
-            if (algorithmTypes.contains(JsonMaskerAlgorithmType.KEYS_CONTAIN)) {
-                testInstances.add(new JsonMaskerTestInstance(
-                        input,
-                        expectedOutput,
-                        new KeyContainsMasker(maskingConfig)
-                ));
-            }
+            testInstances.add(new JsonMaskerTestInstance(
+                    input,
+                    expectedOutput,
+                    new KeyContainsMasker(maskingConfig)
+            ));
         }
         return testInstances;
+    }
+
+    private static void applyConfig(JsonNode jsonMaskingConfig, JsonMaskingConfig.Builder builder) {
+        jsonMaskingConfig.fields().forEachRemaining(e -> {
+            String key = e.getKey();
+            JsonNode value = e.getValue();
+            switch (key) {
+                case "maskKeys" -> builder.maskKeys(asSet(value, JsonNode::asText));
+                case "maskJsonPaths" -> builder.maskJsonPaths(asSet(value, JsonNode::asText));
+                case "allowKeys" -> builder.allowKeys(asSet(value, JsonNode::asText));
+                case "allowJsonPaths" -> builder.allowJsonPaths(asSet(value, JsonNode::asText));
+                case "caseSensitiveTargetKeys" -> {
+                    if (value.booleanValue()) {
+                        builder.caseSensitiveTargetKeys();
+                    }
+                }
+                case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
+                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
+                case "disableNumberMasking" -> {
+                    if (value.booleanValue()) {
+                        builder.disableNumberMasking();
+                    }
+                }
+                case "maskNumbersWith" -> {
+                    if (value.isInt()) {
+                        builder.maskNumbersWith(value.intValue());
+                    } else {
+                        builder.maskNumbersWith(value.textValue());
+                    }
+                }
+                case "maskNumberDigitsWith" -> builder.maskNumberDigitsWith(value.intValue());
+                case "disableBooleanMasking" -> {
+                    if (value.booleanValue()) {
+                        builder.disableBooleanMasking();
+                    }
+                }
+                case "maskBooleansWith" -> {
+                    if (value.isBoolean()) {
+                        builder.maskBooleansWith(value.booleanValue());
+                    }
+                    builder.maskBooleansWith(value.textValue());
+                }
+                default -> throw new IllegalArgumentException("Unknown option " + key);
+            }
+        });
+    }
+
+    private static <T> Set<T> asSet(JsonNode value, Function<JsonNode, T> mapper) {
+        return StreamSupport.stream(value.spliterator(), false).map(mapper).collect(Collectors.toSet());
     }
 }

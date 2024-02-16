@@ -8,8 +8,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static randomgen.json.JsonStringCharacters.*;
+import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
 import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
+import static randomgen.json.JsonStringCharacters.getUnicodeControlCharacters;
+import static randomgen.json.JsonStringCharacters.mergeCharSets;
 
 public class BenchmarkUtils {
 

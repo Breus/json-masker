@@ -1,22 +1,14 @@
 package dev.blaauwendraad.masker.json.util;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.EIGHT;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.FIVE;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.FOUR;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LOWERCASE_E;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.MINUS;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.NINE;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.ONE;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.PERIOD;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.PLUS;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SEVEN;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SIX;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.THREE;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.TWO;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.UPPERCASE_E;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.ZERO;
 
@@ -46,11 +38,4 @@ public final class AsciiJsonUtil {
                 || utf8Character == UPPERCASE_E.getAsciiByteValue();
     }
 
-    public static boolean isArrayStart(byte utf8Character) {
-        return utf8Character == AsciiCharacter.SQUARE_BRACKET_OPEN.byteValue;
-    }
-
-    public static boolean isObjectStart(Byte utf8Character) {
-        return utf8Character == AsciiCharacter.CURLY_BRACKET_OPEN.byteValue;
-    }
 }

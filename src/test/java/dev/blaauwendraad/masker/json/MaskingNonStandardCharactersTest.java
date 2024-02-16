@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -28,7 +29,7 @@ class MaskingNonStandardCharactersTest {
                           },
                           "someArray": [
                             "💩",
-                            "💩".
+                            "💩",
                             {
                               "привіт": "hello",
                               "otherKey": null,
@@ -41,24 +42,24 @@ class MaskingNonStandardCharactersTest {
                         """
         )).isEqualTo("""
                 {
-                  "привіт": "*****",
+                  "привіт": "***",
                   "otherKey": null,
-                  "💩": "************",
+                  "💩": "***",
                   "someObject": {
-                    "привіт": "*****",
+                    "привіт": "***",
                     "otherKey": null,
                     "💩": {
-                        "💩": "************"
+                        "💩": "***"
                     }
                   },
                   "someArray": [
                     "💩",
-                    "💩".
+                    "💩",
                     {
-                      "привіт": "*****",
+                      "привіт": "***",
                       "otherKey": null,
                       "💩": {
-                          "💩": "************"
+                          "💩": "***"
                       }
                     }
                   ]
@@ -69,7 +70,7 @@ class MaskingNonStandardCharactersTest {
     @Test
     void maskingNonStandardCharactersInAllowMode() {
         JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.custom(Set.of("привіт", "otherKey", "someArray"), JsonMaskingConfig.TargetKeyMode.ALLOW).build()
+                JsonMaskingConfig.builder().allowKeys(Set.of("привіт", "otherKey", "someArray")).build()
         );
 
         assertThat(jsonMasker.mask(
@@ -87,7 +88,7 @@ class MaskingNonStandardCharactersTest {
                           },
                           "someArray": [
                             "💩",
-                            "💩".
+                            "💩",
                             {
                               "привіт": "hello",
                               "otherKey": null,
@@ -102,22 +103,83 @@ class MaskingNonStandardCharactersTest {
                 {
                   "привіт": "hello",
                   "otherKey": null,
-                  "💩": "************",
+                  "💩": "***",
                   "someObject": {
                     "привіт": "hello",
                     "otherKey": null,
                     "💩": {
-                        "💩": "************"
+                        "💩": "***"
                     }
                   },
                   "someArray": [
                     "💩",
-                    "💩".
+                    "💩",
                     {
                       "привіт": "hello",
                       "otherKey": null,
                       "💩": {
                           "💩": "shit happens"
+                      }
+                    }
+                  ]
+                }
+                """);
+    }
+
+    @Test
+    void maskingWithUnicodeCharacters() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(
+                JsonMaskingConfig.builder()
+                        .maskKeys("💩", KeyMaskingConfig.builder().maskStringCharactersWith("💩").build())
+                        .build()
+        );
+
+        assertThat(jsonMasker.mask(
+                """
+                        {
+                          "привіт": "hello",
+                          "otherKey": null,
+                          "💩": "shit happens",
+                          "someObject": {
+                            "привіт": "hello",
+                            "otherKey": null,
+                            "💩": {
+                                "💩": "shit happens"
+                            }
+                          },
+                          "someArray": [
+                            "💩",
+                            "💩",
+                            {
+                              "привіт": "hello",
+                              "otherKey": null,
+                              "💩": {
+                                  "💩": "shit happens"
+                              }
+                            }
+                          ]
+                        }
+                        """
+        )).isEqualTo("""
+                {
+                  "привіт": "hello",
+                  "otherKey": null,
+                  "💩": "💩💩💩💩💩💩💩💩💩💩💩💩",
+                  "someObject": {
+                    "привіт": "hello",
+                    "otherKey": null,
+                    "💩": {
+                        "💩": "💩💩💩💩💩💩💩💩💩💩💩💩"
+                    }
+                  },
+                  "someArray": [
+                    "💩",
+                    "💩",
+                    {
+                      "привіт": "hello",
+                      "otherKey": null,
+                      "💩": {
+                          "💩": "💩💩💩💩💩💩💩💩💩💩💩💩"
                       }
                     }
                   ]

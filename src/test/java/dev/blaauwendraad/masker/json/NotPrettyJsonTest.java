@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.json.config.JsonMaskerAlgorithmType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -11,22 +10,22 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MalformedJsonTest {
+class NotPrettyJsonTest {
     @ParameterizedTest
-    @MethodSource("malformedFile")
-    void malformedJsonFile(JsonMaskerTestInstance testInstance) {
+    @MethodSource("notPrettyFile")
+    void notPrettyFileTest(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 
     @ParameterizedTest
-    @MethodSource("malformedJson")
-    void malformedJson(JsonMaskerTestInstance testInstance) {
+    @MethodSource("notPrettyJson")
+    void notPrettyJsonTest(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 
     @Test
     void name() {
-        JsonMasker jsonMasker = JsonMasker.getMasker("targetKey");
+        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey"));
         String json = """
                         [ {
                           "targetKey" : {
@@ -39,18 +38,17 @@ class MalformedJsonTest {
         assertThat(jsonMasker.mask(json)).isEqualTo(json);
     }
 
-    private static Stream<JsonMaskerTestInstance> malformedFile() throws IOException {
+    private static Stream<JsonMaskerTestInstance> notPrettyFile() throws IOException {
         return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile(
-                "test-malformed.json",
-                Set.of(JsonMaskerAlgorithmType.values())
+                "test-not-pretty.json"
         ).stream();
     }
 
-    private static Stream<JsonMaskerTestInstance> malformedJson() {
+    private static Stream<JsonMaskerTestInstance> notPrettyJson() {
         return Stream.of(new JsonMaskerTestInstance("""
-                                                    {  "hello":   "hello"}
-                                                    """, """
-                                                         {  "hello":   "*****"}
-                                                         """, JsonMasker.getMasker("hello")));
+                {  "hello":   "hello"}
+                """, """
+                {  "hello":   "***"}
+                """, JsonMasker.getMasker(Set.of("hello"))));
     }
 }

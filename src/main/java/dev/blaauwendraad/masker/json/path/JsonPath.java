@@ -4,13 +4,13 @@ import javax.annotation.CheckForNull;
 import java.util.Arrays;
 
 /**
- * The library represents a jsonpath as an array of segments. See {@link JsonPathParser} for details.
+ * The library represents a jsonpath as an array of segments.
+ * See {@link JsonPathParser} for details.
  */
 public record JsonPath(String[] segments) {
 
     /**
      * The last segment of the jsonpath key is an actual target key.
-     *
      * @return the last segment of the jsonpath key.
      */
     @CheckForNull

@@ -1,0 +1,20 @@
+[
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey"
+      ]
+    },
+    "input": "file://test-not-pretty-json-input.txt",
+    "expectedOutput": "file://test-not-pretty-json-expected.txt"
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "targetKey"
+      ]
+    },
+    "input": "file://test-not-pretty-json-2-input.txt",
+    "expectedOutput": "file://test-not-pretty-json-2-expected.txt"
+  }
+]

@@ -47,7 +47,7 @@ final class NoFailingExecutionFuzzingTest {
             while (Instant.ofEpochMilli(System.currentTimeMillis()).isBefore(startTime.plus(durationToRunEachTest))) {
                 KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
                 RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(RandomJsonGeneratorConfig.builder()
-                                                                                          .createConfig());
+                        .createConfig());
                 JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
                 String jsonString = randomJsonNode.toPrettyString();
                 lastExecutedJson.set(jsonString);
@@ -99,46 +99,53 @@ final class NoFailingExecutionFuzzingTest {
         return Stream.of(
                 // Mask mode
                 Arguments.of(
-                        JsonMaskingConfig.getDefault(targetKeys), DEFAULT_TEST_INSTANCE_DURATION
+                        JsonMaskingConfig.builder().maskKeys(targetKeys).build(), DEFAULT_TEST_INSTANCE_DURATION
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
+                        JsonMaskingConfig.builder().maskKeys(targetKeys)
                                 .caseSensitiveTargetKeys().build(), DEFAULT_TEST_INSTANCE_DURATION
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-                                .maskNumericValuesWith(1)
+                        JsonMaskingConfig.builder().maskKeys(targetKeys)
+                                .maskStringCharactersWith("*")
+                                .maskNumberDigitsWith(1)
                                 .build(), DEFAULT_TEST_INSTANCE_DURATION
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-                                .obfuscationLength(1)
-                                .maskNumericValuesWith(1)
+                        JsonMaskingConfig.builder().maskKeys(targetKeys)
+                                .maskStringsWith("*")
+                                .maskNumbersWith(1)
                                 .build(), DEFAULT_TEST_INSTANCE_DURATION
                 ),
                 Arguments.of(
-                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.MASK)
-                                .obfuscationLength(2)
+                        JsonMaskingConfig.builder().maskKeys(targetKeys)
+                                .maskStringsWith("**")
+                                .maskNumbersWith(11)
                                 .build(), DEFAULT_TEST_INSTANCE_DURATION
                 ),
                 // Allow mode
                 Arguments.of(
-                        JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW).build(),
+                        JsonMaskingConfig.builder().allowKeys(targetKeys).build(),
                         DEFAULT_TEST_INSTANCE_DURATION
                 ),
-                Arguments.of(JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                                     .caseSensitiveTargetKeys()
-                                     .build(), DEFAULT_TEST_INSTANCE_DURATION),
-                Arguments.of(JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                                     .maskNumericValuesWith(1)
-                                     .build(), DEFAULT_TEST_INSTANCE_DURATION),
-                Arguments.of(JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                                     .obfuscationLength(1)
-                                     .maskNumericValuesWith(1)
-                                     .build(), DEFAULT_TEST_INSTANCE_DURATION),
-                Arguments.of(JsonMaskingConfig.custom(targetKeys, JsonMaskingConfig.TargetKeyMode.ALLOW)
-                                     .obfuscationLength(2)
-                                     .build(), DEFAULT_TEST_INSTANCE_DURATION)
+                Arguments.of(
+                        JsonMaskingConfig.builder().allowKeys(targetKeys)
+                                .caseSensitiveTargetKeys()
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION),
+                Arguments.of(
+                        JsonMaskingConfig.builder().allowKeys(targetKeys)
+                                .maskNumberDigitsWith(1)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION),
+                Arguments.of(
+                        JsonMaskingConfig.builder().allowKeys(targetKeys)
+                                .maskStringsWith("*")
+                                .maskNumbersWith(1)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION),
+                Arguments.of(
+                        JsonMaskingConfig.builder().allowKeys(targetKeys)
+                                .maskStringsWith("**")
+                                .maskNumbersWith(11)
+                                .build(), DEFAULT_TEST_INSTANCE_DURATION)
         );
     }
 }

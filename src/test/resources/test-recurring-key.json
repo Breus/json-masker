@@ -1,9 +1,11 @@
 [
   {
-    "targetKeys": [
-      "someKey",
-      "someKey2"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someKey2"
+      ]
+    },
     "input": {
       "someKey3": {
         "someKey": "hello",
@@ -15,18 +17,20 @@
     },
     "expectedOutput": {
       "someKey3": {
-        "someKey": "*****",
+        "someKey": "***",
         "someKey2": {
-          "someKey": "**"
+          "someKey": "***"
         }
       },
-      "someKey": "******"
+      "someKey": "***"
     }
   },
   {
-    "targetKeys": [
-      "a"
-    ],
+    "maskingConfig": {
+      "maskKeys": [
+        "a"
+      ]
+    },
     "input": {
       "a": {
         "a": "g\""
@@ -34,7 +38,7 @@
     },
     "expectedOutput": {
       "a": {
-        "a": "**"
+        "a": "***"
       }
     }
   }

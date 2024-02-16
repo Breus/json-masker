@@ -1,13 +1,10 @@
 package dev.blaauwendraad.masker.json.config;
 
-import dev.blaauwendraad.masker.json.path.JsonPath;
-import dev.blaauwendraad.masker.json.path.JsonPathParser;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
@@ -15,44 +12,22 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 final class JsonMaskingConfigTest {
 
     @ParameterizedTest
-    @MethodSource("jsonPathsResolved")
-    void jsonPathsCorrectlyResolved(
-            Set<String> targets,
-            Set<String> expectedTargetKeys,
-            Set<JsonPath> expectedJsonPaths
-    ) {
-        Assertions.assertEquals(expectedJsonPaths, JsonMaskingConfig.getDefault(targets).getTargetJsonPaths());
-        Assertions.assertEquals(expectedTargetKeys, JsonMaskingConfig.getDefault(targets).getTargetKeys());
-    }
-
-    @ParameterizedTest
     @MethodSource("invalidBuilders")
-    void invalidBuilders(JsonMaskingConfig.Builder builder) {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> new JsonMaskingConfig(builder));
+    void invalidBuilders(Supplier<JsonMaskingConfig.Builder> builder) {
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> builder.get().build());
     }
 
-    private static Stream<Arguments> jsonPathsResolved() {
-        JsonPathParser jsonPathParser = new JsonPathParser();
+    private static Stream<Supplier<JsonMaskingConfig.Builder>> invalidBuilders() {
         return Stream.of(
-                Arguments.of(
-                        Set.of("hello"), Set.of("hello"), Set.of()
-                ),
-                Arguments.of(
-                        Set.of("hello", "$.hello"), Set.of("hello"), Set.of(jsonPathParser.parse("$.hello"))
-                ),
-                Arguments.of(
-                        Set.of("$.hello"), Set.of(), Set.of(jsonPathParser.parse("$.hello"))
-                )
-        );
-    }
-
-    private static Stream<JsonMaskingConfig.Builder> invalidBuilders() {
-        return Stream.of(
-                JsonMaskingConfig.custom(Set.of(), JsonMaskingConfig.TargetKeyMode.MASK),
-                JsonMaskingConfig.custom(
-                        Set.of("hello"),
-                        JsonMaskingConfig.TargetKeyMode.MASK
-                ).maskNumericValuesWith(1).obfuscationLength(0)
+                () -> JsonMaskingConfig.builder(),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of()),
+                () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of()),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).maskKeys(Set.of("maskMe")),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).allowKeys(Set.of("allowMe")),
+                () -> JsonMaskingConfig.builder().allowJsonPaths(Set.of()),
+                () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).allowKeys(Set.of("allowMe")),
+                () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).maskKeys(Set.of("maskMe")),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).caseSensitiveTargetKeys().caseSensitiveTargetKeys()
         );
     }
 }

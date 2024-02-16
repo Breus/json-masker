@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -76,15 +77,17 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
                 .maskJsonPaths(Set.of("$.stringPath", "$.numberPath", "$.booleanPath"))
-                .maskKeys(Set.of("stringCustom", "numberCustom", "booleanCustom"), config ->
-                        config.maskStringsWith("(string)")
-                                .maskNumbersWith("(number)")
-                                .maskBooleansWith("(boolean)")
+                .maskKeys(Set.of("stringCustom", "numberCustom", "booleanCustom"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(string)")
+                        .maskNumbersWith("(number)")
+                        .maskBooleansWith("(boolean)")
+                        .build()
                 )
-                .maskJsonPaths(Set.of("$.stringPathCustom", "$.numberPathCustom", "$.booleanPathCustom"), config ->
-                        config.maskStringsWith("(string)")
-                                .maskNumbersWith("(number)")
-                                .maskBooleansWith("(boolean)")
+                .maskJsonPaths(Set.of("$.stringPathCustom", "$.numberPathCustom", "$.booleanPathCustom"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(string)")
+                        .maskNumbersWith("(number)")
+                        .maskBooleansWith("(boolean)")
+                        .build()
                 )
                 .build());
 
@@ -127,15 +130,17 @@ class CustomKeyMaskingConfigTest {
     void maskingConfigsForConfigsShouldBeInherited() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean", "a"))
-                .maskKeys(Set.of("b"), config ->
-                        config.maskStringsWith("(mask_b.string)")
-                                .maskNumbersWith("(mask_b.number)")
-                                .maskBooleansWith("(mask_b.boolean)")
+                .maskKeys(Set.of("b"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(mask_b.string)")
+                        .maskNumbersWith("(mask_b.number)")
+                        .maskBooleansWith("(mask_b.boolean)")
+                        .build()
                 )
-                .maskKeys(Set.of("c"), config ->
-                        config.maskStringsWith("(mask_c.string)")
-                                .maskNumbersWith("(mask_c.number)")
-                                .maskBooleansWith("(mask_c.boolean)")
+                .maskKeys(Set.of("c"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(mask_c.string)")
+                        .maskNumbersWith("(mask_c.number)")
+                        .maskBooleansWith("(mask_c.boolean)")
+                        .build()
                 )
                 .build());
 
@@ -204,16 +209,18 @@ class CustomKeyMaskingConfigTest {
     void maskingConfigsForConfigsShouldBeInheritedForJsonPath() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
-                .maskJsonPaths("$.a")
-                .maskJsonPaths(Set.of("$.a.b"), config ->
-                        config.maskStringsWith("(mask_b.string)")
-                                .maskNumbersWith("(mask_b.number)")
-                                .maskBooleansWith("(mask_b.boolean)")
+                .maskJsonPaths(Set.of("$.a"))
+                .maskJsonPaths(Set.of("$.a.b"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(mask_b.string)")
+                        .maskNumbersWith("(mask_b.number)")
+                        .maskBooleansWith("(mask_b.boolean)")
+                        .build()
                 )
-                .maskJsonPaths(Set.of("$.a.b.c"), config ->
-                        config.maskStringsWith("(mask_c.string)")
-                                .maskNumbersWith("(mask_c.number)")
-                                .maskBooleansWith("(mask_c.boolean)")
+                .maskJsonPaths(Set.of("$.a.b.c"), KeyMaskingConfig.builder()
+                        .maskStringsWith("(mask_c.string)")
+                        .maskNumbersWith("(mask_c.number)")
+                        .maskBooleansWith("(mask_c.boolean)")
+                        .build()
                 )
                 .build());
 

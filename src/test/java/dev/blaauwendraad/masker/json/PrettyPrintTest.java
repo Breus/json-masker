@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PrettyPrintTest {
@@ -17,7 +19,7 @@ class PrettyPrintTest {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = new KeyContainsMasker(JsonMaskingConfig.builder().maskKeys("Test").build());
+        JsonMasker jsonMasker = new KeyContainsMasker(JsonMaskingConfig.builder().maskKeys(Set.of("Test")).build());
         String mask = jsonMasker.mask(prettyString);
         assertThat(JsonMapper.builder()
                 .build()

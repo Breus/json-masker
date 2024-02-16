@@ -3,14 +3,14 @@ package dev.blaauwendraad.masker.json.config;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
-import java.util.Arrays;
+import javax.annotation.CheckForNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Contains the JSON masker configurations.
@@ -103,7 +103,6 @@ public final class JsonMaskingConfig {
      * Returns the config for the given key. If no specific config is available for the given key, the default config.
      *
      * @param key key to be masked
-     *
      * @return the config for the given key
      */
     public KeyMaskingConfig getConfig(String key) {
@@ -126,12 +125,12 @@ public final class JsonMaskingConfig {
     @Override
     public String toString() {
         return "JsonMaskingConfig{" +
-                "targetKeys=" + targetKeys +
-                ", targetKeyMode=" + targetKeyMode +
-                ", caseSensitiveTargetKeys=" + caseSensitiveTargetKeys +
-                ", defaultConfig=" + defaultConfig +
-                ", targetKeyConfigs=" + targetKeyConfigs +
-                '}';
+               "targetKeys=" + targetKeys +
+               ", targetKeyMode=" + targetKeyMode +
+               ", caseSensitiveTargetKeys=" + caseSensitiveTargetKeys +
+               ", defaultConfig=" + defaultConfig +
+               ", targetKeyConfigs=" + targetKeyConfigs +
+               '}';
     }
 
     /**
@@ -139,9 +138,6 @@ public final class JsonMaskingConfig {
      */
     public static class Builder {
         private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
-
-        private static final Consumer<KeyMaskingConfig.Builder> NOOP = builder -> {
-        };
 
         private final Set<String> targetKeys = new HashSet<>();
         private final Set<JsonPath> targetJsonPaths = new HashSet<>();
@@ -151,24 +147,24 @@ public final class JsonMaskingConfig {
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
 
-        public Builder maskKeys(String... keys) {
-            return maskKeys(Arrays.asList(keys));
-        }
-
-        public Builder maskKeys(Collection<String> keys) {
-            return maskKeys(keys, NOOP);
-        }
-
-        public Builder maskKeys(String key, Consumer<KeyMaskingConfig.Builder> configurer) {
-            return maskKeys(Set.of(key), configurer);
-        }
-
-        public Builder maskKeys(Collection<String> keys, Consumer<KeyMaskingConfig.Builder> configurer) {
-            if (configurer == NOOP && targetKeyMode == TargetKeyMode.ALLOW) {
+        public Builder maskKeys(Set<String> keys) {
+            if (targetKeyMode == TargetKeyMode.ALLOW) {
                 throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +
-                        " to customize masking for specific keys in ALLOW mode, use" +
-                        " maskKeys(String key, Consumer<KeyMaskingConfig.Builder> configurer)");
+                                                   " to customize masking for specific keys in ALLOW mode, use" +
+                                                   " maskKeys(String key, KeyMaskingConfig config)");
             }
+            return maskKeys0(keys, null);
+        }
+
+        public Builder maskKeys(String key, KeyMaskingConfig config) {
+            return maskKeys(Set.of(key), config);
+        }
+
+        public Builder maskKeys(Set<String> keys, KeyMaskingConfig config) {
+            return maskKeys0(keys, Objects.requireNonNull(config));
+        }
+
+        private Builder maskKeys0(Set<String> keys, @CheckForNull KeyMaskingConfig config) {
             if (keys.isEmpty()) {
                 throw new IllegalArgumentException("At least one key must be provided");
             }
@@ -181,33 +177,49 @@ public final class JsonMaskingConfig {
                     targetKeyMode = TargetKeyMode.MASK;
                     targetKeys.add(key);
                 }
-                if (configurer != NOOP) {
-                    KeyMaskingConfig.Builder builder = KeyMaskingConfig.builder();
-                    configurer.accept(builder);
-                    targetKeyConfigs.put(key, builder.build());
+                if (config != null) {
+                    targetKeyConfigs.put(key, config);
                 }
             }
             return this;
         }
 
-        public Builder maskJsonPaths(String... jsonPaths) {
-            return maskJsonPaths(Arrays.asList(jsonPaths));
-        }
-
-        public Builder maskJsonPaths(Collection<String> jsonPaths) {
-            return maskJsonPaths(jsonPaths, NOOP);
-        }
-
-        public Builder maskJsonPaths(String jsonPath, Consumer<KeyMaskingConfig.Builder> configurer) {
-            return maskJsonPaths(Set.of(jsonPath), configurer);
-        }
-
-        public Builder maskJsonPaths(Collection<String> jsonPaths, Consumer<KeyMaskingConfig.Builder> configurer) {
-            if (configurer == NOOP && targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask json paths when in ALLOW mode, if you want" +
-                        " to customize masking for specific json paths in ALLOW mode, use" +
-                        " maskJsonPaths(String key, Consumer<KeyMaskingConfig.Builder> configurer)");
+        public Builder maskKeys(Collection<String> keys, KeyMaskingConfig config) {
+            if (keys.isEmpty()) {
+                throw new IllegalArgumentException("At least one key must be provided");
             }
+            for (String key : keys) {
+                if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
+                    throw new IllegalArgumentException("Duplicate key '%s'".formatted(key));
+                }
+                // in ALLOW mode this method can be used to set a specific masking config for a key
+                if (targetKeyMode != TargetKeyMode.ALLOW) {
+                    targetKeyMode = TargetKeyMode.MASK;
+                    targetKeys.add(key);
+                }
+                targetKeyConfigs.put(key, config);
+            }
+            return this;
+        }
+
+        public Builder maskJsonPaths(Set<String> jsonPaths) {
+            if (targetKeyMode == TargetKeyMode.ALLOW) {
+                throw new IllegalArgumentException("Cannot mask json paths when in ALLOW mode, if you want to customize" +
+                                                   " masking for specific json paths in ALLOW mode, use " +
+                                                   "maskJsonPaths(String jsonPath, KeyMaskingConfig config)");
+            }
+            return maskJsonPaths0(jsonPaths, null);
+        }
+
+        public Builder maskJsonPaths(String jsonPath, KeyMaskingConfig config) {
+            return maskJsonPaths(Set.of(jsonPath), config);
+        }
+
+        public Builder maskJsonPaths(Set<String> jsonPaths, KeyMaskingConfig config) {
+            return maskJsonPaths0(jsonPaths, Objects.requireNonNull(config));
+        }
+
+        private Builder maskJsonPaths0(Set<String> jsonPaths, @CheckForNull KeyMaskingConfig config) {
             if (jsonPaths.isEmpty()) {
                 throw new IllegalArgumentException("At least one json path must be provided");
             }
@@ -221,20 +233,14 @@ public final class JsonMaskingConfig {
                     targetKeyMode = TargetKeyMode.MASK;
                     targetJsonPaths.add(parsed);
                 }
-                if (configurer != NOOP) {
-                    KeyMaskingConfig.Builder builder = KeyMaskingConfig.builder();
-                    configurer.accept(builder);
-                    targetKeyConfigs.put(parsed.toString(), builder.build());
+                if (config != null) {
+                    targetKeyConfigs.put(parsed.toString(), config);
                 }
             }
             return this;
         }
 
-        public Builder allowKeys(String... keys) {
-            return allowKeys(Arrays.asList(keys));
-        }
-
-        public Builder allowKeys(Collection<String> keys) {
+        public Builder allowKeys(Set<String> keys) {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");
             }
@@ -246,10 +252,6 @@ public final class JsonMaskingConfig {
                 targetKeys.add(key);
             }
             return this;
-        }
-
-        public Builder allowJsonPaths(String... jsonPaths) {
-            return allowJsonPaths(Arrays.asList(jsonPaths));
         }
 
         public Builder allowJsonPaths(Collection<String> jsonPaths) {
@@ -293,10 +295,9 @@ public final class JsonMaskingConfig {
          * <p>
          * Masking strings with '***' is the default behaviour if no string masking option is set.
          *
+         * @return the builder instance
          * @see #maskStringCharactersWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskStringsWith(String value) {
             defaultConfigBuilder.maskStringsWith(value);
@@ -307,10 +308,9 @@ public final class JsonMaskingConfig {
          * Mask all characters of string values with the provided character, preserving the length.
          * For example, "maskMe": "secret" -> "maskMe": "******".
          *
+         * @return the builder instance
          * @see #maskStringsWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringCharactersWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskStringCharactersWith(String value) {
             defaultConfigBuilder.maskStringCharactersWith(value);
@@ -320,12 +320,11 @@ public final class JsonMaskingConfig {
         /**
          * Disables number masking.
          *
+         * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#disableNumberMasking()
-         *
-         * @return the builder instance
          */
         public Builder disableNumberMasking() {
             defaultConfigBuilder.disableNumberMasking();
@@ -338,12 +337,11 @@ public final class JsonMaskingConfig {
          * <p>
          * Masking numbers with '###' is the default behaviour if no number masking option is set.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskNumbersWith(String value) {
             defaultConfigBuilder.maskNumbersWith(value);
@@ -354,12 +352,11 @@ public final class JsonMaskingConfig {
          * Mask all number values with the provided value.
          * For example, "maskMe": 12345 -> "maskMe": 0.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(int)
-         *
-         * @return the builder instance
          */
         public Builder maskNumbersWith(int value) {
             defaultConfigBuilder.maskNumbersWith(value);
@@ -370,12 +367,11 @@ public final class JsonMaskingConfig {
          * Mask all digits of number values with the provided digit, preserving the length.
          * For example, "maskMe": 12345 -> "maskMe": 88888.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumbersWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
          */
         public Builder maskNumberDigitsWith(int digit) {
             defaultConfigBuilder.maskNumberDigitsWith(digit);
@@ -385,11 +381,10 @@ public final class JsonMaskingConfig {
         /**
          * Disables boolean masking.
          *
+         * @return the builder instance
          * @see #maskBooleansWith(String)
          * @see #maskBooleansWith(boolean)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
-         *
-         * @return the builder instance
          */
         public Builder disableBooleanMasking() {
             defaultConfigBuilder.disableBooleanMasking();
@@ -402,11 +397,10 @@ public final class JsonMaskingConfig {
          * <p>
          * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskBooleansWith(String value) {
             defaultConfigBuilder.maskBooleansWith(value);
@@ -417,11 +411,10 @@ public final class JsonMaskingConfig {
          * Mask all boolean values with the provided value.
          * For example, "maskMe": true -> "maskMe": false.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskBooleansWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(boolean)
-         *
-         * @return the builder instance
          */
         public Builder maskBooleansWith(boolean value) {
             defaultConfigBuilder.maskBooleansWith(value);

@@ -10,16 +10,6 @@ import java.util.Set;
  * Masker that can be used to mask JSON objects and arrays.
  */
 public interface JsonMasker {
-    /**
-     * Creates a default {@link JsonMasker} with the provided target key.
-     *
-     * @param targetKey the key to target
-     * @return the {@link JsonMasker} instance
-     */
-    @Nonnull
-    static JsonMasker getMasker(String targetKey) {
-        return getMasker(JsonMaskingConfig.builder().maskKeys(targetKey).build());
-    }
 
     /**
      * Creates a default {@link JsonMasker} with the provided target key(s).

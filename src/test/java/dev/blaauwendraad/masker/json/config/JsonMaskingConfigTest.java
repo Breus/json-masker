@@ -20,17 +20,14 @@ final class JsonMaskingConfigTest {
     private static Stream<Supplier<JsonMaskingConfig.Builder>> invalidBuilders() {
         return Stream.of(
                 () -> JsonMaskingConfig.builder(),
-                () -> JsonMaskingConfig.builder().maskKeys(),
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of()),
-                () -> JsonMaskingConfig.builder().maskJsonPaths(),
                 () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of()),
-                () -> JsonMaskingConfig.builder().maskKeys("maskMe").maskKeys("maskMe"),
-                () -> JsonMaskingConfig.builder().maskKeys("maskMe").allowKeys("allowMe"),
-                () -> JsonMaskingConfig.builder().allowJsonPaths(),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).maskKeys(Set.of("maskMe")),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).allowKeys(Set.of("allowMe")),
                 () -> JsonMaskingConfig.builder().allowJsonPaths(Set.of()),
-                () -> JsonMaskingConfig.builder().allowKeys("allowMe").allowKeys("allowMe"),
-                () -> JsonMaskingConfig.builder().allowKeys("allowMe").maskKeys("maskMe"),
-                () -> JsonMaskingConfig.builder().maskKeys("maskMe").caseSensitiveTargetKeys().caseSensitiveTargetKeys()
+                () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).allowKeys(Set.of("allowMe")),
+                () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).maskKeys(Set.of("maskMe")),
+                () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).caseSensitiveTargetKeys().caseSensitiveTargetKeys()
         );
     }
 }

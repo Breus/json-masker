@@ -50,7 +50,7 @@ final class KeyMatcherTest {
 
     @Test
     void shouldBeAbleToSearchByOffset() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("maskMe").build());
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
         byte[] bytes = "maskMe".getBytes(StandardCharsets.UTF_8);
         byte[] bytesWithPadding = """
                 {"maskMe": "some value"}
@@ -63,8 +63,8 @@ final class KeyMatcherTest {
     @Test
     void shouldReturnSpecificConfigWhenMatched() {
         JsonMaskingConfig config = JsonMaskingConfig.builder()
-                .maskKeys("maskMe")
-                .maskKeys("maskMeLikeCIA", k -> k.maskStringsWith("[redacted]"))
+                .maskKeys(Set.of("maskMe"))
+                .maskKeys("maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
 
@@ -84,8 +84,8 @@ final class KeyMatcherTest {
     @Test
     void shouldReturnMaskingConfigInAllowMode() {
         JsonMaskingConfig config = JsonMaskingConfig.builder()
-                .allowKeys("allowMe")
-                .maskKeys("maskMeLikeCIA", k -> k.maskStringsWith("[redacted]"))
+                .allowKeys(Set.of("allowMe"))
+                .maskKeys("maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
 
@@ -106,7 +106,7 @@ final class KeyMatcherTest {
 
     @Test
     void shouldMatchJsonPaths() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a.b")).build());
         String json = """
                 {"a":{"b":1,"c":2}}
                 """;

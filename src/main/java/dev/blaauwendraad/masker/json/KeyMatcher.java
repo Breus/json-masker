@@ -57,7 +57,7 @@ final class KeyMatcher {
      * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode.
      *                      for example config
      *                      {@code
-     *                      builder.allow("name", "age").mask("ssn", k -> k.maskStringsWith("[redacted]"))
+     *                      builder.allow("name", "age").mask("ssn", KeyMaskingConfig.builder().maskStringsWith("[redacted]"))
      *                      }
      *                      would only allow {@code name} and {@code age} to be present in the JSON, it would use
      *                      default configuration to mask any other key, but would specifically mask {@code ssn} with

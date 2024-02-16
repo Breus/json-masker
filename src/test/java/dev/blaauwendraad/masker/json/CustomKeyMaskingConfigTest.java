@@ -153,6 +153,11 @@ class CustomKeyMaskingConfigTest {
                         "string": "maskMe",
                         "number": 12345,
                         "boolean": false
+                      },
+                      "e": {
+                        "string": "maskMe",
+                        "number": 12345,
+                        "boolean": false
                       }
                     },
                     "d": {
@@ -178,6 +183,11 @@ class CustomKeyMaskingConfigTest {
                         "string": "(mask_c.string)",
                         "number": "(mask_c.number)",
                         "boolean": "(mask_c.boolean)"
+                      },
+                      "e": {
+                        "string": "(mask_b.string)",
+                        "number": "(mask_b.number)",
+                        "boolean": "(mask_b.boolean)"
                       }
                     },
                     "d": {
@@ -221,6 +231,11 @@ class CustomKeyMaskingConfigTest {
                         "string": "maskMe",
                         "number": 12345,
                         "boolean": false
+                      },
+                      "e": {
+                        "string": "maskMe",
+                        "number": 12345,
+                        "boolean": false
                       }
                     },
                     "d": {
@@ -246,6 +261,11 @@ class CustomKeyMaskingConfigTest {
                         "string": "(mask_c.string)",
                         "number": "(mask_c.number)",
                         "boolean": "(mask_c.boolean)"
+                      },
+                      "e": {
+                        "string": "(mask_b.string)",
+                        "number": "(mask_b.number)",
+                        "boolean": "(mask_b.boolean)"
                       }
                     },
                     "d": {

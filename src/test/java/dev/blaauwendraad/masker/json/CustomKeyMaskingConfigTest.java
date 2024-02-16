@@ -154,13 +154,13 @@ class CustomKeyMaskingConfigTest {
                         "number": 12345,
                         "boolean": false
                       },
-                      "e": {
+                      "d": {
                         "string": "maskMe",
                         "number": 12345,
                         "boolean": false
                       }
                     },
-                    "d": {
+                    "e": {
                       "string": "maskMe",
                       "number": 12345,
                       "boolean": false
@@ -184,13 +184,13 @@ class CustomKeyMaskingConfigTest {
                         "number": "(mask_c.number)",
                         "boolean": "(mask_c.boolean)"
                       },
-                      "e": {
+                      "d": {
                         "string": "(mask_b.string)",
                         "number": "(mask_b.number)",
                         "boolean": "(mask_b.boolean)"
                       }
                     },
-                    "d": {
+                    "e": {
                       "string": "***",
                       "number": "###",
                       "boolean": "&&&"
@@ -232,13 +232,13 @@ class CustomKeyMaskingConfigTest {
                         "number": 12345,
                         "boolean": false
                       },
-                      "e": {
+                      "d": {
                         "string": "maskMe",
                         "number": 12345,
                         "boolean": false
                       }
                     },
-                    "d": {
+                    "e": {
                       "string": "maskMe",
                       "number": 12345,
                       "boolean": false
@@ -262,13 +262,13 @@ class CustomKeyMaskingConfigTest {
                         "number": "(mask_c.number)",
                         "boolean": "(mask_c.boolean)"
                       },
-                      "e": {
+                      "d": {
                         "string": "(mask_b.string)",
                         "number": "(mask_b.number)",
                         "boolean": "(mask_b.boolean)"
                       }
                     },
-                    "d": {
+                    "e": {
                       "string": "***",
                       "number": "###",
                       "boolean": "&&&"

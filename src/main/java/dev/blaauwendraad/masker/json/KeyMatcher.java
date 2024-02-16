@@ -10,7 +10,7 @@ import java.util.Iterator;
 /**
  * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
  * <p>
- * The main idea is that we need to know whether a JSON key is in the target key set, one could do a contains on
+ * The main idea is that we need to know whether a JSON key is in the target key set. One could do a contains on
  * the hash set, which would compute a hashcode for the whole key before doing a "fast" lookup. Another option would be
  * to iterate over target keys and compare characters one by one for each key, given that in reality most keys would
  * fail fast (assuming nobody asks us to mask keys {@code 'a[...]b'} in JSONs with keys {@code 'aa[...]b'})
@@ -19,8 +19,8 @@ import java.util.Iterator;
  * Both options are not ideal because
  * we:
  * <ul>
- *   <li>we expect set of target keys to be small</li>
- *   <li>we expect target keys themselves to also be small</li>
+ *   <li>we expect set of target keys to be relatively small (<100 keys)</li>
+ *   <li>we expect target keys themselves to also be relatively small (<100 characters)</li>
  *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every incoming key</li>
  * </ul>
  *
@@ -135,21 +135,23 @@ final class KeyMatcher {
     public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<MaskingState.SegmentReference> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
-            TrieNode node = searchNode(bytes, keyOffset, keyLength);
+            // check json path first, as it's more specific
+            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
             // if found - mask with this config
             // if not found - do not mask
             if (node != null && !node.negativeMatch) {
                 return node.keyMaskingConfig;
             } else {
-                // also check json path
-                node = searchForJsonPathKeyNode(bytes, jsonPath);
+                // also check regular key
+                node = searchNode(bytes, keyOffset, keyLength);
                 if (node != null && !node.negativeMatch) {
                     return node.keyMaskingConfig;
                 }
                 return null;
             }
         } else {
-            TrieNode node = searchNode(bytes, keyOffset, keyLength);
+            // check json path first, as it's more specific
+            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
             // if found and is not negativeMatch - do not mask
             // if found and is negative match - mask, but with a specific config
             // if not found - mask with default config
@@ -159,8 +161,8 @@ final class KeyMatcher {
                 }
                 return null;
             }
-            // also check json path
-            node = searchForJsonPathKeyNode(bytes, jsonPath);
+            // also check regular key
+            node = searchNode(bytes, keyOffset, keyLength);
             if (node != null) {
                 if (node.negativeMatch) {
                     return node.keyMaskingConfig;

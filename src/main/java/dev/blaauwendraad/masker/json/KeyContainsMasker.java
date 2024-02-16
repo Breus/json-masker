@@ -393,24 +393,25 @@ public final class KeyContainsMasker implements JsonMasker {
                     keyLength,
                     maskingState.getCurrentJsonPath()
             );
-            // this is where it gets confusing - this method is called when the whole object is being masked
-            // if we got a maskingConfig for the key - we need to mask this key with that config, but if the config we
-            // got was the default config, then it means that the key doesn't have a specific configuration and we
-            // should fallback to key specific config, that the object is being masked with
-            // e.g. for '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
-            // however if we're in the allow mode, then getting a null as config, means that the key has been explicitly
-            // allowed and must not be masked, even if enclosing object is being masked
-            boolean valueAllowed = maskingConfig.isInAllowMode() && keyMaskingConfig == null;
-            if (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig()) {
-                keyMaskingConfig = parentKeyMaskingConfig;
-            }
             maskingState.incrementCurrentIndex();// step over the JSON key closing quote
             skipWhitespaceCharacters(maskingState);
             maskingState.incrementCurrentIndex(); // step over the colon ':'
             skipWhitespaceCharacters(maskingState);
+
+            // if we're in the allow mode, then getting a null as config, means that the key has been explicitly
+            // allowed and must not be masked, even if enclosing object is being masked
+            boolean valueAllowed = maskingConfig.isInAllowMode() && keyMaskingConfig == null;
             if (valueAllowed) {
                 skipAllValues(maskingState);
             } else {
+                // this is where it might get confusing - this method is called when the whole object is being masked
+                // if we got a maskingConfig for the key - we need to mask this key with that config, but if the config
+                // we got was the default config, then it means that the key doesn't have a specific configuration and
+                // we should fallback to key specific config, that the object is being masked with
+                // e.g. '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
+                if (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig()) {
+                    keyMaskingConfig = parentKeyMaskingConfig;
+                }
                 if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
                     maskArrayValueInPlace(maskingState, keyMaskingConfig);
                 } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
@@ -530,12 +531,7 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     private void maskBooleanValueInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        int targetValueLength;
-        if (AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex())) {
-            targetValueLength = 4;
-        } else {
-            targetValueLength = 5;
-        }
+        int targetValueLength = AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5;
         maskingState.setCurrentIndex(maskingState.currentIndex() + targetValueLength);
         if (keyMaskingConfig.getMaskBooleansWith() != null) {
             ValueMaskingUtil.replaceTargetValueWith(

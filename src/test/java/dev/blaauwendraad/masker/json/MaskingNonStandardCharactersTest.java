@@ -28,7 +28,7 @@ class MaskingNonStandardCharactersTest {
                           },
                           "someArray": [
                             "💩",
-                            "💩".
+                            "💩",
                             {
                               "привіт": "hello",
                               "otherKey": null,
@@ -53,7 +53,7 @@ class MaskingNonStandardCharactersTest {
                   },
                   "someArray": [
                     "💩",
-                    "💩".
+                    "💩",
                     {
                       "привіт": "***",
                       "otherKey": null,
@@ -87,7 +87,7 @@ class MaskingNonStandardCharactersTest {
                           },
                           "someArray": [
                             "💩",
-                            "💩".
+                            "💩",
                             {
                               "привіт": "hello",
                               "otherKey": null,
@@ -112,7 +112,7 @@ class MaskingNonStandardCharactersTest {
                   },
                   "someArray": [
                     "💩",
-                    "💩".
+                    "💩",
                     {
                       "привіт": "hello",
                       "otherKey": null,
@@ -148,7 +148,7 @@ class MaskingNonStandardCharactersTest {
                           },
                           "someArray": [
                             "💩",
-                            "💩".
+                            "💩",
                             {
                               "привіт": "hello",
                               "otherKey": null,
@@ -173,7 +173,7 @@ class MaskingNonStandardCharactersTest {
                   },
                   "someArray": [
                     "💩",
-                    "💩".
+                    "💩",
                     {
                       "привіт": "hello",
                       "otherKey": null,

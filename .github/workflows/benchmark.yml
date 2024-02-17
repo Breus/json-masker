@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  benchmarks:
     runs-on: ubuntu-latest
     env:
       COMMENT_FILE: ${{ github.workspace}}/benchmark-comment.md
@@ -36,6 +36,7 @@ jobs:
           echo "Context: ${{ toJSON(github) }}"
           echo "Pull Request: ${{ toJSON(github.event.pull_request) }}"
           ./gradlew jmh -PjmhShort
+          cat build/results/jmh/results.txt
           echo "### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})" >> ${{ env.COMMENT_FILE }}
           echo "```text" >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
@@ -45,7 +46,7 @@ jobs:
         working-directory: benchmark-master
         run: |
           ./gradlew jmh -PjmhShort
-          echo "### Benchmark results (master, ${{ github.base_ref }})" >> ${{ env.COMMENT_FILE }}
+          echo "### Benchmark results (${{ github.base_ref }})" >> ${{ env.COMMENT_FILE }}
           echo "```text" >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo "```" >> ${{ env.COMMENT_FILE }}

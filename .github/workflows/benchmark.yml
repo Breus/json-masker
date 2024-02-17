@@ -3,6 +3,11 @@ on:
   pull_request:
     branches:
       - master
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,8 +33,10 @@ jobs:
       - name: Run benchmarks (pull-request)
         working-directory: benchmark-pull-request
         run: |
+          echo "Context: ${{ toJSON(github) }}"
+          echo "Pull Request: ${{ toJSON(github.event.pull_request) }}"
           ./gradlew jmh -PjmhShort
-          echo "### Benchmark results (pull-request, ${{ github.head_ref }})" >> ${{ env.COMMENT_FILE }}
+          echo "### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})" >> ${{ env.COMMENT_FILE }}
           echo "```text" >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo "```" >> ${{ env.COMMENT_FILE }}
@@ -49,7 +56,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: Benchmark results (master)
+          body-includes: Benchmark results
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4

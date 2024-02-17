@@ -45,22 +45,6 @@ public enum AsciiCharacter {
         this.byteValue = byteValue;
     }
 
-    public static byte toAsciiByteValue(int digit) {
-        return switch (digit) {
-            case 0 -> ZERO.byteValue;
-            case 1 -> ONE.byteValue;
-            case 2 -> TWO.byteValue;
-            case 3 -> THREE.byteValue;
-            case 4 -> FOUR.byteValue;
-            case 5 -> FIVE.byteValue;
-            case 6 -> SIX.byteValue;
-            case 7 -> SEVEN.byteValue;
-            case 8 -> EIGHT.byteValue;
-            case 9 -> NINE.byteValue;
-            default -> throw new IllegalStateException("Unexpected digit: " + digit);
-        };
-    }
-
     /**
      * Tests if the given byte corresponds to a double quote '{@literal "}' in ASCII encoding.
      *

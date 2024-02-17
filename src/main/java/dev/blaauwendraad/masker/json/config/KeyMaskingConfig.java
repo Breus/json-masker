@@ -9,60 +9,51 @@ public final class KeyMaskingConfig {
     private final byte[] maskStringsWith;
     @CheckForNull
     private final byte[] maskStringCharactersWith;
-    private final boolean disableNumberMasking;
     @CheckForNull
     private final byte[] maskNumbersWith;
     @CheckForNull
     private final byte[] maskNumberDigitsWith;
-    private final boolean disableBooleanMasking;
     @CheckForNull
     private final byte[] maskBooleansWith;
 
-    KeyMaskingConfig(
-            @CheckForNull String maskStringsWith,
-            @CheckForNull String maskStringCharactersWith,
-            boolean disableNumberMasking,
-            @CheckForNull String maskNumbersWithString,
-            @CheckForNull Integer maskNumbersWith,
-            @CheckForNull Integer maskNumberDigitsWith,
-            boolean disableBooleanMasking,
-            @CheckForNull String maskBooleansWithString,
-            @CheckForNull Boolean maskBooleansWith) {
-        if (maskStringsWith != null) {
-            this.maskStringsWith = maskStringsWith.getBytes(StandardCharsets.UTF_8);
+    KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
+        if (builder.maskStringsWith != null) {
+            this.maskStringsWith = builder.maskStringsWith.getBytes(StandardCharsets.UTF_8);
             this.maskStringCharactersWith = null;
-        } else if (maskStringCharactersWith != null) {
+        } else if (builder.maskStringCharactersWith != null) {
             this.maskStringsWith = null;
-            this.maskStringCharactersWith = maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
+            this.maskStringCharactersWith = builder.maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
         } else {
-            throw new IllegalStateException("One of string masking options must be set");
+            // no quotes for strings as opposed to numbers and booleans because we never change the type of the string
+            // and only mask value inside the quotes
+            this.maskStringsWith = "***".getBytes(StandardCharsets.UTF_8);
+            this.maskStringCharactersWith = null;
         }
-        if (maskNumbersWithString != null) {
-            this.maskNumbersWith = ("\"" + maskNumbersWithString + "\"").getBytes(StandardCharsets.UTF_8);
+        if (builder.maskNumbersWithString != null) {
+            this.maskNumbersWith = ("\"" + builder.maskNumbersWithString + "\"").getBytes(StandardCharsets.UTF_8);
             this.maskNumberDigitsWith = null;
-        } else if (maskNumbersWith != null) {
-            this.maskNumbersWith = maskNumbersWith.toString().getBytes(StandardCharsets.UTF_8);
+        } else if (builder.maskNumbersWith != null) {
+            this.maskNumbersWith = builder.maskNumbersWith.toString().getBytes(StandardCharsets.UTF_8);
             this.maskNumberDigitsWith = null;
-        } else if (maskNumberDigitsWith != null) {
+        } else if (builder.maskNumberDigitsWith != null) {
             this.maskNumbersWith = null;
-            this.maskNumberDigitsWith = maskNumberDigitsWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else if (disableNumberMasking) {
+            this.maskNumberDigitsWith = builder.maskNumberDigitsWith.toString().getBytes(StandardCharsets.UTF_8);
+        } else if (builder.disableNumberMasking != null && builder.disableNumberMasking) {
             this.maskNumbersWith = null;
             this.maskNumberDigitsWith = null;
         } else {
-            throw new IllegalStateException("One of number masking options must be set");
+            this.maskNumbersWith = "\"###\"".getBytes(StandardCharsets.UTF_8);
+            this.maskNumberDigitsWith = null;
         }
-        this.disableNumberMasking = disableNumberMasking;
-        if (maskBooleansWithString != null) {
-            this.maskBooleansWith = ("\"" + maskBooleansWithString + "\"").getBytes(StandardCharsets.UTF_8);
-        } else if (maskBooleansWith != null) {
-            this.maskBooleansWith = maskBooleansWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else if (disableBooleanMasking) {
+        if (builder.maskBooleansWithString != null) {
+            this.maskBooleansWith = ("\"" + builder.maskBooleansWithString + "\"").getBytes(StandardCharsets.UTF_8);
+        } else if (builder.maskBooleansWith != null) {
+            this.maskBooleansWith = builder.maskBooleansWith.toString().getBytes(StandardCharsets.UTF_8);
+        } else if (builder.disableBooleanMasking != null && builder.disableBooleanMasking) {
             this.maskBooleansWith = null;
         } else {
-            throw new IllegalStateException("One of boolean masking options must be set");
+            this.maskBooleansWith = "\"&&&\"".getBytes(StandardCharsets.UTF_8);
         }
-        this.disableBooleanMasking = disableBooleanMasking;
     }
 
     /**
@@ -94,7 +85,7 @@ public final class KeyMaskingConfig {
      * @see Builder#disableNumberMasking()
      */
     public boolean isDisableNumberMasking() {
-        return disableNumberMasking;
+        return maskNumbersWith == null && maskNumberDigitsWith == null;
     }
 
     /**
@@ -117,7 +108,7 @@ public final class KeyMaskingConfig {
      * @see Builder#disableBooleanMasking()
      */
     public boolean isDisableBooleanMasking() {
-        return disableBooleanMasking;
+        return maskBooleansWith == null;
     }
 
     /**
@@ -133,10 +124,8 @@ public final class KeyMaskingConfig {
         return "KeyMaskingConfig{" +
                 "maskStringsWith='" + bytesToString(maskStringsWith) + '\'' +
                 ", maskStringCharactersWith='" + bytesToString(maskStringCharactersWith) + '\'' +
-                ", disableNumberMasking=" + disableNumberMasking +
                 ", maskNumbersWith=" + bytesToString(maskNumbersWith) +
                 ", maskNumberDigitsWith=" + bytesToString(maskNumberDigitsWith) +
-                ", disableBooleanMasking=" + disableBooleanMasking +
                 ", maskBooleansWith=" + bytesToString(maskBooleansWith) +
                 '}';
     }
@@ -307,7 +296,7 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          */
         public Builder maskBooleansWith(String value) {
-            if (maskBooleansWith != null) {
+            if (maskBooleansWithString != null) {
                 throw new IllegalArgumentException("'maskBooleansWith(String)' was already set");
             }
             checkMutuallyExclusiveBooleanMaskingOptions();
@@ -339,27 +328,7 @@ public final class KeyMaskingConfig {
          * @return the {@link KeyMaskingConfig} instance
          */
         public KeyMaskingConfig build() {
-            if (maskStringsWith == null && maskStringCharactersWith == null) {
-                maskStringsWith = "***";
-            }
-            if (disableBooleanMasking == null && maskNumbersWithString == null && maskNumbersWith == null && maskNumberDigitsWith == null) {
-                maskNumbersWithString = "###";
-            }
-            if (disableBooleanMasking == null && maskBooleansWithString == null && maskBooleansWith == null) {
-                maskBooleansWithString = "&&&";
-            }
-            boolean disableBooleanMasking = this.disableBooleanMasking != null && this.disableBooleanMasking;
-            boolean disableNumberMasking = this.disableNumberMasking != null && this.disableNumberMasking;
-            return new KeyMaskingConfig(
-                    maskStringsWith,
-                    maskStringCharactersWith,
-                    disableNumberMasking,
-                    maskNumbersWithString,
-                    maskNumbersWith,
-                    maskNumberDigitsWith,
-                    disableBooleanMasking,
-                    maskBooleansWithString,
-                    maskBooleansWith);
+            return new KeyMaskingConfig(this);
         }
 
         private void checkMutuallyExclusiveStringMaskingOptions() {

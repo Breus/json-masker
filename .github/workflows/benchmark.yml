@@ -1,4 +1,4 @@
-name: Build
+name: Benchmarks
 on:
   pull_request:
     branches:
@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      COMMENT_FILE: ${{ github.workspace}}/benchmark-comment.md
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,19 +29,19 @@ jobs:
         working-directory: benchmark-pull-request
         run: |
           ./gradlew jmh -PjmhShort
-          echo "### Benchmark results (pull-request)" >> ../benchmark-comment.md
-          echo "```text" >> ../benchmark-comment.md
-          cat build/results/jmh/results.txt >> ../benchmark-comment.md
-          echo "```" >> ../benchmark-comment.md
+          echo "### Benchmark results (pull-request, ${{ github.head_ref }})" >> ${{ env.COMMENT_FILE }}
+          echo "```text" >> ${{ env.COMMENT_FILE }}
+          cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
+          echo "```" >> ${{ env.COMMENT_FILE }}
 
       - name: Run benchmarks (master)
         working-directory: benchmark-master
         run: |
           ./gradlew jmh -PjmhShort
-          echo "### Benchmark results (master)" >> ../benchmark-comment.md
-          echo "```text" >> ../benchmark-comment.md
-          cat build/results/jmh/results.txt >> ../benchmark-comment.md
-          echo "```" >> ../benchmark-comment.md
+          echo "### Benchmark results (master, ${{ github.base_ref }})" >> ${{ env.COMMENT_FILE }}
+          echo "```text" >> ${{ env.COMMENT_FILE }}
+          cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
+          echo "```" >> ${{ env.COMMENT_FILE }}
 
       - name: Find benchmark results comment
         uses: peter-evans/find-comment@v3
@@ -54,5 +56,5 @@ jobs:
         with:
           comment-id: ${{ steps.benchmark-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
-          body-path: 'benchmark-comment.md'
+          body-path: ${{ env.COMMENT_FILE }}
           edit-mode: replace

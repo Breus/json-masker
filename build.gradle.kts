@@ -123,16 +123,13 @@ signing {
 jmh {
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
-        fun listOfProperty(vararg values: String) = rootProject.objects.listProperty<String>().value(values.toList())
-
         benchmarkParameters = mapOf(
-            "jsonSize" to listOfProperty("2mb"),
-            "maskedKeyProbability" to listOfProperty("0.01"),
-            "jsonPath" to listOfProperty("false", "true"),
-            "characters" to listOfProperty("unicode")
+            "jsonSize" to rootProject.objects.listProperty<String>().value(listOf("128kb")),
+            "maskedKeyProbability" to rootProject.objects.listProperty<String>().value(listOf("0.01")),
+            "obfuscationLength" to rootProject.objects.listProperty<String>().value(listOf("none"))
         )
 
-        iterations = 2
+        iterations = 4
     }
     // if you have async profiler installed, you can uncomment this to get a flamegraphs
     // profilers = ["async:libPath=<path-to-async-profiler>/build/libasyncProfiler.so;output=flamegraph;dir=profile-results"]

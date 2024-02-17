@@ -39,7 +39,6 @@ jobs:
         working-directory: benchmark-pull-request
         run: |
           ./gradlew jmh -PjmhShort
-          cat build/results/jmh/results.txt
           echo '### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})' >> ${{ env.COMMENT_FILE }}
           echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}

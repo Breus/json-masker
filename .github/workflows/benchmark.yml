@@ -33,23 +33,21 @@ jobs:
       - name: Run benchmarks (pull-request)
         working-directory: benchmark-pull-request
         run: |
-          echo "Context: ${{ toJSON(github) }}"
-          echo "Pull Request: ${{ toJSON(github.event.pull_request) }}"
           ./gradlew jmh -PjmhShort
           cat build/results/jmh/results.txt
-          echo "### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})" >> ${{ env.COMMENT_FILE }}
-          echo "```text" >> ${{ env.COMMENT_FILE }}
+          echo '### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})' >> ${{ env.COMMENT_FILE }}
+          echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
-          echo "```" >> ${{ env.COMMENT_FILE }}
+          echo '```' >> ${{ env.COMMENT_FILE }}
 
       - name: Run benchmarks (master)
         working-directory: benchmark-master
         run: |
           ./gradlew jmh -PjmhShort
-          echo "### Benchmark results (${{ github.base_ref }})" >> ${{ env.COMMENT_FILE }}
-          echo "```text" >> ${{ env.COMMENT_FILE }}
+          echo '### Benchmark results (${{ github.base_ref }})' >> ${{ env.COMMENT_FILE }}
+          echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
-          echo "```" >> ${{ env.COMMENT_FILE }}
+          echo '```' >> ${{ env.COMMENT_FILE }}
 
       - name: Find benchmark results comment
         uses: peter-evans/find-comment@v3

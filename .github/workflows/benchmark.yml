@@ -17,7 +17,7 @@ jobs:
       - id: get-sha
         run: |
           # getting exact master sha at the moment to reference it in the comment
-          echo "sha=$( curl -u "u:${{ github.token }}" https://api.github.com/repos/${{ github.repository }}/git/ref/heads/${{ github.base_ref }} | jq .object.sha | tr -d '"' ) >> "$GITHUB_OUTPUT"
+          echo "sha=$( curl -u "u:${{ github.token }}" https://api.github.com/repos/${{ github.repository }}/git/ref/heads/${{ github.base_ref }} | jq .object.sha | tr -d '"' )" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
         with:

@@ -14,9 +14,14 @@ jobs:
     env:
       COMMENT_FILE: ${{ github.workspace}}/benchmark-comment.md
     steps:
+      - id: get-sha
+        run: |
+          # getting exact master sha at the moment to reference it in the comment
+          echo "sha=$( curl -u "u:${{ github.token }}" https://api.github.com/repos/${{ github.repository }}/git/ref/heads/${{ github.base_ref }} | jq .object.sha | tr -d '"' ) >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: ${{ steps.get-sha.outputs.sha }}
           path: benchmark-master
 
       - uses: actions/checkout@v4
@@ -44,7 +49,7 @@ jobs:
         working-directory: benchmark-master
         run: |
           ./gradlew jmh -PjmhShort
-          echo '### Benchmark results (${{ github.base_ref }})' >> ${{ env.COMMENT_FILE }}
+          echo '### Benchmark results (${{ github.base_ref }}, ${{ steps.get-sha.outputs.sha }})' >> ${{ env.COMMENT_FILE }}
           echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo '```' >> ${{ env.COMMENT_FILE }}

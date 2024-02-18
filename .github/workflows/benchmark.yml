@@ -39,6 +39,8 @@ jobs:
         working-directory: benchmark-pull-request
         run: |
           ./gradlew jmh -PjmhShort
+          echo '> [!NOTE]' >> ${{ env.COMMENT_FILE }}
+          echo '> These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on more stable machine before making any conclusions!' >> ${{ env.COMMENT_FILE }}
           echo '### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})' >> ${{ env.COMMENT_FILE }}
           echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}

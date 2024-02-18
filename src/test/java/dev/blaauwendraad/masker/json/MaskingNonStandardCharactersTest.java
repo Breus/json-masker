@@ -130,7 +130,7 @@ class MaskingNonStandardCharactersTest {
     void maskingWithUnicodeCharacters() {
         JsonMasker jsonMasker = JsonMasker.getMasker(
                 JsonMaskingConfig.builder()
-                        .maskKeys("💩", KeyMaskingConfig.builder().maskStringCharactersWith("💩").build())
+                        .maskKeys(Set.of("💩"), KeyMaskingConfig.builder().maskStringCharactersWith("💩").build())
                         .build()
         );
 

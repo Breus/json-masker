@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class RandomJsonGenerator {
+public final class RandomJsonGenerator {
     private final RandomJsonGeneratorConfig config;
 
     private enum NodeType {
@@ -39,6 +39,10 @@ public class RandomJsonGenerator {
             random = ThreadLocalRandom.current();
         }
         return createRandomJsonNode(new Context(random), 0);
+    }
+
+    public String createRandomJsonString() {
+        return createRandomJsonNode().toPrettyString();
     }
 
     private JsonNode createRandomJsonNode(Context context, int depth) {

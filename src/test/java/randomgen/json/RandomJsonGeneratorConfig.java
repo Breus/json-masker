@@ -8,7 +8,7 @@ import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeChara
 import static randomgen.json.JsonStringCharacters.getUnicodeControlCharacters;
 import static randomgen.json.JsonStringCharacters.mergeCharSets;
 
-public class RandomJsonGeneratorConfig {
+public final class RandomJsonGeneratorConfig {
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4");
 
     private final int maxArraySize;

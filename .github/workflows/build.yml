@@ -42,22 +42,30 @@ jobs:
         name: Generate snapshot version
         shell: bash
         run: |
+          # expects git tag to be in format 'v0.1.0' or 'v0.1.0-rc1'
           version=$(git describe --tag --abbrev=0 | cut -c 2-)
-          regex="^([0-9]+).([0-9]+).([0-9]+)$"
+          regex="^([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]+)?$"
           if [[ $version =~ $regex ]]; then
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
             patch="${BASH_REMATCH[3]}"
-          
-            patch=$(($patch + 1))
-          
+            pre_release="${BASH_REMATCH[4]:-}"
+
+            # increment patch version of the latest release to create new snapshot version
+            # when pre-release - continue snapshots of the same version
+            # v0.1.0    -> 0.1.0-SNAPSHOT
+            # v0.1.0-rc -> 0.1.0-SNAPSHOT
+            if [[ -z $pre_release ]]; then
+              patch=$(($patch + 1))
+            fi
+
             snapshot_version="${major}.${minor}.${patch}"
-          
+
             if ! [[ $snapshot_version =~ $regex ]]; then
               echo "SNAPSHOT version $snapshot_version is not a valid SemVer"
               exit 1
             fi
-          
+
             echo "${snapshot_version}-SNAPSHOT"
             echo "snapshot-version=${snapshot_version}-SNAPSHOT" >> $GITHUB_OUTPUT
           else

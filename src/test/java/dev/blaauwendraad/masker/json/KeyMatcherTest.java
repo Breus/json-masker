@@ -64,7 +64,7 @@ final class KeyMatcherTest {
     void shouldReturnSpecificConfigWhenMatched() {
         JsonMaskingConfig config = JsonMaskingConfig.builder()
                 .maskKeys(Set.of("maskMe"))
-                .maskKeys("maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
+                .maskKeys(Set.of("maskMeLikeCIA"), KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
 
@@ -85,7 +85,7 @@ final class KeyMatcherTest {
     void shouldReturnMaskingConfigInAllowMode() {
         JsonMaskingConfig config = JsonMaskingConfig.builder()
                 .allowKeys(Set.of("allowMe"))
-                .maskKeys("maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
+                .maskKeys(Set.of("maskMeLikeCIA"), KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
 
@@ -133,6 +133,13 @@ final class KeyMatcherTest {
                 )
         )
                 .isNull();
+    }
+
+    @Test
+    void shouldNotMatchPrefix() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
+        assertThatConfig(keyMatcher, "mask").isNull();
+        assertThatConfig(keyMatcher, "maskMe").isNotNull();
     }
 
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {

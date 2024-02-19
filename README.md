@@ -1,11 +1,11 @@
 # High-performance JSON masker
 
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
-[!![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
-[!![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[!![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[!![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[!![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
+[![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
 JSON masker library which can be used to mask strings and numbers inside JSON objects and arrays, corresponding to a set of target keys.
 Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the (allowed) target keys.
@@ -16,13 +16,13 @@ No additional third-party runtime dependencies are required to use this library.
 
 ## Features
 
-* Mask ***strings*** in any JSON structure that correspond to a configured target key (default)
-* Mask all values in ***(nested) JSON arrays*** that correspond to a configured target key (default)
-* Maks all values in ***(nested) JSON objects*** that correspond to a configured target key (default)
-* Mask ***numbers*** in any JSON structure that correspond to a configured target key (optional)
-* ***Obfuscate*** the original length of the masked value by using a fixed-length mask (optional)
-* Target key ***case sensitivity configuration*** (default: `false`)
-* ***Block-list*** (`masked`) or ***allow-list*** (`allowed`) interpretation of target key set (default: `masked`)
+* Mask **strings** in any JSON structure that correspond to a configured target key (default)
+* Mask all values in **(nested) JSON arrays** that correspond to a configured target key (default)
+* Maks all values in **(nested) JSON objects** that correspond to a configured target key (default)
+* Mask **numbers** in any JSON structure that correspond to a configured target key (optional)
+* **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
+* Target key **case sensitivity configuration** (default: `false`)
+* **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
 * Masking valid JSON will always result in valid JSON
 * The implementation only supports JSON in UTF-8 character encoding
 
@@ -115,19 +115,21 @@ Example showing an allow-list based approach of masking JSON where additionally 
 
 #### Usage
 
+```java
 String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
-Set.of("customerId"),
-JsonMaskingConfig.TargetKeyMode.ALLOW
+        Set.of("customerId"),
+        JsonMaskingConfig.TargetKeyMode.ALLOW
 ).maskNumberValuesWith(8).build()).mask(input);
+```
 
 #### Output
 ```json
 {
     "customerId": "123 789 456",
     "customerDetails": {
-        "firstName": "*******",
-        "lastName": "**********************",
-        "email": "*********************************************",
+        "firstName": "*****",
+        "lastName": "**************",
+        "email": "***************************",
         "age": 88
     }
 }
@@ -135,7 +137,7 @@ JsonMaskingConfig.TargetKeyMode.ALLOW
 
 ## Dependencies
 
-* ***The library has no third-party runtime dependencies***
+* **The library has no third-party runtime dependencies**
 * The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
 

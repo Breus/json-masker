@@ -119,13 +119,15 @@ public final class JsonMaskingConfig {
 
     @Override
     public String toString() {
-        return "JsonMaskingConfig{" +
-               "targetKeys=" + targetKeys +
-               ", targetKeyMode=" + targetKeyMode +
-               ", caseSensitiveTargetKeys=" + caseSensitiveTargetKeys +
-               ", defaultConfig=" + defaultConfig +
-               ", targetKeyConfigs=" + targetKeyConfigs +
-               '}';
+        return """
+                JsonMaskingConfig{
+                targetKeys=%s,
+                targetKeyMode=%s,
+                caseSensitiveTargetKeys=%s,
+                defaultConfig=%s,
+                targetKeyConfigs=%s
+                }"""
+                .formatted(targetKeys, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
     /**

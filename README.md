@@ -1,11 +1,11 @@
-image:https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml[GitHub Workflow Status (with event),link="https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster"]
-image:https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker[Maven Central,link="https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker"]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status[Sonar Quality Gate,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage[Sonar Coverage,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating[Sonar Reliability,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
-image:https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating[Sonar Security,link="https://sonarcloud.io/project/overview?id=Breus_json-masker"]
+# High-performance JSON masker
 
-= High-performance JSON masker
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
+[![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
 JSON masker library which can be used to mask strings and numbers inside JSON objects and arrays, corresponding to a set of target keys.
 Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the (allowed) target keys.
@@ -14,28 +14,27 @@ The library provides a convenient API and its implementation is focused on maxim
 
 No additional third-party runtime dependencies are required to use this library.
 
-== Features
+## Features
 
-- Mask **strings** in any JSON structure that correspond to a configured target key (default)
-- Mask all values in **(nested) JSON arrays** that correspond to a configured target key (default)
-- Maks all values in **(nested) JSON objects** that correspond to a configured target key (default)
-- Mask **numbers** in any JSON structure that correspond to a configured target key (optional)
-- **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
-- Target key **case sensitivity configuration** (default: `false`)
-- **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
-- Masking valid JSON will always result in valid JSON
-- The implementation only supports JSON in UTF-8 character encoding
+* Mask **strings** in any JSON structure that correspond to a configured target key (default)
+* Mask all values in **(nested) JSON arrays** that correspond to a configured target key (default)
+* Maks all values in **(nested) JSON objects** that correspond to a configured target key (default)
+* Mask **numbers** in any JSON structure that correspond to a configured target key (optional)
+* **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
+* Target key **case sensitivity configuration** (default: `false`)
+* **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
+* Masking valid JSON will always result in valid JSON
+* The implementation only supports JSON in UTF-8 character encoding
 
-== Usage examples
+## Usage examples
 
-=== Default JSON masking
+### Default JSON masking
 
 Example showing masking certain specific JSON properties containing personal identifiable information (PII) in the message.
 
-==== Input
+#### Input
 
-[source,json]
-----
+```json
 {
     "orderId": "789 123 456",
     "customerDetails": {
@@ -44,19 +43,17 @@ Example showing masking certain specific JSON properties containing personal ide
         "iban": "NL91 FAKE 0417 1643 00"
     }
 }
-----
+```
 
-==== Usage
+#### Usage
 
-[source,java]
-----
+```java
 String output = JsonMasker.getMasker(Set.of("email", "iban")).mask(input);
-----
+```
 
-==== Output
+#### Output
 
-[source,json]
-----
+```json
 {
     "orderId": "789 123 456",
     "customerDetails": {
@@ -65,50 +62,46 @@ String output = JsonMasker.getMasker(Set.of("email", "iban")).mask(input);
         "iban": "**********************"
     }
 }
-----
+```
 
-=== Masking with length obfuscation
+### Masking with length obfuscation
 
 Example showing masking where the original length of the masked value is obfuscated besides the value being masked.
 
-==== Input
+#### Input
 
-[source,json]
-----
+```json
 {
     "sessionId": "123_456_789_098",
     "clientPin": "234654"
 }
-----
+```
 
-==== Usage
+#### Usage
 
-[source,java]
-----
+```java
 String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
         Set.of("clientPin"),
         JsonMaskingConfig.TargetKeyMode.MASK
 ).obfuscationLength(3).build()).mask(input);
-----
+```
 
-==== Output
+#### Output
 
-[source,json]
-----
+```json
 {
     "sessionId": "123_456_789_098",
     "clientPin": "***"
 }
 
-----
+```
 
-=== Allow-list approach and number masking
+### Allow-list approach and number masking
 
 Example showing an allow-list based approach of masking JSON where additionally all numbers are masked by replacing them with an '8'.
 
-==== Input
-
-[source,json]
+#### Input
+```json
 {
     "customerId": "123 789 456",
     "customerDetails": {
@@ -118,18 +111,19 @@ Example showing an allow-list based approach of masking JSON where additionally 
         "age": 37
     }
 }
+```
 
-==== Usage
+#### Usage
 
-[source,java]
+```java
 String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
         Set.of("customerId"),
         JsonMaskingConfig.TargetKeyMode.ALLOW
 ).maskNumberValuesWith(8).build()).mask(input);
+```
 
-==== Output
-
-[source,json]
+#### Output
+```json
 {
     "customerId": "123 789 456",
     "customerDetails": {
@@ -139,14 +133,15 @@ String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
         "age": 88
     }
 }
+```
 
-== Dependencies
+## Dependencies
 
 * **The library has no third-party runtime dependencies**
 * The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
 
-== Performance considerations
+## Performance considerations
 
 The library uses an algorithm that looks for a JSON key and checks whether the target key set contains this key in constant time.
 Hence, the time complexity of this algorithm scales only linear in the message input length.
@@ -154,10 +149,9 @@ Additionally, the target key set size has negligible impact on the performance.
 
 The algorithm makes use of the heap and resizing the original byte array is done at most once per run.
 
-== Benchmarks
+## Benchmarks
 
-[source]
-----
+```text
 Benchmark                              (characters)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score  Units
 BaselineBenchmark.countBytes                unicode         1kb                    0.01  thrpt       3315041,920  ops/s
 BaselineBenchmark.jacksonParseAndMask       unicode         1kb                    0.01  thrpt         16054,766  ops/s
@@ -170,7 +164,4 @@ BaselineBenchmark.jacksonParseAndMask       unicode         2mb                 
 BaselineBenchmark.regexReplace              unicode         2mb                    0.01  thrpt             3,745  ops/s
 JsonMaskerBenchmark.jsonMaskerBytes         unicode         2mb                    0.01  thrpt           304,560  ops/s
 JsonMaskerBenchmark.jsonMaskerString        unicode         2mb                    0.01  thrpt           129,351  ops/s
-----
-
-For full benchmark results and additional details see link:src/jmh/benchmark-history[benchmark-history]
-
+```

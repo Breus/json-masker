@@ -1,25 +1,22 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.assertj.core.api.Assertions.fail;
+
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
+
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import randomgen.json.RandomJsonGenerator;
 import randomgen.json.RandomJsonGeneratorConfig;
 import randomgen.json.RandomJsonWhiteSpaceInjector;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -29,9 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.*;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
-import static org.assertj.core.api.Assertions.fail;
+import javax.annotation.Nonnull;
 
 /**
  * This class contains fuzzing tests which are meant to spot infinite loops and program failures for

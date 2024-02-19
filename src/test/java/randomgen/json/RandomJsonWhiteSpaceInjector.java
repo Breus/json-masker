@@ -1,15 +1,24 @@
 package randomgen.json;
 
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseA;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseE;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseL;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseR;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseS;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseU;
+
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.*;
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseU;
+import javax.annotation.Nonnull;
 
 public class RandomJsonWhiteSpaceInjector {
     private final byte[] originalJsonBytes;
@@ -81,8 +90,8 @@ public class RandomJsonWhiteSpaceInjector {
     }
 
     /**
-     * Checks whether a whitespace can injected before the provided index in the provided JsonBytes.
-     * To keep it simple, this method is sometimes more strict than it needs to be (it returns false
+     * Checks whether a whitespace can be injected before the provided index in the provided JsonBytes.
+     * To keep it simple, this method is sometimes stricter than it needs to be (it returns false
      * while it was possible, for example in Strings). However, it will never return true if that
      * would result in invalid JSON if a whitespace would be injected before the provided index.
      *
@@ -93,19 +102,19 @@ public class RandomJsonWhiteSpaceInjector {
      *     result in valid JSON
      */
     private static boolean canInjectWhiteSpaceBeforeByteAtIndex(byte[] jsonBytes, int index) {
-        if (index < 1) {
-            throw new IllegalArgumentException(
-                    "Minimum index to check for is 1 before we won't inject whitespaces before the JSON bytes");
-        }
         byte originalJsonByte = jsonBytes[index];
-        byte previousOrignalByte = jsonBytes[index - 1];
+        Byte previousOriginalByte = null;
+        if (index > 0) {
+            previousOriginalByte = jsonBytes[index - 1];
+        }
         // Not allowed in null values
         if (isLowercaseU(originalJsonByte) || isLowercaseL(originalJsonByte)) {
             return false;
         }
         // Not allowed in numeric values
         if (AsciiJsonUtil.isNumericCharacter(originalJsonByte)
-                && AsciiJsonUtil.isNumericCharacter(previousOrignalByte)) {
+                && previousOriginalByte != null
+                && AsciiJsonUtil.isNumericCharacter(previousOriginalByte)) {
             return false;
         }
         // Not allowed in boolean values (true/false)
@@ -118,7 +127,7 @@ public class RandomJsonWhiteSpaceInjector {
             return false;
         }
         // Adding whitespaces in between escaped character and the escape character can result in invalid JSON
-        if (AsciiCharacter.isEscapeCharacter(previousOrignalByte)) {
+        if (previousOriginalByte != null && AsciiCharacter.isEscapeCharacter(previousOriginalByte)) {
             return false;
         }
         return true;

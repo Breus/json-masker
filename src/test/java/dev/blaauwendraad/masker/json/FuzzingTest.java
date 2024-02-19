@@ -1,16 +1,18 @@
 package dev.blaauwendraad.masker.json;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import randomgen.json.RandomJsonGenerator;
 import randomgen.json.RandomJsonGeneratorConfig;
-import randomgen.json.RandomJsonWhiteSpaceInjector;
 
-import javax.annotation.Nonnull;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
@@ -18,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.annotation.Nonnull;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");

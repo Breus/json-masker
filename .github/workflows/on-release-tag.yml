@@ -3,7 +3,7 @@ name: Tag & Release Workflow
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?'
 
 jobs:
   release:
@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          regex="^([0-9]+).([0-9]+).([0-9]+)$"
+          regex="^([0-9]+)\.([0-9]+)\.([0-9]+)(-[a-zA-Z0-9]+)?$"
           if [[ $version =~ $regex ]]; then
             echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
           else

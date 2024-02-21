@@ -30,7 +30,7 @@ No additional third-party runtime dependencies are required to use this library.
 * Ability to define masking strategy per key
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
-* Limited support for JsonPath masking (both **block-list** and **allow-list** modes)
+* Limited support for JsonPath masking in **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`) modes
 * Masking a valid json will always return a valid json
 * The implementation only supports json in UTF-8 character encoding
 
@@ -75,7 +75,7 @@ Using `JsonMaskingConfig` allows customizing the masking behaviour of types, key
 > [!NOTE]
 > Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively 
 > regardless of the nesting, whereas using a JsonPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only 
-> mask those key on the top level json
+> mask those keys on the top level json
 
 after creation the instance can be used to mask a json:
 ```java

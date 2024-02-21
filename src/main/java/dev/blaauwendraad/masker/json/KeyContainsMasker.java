@@ -66,7 +66,7 @@ public final class KeyContainsMasker implements JsonMasker {
          * We can start the maskingState.currentIndex() at 1 since the first character can be skipped as it is either a '{' or '['.
          * This also ensures we can safely check for unescaped double quotes (without masking JSON string values).
          */
-        MaskingState maskingState = new MaskingState(input, 1);
+        MaskingState maskingState = new MaskingState(input, 1, !maskingConfig.getTargetJsonPaths().isEmpty());
         if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndexMinusOne())) {
             maskingState.expandCurrentJsonPath();
         }

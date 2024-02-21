@@ -15,15 +15,17 @@ public final class MaskingState {
     private int currentIndex;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
+    private final boolean trackJsonPath;
 
     /**
      * Current json path is represented by a dequeue of segment references.
      */
     private final Deque<SegmentReference> currentJsonPath = new ArrayDeque<>();
 
-    public MaskingState(byte[] message, int currentIndex) {
+    public MaskingState(byte[] message, int currentIndex, boolean trackJsonPath) {
         this.message = message;
         this.currentIndex = currentIndex;
+        this.trackJsonPath = trackJsonPath;
     }
 
     public void incrementCurrentIndex() {
@@ -87,27 +89,36 @@ public final class MaskingState {
      * @param offset the length of a new segment.
      */
     public void expandCurrentJsonPath(int start, int offset) {
-        currentJsonPath.push(new SegmentReference(start, offset));
+        if (trackJsonPath) {
+            currentJsonPath.push(new SegmentReference(start, offset));
+        }
     }
 
     /**
      * Expands current jsonpath with a new array segment.
      */
     public void expandCurrentJsonPath() {
-        currentJsonPath.push(new SegmentReference(0, -1));
+        if (trackJsonPath) {
+            currentJsonPath.push(new SegmentReference(0, -1));
+        }
     }
 
     /**
      * Backtracks current jsonpath to the previous segment.
      */
     public void backtrackCurrentJsonPath() {
-        currentJsonPath.pop();
+        if (trackJsonPath) {
+            currentJsonPath.pop();
+        }
     }
 
     /**
      * Checks if the last segment of the current jsonpath is an array index.
      */
     public boolean isInArray() {
+        if (!trackJsonPath) {
+            return false;
+        }
         return !currentJsonPath.isEmpty() && currentJsonPath.peek().offset == -1;
     }
 
@@ -116,9 +127,11 @@ public final class MaskingState {
      * Throws {@link java.lang.IllegalStateException} if the last segment is not an array index.
      */
     public void incrementCurrentJsonPathArrayIndex() {
-        SegmentReference lastSegment = currentJsonPath.peek();
-        assert isInArray() && lastSegment != null;
-        lastSegment.start++;
+        if (trackJsonPath) {
+            SegmentReference lastSegment = currentJsonPath.peek();
+            assert isInArray() && lastSegment != null;
+            lastSegment.start++;
+        }
     }
 
     /**

@@ -220,8 +220,8 @@ String maskedJson = jsonMasker.mask(json);
   "customerDetails": {
     "id": 123,
     "travelPurpose": "business",
-    "email": "*******************************",
-    "iban": "**********************",
+    "email": "***",
+    "iban": "***",
     "age": 0,
     "visaApproved": false
   }

@@ -299,8 +299,8 @@ String maskedJson = jsonMasker.mask(json);
 ```
 
 > [!NOTE]
-> When defining a config for the specific key and value of that key is an object or the array, the config will apply
-> recursively to all nested keys, unless the nested key(s) has a specific masking configuration. 
+> When defining a config for the specific key and value of that key is an `object` or an `array`, the config will apply
+> recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration. 
 
 #### Input
 

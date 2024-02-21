@@ -7,8 +7,8 @@
 [![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON masker library which can be used to mask strings and numbers inside JSON objects and arrays, corresponding to a set of target keys.
-Alternatively, it can be used to mask all strings and numbers from a JSON message except the ones corresponding to the (allowed) target keys.
+JSON masker library which can be used to mask sensitive values inside json using a set of keys (**block-mode**) or,
+alternatively, allow only specific keys to be kept unmasked (**allow-mode**).
 
 The library provides a convenient API and its implementation is focused on maximum (time) performance and minimal heap allocations.
 
@@ -16,122 +16,321 @@ No additional third-party runtime dependencies are required to use this library.
 
 ## Features
 
-* Mask **strings** in any JSON structure that correspond to a configured target key (default)
-* Mask all values in **(nested) JSON arrays** that correspond to a configured target key (default)
-* Maks all values in **(nested) JSON objects** that correspond to a configured target key (default)
-* Mask **numbers** in any JSON structure that correspond to a configured target key (optional)
-* **Obfuscate** the original length of the masked value by using a fixed-length mask (optional)
+* Mask all primitive values by specifying the keys to mask, by default any `string` is masked as `"***"`, `number` as `"###"` and `boolean` as `"&&&"`
+* If value of masked key corresponds to an `object`, all nested fields, including nested arrays and objects) will be masked recursively
+* If value of masked key corresponds to an `array`, all values of the array (including nested arrays and objects) will be masked recursively
+* Ability to define different masking strategy per type
+   - **(default)** mask strings with a different string: `"maskMe": "secret"` -> `"maskMe": "***"`
+   - mask _characters_ of a string with a different character: `"maskMe": "secret"` -> `"maskMe": "*****"` (preserves length)
+   - **(default)** mask numbers with a string: `"maskMe": 12345` -> `"maskMe": "###"` (changes number type to string)
+   - mask numbers with a different number: `"maskMe": 12345` -> `"maskMe": 0` (preserves number type)
+   - mask _digits_ of a number with a different digit: `"maskMe": 12345` -> `"maskMe": 88888` (preserves number type and length)
+   - **(default)** mask booleans with a string: `"maskMe": true` -> `"maskMe": "&&&"` (changes boolean type to string)
+   - mask booleans with a different boolean: `"maskMe": true` -> `"maskMe": false` (preserves boolean type)
+* Ability to define masking strategy per key
 * Target key **case sensitivity configuration** (default: `false`)
-* **Block-list** (`masked`) or **allow-list** (`allowed`) interpretation of target key set (default: `masked`)
-* Masking valid JSON will always result in valid JSON
-* The implementation only supports JSON in UTF-8 character encoding
+* Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
+* Limited support for JsonPath masking (both **block-list** and **allow-list** modes)
+* Masking a valid json will always return a valid json
+* The implementation only supports json in UTF-8 character encoding
 
 ## Usage examples
 
+`JsonMasker` instance can be created using of of the following factory methods:
+```java
+// block-mode, default config
+var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban"));
+
+// block-mode, default config (using a builder)
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "iban"))
+                .build()
+);
+
+// block-mode, json path
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskJsonPaths(Set.of("$.email", "$.nested.iban"))
+                .build()
+);
+
+// allow-mode, default config
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .allowKeys(Set.of("id", "name"))
+                .build()
+);
+
+// allow-mode, json path
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskJsonPaths(Set.of("$.id", "$.nested.name"))
+                .build()
+);
+```
+
+Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or json path or mix keys and json paths.
+
+> [!NOTE]
+> Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively 
+> regardless of the nesting, whereas using a JsonPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only 
+> mask those key on the top level json
+
+after creation the instance can be used to mask a json:
+```java
+String maskedJson = jsonMasker.mask(json);
+```
+
+The `mask` method is thread-safe and it is advised to reuse the `JsonMasker` instance as it pre-processes the
+masking (allowed) keys for faster lookup during the actual masking.  
+
 ### Default JSON masking
 
-Example showing masking certain specific JSON properties containing personal identifiable information (PII) in the message.
+Example of masking fields (block-mode) with a default config
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban", "age", "visaApproved"));
+
+String maskedJson = jsonMasker.mask(json);
+```
 
 #### Input
 
 ```json
 {
-    "orderId": "789 123 456",
-    "customerDetails": {
-        "id": "123 789 456",
-        "email": "some-customer-email@example.com",
-        "iban": "NL91 FAKE 0417 1643 00"
-    }
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
 }
-```
-
-#### Usage
-
-```java
-String output = JsonMasker.getMasker(Set.of("email", "iban")).mask(input);
 ```
 
 #### Output
 
 ```json
 {
-    "orderId": "789 123 456",
-    "customerDetails": {
-        "id": "123 789 456",
-        "email": "*******************************",
-        "iban": "**********************"
-    }
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "***",
+    "iban": "***",
+    "age": "###",
+    "visaApproved": "&&&"
+  }
 }
 ```
 
-### Masking with length obfuscation
+### Allow-list approach
 
-Example showing masking where the original length of the masked value is obfuscated besides the value being masked.
+Example showing an allow-list based approach of masking a json.
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .allowKeys(Set.of("orderId", "id", "travelPurpose"))
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
 
 #### Input
 
 ```json
 {
-    "sessionId": "123_456_789_098",
-    "clientPin": "234654"
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
 }
-```
-
-#### Usage
-
-```java
-String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
-        Set.of("clientPin"),
-        JsonMaskingConfig.TargetKeyMode.MASK
-).obfuscationLength(3).build()).mask(input);
 ```
 
 #### Output
 
 ```json
 {
-    "sessionId": "123_456_789_098",
-    "clientPin": "***"
-}
-
-```
-
-### Allow-list approach and number masking
-
-Example showing an allow-list based approach of masking JSON where additionally all numbers are masked by replacing them with an '8'.
-
-#### Input
-```json
-{
-    "customerId": "123 789 456",
-    "customerDetails": {
-        "firstName": "Breus",
-        "lastName": "Blaauwendraad",
-        "email": "some-fake-email@example.com",
-        "age": 37
-    }
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "***",
+    "iban": "***",
+    "age": "###",
+    "visaApproved": "&&&"
+  }
 }
 ```
+
+### Masking with preserving the type
+
+The following configuration might be useful where the value must be masked, but the type needs to be preserved, so that
+the resulting json can be parsed again or if the strict json schema is required.
 
 #### Usage
 
 ```java
-String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
-        Set.of("customerId"),
-        JsonMaskingConfig.TargetKeyMode.ALLOW
-).maskNumberValuesWith(8).build()).mask(input);
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskNumbersWith(0)
+                .maskBooleansWith(false)
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+#### Input
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
+}
 ```
 
 #### Output
+
 ```json
 {
-    "customerId": "123 789 456",
-    "customerDetails": {
-        "firstName": "*****",
-        "lastName": "**************",
-        "email": "***************************",
-        "age": 88
-    }
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "*******************************",
+    "iban": "**********************",
+    "age": 0,
+    "visaApproved": false
+  }
+}
+```
+
+### Masking with preserving the length
+
+Example showing masking where the length of the original value (`string` or `number`) is preserved.
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskStringCharactersWith("*")
+                .maskNumberDigitsWith(8)
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+#### Input
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
+}
+```
+
+#### Output
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "*******************************",
+    "iban": "**********************",
+    "age": 88,
+    "visaApproved": "&&&"
+  }
+}
+```
+
+### Masking with using a per-key masking configuration
+
+When using a `JsonMaskingConfig` you can also define a per-key masking configuration, which allows to customize the way
+certain values are masked.
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "age", "visaApproved"))
+                .maskKeys(Set.of("iban"), KeyMaskingConfig.builder()
+                        .maskStringCharactersWith("*")
+                        .build())
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+> [!NOTE]
+> When defining a config for the specific key and value of that key is an object or the array, the config will apply
+> recursively to all nested keys, unless the nested key(s) has a specific masking configuration. 
+
+#### Input
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
+}
+```
+
+#### Output
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "***",
+    "iban": "**********************",
+    "age": "###",
+    "visaApproved": "&&&"
+  }
 }
 ```
 
@@ -141,27 +340,24 @@ String output = JsonMasker.getMasker(JsonMaskingConfig.custom(
 * The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
 
-## Performance considerations
+## Performance
 
-The library uses an algorithm that looks for a JSON key and checks whether the target key set contains this key in constant time.
-Hence, the time complexity of this algorithm scales only linear in the message input length.
-Additionally, the target key set size has negligible impact on the performance.
+The `json-masker` library is optimized for a fast key lookup that scales well with a large key set to mask (or allow).
+The input is only scanned once and avoid allocations whenever possible.
 
-The algorithm makes use of the heap and resizing the original byte array is done at most once per run.
+### Benchmarks
 
-## Benchmarks
+For benchmarks we compare against couple of baseline benchmarks: counting bytes without masking, using jackson to parse
+a json into `JsonNode` and iterate over replacing all the keys and naive regex replace. Generally our implementation 
+is ~15-25 times faster than using jackson.
 
 ```text
-Benchmark                              (characters)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score  Units
-BaselineBenchmark.countBytes                unicode         1kb                    0.01  thrpt       3315041,920  ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         1kb                    0.01  thrpt         16054,766  ops/s
-BaselineBenchmark.regexReplace              unicode         1kb                    0.01  thrpt         10196,652  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode         1kb                    0.01  thrpt        801846,357  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode         1kb                    0.01  thrpt        372591,315  ops/s
-
-BaselineBenchmark.countBytes                unicode         2mb                    0.01  thrpt          1497,087  ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         2mb                    0.01  thrpt             5,798  ops/s
-BaselineBenchmark.regexReplace              unicode         2mb                    0.01  thrpt             3,745  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode         2mb                    0.01  thrpt           304,560  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode         2mb                    0.01  thrpt           129,351  ops/s
+Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt     Score   Error  Units
+BaselineBenchmark.countBytes                unicode         N/A         2mb                    0.01  thrpt    2  1525.281          ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         N/A         2mb                    0.01  thrpt    2     3.353          ops/s
+BaselineBenchmark.regexReplace              unicode         N/A         2mb                    0.01  thrpt    2     2.684          ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         2mb                    0.01  thrpt    2    79.309          ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         2mb                    0.01  thrpt    2    80.745          ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode       false         2mb                    0.01  thrpt    2    48.488          ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode        true         2mb                    0.01  thrpt    2    49.345          ops/s
 ```

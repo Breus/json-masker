@@ -121,10 +121,9 @@ signing {
 }
 
 jmh {
+    fun listOfProperty(vararg values: String) = rootProject.objects.listProperty<String>().value(values.toList())
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
-        fun listOfProperty(vararg values: String) = rootProject.objects.listProperty<String>().value(values.toList())
-
         benchmarkParameters = mapOf(
             "jsonSize" to listOfProperty("2mb"),
             "maskedKeyProbability" to listOfProperty("0.01"),
@@ -134,8 +133,12 @@ jmh {
 
         iterations = 2
     }
-    // if you have async profiler installed, you can uncomment this to get a flamegraphs
-    // profilers = ["async:libPath=<path-to-async-profiler>/build/libasyncProfiler.so;output=flamegraph;dir=profile-results"]
+    // if you have async profiler installed, you can provide it to generate flamegraphs
+    // ./gradlew jmh -PjmhAsyncProfilerLibPath=/workspace/async-profiler/lib/libasyncProfiler.so (for MacOS - libasyncProfiler.dylib)
+    // the results will be stored in build/results/jmh/async-profiler and can be opened in IDEA or Java Flight Recorder
+    if (project.hasProperty("jmhAsyncProfilerLibPath")) {
+        profilers = listOfProperty("async:libPath=${project.property("jmhAsyncProfilerLibPath")};output=jfr;dir=build/results/jmh/async-profiler")
+    }
 }
 
 sonar {

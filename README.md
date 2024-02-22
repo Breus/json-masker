@@ -22,8 +22,8 @@ Finally, no additional third-party runtime dependencies are required to use this
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
   be masked, recursively
-* If the value of a targeted key corresponds to an `array`, all values of the array, including nested arrays and objects
-  , will be masked, recursively
+* If the value of a targeted key corresponds to an `array`, all values of the array, including nested arrays and
+  objects, will be masked, recursively
 * Ability to define different masking strategies, per value type
     - **(default)** mask strings with a different string: `"maskMe": "secret"` -> `"maskMe": "***"`
     - mask _characters_ of a string with a different character: `"maskMe": "secret"` -> `"maskMe": "*****"` (preserves
@@ -615,7 +615,7 @@ The input is only scanned once and memory allocations are avoided whenever possi
 For benchmarking, we compare the implementation against multiple baseline benchmarks, which are:
 - Counting the bytes of the JSON message without doing any other operation
 - Using Jackson to parse a JSON message into `JsonNode` and masking it by iterating over and replacing all values 
-  corresponding to the targeted  keys
+  corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
 Generally our implementation is ~15-25 times faster than using Jackson (besides the additional benefits of no

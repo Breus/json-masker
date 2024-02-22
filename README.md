@@ -36,7 +36,7 @@ No additional third-party runtime dependencies are required to use this library.
 
 ## Usage examples
 
-`JsonMasker` instance can be created using of of the following factory methods:
+`JsonMasker` instance can be created using any of the following factory methods:
 ```java
 // block-mode, default config
 var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban"));
@@ -177,6 +177,57 @@ String maskedJson = jsonMasker.mask(json);
 }
 ```
 
+### Overriding default masks
+
+The default masks can be overridden for any type.
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskStringsWith("[redacted]")
+                .maskNumbersWith("[redacted]")
+                .maskBooleansWith("[redacted]")
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+#### Input
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "iban": "NL91 FAKE 0417 1643 00",
+    "age": 29,
+    "visaApproved": true
+  }
+}
+```
+
+#### Output
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 123,
+    "travelPurpose": "business",
+    "email": "[redacted]",
+    "iban": "[redacted]",
+    "age": "[redacted]",
+    "visaApproved": "[redacted]"
+  }
+}
+```
+
 ### Masking with preserving the type
 
 The following configuration might be useful where the value must be masked, but the type needs to be preserved, so that
@@ -300,7 +351,9 @@ String maskedJson = jsonMasker.mask(json);
 
 > [!NOTE]
 > When defining a config for the specific key and value of that key is an `object` or an `array`, the config will apply
-> recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration. 
+> recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration.
+>
+> When config is attached to a JsonPath, then that will have a precedence over a regular key.
 
 #### Input
 

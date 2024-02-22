@@ -120,10 +120,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -152,10 +149,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "***",
-      "age": "###",
-      "visaApproved": "&&&"
+      "email": "***"
     }
   ]
 }
@@ -200,10 +194,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -232,10 +223,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "***",
-      "age": "###",
-      "visaApproved": "&&&"
+      "email": "***"
     }
   ]
 }
@@ -283,10 +271,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -315,10 +300,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "[redacted]",
-      "age": "[redacted]",
-      "visaApproved": "[redacted]"
+      "email": "[redacted]"
     }
   ]
 }
@@ -369,10 +351,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -401,10 +380,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -452,10 +428,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -484,10 +457,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "***",
-      "age": 0,
-      "visaApproved": false
+      "email": "***"
     }
   ]
 }
@@ -534,10 +504,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -566,10 +533,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "********************************",
-      "age": 88,
-      "visaApproved": "&&&"
+      "email": "********************************"
     }
   ]
 }
@@ -624,10 +588,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "some-companion-email@example.com",
-      "age": 32,
-      "visaApproved": true
+      "email": "some-companion-email@example.com"
     }
   ]
 }
@@ -656,10 +617,7 @@ String maskedJson = jsonMasker.mask(json);
   },
   "companions": [
     {
-      "id": 2,
-      "email": "***",
-      "age": "###",
-      "visaApproved": "&&&"
+      "email": "***"
     }
   ]
 }

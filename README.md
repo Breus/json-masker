@@ -551,7 +551,7 @@ String maskedJson = jsonMasker.mask(json);
 > When defining a config for the specific key and value of that key is an `object` or an `array`, the config will apply
 > recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration.
 >
-> If config is attached to a JsonPath it will have a precedence over a regular key.
+> If config is attached to a JsonPath it has a precedence over a regular key.
 
 #### Input
 

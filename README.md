@@ -113,7 +113,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -142,7 +141,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "***",
     "successful": true,
     "billingAddress": [
-      "***",
       "***",
       "***"
     ]
@@ -187,7 +185,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -216,7 +213,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "***",
     "successful": true,
     "billingAddress": [
-      "***",
       "***",
       "***"
     ]
@@ -264,7 +260,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -293,7 +288,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "[redacted]",
     "successful": true,
     "billingAddress": [
-      "[redacted]",
       "[redacted]",
       "[redacted]"
     ]
@@ -344,7 +338,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -373,7 +366,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "***",
     "successful": true,
     "billingAddress": [
-      "***",
       "***",
       "***"
     ]
@@ -421,7 +413,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -450,7 +441,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "***",
     "successful": true,
     "billingAddress": [
-      "***",
       "***",
       "***"
     ]
@@ -497,7 +487,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -526,7 +515,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "**********************",
     "successful": true,
     "billingAddress": [
-      "***************",
       "*************",
       "*****************"
     ]
@@ -581,7 +569,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "NL91 FAKE 0417 1643 00",
     "successful": true,
     "billingAddress": [
-      "Van Gogh Museum",
       "Museumplein 6",
       "1071 DJ Amsterdam"
     ]
@@ -610,7 +597,6 @@ String maskedJson = jsonMasker.mask(json);
     "iban": "**********************",
     "successful": true,
     "billingAddress": [
-      "***",
       "***",
       "***"
     ]

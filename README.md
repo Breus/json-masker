@@ -7,36 +7,53 @@
 [![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON masker library which can be used to mask sensitive values inside json using a set of keys (**block-mode**) or,
-alternatively, allow only specific keys to be kept unmasked (**allow-mode**).
+JSON masker library which can be used to mask sensitive values inside JSON corresponding to a set of keys (**block-mode**) 
+or, alternatively, allow only specific values to be unmasked corresponding to a set of keys while all others are
+masked (**allow-mode**).
 
-The library provides a convenient API and its implementation is focused on maximum (time) performance and minimal heap allocations.
+The library provides a modern and convenient Java API which offers a wide range of masking customizations. 
+Furthermore, the implementation is focused on maximum (time) performance and minimal heap allocations.
 
-No additional third-party runtime dependencies are required to use this library.
+Finally, no additional third-party runtime dependencies are required to use this library.
 
 ## Features
 
-* Mask all primitive values by specifying the keys to mask, by default any `string` is masked as `"***"`, `number` as `"###"` and `boolean` as `"&&&"`
-* If value of masked key corresponds to an `object`, all nested fields, including nested arrays and objects) will be masked recursively
-* If value of masked key corresponds to an `array`, all values of the array (including nested arrays and objects) will be masked recursively
-* Ability to define different masking strategy per type
-   - **(default)** mask strings with a different string: `"maskMe": "secret"` -> `"maskMe": "***"`
-   - mask _characters_ of a string with a different character: `"maskMe": "secret"` -> `"maskMe": "*****"` (preserves length)
-   - **(default)** mask numbers with a string: `"maskMe": 12345` -> `"maskMe": "###"` (changes number type to string)
-   - mask numbers with a different number: `"maskMe": 12345` -> `"maskMe": 0` (preserves number type)
-   - mask _digits_ of a number with a different digit: `"maskMe": 12345` -> `"maskMe": 88888` (preserves number type and length)
-   - **(default)** mask booleans with a string: `"maskMe": true` -> `"maskMe": "&&&"` (changes boolean type to string)
-   - mask booleans with a different boolean: `"maskMe": true` -> `"maskMe": false` (preserves boolean type)
+* Mask all primitive values by specifying the keys to mask, by default any `string` is masked as `"***"`, any `number`
+  as `"###"` and any `boolean` as `"&&&"`
+* If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
+  be masked, recursively
+* If the value of a targeted key corresponds to an `array`, all values of the array, including nested arrays and objects
+  , will be masked, recursively
+* Ability to define different masking strategies, per value type
+    - **(default)** mask strings with a different string: `"maskMe": "secret"` -> `"maskMe": "***"`
+    - mask _characters_ of a string with a different character: `"maskMe": "secret"` -> `"maskMe": "*****"` (preserves
+      length)
+    - **(default)** mask numbers with a string: `"maskMe": 12345` -> `"maskMe": "###"` (changes number type to string)
+    - mask numbers with a different number: `"maskMe": 12345` -> `"maskMe": 0` (preserves number type)
+    - mask _digits_ of a number with a different digit: `"maskMe": 12345` -> `"maskMe": 88888` (preserves number type
+      and length)
+    - **(default)** mask booleans with a string: `"maskMe": true` -> `"maskMe": "&&&"` (changes boolean type to string)
+    - mask booleans with a different boolean: `"maskMe": true` -> `"maskMe": false` (preserves boolean type)
 * Ability to define masking strategy per key
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
 * Limited support for JsonPath masking in **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`) modes
-* Masking a valid json will always return a valid json
-* The implementation only supports json in UTF-8 character encoding
+* Masking a valid JSON will always return a valid JSON 
+
+Note: Since [RFC-8529](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
+are not part of an enclosed system MUST be encoded using UTF-8, the library only support UTF-8 encoding.
+
+
+## JDK Compatibility
+
+The `json-masker` baseline JDK requirement is JDK 17. However, we would be open to add a version which lowers this 
+requirement to JDK 11, on request.
+
 
 ## Usage examples
 
 `JsonMasker` instance can be created using any of the following factory methods:
+
 ```java
 // block-mode, default config
 var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban"));
@@ -48,7 +65,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// block-mode, json path
+// block-mode, JSON path
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.email", "$.nested.iban"))
@@ -62,7 +79,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// allow-mode, json path
+// allow-mode, JSON path
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.id", "$.nested.name"))
@@ -70,20 +87,22 @@ var jsonMasker = JsonMasker.getMasker(
 );
 ```
 
-Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or json path or mix keys and json paths.
+Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSON path or mix keys and JSON
+paths.
 
 > [!NOTE]
-> Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively 
-> regardless of the nesting, whereas using a JsonPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only 
-> mask those keys on the top level json
+> Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively
+> regardless of the nesting, whereas using a JsonPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only
+> mask those keys on the top level JSON
 
-after creation the instance can be used to mask a json:
+After creating the `JsonMasker` instance, it can be used to mask a JSON as following:
+
 ```java
 String maskedJson = jsonMasker.mask(json);
 ```
 
-The `mask` method is thread-safe and it is advised to reuse the `JsonMasker` instance as it pre-processes the
-masking (allowed) keys for faster lookup during the actual masking.  
+The `mask` method is thread-safe, and it is advised to reuse the `JsonMasker` instance as it pre-processes the
+masking (allowed) keys for faster lookup during the actual masking.
 
 ### Default JSON masking
 
@@ -155,7 +174,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ### Allow-list approach
 
-Example showing an allow-list based approach of masking a json.
+Example showing an allow-list based approach of masking a JSON.
 
 #### Usage
 
@@ -381,7 +400,7 @@ String maskedJson = jsonMasker.mask(json);
 ### Masking with preserving the type
 
 The following configuration might be useful where the value must be masked, but the type needs to be preserved, so that
-the resulting json can be parsed again or if the strict json schema is required.
+the resulting JSON can be parsed again or if the strict JSON schema is required.
 
 #### Usage
 
@@ -610,7 +629,6 @@ String maskedJson = jsonMasker.mask(json);
 ```
 
 ## Dependencies
-
 * **The library has no third-party runtime dependencies**
 * The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
@@ -618,13 +636,18 @@ String maskedJson = jsonMasker.mask(json);
 ## Performance
 
 The `json-masker` library is optimized for a fast key lookup that scales well with a large key set to mask (or allow).
-The input is only scanned once and avoid allocations whenever possible.
+The input is only scanned once and avoids allocations whenever possible.
 
 ### Benchmarks
 
-For benchmarks we compare against couple of baseline benchmarks: counting bytes without masking, using jackson to parse
-a json into `JsonNode` and iterate over replacing all the keys and naive regex replace. Generally our implementation 
-is ~15-25 times faster than using jackson.
+For benchmarking, we compare the implementation against multiple baseline benchmarks, which are:
+- Counting the bytes of the JSON message without doing any other operation
+- Using Jackson to parse a JSON message into `JsonNode` and masking it by iterating over and replacing all values 
+  corresponding to the targeted  keys
+- A naive regex masking (replacement) implementation.
+
+Generally our implementation is ~15-25 times faster than using Jackson (besides the additional benefits of no
+runtime dependencies and a convenient API out-of-the-box).
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt     Score   Error  Units

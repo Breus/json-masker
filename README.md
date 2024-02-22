@@ -585,7 +585,7 @@ certain values are masked.
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("email", "age", "visaApproved"))
+                .maskKeys(Set.of("email", "age", "visaApproved", "billingAddress"))
                 .maskKeys(Set.of("iban"), KeyMaskingConfig.builder()
                         .maskStringCharactersWith("*")
                         .build())

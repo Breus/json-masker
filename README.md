@@ -636,7 +636,7 @@ String maskedJson = jsonMasker.mask(json);
 ## Performance
 
 The `json-masker` library is optimized for a fast key lookup that scales well with a large key set to mask (or allow).
-The input is only scanned once and avoids allocations whenever possible.
+The input is only scanned once and memory allocations are avoided whenever possible.
 
 ### Benchmarks
 

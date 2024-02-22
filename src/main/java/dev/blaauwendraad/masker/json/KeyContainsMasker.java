@@ -24,9 +24,9 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static final int MIN_OFFSET_JSON_KEY_QUOTE = 3;
     /**
-     * Minimum JSON for which masking could be required is: {"":""}, so minimum length at least 7 bytes.
+     * Minimum JSON for which masking could be required is: {"":1}, so minimum length at least 6 bytes.
      */
-    private static final int MIN_MASKABLE_JSON_LENGTH = 7;
+    private static final int MIN_MASKABLE_JSON_LENGTH = 6;
     /**
      * Look-up trie containing the target keys.
      */

@@ -44,6 +44,32 @@
         }
       ]
     }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        ""
+      ]
+    },
+    "input": {
+      "": 1
+    },
+    "expectedOutput": {
+      "": "###"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        ""
+      ]
+    },
+    "input": {
+      "": true
+    },
+    "expectedOutput": {
+      "": "&&&"
+    }
   }
 ]
 

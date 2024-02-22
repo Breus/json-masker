@@ -55,31 +55,31 @@ requirement to JDK 11, on request.
 `JsonMasker` instance can be created using any of the following factory methods:
 
 ```java
-// block-mode, default config
+// block-mode, default masking config
 var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban"));
 
-// block-mode, default config (using a builder)
+// block-mode, default masking config (using a builder)
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskKeys(Set.of("email", "iban"))
                 .build()
 );
 
-// block-mode, JSON path
+// block-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.email", "$.nested.iban"))
                 .build()
 );
 
-// allow-mode, default config
+// allow-mode, default masking config
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .allowKeys(Set.of("id", "name"))
                 .build()
 );
 
-// allow-mode, JSON path
+// allow-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.id", "$.nested.name"))
@@ -87,7 +87,7 @@ var jsonMasker = JsonMasker.getMasker(
 );
 ```
 
-Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSON path or mix keys and JSON
+Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSONPath or mix keys and JSON
 paths.
 
 > [!NOTE]
@@ -136,11 +136,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -164,11 +162,9 @@ String maskedJson = jsonMasker.mask(json);
       "***"
     ]
   },
-  "companions": [
-    {
-      "email": "***"
-    }
-  ]
+  "companyContact": {
+    "email": "***"
+  }
 }
 ```
 
@@ -208,11 +204,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -236,11 +230,9 @@ String maskedJson = jsonMasker.mask(json);
       "***"
     ]
   },
-  "companions": [
-    {
-      "email": "***"
-    }
-  ]
+  "companyContact": {
+    "email": "***"
+  }
 }
 ```
 
@@ -283,11 +275,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -311,11 +301,9 @@ String maskedJson = jsonMasker.mask(json);
       "[redacted]"
     ]
   },
-  "companions": [
-    {
-      "email": "[redacted]"
-    }
-  ]
+  "companyContact": {
+    "email": "[redacted]"
+  }
 }
 ```
 
@@ -361,11 +349,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -389,11 +375,9 @@ String maskedJson = jsonMasker.mask(json);
       "***"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -436,11 +420,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -464,11 +446,9 @@ String maskedJson = jsonMasker.mask(json);
       "***"
     ]
   },
-  "companions": [
-    {
-      "email": "***"
-    }
-  ]
+  "companyContact": {
+    "email": "***"
+  }
 }
 ```
 
@@ -510,11 +490,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -538,11 +516,9 @@ String maskedJson = jsonMasker.mask(json);
       "*****************"
     ]
   },
-  "companions": [
-    {
-      "email": "********************************"
-    }
-  ]
+  "companyContact": {
+    "email": "*************"
+  }
 }
 ```
 
@@ -592,11 +568,9 @@ String maskedJson = jsonMasker.mask(json);
       "1071 DJ Amsterdam"
     ]
   },
-  "companions": [
-    {
-      "email": "some-companion-email@example.com"
-    }
-  ]
+  "companyContact": {
+    "email": "info@acme.com"
+  }
 }
 ```
 
@@ -620,11 +594,9 @@ String maskedJson = jsonMasker.mask(json);
       "***"
     ]
   },
-  "companions": [
-    {
-      "email": "***"
-    }
-  ]
+  "companyContact": {
+    "email": "***"
+  }
 }
 ```
 

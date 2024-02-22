@@ -74,7 +74,9 @@ public final class KeyContainsMasker implements JsonMasker {
         while (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE) {
             // Find JSON strings by looking for unescaped double quotes
             while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
-                trackCurrentJsonPath(maskingState);
+                if (!maskingConfig.getTargetJsonPaths().isEmpty()) {
+                    trackCurrentJsonPath(maskingState);
+                }
                 if (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE - 1) {
                     maskingState.incrementCurrentIndex();
                 } else {

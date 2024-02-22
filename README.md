@@ -92,7 +92,7 @@ Example of masking fields (block-mode) with a default config
 #### Usage
 
 ```java
-var jsonMasker = JsonMasker.getMasker(Set.of("email", "iban", "age", "visaApproved"));
+var jsonMasker = JsonMasker.getMasker(Set.of("email", "age", "visaApproved", "iban", "billingAddress"));
 
 String maskedJson = jsonMasker.mask(json);
 ```
@@ -103,13 +103,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -119,13 +135,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "***",
-    "iban": "***",
     "age": "###",
     "visaApproved": "&&&"
-  }
+  },
+  "payment": {
+    "iban": "***",
+    "successful": true,
+    "billingAddress": [
+      "***",
+      "***",
+      "***"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "***",
+      "age": "###",
+      "visaApproved": "&&&"
+    }
+  ]
 }
 ```
 
@@ -138,7 +170,7 @@ Example showing an allow-list based approach of masking a json.
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .allowKeys(Set.of("orderId", "id", "travelPurpose"))
+                .allowKeys(Set.of("orderId", "id", "travelPurpose", "successful"))
                 .build()
 );
 
@@ -151,13 +183,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -167,13 +215,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "***",
-    "iban": "***",
     "age": "###",
     "visaApproved": "&&&"
-  }
+  },
+  "payment": {
+    "iban": "***",
+    "successful": true,
+    "billingAddress": [
+      "***",
+      "***",
+      "***"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "***",
+      "age": "###",
+      "visaApproved": "&&&"
+    }
+  ]
 }
 ```
 
@@ -186,7 +250,7 @@ The default masks can be overridden for any type.
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskKeys(Set.of("email", "age", "visaApproved", "iban", "billingAddress"))
                 .maskStringsWith("[redacted]")
                 .maskNumbersWith("[redacted]")
                 .maskBooleansWith("[redacted]")
@@ -202,13 +266,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -218,13 +298,115 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "[redacted]",
-    "iban": "[redacted]",
     "age": "[redacted]",
     "visaApproved": "[redacted]"
-  }
+  },
+  "payment": {
+    "iban": "[redacted]",
+    "successful": true,
+    "billingAddress": [
+      "[redacted]",
+      "[redacted]",
+      "[redacted]"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "[redacted]",
+      "age": "[redacted]",
+      "visaApproved": "[redacted]"
+    }
+  ]
+}
+```
+
+### Masking with JsonPath
+
+To have more control over the nesting, JsonPath can be used to specify the keys that needs to be masked (allowed).
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskJsonPaths(Set.of(
+                        "$.customerDetails.email",
+                        "$.customerDetails.age",
+                        "$.customerDetails.visaApproved",
+                        "$.payment.iban",
+                        "$.payment.billingAddress"
+                ))
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+#### Input
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 1,
+    "travelPurpose": "business",
+    "email": "some-customer-email@example.com",
+    "age": 29,
+    "visaApproved": true
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
+}
+```
+
+#### Output
+
+```json
+{
+  "orderId": "789 123 456",
+  "customerDetails": {
+    "id": 1,
+    "travelPurpose": "business",
+    "email": "***",
+    "age": "###",
+    "visaApproved": "&&&"
+  },
+  "payment": {
+    "iban": "***",
+    "successful": true,
+    "billingAddress": [
+      "***",
+      "***",
+      "***"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -238,7 +420,7 @@ the resulting json can be parsed again or if the strict json schema is required.
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskKeys(Set.of("email", "age", "visaApproved", "iban", "billingAddress"))
                 .maskNumbersWith(0)
                 .maskBooleansWith(false)
                 .build()
@@ -253,13 +435,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -269,13 +467,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "***",
-    "iban": "***",
     "age": 0,
     "visaApproved": false
-  }
+  },
+  "payment": {
+    "iban": "***",
+    "successful": true,
+    "billingAddress": [
+      "***",
+      "***",
+      "***"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "***",
+      "age": 0,
+      "visaApproved": false
+    }
+  ]
 }
 ```
 
@@ -288,7 +502,7 @@ Example showing masking where the length of the original value (`string` or `num
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("email", "iban", "age", "visaApproved"))
+                .maskKeys(Set.of("email", "age", "visaApproved", "iban", "billingAddress"))
                 .maskStringCharactersWith("*")
                 .maskNumberDigitsWith(8)
                 .build()
@@ -303,13 +517,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -319,13 +549,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "*******************************",
-    "iban": "**********************",
     "age": 88,
     "visaApproved": "&&&"
-  }
+  },
+  "payment": {
+    "iban": "**********************",
+    "successful": true,
+    "billingAddress": [
+      "***************",
+      "*************",
+      "*****************"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "********************************",
+      "age": 88,
+      "visaApproved": "&&&"
+    }
+  ]
 }
 ```
 
@@ -361,13 +607,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
-    "iban": "NL91 FAKE 0417 1643 00",
     "age": 29,
     "visaApproved": true
-  }
+  },
+  "payment": {
+    "iban": "NL91 FAKE 0417 1643 00",
+    "successful": true,
+    "billingAddress": [
+      "Van Gogh Museum",
+      "Museumplein 6",
+      "1071 DJ Amsterdam"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "some-companion-email@example.com",
+      "age": 32,
+      "visaApproved": true
+    }
+  ]
 }
 ```
 
@@ -377,13 +639,29 @@ String maskedJson = jsonMasker.mask(json);
 {
   "orderId": "789 123 456",
   "customerDetails": {
-    "id": 123,
+    "id": 1,
     "travelPurpose": "business",
     "email": "***",
-    "iban": "**********************",
     "age": "###",
     "visaApproved": "&&&"
-  }
+  },
+  "payment": {
+    "iban": "**********************",
+    "successful": true,
+    "billingAddress": [
+      "***",
+      "***",
+      "***"
+    ]
+  },
+  "companions": [
+    {
+      "id": 2,
+      "email": "***",
+      "age": "###",
+      "visaApproved": "&&&"
+    }
+  ]
 }
 ```
 

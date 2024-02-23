@@ -116,8 +116,8 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
-                                new MaskingState.SegmentReference(indexOf(bytes, 'b'), 1)
+                                new SegmentReference(indexOf(bytes, 'a'), 1),
+                                new SegmentReference(indexOf(bytes, 'b'), 1)
                         ).iterator()
                 )
         )
@@ -127,8 +127,8 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
-                                new MaskingState.SegmentReference(indexOf(bytes, 'c'), 1)
+                                new SegmentReference(indexOf(bytes, 'a'), 1),
+                                new SegmentReference(indexOf(bytes, 'c'), 1)
                         ).iterator()
                 )
         )

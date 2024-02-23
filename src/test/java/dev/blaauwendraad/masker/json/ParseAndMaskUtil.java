@@ -94,9 +94,28 @@ public final class ParseAndMaskUtil {
             );
         } else if (jsonNode instanceof ArrayNode arrayNode) {
             for (int i = 0; i < arrayNode.size(); i++) {
-                JsonNode originalElement = arrayNode.get(i);
-                JsonNode newElement = mask(originalElement, jsonMaskingConfig, currentJsonPath + "[" + i + "]");
-                arrayNode.set(i, newElement);
+                String jsonPathKey = currentJsonPath + "[" + i + "]";
+                String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
+                        ? jsonPathKey
+                        : jsonPathKey.toLowerCase();
+
+                if (jsonMaskingConfig.isInMaskMode()
+                        && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
+                        || jsonMaskingConfig.isInAllowMode()
+                        && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                    arrayNode.set(
+                            i,
+                            maskJsonValue(
+                                    "",
+                                    arrayNode.get(i),
+                                    jsonMaskingConfig,
+                                    casingAppliedTargetKeys
+                            )
+                    );
+                } else if (!jsonMaskingConfig.isInAllowMode()
+                        || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                    mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey);
+                }
             }
         }
         return jsonNode;

@@ -13,6 +13,16 @@
       "normalKey": "mask",
       "json": {
         "path": {
+          "misleadingPath": {
+            "key": "do not mask",
+            "empty": {  }
+          },
+          "[]": [{}],
+          "[": {
+            "]" : {
+              "{": ["}"]
+            }
+          },
           "key": "mask",
           "wrongKey": "do not mask"
         },
@@ -32,6 +42,16 @@
       "normalKey": "***",
       "json": {
         "path": {
+          "misleadingPath": {
+            "key": "do not mask",
+            "empty": {  }
+          },
+          "[]": [{}],
+          "[": {
+            "]" : {
+              "{": ["}"]
+            }
+          },
           "key": "***",
           "wrongKey": "do not mask"
         },
@@ -147,11 +167,13 @@
     "input": {
       "js": {
         "on": {
+          "empty": {},
           "path": "mask"
         }
       },
       "js.o": {
         "n": {
+          "empty": {},
           "path": "do not mask"
         }
       }
@@ -159,11 +181,13 @@
     "expectedOutput": {
       "js": {
         "on": {
+          "empty": {},
           "path": "***"
         }
       },
       "js.o": {
         "n": {
+          "empty": {},
           "path": "do not mask"
         }
       }
@@ -226,6 +250,7 @@
     },
     "input": {
       "wrongKey": null,
+      "empty": [],
       "key": {
         "nestedKey": [
           [],
@@ -241,6 +266,7 @@
     },
     "expectedOutput": {
       "wrongKey": null,
+      "empty": [],
       "key": {
         "nestedKey": [
           [],
@@ -481,6 +507,43 @@
       ],
       "normalKey": "do not mask",
       "key": "***"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.json.path.empty",
+        "$.json.path.key",
+        "$.json.empty"
+      ]
+    },
+    "input": {
+      "empty": {},
+      "json": {
+        "empty": {},
+        "path": {
+          "misleadingPath": {
+            "empty": {  },
+            "otherEmpty": {  }
+          },
+          "key": "mask",
+          "empty": {}
+        }
+      }
+    },
+    "expectedOutput": {
+      "empty": {},
+      "json": {
+        "empty": {},
+        "path": {
+          "misleadingPath": {
+            "empty": {  },
+            "otherEmpty": {  }
+          },
+          "key": "***",
+          "empty": {}
+        }
+      }
     }
   }
 ]

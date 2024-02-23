@@ -132,7 +132,7 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<MaskingState.SegmentReference> jsonPath) {
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<SegmentReference> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
             // check json path first, as it's more specific
@@ -173,6 +173,29 @@ final class KeyMatcher {
         }
     }
 
+    /**
+     * An overload of {@code dev.blaauwendraad.masker.json.KeyMatcher#getMaskConfigIfMatched(byte[], int, int, java.util.Iterator)} that does only jsonpath lookup.
+     */
+    @CheckForNull
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, Iterator<SegmentReference> jsonPath) {
+        if (maskingConfig.isInMaskMode()) {
+            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
+            if (node != null && !node.negativeMatch) {
+                return node.keyMaskingConfig;
+            }
+            return null;
+        } else {
+            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
+            if (node != null) {
+                if (node.negativeMatch) {
+                    return node.keyMaskingConfig;
+                }
+                return null;
+            }
+            return maskingConfig.getDefaultConfig();
+        }
+    }
+
     @CheckForNull
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
         if (!knownByteLengths[length]) {
@@ -196,7 +219,7 @@ final class KeyMatcher {
         return node;
     }
 
-    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
+    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<SegmentReference> jsonPath) {
         TrieNode node = root;
         node = node.children['$' + BYTE_OFFSET];
         if (node == null) {
@@ -207,9 +230,16 @@ final class KeyMatcher {
             if (node == null) {
                 return null;
             }
-            MaskingState.SegmentReference segmentReference = jsonPath.next();
+            SegmentReference segmentReference = jsonPath.next();
             int keyStartIndex = segmentReference.start;
             int keyLength = segmentReference.offset;
+            if (segmentReference.isArraySegment()) {
+                node = node.children[Character.forDigit(keyStartIndex, 10) + BYTE_OFFSET];
+                if (node == null) {
+                    return null;
+                }
+                continue;
+            }
             for (int i = keyStartIndex; i < keyStartIndex + keyLength; i++) {
                 int b = bytes[i];
                 node = node.children[b + BYTE_OFFSET];

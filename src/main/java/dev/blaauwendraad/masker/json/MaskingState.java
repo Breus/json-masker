@@ -19,7 +19,7 @@ public final class MaskingState {
     /**
      * Current json path is represented by a dequeue of segment references.
      */
-    private final Deque<SegmentReference> currentJsonPath = new ArrayDeque<>();
+    private final Deque<JsonPathSegmentReference> currentJsonPath = new ArrayDeque<>();
 
     public MaskingState(byte[] message, int currentIndex) {
         this.message = message;
@@ -86,21 +86,21 @@ public final class MaskingState {
      * @param start the index of a new segment start in <code>message</code>
      * @param offset the length of a new segment.
      */
-    public void expandCurrentJsonPath(int start, int offset) {
-        currentJsonPath.push(new SegmentReference(start, offset));
+    void expandCurrentJsonPath(int start, int offset) {
+        currentJsonPath.push(new JsonPathSegmentReference(start, offset));
     }
 
     /**
      * Expands current jsonpath with a new array segment.
      */
-    public void expandCurrentJsonPath() {
-        currentJsonPath.push(new SegmentReference(0, -1));
+    void expandCurrentJsonPath() {
+        currentJsonPath.push(new JsonPathSegmentReference(0));
     }
 
     /**
      * Backtracks current jsonpath to the previous segment.
      */
-    public void backtrackCurrentJsonPath() {
+    void backtrackCurrentJsonPath() {
         currentJsonPath.pop();
     }
 
@@ -108,23 +108,22 @@ public final class MaskingState {
      * Increments an array index in the last segment of the current jsonpath.
      * Throws {@link java.lang.IllegalStateException} if the last segment is not an array index.
      */
-    public void incrementCurrentJsonPathArrayIndex() {
-        SegmentReference lastSegment = currentJsonPath.peek();
-        assert isInArraySegment() && lastSegment != null;
-        lastSegment.start++;
+    void incrementCurrentJsonPathArrayIndex() {
+        JsonPathSegmentReference lastSegment = currentJsonPath.peek();
+        lastSegment.setOffset(lastSegment.getOffset() + 1);
     }
 
     /**
-     * Checks if the current segment of the current jsonpath is an array index.
+     * Checks if the current segment of the current jsonpath is an array segment.
      */
-    public boolean isInArraySegment() {
+    boolean isInArraySegment() {
         return !currentJsonPath.isEmpty() && currentJsonPath.peek().isArraySegment();
     }
 
     /**
      * Checks if the current segment is the root node.
      */
-    public boolean isInRootSegment() {
+    boolean isInRootSegment() {
         return currentJsonPath.isEmpty()
                 || (currentJsonPath.size() == 1 && currentJsonPath.peek().isArraySegment());
     }
@@ -132,7 +131,7 @@ public final class MaskingState {
     /**
      * Returns the iterator over the json path component references from head to tail
      */
-    public Iterator<SegmentReference> getCurrentJsonPath() {
+    Iterator<JsonPathSegmentReference> getCurrentJsonPath() {
         return currentJsonPath.descendingIterator();
     }
 

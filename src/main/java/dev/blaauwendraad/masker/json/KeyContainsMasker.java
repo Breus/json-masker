@@ -25,10 +25,6 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static final int MIN_OFFSET_JSON_KEY_QUOTE = 3;
     /**
-     * Minimum JSON for which masking could be required is: [0], so minimum length at least 3 bytes.
-     */
-    private static final int MIN_MASKABLE_JSON_LENGTH = 3;
-    /**
      * Look-up trie containing the target keys.
      */
     private final KeyMatcher keyMatcher;
@@ -57,10 +53,9 @@ public final class KeyContainsMasker implements JsonMasker {
     @Override
     public byte[] mask(byte[] input) {
         /*
-         * No masking required if input is not a JSON array or object (starting with either '{' or '['), or input is
-         * shorter than the minimal maskable JSON input.
+         * No masking required if input is not a JSON array or object (starting with either '{' or '[')
          */
-        if (!isObjectOrArray(input) || input.length < MIN_MASKABLE_JSON_LENGTH) {
+        if (!isObjectOrArray(input)) {
             return input;
         }
         /*
@@ -171,7 +166,7 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Masks the array element in place.
      *
-     * @param maskingState the masking state an index prior to the element start index
+     * @param maskingState the masking state with the index on the element prior to the element start index
      */
     private void maskArrayElementInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         maskingState.incrementCurrentIndex();
@@ -184,7 +179,7 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Masks the value in a key/value pair where the current index is on the value start
+     * Checks if the value on the current index in the <code>maskingState</code> is maskable and masks it if so and return true. Otherwise, doesn't mask and returns false.
      *
      * @param maskingState     the current masking state in which the value will be masked
      * @param keyMaskingConfig the masking configuration for the key
@@ -211,11 +206,13 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Checks if the current byte changes the current json path. If so, updates current json path.
+     * Changes the state of the current JsonPATH relative to the current <code>maskingState</code>.
+     * The method determines if the current byte in <code>maskingState</code> opens new or changes the current segment.
+     * In case the current JsonPATH segment is an array segment, the method checks if the current element needs to be masked.
      */
     private void trackCurrentJsonPath(MaskingState maskingState) {
         // special case of empty json objects: look ahead of the curly brackets opening to check if the key is an empty
-        // json object. If so, put a placeholder onto the current json path stack. If no, rollback to the current index
+        // json object. If so, put a placeholder onto the current json path stack. If no, rollback to the current maskingState index.
         if (isCurlyBracketOpen(maskingState.byteAtCurrentIndex()) && !maskingState.isInArraySegment()) {
             int currentIndex = maskingState.currentIndex();
             maskingState.incrementCurrentIndex();
@@ -226,35 +223,39 @@ public final class KeyContainsMasker implements JsonMasker {
                 maskingState.setCurrentIndex(currentIndex);
             }
         }
-
-        // Check if this is the end of the current non-empty json object
+        // Check if this is the end of the current non-empty json object.
         if (currentByteIsUnescapedCurlyBracketClose(maskingState) && !maskingState.isInRootSegment() && !maskingState.isInArraySegment()) {
             maskingState.backtrackCurrentJsonPath();
         }
-        // Check if this is the end of the current json array
+        // Check if this is the end of the current json array.
         if (currentByteIsUnescapedSquareBracketClose(maskingState) && maskingState.isInArraySegment()) {
             maskingState.backtrackCurrentJsonPath();
         }
         // Check if this is the start of a json array
         if (currentByteIsUnescapedSquareBracketOpen(maskingState)) {
             maskingState.expandCurrentJsonPath();
+            // Check is the first element in the array has to be masked.
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), maskingState.getCurrentJsonPath());
             if (keyMaskingConfig != null) {
                 maskArrayElementInPlace(maskingState, keyMaskingConfig);
                 trackCurrentJsonPath(maskingState);
             }
         }
+        // check if this is the start of a next element or a next key/value pair.
         if (currentByteIsUnescapedComma(maskingState)) {
             if (!maskingState.isInArraySegment()) {
+                // this is the start of the next key/value pair. Backtrack current JsonPATH from the previous key/value pair.
                 if (!maskingState.isInRootSegment()) {
                     maskingState.backtrackCurrentJsonPath();
                 }
             } else {
-                // This is the end of the current json array element. Check if it needs to be masked.
+                // this is the end of the current json array element. Check if it needs to be masked.
                 maskingState.incrementCurrentJsonPathArrayIndex();
                 KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), maskingState.getCurrentJsonPath());
                 if (keyMaskingConfig != null) {
                     maskArrayElementInPlace(maskingState, keyMaskingConfig);
+                    // after having masked the current array element, the maskingState is at the beginning of the next "token"
+                    // (an array element separator or an array closing symbol). We need to continue tracking current JsonPATH.
                     trackCurrentJsonPath(maskingState);
                 }
             }

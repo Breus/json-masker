@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JsonPathArraysLookupTest {
     @ParameterizedTest
     @MethodSource("jsonPathFile")
-    void test(JsonMaskerTestInstance testInstance) {
+    void lookupTestJsonPathArrays(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 

@@ -428,5 +428,63 @@
         "***"
       ]
     }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.array[9].maskMe",
+        "$.array[11].maskMe"
+      ]
+    },
+    "input": {
+      "empty": {},
+      "array": [
+        0,
+        1,
+        2,
+        3,
+        {
+          "maskMe": "actually not"
+        },
+        5,
+        {},
+        7,
+        [],
+        {
+          "misleadingPath": 1,
+          "maskMe": 1
+        },
+        10,
+        {
+          "misleadingPath": 1,
+          "maskMe": 1
+        }
+      ]
+    },
+    "expectedOutput": {
+      "empty": {},
+      "array": [
+        0,
+        1,
+        2,
+        3,
+        {
+          "maskMe": "actually not"
+        },
+        5,
+        {},
+        7,
+        [],
+        {
+          "misleadingPath": 1,
+          "maskMe": "###"
+        },
+        10,
+        {
+          "misleadingPath": 1,
+          "maskMe": "###"
+        }
+      ]
+    }
   }
 ]

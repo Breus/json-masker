@@ -155,7 +155,7 @@ final class KeyMatcherTest {
                     },
                     10,
                     {
-                      "c": 1
+                      "c": 1,
                       "d": 1
                     }
                   ]

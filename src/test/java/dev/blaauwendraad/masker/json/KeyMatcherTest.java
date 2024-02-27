@@ -136,6 +136,71 @@ final class KeyMatcherTest {
     }
 
     @Test
+    void shouldMatchJsonPathArrays() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a[9].b", "$.a[11].c")).build());
+        String json = """
+                {
+                  "a": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    {
+                      "b": 1
+                    },
+                    10,
+                    {
+                      "c": 1
+                      "d": 1
+                    }
+                  ]
+                }
+                """;
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference(9, -1),
+                                new JsonPathSegmentReference(indexOf(bytes, 'b'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference(11, -1),
+                                new JsonPathSegmentReference(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference(9, -1),
+                                new JsonPathSegmentReference(indexOf(bytes, 'd'), 1)
+                        ).iterator()
+                )
+        )
+                .isNull();
+    }
+
+    @Test
     void shouldNotMatchPrefix() {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
         assertThatConfig(keyMatcher, "mask").isNull();

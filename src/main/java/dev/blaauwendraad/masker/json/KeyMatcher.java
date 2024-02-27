@@ -221,19 +221,30 @@ final class KeyMatcher {
             }
             JsonPathSegmentReference jsonPathSegmentReference = jsonPath.next();
             int keyOffset = jsonPathSegmentReference.getOffset();
-            int keyStart = jsonPathSegmentReference.getLength();
+            int keyLength = jsonPathSegmentReference.getLength();
             if (jsonPathSegmentReference.isArraySegment()) {
-                char digit = Character.forDigit(keyOffset, DECIMAL_RADIX);
-                if (digit == '\u0000') {
-                    throw new IllegalStateException("Invalid digit " + keyOffset);
-                }
-                node = node.children[digit + BYTE_OFFSET];
-                if (node == null) {
-                    return null;
+                // for arrays keyOffset is the index of the element
+                if (keyOffset > 10) {
+                    char[] digits = String.valueOf(keyOffset).toCharArray();
+                    for (char digit : digits) {
+                        node = node.children[digit + BYTE_OFFSET];
+                        if (node == null) {
+                            return null;
+                        }
+                    }
+                } else {
+                    char digit = Character.forDigit(keyOffset, DECIMAL_RADIX);
+                    if (digit == '\u0000') {
+                        throw new IllegalStateException("Invalid digit " + keyOffset);
+                    }
+                    node = node.children[digit + BYTE_OFFSET];
+                    if (node == null) {
+                        return null;
+                    }
                 }
                 continue;
             }
-            for (int i = keyOffset; i < keyOffset + keyStart; i++) {
+            for (int i = keyOffset; i < keyOffset + keyLength; i++) {
                 int b = bytes[i];
                 node = node.children[b + BYTE_OFFSET];
                 if (node == null) {

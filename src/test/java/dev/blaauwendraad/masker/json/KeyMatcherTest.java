@@ -116,8 +116,8 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
-                                new JsonPathSegmentReference(indexOf(bytes, 'b'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'b'), 1)
                         ).iterator()
                 )
         )
@@ -127,8 +127,8 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
-                                new JsonPathSegmentReference(indexOf(bytes, 'c'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'c'), 1)
                         ).iterator()
                 )
         )
@@ -167,9 +167,9 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
-                                new JsonPathSegmentReference(9, -1),
-                                new JsonPathSegmentReference(indexOf(bytes, 'b'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(9),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'b'), 1)
                         ).iterator()
                 )
         )
@@ -179,9 +179,9 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
-                                new JsonPathSegmentReference(11, -1),
-                                new JsonPathSegmentReference(indexOf(bytes, 'c'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(11),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'c'), 1)
                         ).iterator()
                 )
         )
@@ -191,9 +191,9 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new JsonPathSegmentReference(indexOf(bytes, 'a'), 1),
-                                new JsonPathSegmentReference(9, -1),
-                                new JsonPathSegmentReference(indexOf(bytes, 'd'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(9),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'd'), 1)
                         ).iterator()
                 )
         )

@@ -134,7 +134,7 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<JsonPathSegmentReference> jsonPath) {
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathSegmentReference> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
             // check json path first, as it's more specific
@@ -208,7 +208,7 @@ final class KeyMatcher {
     }
 
     @CheckForNull
-    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<JsonPathSegmentReference> jsonPath) {
+    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<? extends JsonPathSegmentReference> jsonPath) {
         TrieNode node = root;
         node = node.children['$' + BYTE_OFFSET];
         if (node == null) {
@@ -220,12 +220,20 @@ final class KeyMatcher {
                 return null;
             }
             JsonPathSegmentReference jsonPathSegmentReference = jsonPath.next();
-            int keyOffset = jsonPathSegmentReference.getOffset();
-            int keyLength = jsonPathSegmentReference.getLength();
-            if (jsonPathSegmentReference.isArraySegment()) {
+            if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Node jsonPathNode) {
+                int keyOffset = jsonPathNode.getOffset();
+                int keyLength = jsonPathNode.getLength();
+                for (int i = keyOffset; i < keyOffset + keyLength; i++) {
+                    int b = bytes[i];
+                    node = node.children[b + BYTE_OFFSET];
+                    if (node == null) {
+                        return null;
+                    }
+                }
+            } else if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Array jsonPathArray) {
                 // for arrays keyOffset is the index of the element
-                if (keyOffset > 10) {
-                    char[] digits = String.valueOf(keyOffset).toCharArray();
+                if (jsonPathArray.getIndex() > 10) {
+                    char[] digits = String.valueOf(jsonPathArray.getIndex()).toCharArray();
                     for (char digit : digits) {
                         node = node.children[digit + BYTE_OFFSET];
                         if (node == null) {
@@ -233,23 +241,17 @@ final class KeyMatcher {
                         }
                     }
                 } else {
-                    char digit = Character.forDigit(keyOffset, DECIMAL_RADIX);
+                    char digit = Character.forDigit(jsonPathArray.getIndex(), DECIMAL_RADIX);
                     if (digit == '\u0000') {
-                        throw new IllegalStateException("Invalid digit " + keyOffset);
+                        throw new IllegalStateException("Invalid digit " + jsonPathArray.getIndex());
                     }
                     node = node.children[digit + BYTE_OFFSET];
                     if (node == null) {
                         return null;
                     }
                 }
-                continue;
-            }
-            for (int i = keyOffset; i < keyOffset + keyLength; i++) {
-                int b = bytes[i];
-                node = node.children[b + BYTE_OFFSET];
-                if (node == null) {
-                    return null;
-                }
+            } else {
+                throw new IllegalStateException("Unknown json path segment reference type " + jsonPathSegmentReference.getClass());
             }
         }
 

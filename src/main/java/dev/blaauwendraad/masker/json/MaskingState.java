@@ -87,14 +87,14 @@ public final class MaskingState {
      * @param offset the length of a new segment.
      */
     void expandCurrentJsonPath(int start, int offset) {
-        currentJsonPath.push(new JsonPathSegmentReference(start, offset));
+        currentJsonPath.push(new JsonPathSegmentReference.Node(start, offset));
     }
 
     /**
      * Expands current jsonpath with a new array segment.
      */
-    void expandCurrentJsonPath() {
-        currentJsonPath.push(new JsonPathSegmentReference(0));
+    void expandCurrentJsonPathWithArray() {
+        currentJsonPath.push(new JsonPathSegmentReference.Array(0));
     }
 
     /**
@@ -110,22 +110,25 @@ public final class MaskingState {
      */
     void incrementCurrentJsonPathArrayIndex() {
         JsonPathSegmentReference lastSegment = currentJsonPath.peek();
-        lastSegment.setOffset(lastSegment.getOffset() + 1);
+        if (lastSegment instanceof JsonPathSegmentReference.Array arraySegment) {
+            arraySegment.increment();
+        } else {
+            throw new IllegalStateException("Cannot increment array index on a non-array segment: " + lastSegment);
+        }
     }
 
     /**
      * Checks if the current segment of the current jsonpath is an array segment.
      */
     boolean isInArraySegment() {
-        return !currentJsonPath.isEmpty() && currentJsonPath.peek().isArraySegment();
+        return !currentJsonPath.isEmpty() && currentJsonPath.peek() instanceof JsonPathSegmentReference.Array;
     }
 
     /**
      * Checks if the current segment is the root node.
      */
     boolean isInRootSegment() {
-        return currentJsonPath.isEmpty()
-                || (currentJsonPath.size() == 1 && currentJsonPath.peek().isArraySegment());
+        return currentJsonPath.isEmpty() || (currentJsonPath.size() == 1 && isInArraySegment());
     }
 
     /**

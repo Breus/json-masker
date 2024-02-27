@@ -64,7 +64,7 @@ public final class KeyContainsMasker implements JsonMasker {
          */
         MaskingState maskingState = new MaskingState(input, 1);
         if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndexMinusOne())) {
-            maskingState.expandCurrentJsonPath();
+            maskingState.expandCurrentJsonPathWithArray();
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), maskingState.getCurrentJsonPath());
             if (keyMaskingConfig != null) {
                 maskArrayElementInPlace(maskingState, keyMaskingConfig);
@@ -228,7 +228,7 @@ public final class KeyContainsMasker implements JsonMasker {
         }
         // Check if this is the start of a json array
         if (currentByteIsUnescapedSquareBracketOpen(maskingState)) {
-            maskingState.expandCurrentJsonPath();
+            maskingState.expandCurrentJsonPathWithArray();
             // Check is the first element in the array has to be masked.
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), maskingState.getCurrentJsonPath());
             if (keyMaskingConfig != null) {
@@ -391,7 +391,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void maskArrayValueInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         // This block deals with masking arrays
-        maskingState.expandCurrentJsonPath();
+        maskingState.expandCurrentJsonPathWithArray();
         int arrayDepth = 1;
         maskingState.incrementCurrentIndex(); // step over array opening square bracket
         skipWhitespaceCharacters(maskingState);
@@ -403,7 +403,7 @@ public final class KeyContainsMasker implements JsonMasker {
             }
             if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
                 arrayDepth++;
-                maskingState.expandCurrentJsonPath();
+                maskingState.expandCurrentJsonPathWithArray();
                 maskingState.incrementCurrentIndex(); // step over opening bracket
             } else if (AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
                 arrayDepth--;

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 
+import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -25,13 +26,11 @@ import javax.annotation.Nonnull;
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
     private static final Set<String> DEFAULT_JSON_PATH_KEYS = Set.of("$.targetKey1", "$.targetKey2", "$.targetKey3");
-    public static final int TOTAL_TEST_DURATION_SECONDS = 30;
-    private static final long MILLISECONDS_FOR_EACH_TEST_TO_RUN =
-            Duration.ofSeconds(TOTAL_TEST_DURATION_SECONDS).toMillis() / (int) jsonMaskingConfigs().count();
 
     @ParameterizedTest
     @MethodSource("jsonMaskingConfigs")
     void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
+        long timeLimit = FuzzingDurationUtil.determineTestTimeLimit(jsonMaskingConfigs().count());
         Instant startTime = Instant.now();
         int randomTestExecuted = 0;
         Set<String> allKeys = new HashSet<>(jsonMaskingConfig.getTargetKeys());
@@ -42,7 +41,7 @@ final class FuzzingTest {
         RandomJsonGenerator randomJsonGenerator =
                 new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetKeys(allKeys).createConfig());
         JsonMasker masker = JsonMasker.getMasker(jsonMaskingConfig);
-        while (Duration.between(startTime, Instant.now()).toMillis() < MILLISECONDS_FOR_EACH_TEST_TO_RUN) {
+        while (Duration.between(startTime, Instant.now()).toMillis() < timeLimit) {
             String randomJsonString = randomJsonGenerator.createRandomJsonString();
             String keyContainsOutput;
             try {
@@ -56,7 +55,7 @@ final class FuzzingTest {
         }
         System.out.printf(
                 "Executed %d randomly generated test scenarios in %d milliseconds%n",
-                randomTestExecuted, MILLISECONDS_FOR_EACH_TEST_TO_RUN);
+                randomTestExecuted, timeLimit);
     }
 
     @Nonnull

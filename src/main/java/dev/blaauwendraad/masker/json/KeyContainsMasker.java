@@ -171,21 +171,17 @@ public final class KeyContainsMasker implements JsonMasker {
     private void maskArrayElementInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         maskingState.incrementCurrentIndex();
         skipWhitespaceCharacters(maskingState);
-        boolean maskable = maskValue(maskingState, keyMaskingConfig);
-        if (!maskable) {
-            // non-maskable values
-            skipAllValues(maskingState);
-        }
+        maskValue(maskingState, keyMaskingConfig);
     }
 
     /**
-     * Checks if the value on the current index in the <code>maskingState</code> is maskable and masks it if so and return true. Otherwise, doesn't mask and returns false.
+     * Masks the value on the current index in the <code>maskingState</code> if it is maskable. Otherwise, advances
+     * the index to end of the value..
      *
      * @param maskingState     the current masking state in which the value will be masked
      * @param keyMaskingConfig the masking configuration for the key
-     * @return true if the value is maskable, false otherwise
      */
-    private boolean maskValue(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
+    private void maskValue(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
             maskArrayValueInPlace(maskingState, keyMaskingConfig);
         } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
@@ -200,9 +196,8 @@ public final class KeyContainsMasker implements JsonMasker {
                 && !keyMaskingConfig.isDisableBooleanMasking()) {
             maskBooleanValueInPlace(maskingState, keyMaskingConfig);
         } else {
-            return false;
+            skipAllValues(maskingState);
         }
-        return true;
     }
 
     /**
@@ -484,14 +479,7 @@ public final class KeyContainsMasker implements JsonMasker {
                 if (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig()) {
                     keyMaskingConfig = parentKeyMaskingConfig;
                 }
-                boolean maskable = maskValue(maskingState, keyMaskingConfig);
-                if (!maskable) {
-                    while (!AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())
-                            && !AsciiCharacter.isCurlyBracketClose(
-                            maskingState.byteAtCurrentIndex())) {
-                        maskingState.incrementCurrentIndex(); // skip non-maskable value
-                    }
-                }
+                maskValue(maskingState, keyMaskingConfig);
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {

@@ -35,6 +35,7 @@ import java.util.Iterator;
 final class KeyMatcher {
     private static final int DECIMAL_RADIX = 10;
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
+    private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
     private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
@@ -142,14 +143,14 @@ final class KeyMatcher {
             // if not found - do not mask
             if (node != null && !node.negativeMatch) {
                 return node.keyMaskingConfig;
-            } else {
+            } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
                 node = searchNode(bytes, keyOffset, keyLength);
                 if (node != null && !node.negativeMatch) {
                     return node.keyMaskingConfig;
                 }
-                return null;
             }
+            return null;
         } else {
             // check json path first, as it's more specific
             TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
@@ -161,14 +162,15 @@ final class KeyMatcher {
                     return node.keyMaskingConfig;
                 }
                 return null;
-            }
-            // also check regular key
-            node = searchNode(bytes, keyOffset, keyLength);
-            if (node != null) {
-                if (node.negativeMatch) {
-                    return node.keyMaskingConfig;
+            } else if (keyLength != SKIP_KEY_LOOKUP) {
+                // also check regular key
+                node = searchNode(bytes, keyOffset, keyLength);
+                if (node != null) {
+                    if (node.negativeMatch) {
+                        return node.keyMaskingConfig;
+                    }
+                    return null;
                 }
-                return null;
             }
             return maskingConfig.getDefaultConfig();
         }
@@ -179,23 +181,7 @@ final class KeyMatcher {
      */
     @CheckForNull
     public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, Iterator<JsonPathSegmentReference> jsonPath) {
-        if (maskingConfig.isInMaskMode()) {
-            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
-            if (node != null && !node.negativeMatch) {
-                return node.keyMaskingConfig;
-            }
-            return null;
-        } else {
-            // in allow mode
-            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
-            if (node != null) {
-                if (node.negativeMatch) {
-                    return node.keyMaskingConfig;
-                }
-                return null;
-            }
-            return maskingConfig.getDefaultConfig();
-        }
+        return getMaskConfigIfMatched(bytes, 0, SKIP_KEY_LOOKUP, jsonPath);
     }
 
     @CheckForNull
@@ -237,7 +223,11 @@ final class KeyMatcher {
             int keyOffset = jsonPathSegmentReference.getOffset();
             int keyStart = jsonPathSegmentReference.getLength();
             if (jsonPathSegmentReference.isArraySegment()) {
-                node = node.children[Character.forDigit(keyOffset, DECIMAL_RADIX) + BYTE_OFFSET];
+                char digit = Character.forDigit(keyOffset, DECIMAL_RADIX);
+                if (digit == '\u0000') {
+                    throw new IllegalStateException("Invalid digit " + keyOffset);
+                }
+                node = node.children[digit + BYTE_OFFSET];
                 if (node == null) {
                     return null;
                 }

@@ -232,7 +232,7 @@ final class KeyMatcher {
                 }
             } else if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Array jsonPathArray) {
                 // for arrays keyOffset is the index of the element
-                if (jsonPathArray.getIndex() > 10) {
+                if (jsonPathArray.getIndex() >= 10) {
                     char[] digits = String.valueOf(jsonPathArray.getIndex()).toCharArray();
                     for (char digit : digits) {
                         node = node.children[digit + BYTE_OFFSET];

@@ -1,14 +1,14 @@
 import org.sonarqube.gradle.SonarTask
 
 plugins {
+    alias(libs.plugins.sonarqube)
+    alias(libs.plugins.test.logger)
+    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.jmh)
     `maven-publish`
     `java-library`
     signing
     jacoco
-    id("me.champeau.jmh") version "0.7.2"
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
-    id("com.adarshr.test-logger") version "4.0.0"
-    id("org.sonarqube") version "4.4.1.3373"
 }
 
 description = "High-performance JSON masker in Java with no runtime dependencies"
@@ -31,17 +31,16 @@ java {
 }
 
 dependencies {
-    "nullabilityAnnotationsImplementation"("com.google.code.findbugs:jsr305:3.0.2")
+    "nullabilityAnnotationsImplementation"(libs.findbugs)
 
-    testImplementation("org.assertj:assertj-core:3.25.2")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+    testImplementation(libs.assertj.core)
+    testImplementation(libs.jackson.databind)
+    testImplementation(libs.junit.api)
+    testImplementation(libs.junit.params)
+    testRuntimeOnly(libs.junit.engine)
 
-    jmh("org.openjdk.jmh:jmh-core:1.37")
-    jmh("org.openjdk.jmh:jmh-generator-annprocess:1.37")
-    jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
+    jmh(libs.jmh.core)
+    jmhAnnotationProcessor(libs.jmh.generator.annproccesor)
 }
 
 publishing {

@@ -139,23 +139,7 @@ public final class KeyContainsMasker implements JsonMasker {
             }
 
             // Masking value based on type
-            if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
-                maskArrayValueInPlace(maskingState, keyMaskingConfig);
-            } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
-                maskObjectValueInPlace(maskingState, keyMaskingConfig);
-            } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-                // This block deals with masking strings target values.
-                maskStringValueInPlace(maskingState, keyMaskingConfig);
-            } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
-                    && !keyMaskingConfig.isDisableNumberMasking()) {
-                maskNumberValueInPlace(maskingState, keyMaskingConfig);
-            } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
-                    || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
-                    && !keyMaskingConfig.isDisableBooleanMasking()) {
-                maskBooleanValueInPlace(maskingState, keyMaskingConfig);
-            }
-            // else, if nothing has matched, continue to the next value
-            // it may happen that we don't mask anything if number / boolean masking is disabled or the value is null
+            maskValue(maskingState, keyMaskingConfig);
         }
 
         ValueMaskingUtil.flushReplacementOperations(maskingState);
@@ -409,20 +393,8 @@ public final class KeyContainsMasker implements JsonMasker {
                 arrayDepth--;
                 maskingState.backtrackCurrentJsonPath();
                 maskingState.incrementCurrentIndex(); // step over closing bracket
-            } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-                maskStringValueInPlace(maskingState, keyMaskingConfig); // mask string and step over it
-            } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
-                    && !keyMaskingConfig.isDisableNumberMasking()) {
-                maskNumberValueInPlace(maskingState, keyMaskingConfig);
-            } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
-                maskObjectValueInPlace(maskingState, keyMaskingConfig);
-            } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
-                    || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
-                    && !keyMaskingConfig.isDisableBooleanMasking()) {
-                maskBooleanValueInPlace(maskingState, keyMaskingConfig);
             } else {
-                // non-maskable values
-                skipAllValues(maskingState);
+                maskValue(maskingState, keyMaskingConfig);
             }
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex()) && arrayDepth > 0) {

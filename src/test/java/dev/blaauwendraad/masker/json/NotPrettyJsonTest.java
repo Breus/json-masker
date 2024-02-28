@@ -23,21 +23,6 @@ class NotPrettyJsonTest {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 
-    @Test
-    void name() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey"));
-        String json = """
-                        [ {
-                          "targetKey" : {
-                            "?„+Uo?\\b" : {
-                              "\\"" : [ "aaa" ]
-                            }
-                          }
-                        }, "R\\u0010f\\u0010" ]
-                """;
-        assertThat(jsonMasker.mask(json)).isEqualTo(json);
-    }
-
     private static Stream<JsonMaskerTestInstance> notPrettyFile() throws IOException {
         return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile(
                 "test-not-pretty.json"
@@ -45,10 +30,34 @@ class NotPrettyJsonTest {
     }
 
     private static Stream<JsonMaskerTestInstance> notPrettyJson() {
-        return Stream.of(new JsonMaskerTestInstance("""
-                {  "hello":   "hello"}
-                """, """
-                {  "hello":   "***"}
-                """, JsonMasker.getMasker(Set.of("hello"))));
+        JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey"));
+        return Stream.of(
+                new JsonMaskerTestInstance("""
+                        {  "targetKey":   "hello"}
+                        """, """
+                        {  "targetKey":   "***"}
+                        """, jsonMasker),
+                new JsonMaskerTestInstance("""
+                                [ {
+                                  "targetKey" : {
+                                    "?„+Uo?\\b" : {
+                                      "\\"" : [ "aaa" ]
+                                    }
+                                  }
+                                }, "R\\u0010f\\u0010" ]
+                        """, """
+                                [ {
+                                  "targetKey" : {
+                                    "?„+Uo?\\b" : {
+                                      "\\"" : [ "aaa" ]
+                                    }
+                                  }
+                                }, "R\\u0010f\\u0010" ]
+                        """, jsonMasker),
+                new JsonMaskerTestInstance("""
+                         { }
+                        """, """
+                         { }
+                        """, jsonMasker));
     }
 }

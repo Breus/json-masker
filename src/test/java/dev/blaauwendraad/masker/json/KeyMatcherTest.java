@@ -116,8 +116,8 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
-                                new MaskingState.SegmentReference(indexOf(bytes, 'b'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'b'), 1)
                         ).iterator()
                 )
         )
@@ -127,8 +127,73 @@ final class KeyMatcherTest {
                         0,
                         0, // skip regular key matching
                         List.of(
-                                new MaskingState.SegmentReference(indexOf(bytes, 'a'), 1),
-                                new MaskingState.SegmentReference(indexOf(bytes, 'c'), 1)
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNull();
+    }
+
+    @Test
+    void shouldMatchJsonPathArrays() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a[9].b", "$.a[11].c")).build());
+        String json = """
+                {
+                  "a": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    {
+                      "b": 1
+                    },
+                    10,
+                    {
+                      "c": 1,
+                      "d": 1
+                    }
+                  ]
+                }
+                """;
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(9),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'b'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(11),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathSegmentReference.Array(9),
+                                new JsonPathSegmentReference.Node(indexOf(bytes, 'd'), 1)
                         ).iterator()
                 )
         )

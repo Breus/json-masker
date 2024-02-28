@@ -8,14 +8,14 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class JsonPathLookupTest {
+class JsonPathArraysLookupTest {
     @ParameterizedTest
     @MethodSource("jsonPathFile")
-    void lookupTestJsonPaths(JsonMaskerTestInstance testInstance) {
+    void lookupTestJsonPathArrays(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> jsonPathFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-json-path.json").stream();
+        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile("test-json-path-arrays.json").stream();
     }
 }

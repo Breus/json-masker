@@ -33,7 +33,9 @@ import java.util.Iterator;
  * we can fail fast if the incoming key is not of the same length.
  */
 final class KeyMatcher {
+    private static final int DECIMAL_RADIX = 10;
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
+    private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
     private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
@@ -132,7 +134,7 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<MaskingState.SegmentReference> jsonPath) {
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathSegmentReference> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
             // check json path first, as it's more specific
@@ -141,14 +143,14 @@ final class KeyMatcher {
             // if not found - do not mask
             if (node != null && !node.negativeMatch) {
                 return node.keyMaskingConfig;
-            } else {
+            } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
                 node = searchNode(bytes, keyOffset, keyLength);
                 if (node != null && !node.negativeMatch) {
                     return node.keyMaskingConfig;
                 }
-                return null;
             }
+            return null;
         } else {
             // check json path first, as it's more specific
             TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
@@ -160,17 +162,26 @@ final class KeyMatcher {
                     return node.keyMaskingConfig;
                 }
                 return null;
-            }
-            // also check regular key
-            node = searchNode(bytes, keyOffset, keyLength);
-            if (node != null) {
-                if (node.negativeMatch) {
-                    return node.keyMaskingConfig;
+            } else if (keyLength != SKIP_KEY_LOOKUP) {
+                // also check regular key
+                node = searchNode(bytes, keyOffset, keyLength);
+                if (node != null) {
+                    if (node.negativeMatch) {
+                        return node.keyMaskingConfig;
+                    }
+                    return null;
                 }
-                return null;
             }
             return maskingConfig.getDefaultConfig();
         }
+    }
+
+    /**
+     * An overload of {@code dev.blaauwendraad.masker.json.KeyMatcher#getMaskConfigIfMatched(byte[], int, int, java.util.Iterator)} specifically for jsonpath look-ups.
+     */
+    @CheckForNull
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, Iterator<JsonPathSegmentReference> jsonPath) {
+        return getMaskConfigIfMatched(bytes, 0, SKIP_KEY_LOOKUP, jsonPath);
     }
 
     @CheckForNull
@@ -196,7 +207,8 @@ final class KeyMatcher {
         return node;
     }
 
-    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<MaskingState.SegmentReference> jsonPath) {
+    @CheckForNull
+    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<? extends JsonPathSegmentReference> jsonPath) {
         TrieNode node = root;
         node = node.children['$' + BYTE_OFFSET];
         if (node == null) {
@@ -207,15 +219,39 @@ final class KeyMatcher {
             if (node == null) {
                 return null;
             }
-            MaskingState.SegmentReference segmentReference = jsonPath.next();
-            int keyStartIndex = segmentReference.start;
-            int keyLength = segmentReference.offset;
-            for (int i = keyStartIndex; i < keyStartIndex + keyLength; i++) {
-                int b = bytes[i];
-                node = node.children[b + BYTE_OFFSET];
-                if (node == null) {
-                    return null;
+            JsonPathSegmentReference jsonPathSegmentReference = jsonPath.next();
+            if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Node jsonPathNode) {
+                int keyOffset = jsonPathNode.getOffset();
+                int keyLength = jsonPathNode.getLength();
+                for (int i = keyOffset; i < keyOffset + keyLength; i++) {
+                    int b = bytes[i];
+                    node = node.children[b + BYTE_OFFSET];
+                    if (node == null) {
+                        return null;
+                    }
                 }
+            } else if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Array jsonPathArray) {
+                // for arrays keyOffset is the index of the element
+                if (jsonPathArray.getIndex() >= 10) {
+                    char[] digits = String.valueOf(jsonPathArray.getIndex()).toCharArray();
+                    for (char digit : digits) {
+                        node = node.children[digit + BYTE_OFFSET];
+                        if (node == null) {
+                            return null;
+                        }
+                    }
+                } else {
+                    char digit = Character.forDigit(jsonPathArray.getIndex(), DECIMAL_RADIX);
+                    if (digit == '\u0000') {
+                        throw new IllegalStateException("Invalid digit " + jsonPathArray.getIndex());
+                    }
+                    node = node.children[digit + BYTE_OFFSET];
+                    if (node == null) {
+                        return null;
+                    }
+                }
+            } else {
+                throw new IllegalStateException("Unknown json path segment reference type " + jsonPathSegmentReference.getClass());
             }
         }
 

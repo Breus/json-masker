@@ -1,0 +1,490 @@
+[
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.jsonpath.key[2]",
+        "$.jsonpathArray[2].otherKey",
+        "$.jsonpathArray[3]"
+      ]
+    },
+    "input": {
+      "wrongPath": {
+        "wrongKey": "do not mask",
+        "key": [
+          "do not mask",
+          "do not mask"
+        ]
+      },
+      "jsonpath": {
+        "key": [
+          "do not mask",
+          "do not mask",
+          "mask"
+        ],
+        "wrongKey": "do not mask"
+      },
+      "jsonpathArray": [
+        "do not mask",
+        {
+          "otherKey": "do not mask",
+          "wrongKey": "do not mask"
+        },
+        {
+          "wrongKey": "do not mask",
+          "otherKey": true
+        },
+        ["mask", 451],
+        ["do not mask", 154]
+      ],
+      "otherWrongPath": {
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    },
+    "expectedOutput": {
+      "wrongPath": {
+        "wrongKey": "do not mask",
+        "key": [
+          "do not mask",
+          "do not mask"
+        ]
+      },
+      "jsonpath": {
+        "key": [
+          "do not mask",
+          "do not mask",
+          "***"
+        ],
+        "wrongKey": "do not mask"
+      },
+      "jsonpathArray": [
+        "do not mask",
+        {
+          "otherKey": "do not mask",
+          "wrongKey": "do not mask"
+        },
+        {
+          "wrongKey": "do not mask",
+          "otherKey": "&&&"
+        },
+        ["***", "###"],
+        ["do not mask", 154]
+      ],
+      "otherWrongPath": {
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.array[1][2].key"
+      ]
+    },
+    "input": {
+      "key": "do not mask",
+      "array": [
+        [
+          {
+            "key": "do not mask"
+          }
+        ],
+        [
+          [
+            {
+              "key": "do not mask"
+            }
+          ],
+          {
+            "key": "do not mask"
+          },
+          {
+            "key": {
+              "stringKey": "mask",
+              "booleanKey": true,
+              "numberKey": 123
+            }
+          },
+          {
+            "key": "do not mask"
+          }
+        ]
+      ]
+    },
+    "expectedOutput": {
+      "key": "do not mask",
+      "array": [
+        [
+          {
+            "key": "do not mask"
+          }
+        ],
+        [
+          [
+            {
+              "key": "do not mask"
+            }
+          ],
+          {
+            "key": "do not mask"
+          },
+          {
+            "key": {
+              "stringKey": "***",
+              "booleanKey": "&&&",
+              "numberKey": "###"
+            }
+          },
+          {
+            "key": "do not mask"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.array[1][1].key.otherArray[0]"
+      ]
+    },
+    "input": {
+      "key": "do not mask",
+      "array": [
+        [
+          {
+            "key": 123
+          }
+        ],
+        [
+          {
+            "key": [
+              "do not mask"
+            ]
+          },
+          {
+            "wrongKey": {
+              "otherArray": [
+                "do not mask"
+              ]
+            },
+            "key": {
+              "otherArray": [
+                "mask",
+                "do not mask"
+              ]
+            },
+            "otherWrongKey": "do not mask"
+          }
+        ],
+        "do not mask"
+      ]
+    },
+    "expectedOutput": {
+      "key": "do not mask",
+      "array": [
+        [
+          {
+            "key": 123
+          }
+        ],
+        [
+          {
+            "key": [
+              "do not mask"
+            ]
+          },
+          {
+            "wrongKey": {
+              "otherArray": [
+                "do not mask"
+              ]
+            },
+            "key": {
+              "otherArray": [
+                "***",
+                "do not mask"
+              ]
+            },
+            "otherWrongKey": "do not mask"
+          }
+        ],
+        "do not mask"
+      ]
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$[][2]"
+      ]
+    },
+    "input": {
+      "": [1, 2, 3, 4]
+    },
+    "expectedOutput": {
+      "": [1, 2, "###", 4]
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.jsonpath.key[2]",
+        "$.jsonpathArray[2].otherKey"
+      ]
+    },
+    "input": {
+      "wrongPath": {
+        "wrongKey": "mask",
+        "key": [
+          "mask",
+          "mask"
+        ]
+      },
+      "jsonpath": {
+        "key": [
+          "mask",
+          "mask",
+          "do not mask"
+        ],
+        "wrongKey": "mask"
+      },
+      "jsonpathArray": [
+        "mask",
+        {
+          "otherKey": "mask",
+          "wrongKey": "mask"
+        },
+        {
+          "wrongKey": "mask",
+          "otherKey": "do not mask"
+        }
+      ],
+      "otherWrongPath": {
+        "key": "mask"
+      },
+      "otherKey": "mask"
+    },
+    "expectedOutput": {
+      "wrongPath": {
+        "wrongKey": "***",
+        "key": [
+          "***",
+          "***"
+        ]
+      },
+      "jsonpath": {
+        "key": [
+          "***",
+          "***",
+          "do not mask"
+        ],
+        "wrongKey": "***"
+      },
+      "jsonpathArray": [
+        "***",
+        {
+          "otherKey": "***",
+          "wrongKey": "***"
+        },
+        {
+          "wrongKey": "***",
+          "otherKey": "do not mask"
+        }
+      ],
+      "otherWrongPath": {
+        "key": "***"
+      },
+      "otherKey": "***"
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.array[1][2].key"
+      ]
+    },
+    "input": {
+      "key": "mask",
+      "array": [
+        [
+          {
+            "key": "mask"
+          }
+        ],
+        [
+          [
+            {
+              "key": "mask"
+            }
+          ],
+          {
+            "key": "mask"
+          },
+          {
+            "key": "do not mask"
+          },
+          {
+            "key": "mask"
+          }
+        ]
+      ]
+    },
+    "expectedOutput": {
+      "key": "***",
+      "array": [
+        [
+          {
+            "key": "***"
+          }
+        ],
+        [
+          [
+            {
+              "key": "***"
+            }
+          ],
+          {
+            "key": "***"
+          },
+          {
+            "key": "do not mask"
+          },
+          {
+            "key": "***"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.array[1][1].key.otherArray[0]"
+      ]
+    },
+    "input": {
+      "key": "mask",
+      "array": [
+        [
+          {
+            "key": "mask"
+          }
+        ],
+        [
+          {
+            "key": [
+              "mask"
+            ]
+          },
+          {
+            "wrongKey": {
+              "otherArray": [
+                "mask"
+              ]
+            },
+            "key": {
+              "otherArray": [
+                "do not mask",
+                "mask"
+              ]
+            },
+            "otherWrongKey": "mask"
+          }
+        ],
+        "mask"
+      ]
+    },
+    "expectedOutput": {
+      "key": "***",
+      "array": [
+        [
+          {
+            "key": "***"
+          }
+        ],
+        [
+          {
+            "key": [
+              "***"
+            ]
+          },
+          {
+            "wrongKey": {
+              "otherArray": [
+                "***"
+              ]
+            },
+            "key": {
+              "otherArray": [
+                "do not mask",
+                "***"
+              ]
+            },
+            "otherWrongKey": "***"
+          }
+        ],
+        "***"
+      ]
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.array[9].maskMe",
+        "$.array[11].maskMe"
+      ]
+    },
+    "input": {
+      "empty": {},
+      "array": [
+        0,
+        1,
+        2,
+        3,
+        {
+          "maskMe": "actually not"
+        },
+        5,
+        {},
+        7,
+        [],
+        {
+          "misleadingPath": 1,
+          "maskMe": 1
+        },
+        10,
+        {
+          "misleadingPath": 1,
+          "maskMe": 1
+        }
+      ]
+    },
+    "expectedOutput": {
+      "empty": {},
+      "array": [
+        0,
+        1,
+        2,
+        3,
+        {
+          "maskMe": "actually not"
+        },
+        5,
+        {},
+        7,
+        [],
+        {
+          "misleadingPath": 1,
+          "maskMe": "###"
+        },
+        10,
+        {
+          "misleadingPath": 1,
+          "maskMe": "###"
+        }
+      ]
+    }
+  }
+]

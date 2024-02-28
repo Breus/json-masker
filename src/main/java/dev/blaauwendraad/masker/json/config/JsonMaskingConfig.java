@@ -122,12 +122,13 @@ public final class JsonMaskingConfig {
         return """
                 JsonMaskingConfig{
                 targetKeys=%s,
+                targetJsonPaths=%s,
                 targetKeyMode=%s,
                 caseSensitiveTargetKeys=%s,
                 defaultConfig=%s,
                 targetKeyConfigs=%s
                 }"""
-                .formatted(targetKeys, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+                .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
     /**

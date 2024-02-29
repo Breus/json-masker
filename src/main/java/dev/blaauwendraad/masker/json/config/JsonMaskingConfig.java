@@ -145,7 +145,7 @@ public final class JsonMaskingConfig {
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
 
-        Builder() {
+        private Builder() {
         }
 
         public Builder maskKeys(Set<String> keys) {

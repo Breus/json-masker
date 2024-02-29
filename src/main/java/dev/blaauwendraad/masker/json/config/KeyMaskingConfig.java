@@ -151,7 +151,7 @@ public final class KeyMaskingConfig {
         private String maskBooleansWithString;
         private Boolean maskBooleansWith;
 
-        Builder() {
+        private Builder() {
         }
 
         /**

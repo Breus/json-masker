@@ -125,8 +125,8 @@ jmh {
     // run this with ./gradlew jmh -PjmhShort to only run these parameters and 4 iterations
     if (project.hasProperty("jmhShort")) {
         benchmarkParameters = mapOf(
-            "jsonSize" to listOfProperty("2mb"),
-            "maskedKeyProbability" to listOfProperty("0.01"),
+            "jsonSize" to listOfProperty("1kb"),
+            "maskedKeyProbability" to listOfProperty("0.1"),
             "jsonPath" to listOfProperty("false", "true"),
             "characters" to listOfProperty("unicode")
         )

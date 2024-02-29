@@ -38,6 +38,7 @@ public class JsonMaskerBenchmark {
         private String jsonString;
         private byte[] jsonBytes;
         private JsonMasker jsonMasker;
+        private JsonMaskingConfig.Builder builder;
 
         @Setup
         public synchronized void setup() {
@@ -45,7 +46,7 @@ public class JsonMaskerBenchmark {
             jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 
-            JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
+            builder = JsonMaskingConfig.builder();
             if (jsonPath) {
                 builder.maskJsonPaths(JsonPathTestUtils.transformToJsonPathKeys(targetKeys, jsonString));
             } else {
@@ -63,5 +64,10 @@ public class JsonMaskerBenchmark {
     @Benchmark
     public byte[] jsonMaskerBytes(State state) {
         return state.jsonMasker.mask(state.jsonBytes);
+    }
+
+    @Benchmark
+    public byte[] jsonMaskerBytesNewInstance(State state) {
+        return JsonMasker.getMasker(state.builder.build()).mask(state.jsonBytes);
     }
 }

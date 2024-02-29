@@ -145,6 +145,9 @@ public final class JsonMaskingConfig {
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
 
+        Builder() {
+        }
+
         public Builder maskKeys(Set<String> keys) {
             if (targetKeyMode == TargetKeyMode.ALLOW) {
                 throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +

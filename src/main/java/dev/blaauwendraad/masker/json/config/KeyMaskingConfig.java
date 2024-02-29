@@ -151,6 +151,9 @@ public final class KeyMaskingConfig {
         private String maskBooleansWithString;
         private Boolean maskBooleansWith;
 
+        Builder() {
+        }
+
         /**
          * Mask all string values with the provided value.
          * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.

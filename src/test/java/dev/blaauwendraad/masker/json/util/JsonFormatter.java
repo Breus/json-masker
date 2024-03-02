@@ -1,6 +1,7 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.json.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dev.blaauwendraad.masker.randomgen.RandomJsonWhiteSpaceInjector;
 
 import java.nio.charset.StandardCharsets;
 

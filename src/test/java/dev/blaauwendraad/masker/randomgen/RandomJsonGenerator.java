@@ -1,4 +1,4 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.randomgen;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;

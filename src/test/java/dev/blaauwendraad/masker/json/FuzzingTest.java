@@ -5,11 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
+import dev.blaauwendraad.masker.json.util.JsonFormatter;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import randomgen.json.JsonFormatter;
-import randomgen.json.RandomJsonGenerator;
-import randomgen.json.RandomJsonGeneratorConfig;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;

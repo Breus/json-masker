@@ -1,4 +1,4 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.randomgen;
 
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
@@ -6,9 +6,8 @@ import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
@@ -20,7 +19,6 @@ import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseS;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseU;
 
 public class RandomJsonWhiteSpaceInjector {
-    public static final Random RANDOM = new Random(12345);
     private final byte[] originalJsonBytes;
     private final int maxNumberOfWhiteSpacesToInject;
 
@@ -36,10 +34,9 @@ public class RandomJsonWhiteSpaceInjector {
     @Nonnull
     private byte[] insertRandomValidWhitespaces() {
         final List<Integer> randomWhitespaceInjectionIndexes = new ArrayList<>();
-        // We inject at least 1 and at most 50 random whitespaces in the original JSON
         int maxNumberOfWhiteSpacesLeftToInject = Math.min(originalJsonBytes.length / 2, maxNumberOfWhiteSpacesToInject);
         while (maxNumberOfWhiteSpacesLeftToInject > 0) {
-            int randomIndex = RANDOM.nextInt(1, originalJsonBytes.length);
+            int randomIndex = ThreadLocalRandom.current().nextInt(1, originalJsonBytes.length);
             if (canInjectWhiteSpaceBeforeByteAtIndex(originalJsonBytes, randomIndex)) {
                 randomWhitespaceInjectionIndexes.add(randomIndex);
             }
@@ -79,12 +76,11 @@ public class RandomJsonWhiteSpaceInjector {
     }
 
     private static byte getRandomWhiteSpaceByte() {
-        int randomInt = RANDOM.nextInt(4);
+        int randomInt = ThreadLocalRandom.current().nextInt(3);
         return switch (randomInt) {
-            case 0 -> CARRIAGE_RETURN.getAsciiByteValue();
-            case 1 -> HORIZONTAL_TAB.getAsciiByteValue();
-            case 2 -> LINE_FEED.getAsciiByteValue();
-            case 3 -> SPACE.getAsciiByteValue();
+            case 0 -> HORIZONTAL_TAB.getAsciiByteValue();
+            case 1 -> LINE_FEED.getAsciiByteValue();
+            case 2 -> SPACE.getAsciiByteValue();
             default -> throw new IllegalStateException("Unexpected value to get random whitespace byte: " + randomInt);
         };
     }

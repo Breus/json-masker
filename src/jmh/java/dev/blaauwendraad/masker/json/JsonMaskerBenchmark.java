@@ -11,7 +11,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
-import randomgen.json.JsonPathTestUtils;
+import dev.blaauwendraad.masker.json.util.JsonPathTestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public final class ParseAndMaskUtil {
 
-    private static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
     private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
     private ParseAndMaskUtil() {

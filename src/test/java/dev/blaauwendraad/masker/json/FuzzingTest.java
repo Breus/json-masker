@@ -1,19 +1,17 @@
 package dev.blaauwendraad.masker.json;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
-
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
+import dev.blaauwendraad.masker.json.util.JsonFormatter;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import randomgen.json.RandomJsonGenerator;
-import randomgen.json.RandomJsonGeneratorConfig;
-
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
@@ -21,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
@@ -42,16 +40,26 @@ final class FuzzingTest {
                 new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetKeys(allKeys).createConfig());
         JsonMasker masker = JsonMasker.getMasker(jsonMaskingConfig);
         while (Duration.between(startTime, Instant.now()).toMillis() < timeLimit) {
-            String randomJsonString = randomJsonGenerator.createRandomJsonString();
-            String keyContainsOutput;
-            try {
-                keyContainsOutput = masker.mask(randomJsonString);
-            } catch (Exception e) {
-                throw new IllegalStateException("Failed for input: " + randomJsonString, e);
+            for (JsonFormatter formatter : JsonFormatter.values()) {
+                String randomJsonString = formatter.format(randomJsonGenerator.createRandomJsonNode());
+                String jacksonMaskingOutput;
+                try {
+                    jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toString();
+                } catch (JsonParseException e) {
+                    // if jackson rejects it, then we don't test
+                    continue;
+                }
+                try {
+                    String keyContainsOutput = masker.mask(randomJsonString);
+                    // parsing again by jackson to get canonical representation
+                    assertThat(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(keyContainsOutput))
+                            .as("Failed for input: " + randomJsonString)
+                            .isEqualTo(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(jacksonMaskingOutput));
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed for input: " + randomJsonString, e);
+                }
+                randomTestExecuted++;
             }
-            String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toPrettyString();
-            assertThat(keyContainsOutput).as("Failed for input: " + randomJsonString).isEqualTo(jacksonMaskingOutput);
-            randomTestExecuted++;
         }
         System.out.printf(
                 "Executed %d randomly generated test scenarios in %d milliseconds%n",

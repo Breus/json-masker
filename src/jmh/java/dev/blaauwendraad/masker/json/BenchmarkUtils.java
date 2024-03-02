@@ -1,17 +1,17 @@
 package dev.blaauwendraad.masker.json;
 
-import randomgen.json.RandomJsonGenerator;
-import randomgen.json.RandomJsonGeneratorConfig;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
-import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
-import static randomgen.json.JsonStringCharacters.getUnicodeControlCharacters;
-import static randomgen.json.JsonStringCharacters.mergeCharSets;
+import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.getPrintableAsciiCharacters;
+import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
+import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.getUnicodeControlCharacters;
+import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.mergeCharSets;
 
 public class BenchmarkUtils {
 

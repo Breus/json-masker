@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -38,6 +37,11 @@ class NotPrettyJsonTest {
                         {  "targetKey":   "***"}
                         """, jsonMasker),
                 new JsonMaskerTestInstance("""
+                        [[[{           "targetKey":            "hello"}], {"targetKey2": "hello", "targetKey": "hi     hi"}]]
+                        """, """
+                        [[[{           "targetKey":            "***"}], {"targetKey2": "hello", "targetKey": "***"}]]
+                        """, jsonMasker),
+                new JsonMaskerTestInstance("""
                                 [ {
                                   "targetKey" : {
                                     "?„+Uo?\\b" : {
@@ -49,7 +53,7 @@ class NotPrettyJsonTest {
                                 [ {
                                   "targetKey" : {
                                     "?„+Uo?\\b" : {
-                                      "\\"" : [ "aaa" ]
+                                      "\\"" : [ "***" ]
                                     }
                                   }
                                 }, "R\\u0010f\\u0010" ]
@@ -58,6 +62,25 @@ class NotPrettyJsonTest {
                          { }
                         """, """
                          { }
+                        """, jsonMasker),
+                new JsonMaskerTestInstance("""
+                        {
+                        "targetKey":"value",
+                        "array":[1,2,3],
+                        "nestedObject":{
+                        "innerKey":"innerValue",
+                        "targetKey":"nestedTarget"
+                        }
+                        }
+                        """, """
+                        {
+                        "targetKey":"***",
+                        "array":[1,2,3],
+                        "nestedObject":{
+                        "innerKey":"innerValue",
+                        "targetKey":"***"
+                        }
+                        }
                         """, jsonMasker));
     }
 }

@@ -1,4 +1,4 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.json.util;
 
 import java.util.HashSet;
 import java.util.Set;

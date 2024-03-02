@@ -1,4 +1,4 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.json.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

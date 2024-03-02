@@ -11,9 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import randomgen.json.RandomJsonGenerator;
-import randomgen.json.RandomJsonGeneratorConfig;
-import randomgen.json.RandomJsonWhiteSpaceInjector;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
+import dev.blaauwendraad.masker.randomgen.RandomJsonWhiteSpaceInjector;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;

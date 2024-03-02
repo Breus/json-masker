@@ -1,12 +1,9 @@
-package randomgen.json;
+package dev.blaauwendraad.masker.randomgen;
+
+import dev.blaauwendraad.masker.json.util.JsonStringCharacters;
 
 import java.math.BigInteger;
 import java.util.Set;
-
-import static randomgen.json.JsonStringCharacters.getPrintableAsciiCharacters;
-import static randomgen.json.JsonStringCharacters.getRandomPrintableUnicodeCharacters;
-import static randomgen.json.JsonStringCharacters.getUnicodeControlCharacters;
-import static randomgen.json.JsonStringCharacters.mergeCharSets;
 
 public final class RandomJsonGeneratorConfig {
     private static final Set<String> defaultTargetKeys = Set.of("targetKey1", "targetKey2", "targetKey3", "targetKey4");
@@ -137,10 +134,10 @@ public final class RandomJsonGeneratorConfig {
         private int maxObjectKeys = 5;
         private int maxNodeDepth = 10;
         private double targetKeyPercentage = 0.2;
-        private Set<Character> allowedCharacters = mergeCharSets(
-                getPrintableAsciiCharacters(),
-                getUnicodeControlCharacters(),
-                getRandomPrintableUnicodeCharacters()
+        private Set<Character> allowedCharacters = JsonStringCharacters.mergeCharSets(
+                JsonStringCharacters.getPrintableAsciiCharacters(),
+                JsonStringCharacters.getUnicodeControlCharacters(),
+                JsonStringCharacters.getRandomPrintableUnicodeCharacters()
         );
         private Set<String> targetKeys = defaultTargetKeys;
         private int targetJsonSizeBytes = -1; // no target, random size depending on other constraints

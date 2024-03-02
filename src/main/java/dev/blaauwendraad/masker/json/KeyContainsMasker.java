@@ -52,24 +52,22 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public byte[] mask(byte[] input) {
+        MaskingState maskingState = new MaskingState(input, 0);
+        skipWhitespaceCharacters(maskingState);
         /*
          * No masking required if input is not a JSON array or object (starting with either '{' or '[')
          */
-        if (!isObjectOrArray(input)) {
+        if (!isObjectOrArray(maskingState.byteAtCurrentIndex())) {
             return input;
         }
-        /*
-         * We can start the maskingState.currentIndex() at 1 since the first character can be skipped as it is either a '{' or '['.
-         * This also ensures we can safely check for unescaped double quotes (without masking JSON string values).
-         */
-        MaskingState maskingState = new MaskingState(input, 1);
-        if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndexMinusOne())) {
+        if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
             maskingState.expandCurrentJsonPathWithArray();
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), maskingState.getCurrentJsonPath());
             if (keyMaskingConfig != null) {
                 maskArrayElementInPlace(maskingState, keyMaskingConfig);
                 trackCurrentJsonPath(maskingState);
             }
+            maskingState.incrementCurrentIndex();
         }
         mainLoop:
         while (maskingState.currentIndex() < maskingState.messageLength() - MIN_OFFSET_JSON_KEY_QUOTE) {
@@ -272,9 +270,9 @@ public final class KeyContainsMasker implements JsonMasker {
                 && !isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
     }
 
-    private static boolean isObjectOrArray(byte[] input) {
-        return AsciiCharacter.CURLY_BRACKET_OPEN.getAsciiByteValue() == input[0]
-                || AsciiCharacter.SQUARE_BRACKET_OPEN.getAsciiByteValue() == input[0];
+    private static boolean isObjectOrArray(byte input) {
+        return input == AsciiCharacter.CURLY_BRACKET_OPEN.getAsciiByteValue()
+               || input == AsciiCharacter.SQUARE_BRACKET_OPEN.getAsciiByteValue();
     }
 
     /**

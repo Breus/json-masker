@@ -1,5 +1,13 @@
 package randomgen.json;
 
+import dev.blaauwendraad.masker.json.util.AsciiCharacter;
+import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
+
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
@@ -11,16 +19,8 @@ import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseR;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseS;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.isLowercaseU;
 
-import dev.blaauwendraad.masker.json.util.AsciiCharacter;
-import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import javax.annotation.Nonnull;
-
 public class RandomJsonWhiteSpaceInjector {
+    public static final Random RANDOM = new Random(12345);
     private final byte[] originalJsonBytes;
     private final int maxNumberOfWhiteSpacesToInject;
 
@@ -37,9 +37,9 @@ public class RandomJsonWhiteSpaceInjector {
     private byte[] insertRandomValidWhitespaces() {
         final List<Integer> randomWhitespaceInjectionIndexes = new ArrayList<>();
         // We inject at least 1 and at most 50 random whitespaces in the original JSON
-        int maxNumberOfWhiteSpacesLeftToInject = Math.min(originalJsonBytes.length / 2, 50);
+        int maxNumberOfWhiteSpacesLeftToInject = Math.min(originalJsonBytes.length / 2, maxNumberOfWhiteSpacesToInject);
         while (maxNumberOfWhiteSpacesLeftToInject > 0) {
-            int randomIndex = new Random().nextInt(1, originalJsonBytes.length);
+            int randomIndex = RANDOM.nextInt(1, originalJsonBytes.length);
             if (canInjectWhiteSpaceBeforeByteAtIndex(originalJsonBytes, randomIndex)) {
                 randomWhitespaceInjectionIndexes.add(randomIndex);
             }
@@ -79,7 +79,7 @@ public class RandomJsonWhiteSpaceInjector {
     }
 
     private static byte getRandomWhiteSpaceByte() {
-        int randomInt = new Random().nextInt(4);
+        int randomInt = RANDOM.nextInt(4);
         return switch (randomInt) {
             case 0 -> CARRIAGE_RETURN.getAsciiByteValue();
             case 1 -> HORIZONTAL_TAB.getAsciiByteValue();

@@ -1,0 +1,21 @@
+[
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": [
+      {
+        "allowedKey": "yes",
+        "notAllowedKey": "allowedKey"
+      }
+    ],
+    "expectedOutput": [
+        {
+            "allowedKey": "yes",
+            "notAllowedKey": "***"
+        }
+    ]
+  }
+]

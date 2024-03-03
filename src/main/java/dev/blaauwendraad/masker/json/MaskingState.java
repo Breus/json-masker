@@ -11,7 +11,7 @@ import java.util.List;
  * operation.
  */
 public final class MaskingState {
-    private byte[] message;
+    private final byte[] message;
     private int currentIndex;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
@@ -34,10 +34,6 @@ public final class MaskingState {
         this.currentIndex = currentIndex;
     }
 
-    public void setMessage(byte[] newMessage) {
-        this.message = newMessage;
-    }
-
     public byte byteAtCurrentIndex() {
         return message[currentIndex];
     }
@@ -48,10 +44,6 @@ public final class MaskingState {
 
     public int currentIndex() {
         return currentIndex;
-    }
-
-    public int messageLength() {
-        return message.length;
     }
 
     public byte[] getMessage() {
@@ -102,33 +94,6 @@ public final class MaskingState {
      */
     void backtrackCurrentJsonPath() {
         currentJsonPath.pop();
-    }
-
-    /**
-     * Increments an array index in the last segment of the current jsonpath.
-     * Throws {@link java.lang.IllegalStateException} if the last segment is not an array index.
-     */
-    void incrementCurrentJsonPathArrayIndex() {
-        JsonPathSegmentReference lastSegment = currentJsonPath.peek();
-        if (lastSegment instanceof JsonPathSegmentReference.Array arraySegment) {
-            arraySegment.increment();
-        } else {
-            throw new IllegalStateException("Cannot increment array index on a non-array segment: " + lastSegment);
-        }
-    }
-
-    /**
-     * Checks if the current segment of the current jsonpath is an array segment.
-     */
-    boolean isInArraySegment() {
-        return !currentJsonPath.isEmpty() && currentJsonPath.peek() instanceof JsonPathSegmentReference.Array;
-    }
-
-    /**
-     * Checks if the current segment is the root node.
-     */
-    boolean isInRootSegment() {
-        return currentJsonPath.isEmpty() || (currentJsonPath.size() == 1 && isInArraySegment());
     }
 
     /**

@@ -40,10 +40,12 @@ public final class ValueMaskingUtil {
      * otherwise the replacement must have been done in-place.
      *
      * @param maskingState the current state of the {@link dev.blaauwendraad.masker.json.JsonMasker} instance.
+     *
+     * @return the message array with all replacement operations performed.
      */
-    public static void flushReplacementOperations(MaskingState maskingState) {
+    public static byte[] flushReplacementOperations(MaskingState maskingState) {
         if (maskingState.getReplacementOperations().isEmpty()) {
-            return;
+            return maskingState.getMessage();
         }
 
         // Create new empty array with a length computed by the difference of all mismatches of lengths between the target values and the masks
@@ -90,7 +92,6 @@ public final class ValueMaskingUtil {
                 maskingState.getMessage().length - index
         );
 
-        maskingState.setMessage(newMessage);
-        maskingState.setCurrentIndex(newMessage.length);
+        return newMessage;
     }
 }

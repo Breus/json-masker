@@ -312,6 +312,33 @@
         "allowedKey": "yes"
       }
     }
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": "hello",
+    "expectedOutput": "***"
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": true,
+    "expectedOutput": "&&&"
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": 1.7931133E38,
+    "expectedOutput": "###"
   }
 ]
 

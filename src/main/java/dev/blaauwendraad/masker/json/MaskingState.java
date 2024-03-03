@@ -34,10 +34,6 @@ public final class MaskingState {
         this.currentIndex = currentIndex;
     }
 
-    public void setMessage(byte[] newMessage) {
-        this.message = newMessage;
-    }
-
     public byte byteAtCurrentIndex() {
         return message[currentIndex];
     }
@@ -48,10 +44,6 @@ public final class MaskingState {
 
     public int currentIndex() {
         return currentIndex;
-    }
-
-    public int messageLength() {
-        return message.length;
     }
 
     public byte[] getMessage() {

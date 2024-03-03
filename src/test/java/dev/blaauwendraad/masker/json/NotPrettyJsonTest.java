@@ -3,18 +3,12 @@ package dev.blaauwendraad.masker.json;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class NotPrettyJsonTest {
-    @ParameterizedTest
-    @MethodSource("notPrettyFile")
-    void notPrettyFileTest(JsonMaskerTestInstance testInstance) {
-        assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
-    }
 
     @ParameterizedTest
     @MethodSource("notPrettyJson")
@@ -22,15 +16,67 @@ class NotPrettyJsonTest {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
     }
 
-    private static Stream<JsonMaskerTestInstance> notPrettyFile() throws IOException {
-        return JsonMaskerTestUtil.getJsonMaskerTestInstancesFromFile(
-                "test-not-pretty.json"
-        ).stream();
-    }
-
     private static Stream<JsonMaskerTestInstance> notPrettyJson() {
         JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("targetKey"));
         return Stream.of(
+                new JsonMaskerTestInstance("""
+                        {
+                        "key":              "value",  \s
+                        "targetKey1"
+                                               \s
+                        :
+                                               \s
+                                               \s
+                                     {
+                                        "targetKey":     "value"
+                                     }  ,    \s
+                                  "targetKey"   :
+                                               \s
+                            123
+                        }
+                        """, """
+                        {
+                        "key":              "value",  \s
+                        "targetKey1"
+                                               \s
+                        :
+                                               \s
+                                               \s
+                                     {
+                                        "targetKey":     "***"
+                                     }  ,    \s
+                                  "targetKey"   :
+                                               \s
+                            "###"
+                        }
+                        """, jsonMasker),
+                new JsonMaskerTestInstance("""
+                         {
+                          "targetKey2" : {
+                            "targetKey3" : {     }
+                          },
+                          "khb\\u0007 " : true,
+                          "\\u001C\\u000F" : true,
+                          "=E\\u0018Xi=" : {
+                            ":" : "\\u000F\\u0017\\u0017\\u000Bs\\b\\u0014X",
+                            "targetKey2" : [ {    }   ],
+                            "targetKey4" : "kA=Đ-"
+                          },
+                          "targetKey1": { }}
+                        """, """
+                         {
+                          "targetKey2" : {
+                            "targetKey3" : {     }
+                          },
+                          "khb\\u0007 " : true,
+                          "\\u001C\\u000F" : true,
+                          "=E\\u0018Xi=" : {
+                            ":" : "\\u000F\\u0017\\u0017\\u000Bs\\b\\u0014X",
+                            "targetKey2" : [ {    }   ],
+                            "targetKey4" : "kA=Đ-"
+                          },
+                          "targetKey1": { }}
+                        """, jsonMasker),
                 new JsonMaskerTestInstance("""
                         {  "targetKey":   "hello"}
                         """, """

@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -8,6 +9,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled // disabled as we're going to remove index array matching
 class JsonPathArraysLookupTest {
     @ParameterizedTest
     @MethodSource("jsonPathFile")

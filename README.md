@@ -622,12 +622,12 @@ Generally our implementation is ~15-25 times faster than using Jackson (besides 
 runtime dependencies and a convenient API out-of-the-box).
 
 ```text
-Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt     Score   Error  Units
-BaselineBenchmark.countBytes                unicode         N/A         2mb                    0.01  thrpt    2  1525.281          ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         N/A         2mb                    0.01  thrpt    2     3.353          ops/s
-BaselineBenchmark.regexReplace              unicode         N/A         2mb                    0.01  thrpt    2     2.684          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         2mb                    0.01  thrpt    2    79.309          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         2mb                    0.01  thrpt    2    80.745          ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode       false         2mb                    0.01  thrpt    2    48.488          ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode        true         2mb                    0.01  thrpt    2    49.345          ops/s
+Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score       Error  Units
+BaselineBenchmark.countBytes                  ascii         N/A         1kb                     0.1  thrpt    4  2603613.017 ± 97512.250  ops/s
+BaselineBenchmark.jacksonParseAndMask         ascii         N/A         1kb                     0.1  thrpt    4    15585.502 ±   377.551  ops/s
+BaselineBenchmark.regexReplace                ascii         N/A         1kb                     0.1  thrpt    4     5977.041 ±   162.784  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes           ascii       false         1kb                     0.1  thrpt    4   255166.860 ± 12806.279  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes           ascii        true         1kb                     0.1  thrpt    4   133205.836 ±  1473.641  ops/s
+JsonMaskerBenchmark.jsonMaskerString          ascii       false         1kb                     0.1  thrpt    4   224138.796 ± 14865.264  ops/s
+JsonMaskerBenchmark.jsonMaskerString          ascii        true         1kb                     0.1  thrpt    4   142942.361 ±  7024.178  ops/s
 ```

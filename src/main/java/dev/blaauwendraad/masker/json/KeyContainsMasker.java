@@ -50,11 +50,12 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Entrypoint of visiting any value (object, array or primitive) in the JSON. Whenever 'keyMaskingConfig' is
-     * supplied it means that the current value is a value of a key that is being masked.
+      * Entrypoint of visiting any value (object, array or primitive) in the JSON.
+     * Whenever 'keyMaskingConfig' is supplied it means that the current value is a value of a key that is being masked.
+     *
      * @param maskingState the current masking state
-     * @param keyMaskingConfig if not null it means that the current value is a value of a key that is being masked
-     *                         otherwise the value is not being masked
+     * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
+     *                        being masked
      */
     private void visitValue(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         skipWhitespaceCharacters(maskingState);
@@ -62,19 +63,33 @@ public final class KeyContainsMasker implements JsonMasker {
             visitArray(maskingState, keyMaskingConfig);
         } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
             visitObject(maskingState, keyMaskingConfig);
-        } else if (keyMaskingConfig != null) {
-            if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-                maskStringValueInPlace(maskingState, keyMaskingConfig);
-            } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
-                       && !keyMaskingConfig.isDisableNumberMasking()) {
-                maskNumberValueInPlace(maskingState, keyMaskingConfig);
-            } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
-                        || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
-                       && !keyMaskingConfig.isDisableBooleanMasking()) {
-                maskBooleanValueInPlace(maskingState, keyMaskingConfig);
-            } else {
-                skipAllValues(maskingState);
-            }
+        } else {
+            visitPrimitive(maskingState, keyMaskingConfig);
+        }
+    }
+
+    /**
+     * Visits a primitive value in the JSON. A primitive value can be a string, number, boolean or null.
+     * Whenever 'keyMaskingConfig' is supplied it means that the current value is a value of a key that is being masked.
+     *
+     * @param maskingState the current masking state
+     * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
+     *                        being masked
+     */
+    private void visitPrimitive(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
+        if (keyMaskingConfig == null) {
+            skipAllValues(maskingState);
+            return;
+        }
+        if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
+            maskStringValueInPlace(maskingState, keyMaskingConfig);
+        } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
+                   && !keyMaskingConfig.isDisableNumberMasking()) {
+            maskNumberValueInPlace(maskingState, keyMaskingConfig);
+        } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
+                    || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
+                   && !keyMaskingConfig.isDisableBooleanMasking()) {
+            maskBooleanValueInPlace(maskingState, keyMaskingConfig);
         } else {
             skipAllValues(maskingState);
         }
@@ -181,12 +196,21 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.incrementCurrentIndex(); // step over closing quote of string value to start looking for the next JSON key.
     }
 
-    private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig parentKeyMaskingConfig) {
+    /**
+     * Visits an array of unknown values (or empty). Invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} on each
+     * element while propagating the key masking configuration.
+     * Whenever 'keyMaskingConfig' is supplied it means that the array and all its elements is being masked.
+     *
+     * @param maskingState the current masking state
+     * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
+     *                        being masked
+     */
+    private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         // This block deals with masking arrays
         maskingState.expandCurrentJsonPathWithArray();
         maskingState.incrementCurrentIndex(); // step over array opening square bracket
         while (!AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
-            visitValue(maskingState, parentKeyMaskingConfig);
+            visitValue(maskingState, keyMaskingConfig);
             skipWhitespaceCharacters(maskingState);
             if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {
                 maskingState.incrementCurrentIndex();
@@ -196,6 +220,17 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.backtrackCurrentJsonPath();
     }
 
+
+    /**
+     * Visits an object, iterates over the keys and checks whether key needs to be masked (in mask mode)
+     * or allowed (in allow mode). For each value invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} with
+     * a non-null {@link KeyMaskingConfig} (when key needs to be masked) or {@code null} (when key is allowed).
+     * Whenever 'parentKeyMaskingConfig' is supplied it means that the array and all its elements is being masked.
+     *
+     * @param maskingState the current masking state
+     * @param parentKeyMaskingConfig if not null it means that the current value is being masked otherwise the value
+     *                               is not being masked
+     */
     private void visitObject(MaskingState maskingState, @CheckForNull KeyMaskingConfig parentKeyMaskingConfig) {
         maskingState.incrementCurrentIndex(); // step over opening curly bracket
         skipWhitespaceCharacters(maskingState);

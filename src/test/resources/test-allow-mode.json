@@ -312,6 +312,68 @@
         "allowedKey": "yes"
       }
     }
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": "hello",
+    "expectedOutput": "***"
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": true,
+    "expectedOutput": "&&&"
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": 1.7931133E38,
+    "expectedOutput": "###"
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": [
+      null,
+      false,
+      true,
+      [
+        "hello",
+        false,
+        12,
+        null,
+        []
+      ],
+      "hello",
+      -1.7931133E38
+    ],
+    "expectedOutput": [
+      null,
+      "&&&",
+      "&&&",
+      [
+        "***",
+        "&&&",
+        "###",
+        null,
+        []
+      ],
+      "***",
+      "###"
+    ]
   }
 ]
 

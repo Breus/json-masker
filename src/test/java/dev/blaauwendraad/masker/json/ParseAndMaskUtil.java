@@ -39,6 +39,9 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
+        if (jsonMaskingConfig.isInAllowMode() && !jsonNode.isArray() && !jsonNode.isObject()) {
+            return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
+        }
         return mask(jsonNode, jsonMaskingConfig, "$");
     }
 
@@ -80,8 +83,8 @@ public final class ParseAndMaskUtil {
                             objectNode.replace(
                                     key,
                                     maskJsonValue(
-                                            key,
                                             objectNode.get(key),
+                                            jsonMaskingConfig.getConfig(key),
                                             jsonMaskingConfig,
                                             casingAppliedTargetKeys
                                     )
@@ -106,8 +109,8 @@ public final class ParseAndMaskUtil {
                     arrayNode.set(
                             i,
                             maskJsonValue(
-                                    "",
                                     arrayNode.get(i),
+                                    jsonMaskingConfig.getDefaultConfig(),
                                     jsonMaskingConfig,
                                     casingAppliedTargetKeys
                             )
@@ -128,28 +131,27 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     private static JsonNode maskJsonValue(
-            String key,
             JsonNode jsonNode,
+            KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         return switch (jsonNode.getNodeType()) {
-            case STRING -> maskTextNode(key, (TextNode) jsonNode, jsonMaskingConfig);
-            case NUMBER -> maskNumericNode(key, (NumericNode) jsonNode, jsonMaskingConfig);
-            case BOOLEAN -> maskBooleanNode(key, (BooleanNode) jsonNode, jsonMaskingConfig);
-            case ARRAY -> maskArrayNodeValue(key, (ArrayNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
-            case OBJECT -> maskObjectNodeValue(key, (ObjectNode) jsonNode, jsonMaskingConfig, casingAppliedTargetKeys);
+            case STRING -> maskTextNode((TextNode) jsonNode, config);
+            case NUMBER -> maskNumericNode((NumericNode) jsonNode, config);
+            case BOOLEAN -> maskBooleanNode((BooleanNode) jsonNode, config);
+            case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, config, jsonMaskingConfig, casingAppliedTargetKeys);
+            case OBJECT -> maskObjectNodeValue((ObjectNode) jsonNode, config, jsonMaskingConfig, casingAppliedTargetKeys);
             default -> jsonNode;
         };
     }
 
-    private static JsonNode maskBooleanNode(String key, BooleanNode booleanNode, JsonMaskingConfig jsonMaskingConfig) {
-        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+    private static JsonNode maskBooleanNode(BooleanNode booleanNode, KeyMaskingConfig config) {
         if (config.isDisableBooleanMasking()) {
             return booleanNode;
         }
         if (config.getMaskBooleansWith() == null) {
-            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + config);
         }
         String maskBooleansWith = new String(config.getMaskBooleansWith(), StandardCharsets.UTF_8);
         if (maskBooleansWith.startsWith("\"")) {
@@ -160,13 +162,20 @@ public final class ParseAndMaskUtil {
     }
 
     @Nonnull
-    private static TextNode maskTextNode(String key, TextNode textNode, JsonMaskingConfig jsonMaskingConfig) {
-        return new TextNode(maskText(key, textNode.textValue(), jsonMaskingConfig));
+    private static TextNode maskTextNode(TextNode textNode, KeyMaskingConfig config) {
+        String text = textNode.textValue();
+        if (config.getMaskStringsWith() != null) {
+            text = new String(config.getMaskStringsWith(), StandardCharsets.UTF_8);
+        } else if (config.getMaskStringCharactersWith() != null) {
+            text = new String(config.getMaskStringCharactersWith(), StandardCharsets.UTF_8).repeat(text.length());
+        } else {
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + config);
+        }
+        return new TextNode(text);
     }
 
     @Nonnull
-    private static ValueNode maskNumericNode(String key, NumericNode numericNode, JsonMaskingConfig jsonMaskingConfig) {
-        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
+    private static ValueNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) {
         if (config.isDisableNumberMasking()) {
             return numericNode;
         }
@@ -187,26 +196,28 @@ public final class ParseAndMaskUtil {
             }
             return new BigIntegerNode(mask);
         } else {
-            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
+            throw new IllegalArgumentException("Invalid masking configuration for key: " + config);
         }
     }
 
     @Nonnull
     private static ArrayNode maskArrayNodeValue(
-            String key, ArrayNode arrayNode,
+            ArrayNode arrayNode,
+            KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
-            maskedArrayNode.add(maskJsonValue(key, element, jsonMaskingConfig, casingAppliedTargetKeys));
+            maskedArrayNode.add(maskJsonValue(element, config, jsonMaskingConfig, casingAppliedTargetKeys));
         }
         return maskedArrayNode;
     }
 
     @Nonnull
     private static ObjectNode maskObjectNodeValue(
-            String key, ObjectNode objectNode,
+            ObjectNode objectNode,
+            KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
     ) {
@@ -221,21 +232,10 @@ public final class ParseAndMaskUtil {
                 maskedObjectNode.set(fieldName, objectNode.get(fieldName));
             } else {
                 JsonNode fieldValue = objectNode.get(fieldName);
-                maskedObjectNode.set(fieldName, maskJsonValue(key, fieldValue, jsonMaskingConfig, casingAppliedTargetKeys));
+                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, config, jsonMaskingConfig, casingAppliedTargetKeys));
             }
         }
         return maskedObjectNode;
     }
 
-    @Nonnull
-    private static String maskText(String key, String text, JsonMaskingConfig jsonMaskingConfig) {
-        KeyMaskingConfig config = jsonMaskingConfig.getConfig(key);
-        if (config.getMaskStringsWith() != null) {
-            return new String(config.getMaskStringsWith(), StandardCharsets.UTF_8);
-        } else if (config.getMaskStringCharactersWith() != null) {
-            return new String(config.getMaskStringCharactersWith(), StandardCharsets.UTF_8).repeat(text.length());
-        } else {
-            throw new IllegalArgumentException("Invalid masking configuration for key: " + key);
-        }
-    }
 }

@@ -38,27 +38,7 @@ public final class JsonMaskerTestUtil {
             }
             JsonMaskingConfig maskingConfig = builder.build();
             var input = jsonNode.get("input").toString();
-            if (jsonNode.get("input").isTextual() && jsonNode.get("input").textValue().startsWith("file://")) {
-                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader()
-                        .getResource(jsonNode.get("input").textValue().replace("file://", ""));
-                try {
-                    input = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
-                } catch (URISyntaxException e) {
-                    throw new IOException("Cannot read file " + resourceUrl, e);
-                }
-            }
             var expectedOutput = jsonNode.get("expectedOutput").toString();
-            if (jsonNode.get("expectedOutput").isTextual() && jsonNode.get("expectedOutput")
-                    .textValue()
-                    .startsWith("file://")) {
-                URL resourceUrl = JsonMaskerTestUtil.class.getClassLoader()
-                        .getResource(jsonNode.get("expectedOutput").textValue().replace("file://", ""));
-                try {
-                    expectedOutput = Files.readString(Path.of(Objects.requireNonNull(resourceUrl).toURI()));
-                } catch (URISyntaxException e) {
-                    throw new IOException("Cannot read file " + resourceUrl, e);
-                }
-            }
             testInstances.add(new JsonMaskerTestInstance(
                     input,
                     expectedOutput,

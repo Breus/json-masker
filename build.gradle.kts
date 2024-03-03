@@ -127,7 +127,7 @@ jmh {
             "jsonSize" to listOfProperty("1kb"),
             "maskedKeyProbability" to listOfProperty("0.1"),
             "jsonPath" to listOfProperty("false", "true"),
-            "characters" to listOfProperty("unicode")
+            "characters" to listOfProperty("ascii")
         )
 
         iterations = 4

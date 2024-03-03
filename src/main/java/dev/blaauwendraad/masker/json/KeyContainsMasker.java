@@ -76,20 +76,20 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void visitPrimitive(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         if (keyMaskingConfig == null) {
-            skipAllValues(maskingState);
+            skipValue(maskingState);
             return;
         }
         if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-            maskStringValueInPlace(maskingState, keyMaskingConfig);
+            maskString(maskingState, keyMaskingConfig);
         } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
                    && !keyMaskingConfig.isDisableNumberMasking()) {
-            maskNumberValueInPlace(maskingState, keyMaskingConfig);
+            maskNumber(maskingState, keyMaskingConfig);
         } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
                     || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
                    && !keyMaskingConfig.isDisableBooleanMasking()) {
-            maskBooleanValueInPlace(maskingState, keyMaskingConfig);
+            maskBoolean(maskingState, keyMaskingConfig);
         } else {
-            skipAllValues(maskingState);
+            skipValue(maskingState);
         }
     }
 
@@ -125,7 +125,7 @@ public final class KeyContainsMasker implements JsonMasker {
      *                         quote of the string value in the input array of the current index
      * @param keyMaskingConfig the masking configuration for the key
      */
-    private void maskStringValueInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
+    private void maskString(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         maskingState.incrementCurrentIndex(); // step over the string value opening quote
         int targetValueLength = 0;
         int noOfEscapeCharacters = 0;
@@ -217,7 +217,6 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.backtrackCurrentJsonPath();
     }
 
-
     /**
      * Visits an object, iterates over the keys and checks whether key needs to be masked (in mask mode)
      * or allowed (in allow mode). For each value invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} with
@@ -259,7 +258,7 @@ public final class KeyContainsMasker implements JsonMasker {
             // allowed and must not be masked, even if enclosing object is being masked
             boolean valueAllowed = maskingConfig.isInAllowMode() && keyMaskingConfig == null;
             if (valueAllowed) {
-                skipAllValues(maskingState);
+                skipValue(maskingState);
             } else {
                 // this is where it might get confusing - this method is called when the whole object is being masked
                 // if we got a maskingConfig for the key - we need to mask this key with that config, but if the config
@@ -282,7 +281,7 @@ public final class KeyContainsMasker implements JsonMasker {
         maskingState.incrementCurrentIndex(); // step over closing curly bracket
     }
 
-    private void maskNumberValueInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
+    private void maskNumber(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         // This block deals with numeric values
         int targetValueLength = 0;
         while (maskingState.currentIndex() < maskingState.getMessage().length
@@ -321,9 +320,9 @@ public final class KeyContainsMasker implements JsonMasker {
      * Note: in case the value is an object or array, it skips the entire object and array and all the included elements
      * in it (e.g. nested arrays, objects, etc.)
      */
-    private static void skipAllValues(MaskingState maskingState) {
+    private static void skipValue(MaskingState maskingState) {
         if (AsciiCharacter.isLowercaseN(maskingState.byteAtCurrentIndex())
-                || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex())) { // null and true
+            || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex())) { // null and true
             maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
         } else if (AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())) { // false
             maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
@@ -370,7 +369,7 @@ public final class KeyContainsMasker implements JsonMasker {
         }
     }
 
-    private void maskBooleanValueInPlace(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
+    private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         int targetValueLength = AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5;
         maskingState.setCurrentIndex(maskingState.currentIndex() + targetValueLength);
         if (keyMaskingConfig.getMaskBooleansWith() != null) {

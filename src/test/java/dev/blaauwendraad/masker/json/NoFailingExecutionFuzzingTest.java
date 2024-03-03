@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
-import dev.blaauwendraad.masker.randomgen.RandomJsonWhiteSpaceInjector;
+import dev.blaauwendraad.masker.randomgen.JsonPrettyPrinter;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -58,7 +58,7 @@ final class NoFailingExecutionFuzzingTest {
     void whitespaceInjectedRandomJson(JsonMaskingConfig jsonMaskingConfig) {
         executeTest(
                 jsonMaskingConfig,
-                (bytes) -> new RandomJsonWhiteSpaceInjector(bytes, 50).getWhiteSpaceInjectedJson());
+                (bytes) -> new JsonPrettyPrinter(bytes).getWhiteSpaceInjectedJson());
     }
 
     private void executeTest(JsonMaskingConfig jsonMaskingConfig, @CheckForNull Function<byte[], byte[]> jsonMutator) {

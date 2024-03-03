@@ -50,11 +50,11 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-      * Entrypoint of visiting any value (object, array or primitive) in the JSON.
+     * Entrypoint of visiting any value (object, array or primitive) in the JSON.
      *
-     * @param maskingState the current masking state
+     * @param maskingState     the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
-     *                        being masked
+     *                         being masked
      */
     private void visitValue(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         skipWhitespaceCharacters(maskingState);
@@ -70,9 +70,9 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Visits a primitive value in the JSON. A primitive value can be a string, number, boolean or null.
      *
-     * @param maskingState the current masking state
+     * @param maskingState     the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
-     *                        being masked
+     *                         being masked
      */
     private void visitPrimitive(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         if (keyMaskingConfig == null) {
@@ -101,7 +101,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private static boolean currentByteIsUnescapedDoubleQuote(MaskingState maskingState) {
         return AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
-                && !AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+               && !AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
     }
 
     /**
@@ -133,7 +133,7 @@ public final class KeyContainsMasker implements JsonMasker {
         boolean isEscapeCharacter = false;
         boolean previousCharacterCountedAsEscapeCharacter = false;
         while (!AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex()) || (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
-                && isEscapeCharacter)) {
+                                                                                    && isEscapeCharacter)) {
             if (Utf8Util.getCodePointByteLength(maskingState.byteAtCurrentIndex()) > 1) {
                 /*
                  * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
@@ -153,7 +153,7 @@ public final class KeyContainsMasker implements JsonMasker {
                 previousCharacterCountedAsEscapeCharacter = true;
             } else {
                 if (previousCharacterCountedAsEscapeCharacter
-                        && AsciiCharacter.isLowercaseU(maskingState.byteAtCurrentIndex())) {
+                    && AsciiCharacter.isLowercaseU(maskingState.byteAtCurrentIndex())) {
                     /*
                      * The next 4 characters are hexadecimal digits which form a single character and are only
                      * there for encoding, so must not be included in the mask.
@@ -198,9 +198,9 @@ public final class KeyContainsMasker implements JsonMasker {
      * Visits an array of unknown values (or empty). Invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} on each
      * element while propagating the key masking configuration.
      *
-     * @param maskingState the current masking state
+     * @param maskingState     the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
-     *                        being masked
+     *                         being masked
      */
     private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         // This block deals with masking arrays
@@ -225,7 +225,7 @@ public final class KeyContainsMasker implements JsonMasker {
      * only situation when the individual values do not need to be masked, is when the key is explicitly allowed
      * (in allow mode).
      *
-     * @param maskingState the current masking state
+     * @param maskingState           the current masking state
      * @param parentKeyMaskingConfig if not null it means that the current value is being masked otherwise the value
      *                               is not being masked
      */

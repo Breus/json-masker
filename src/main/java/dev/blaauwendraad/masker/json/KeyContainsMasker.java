@@ -51,7 +51,6 @@ public final class KeyContainsMasker implements JsonMasker {
 
     /**
       * Entrypoint of visiting any value (object, array or primitive) in the JSON.
-     * Whenever 'keyMaskingConfig' is supplied it means that the current value is a value of a key that is being masked.
      *
      * @param maskingState the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
@@ -70,7 +69,6 @@ public final class KeyContainsMasker implements JsonMasker {
 
     /**
      * Visits a primitive value in the JSON. A primitive value can be a string, number, boolean or null.
-     * Whenever 'keyMaskingConfig' is supplied it means that the current value is a value of a key that is being masked.
      *
      * @param maskingState the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
@@ -199,7 +197,6 @@ public final class KeyContainsMasker implements JsonMasker {
     /**
      * Visits an array of unknown values (or empty). Invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} on each
      * element while propagating the key masking configuration.
-     * Whenever 'keyMaskingConfig' is supplied it means that the array and all its elements is being masked.
      *
      * @param maskingState the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
@@ -225,7 +222,9 @@ public final class KeyContainsMasker implements JsonMasker {
      * Visits an object, iterates over the keys and checks whether key needs to be masked (in mask mode)
      * or allowed (in allow mode). For each value invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} with
      * a non-null {@link KeyMaskingConfig} (when key needs to be masked) or {@code null} (when key is allowed).
-     * Whenever 'parentKeyMaskingConfig' is supplied it means that the array and all its elements is being masked.
+     * Whenever 'parentKeyMaskingConfig' is supplied it means that the object with all its keys is being masked,
+     * only situation when the individual values do not need to be masked, is when the key is explicitly allowed
+     * (in allow mode).
      *
      * @param maskingState the current masking state
      * @param parentKeyMaskingConfig if not null it means that the current value is being masked otherwise the value

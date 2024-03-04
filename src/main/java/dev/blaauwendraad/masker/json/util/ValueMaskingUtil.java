@@ -22,12 +22,13 @@ public final class ValueMaskingUtil {
      */
     public static void replaceTargetValueWith(
             MaskingState maskingState,
+            int endIndex,
             int targetValueLength,
             byte[] mask,
             int maskRepeat
     ) {
-        int targetValueStartIndex = maskingState.currentIndex() - targetValueLength;
-        maskingState.addReplacementOperation(targetValueStartIndex, maskingState.currentIndex(), mask, maskRepeat);
+        int targetValueStartIndex = endIndex - targetValueLength;
+        maskingState.addReplacementOperation(targetValueStartIndex, endIndex, mask, maskRepeat);
     }
 
     /**

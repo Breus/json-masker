@@ -13,7 +13,6 @@ import java.util.List;
  */
 public final class MaskingState {
     private final byte[] message;
-    private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
 
@@ -29,26 +28,6 @@ public final class MaskingState {
         } else {
             currentJsonPath = null;
         }
-    }
-
-    public void incrementCurrentIndex() {
-        currentIndex++;
-    }
-
-    public void setCurrentIndex(int currentIndex) {
-        this.currentIndex = currentIndex;
-    }
-
-    public byte byteAtCurrentIndex() {
-        return message[currentIndex];
-    }
-
-    public byte byteAtCurrentIndexMinusOne() {
-        return message[currentIndex - 1];
-    }
-
-    public int currentIndex() {
-        return currentIndex;
     }
 
     public byte[] getMessage() {
@@ -116,14 +95,6 @@ public final class MaskingState {
         } else {
             return Collections.emptyIterator();
         }
-    }
-
-    // for debugging purposes, shows the current state of message traversal
-    @Override
-    public String toString() {
-        return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
-                " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
-                " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
     }
 
     /**

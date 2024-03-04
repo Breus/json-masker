@@ -20,7 +20,7 @@ public final class MaskingState {
     /**
      * Current json path is represented by a dequeue of segment references.
      */
-    private final Deque<JsonPathSegmentReference> currentJsonPath;
+    private final Deque<JsonPathNode> currentJsonPath;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
@@ -79,13 +79,21 @@ public final class MaskingState {
     }
 
     /**
+     * Checks if jsonpath masking is enabled.
+     * @return true if jsonpath masking is enabled, false otherwise
+     */
+    boolean jsonPathEnabled() {
+        return currentJsonPath != null;
+    }
+
+    /**
      * Expands current jsonpath with a new "key" segment.
      * @param start the index of a new segment start in <code>message</code>
      * @param offset the length of a new segment.
      */
     void expandCurrentJsonPath(int start, int offset) {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathSegmentReference.Node(start, offset));
+            currentJsonPath.push(new JsonPathNode.Node(start, offset));
         }
     }
 
@@ -94,7 +102,7 @@ public final class MaskingState {
      */
     void expandCurrentJsonPathWithArray() {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathSegmentReference.Array(0));
+            currentJsonPath.push(new JsonPathNode.Array());
         }
     }
 
@@ -110,7 +118,7 @@ public final class MaskingState {
     /**
      * Returns the iterator over the json path component references from head to tail
      */
-    Iterator<JsonPathSegmentReference> getCurrentJsonPath() {
+    Iterator<JsonPathNode> getCurrentJsonPath() {
         if (currentJsonPath != null) {
             return currentJsonPath.descendingIterator();
         } else {

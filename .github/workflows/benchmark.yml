@@ -10,6 +10,8 @@ concurrency:
 
 jobs:
   benchmarks:
+    permissions:
+      pull-requests: write # for benchmark comment
     runs-on: ubuntu-latest
     env:
       COMMENT_FILE: ${{ github.workspace }}/benchmark-comment.md

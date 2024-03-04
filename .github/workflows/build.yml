@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      checks: write
+      checks: write # for publishing test results and annotations
     steps:
       - uses: actions/checkout@v3
         with:

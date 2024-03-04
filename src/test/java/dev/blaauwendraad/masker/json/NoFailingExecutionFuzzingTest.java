@@ -15,6 +15,7 @@ import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 import dev.blaauwendraad.masker.randomgen.RandomJsonWhiteSpaceInjector;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -58,7 +59,13 @@ final class NoFailingExecutionFuzzingTest {
     void whitespaceInjectedRandomJson(JsonMaskingConfig jsonMaskingConfig) {
         executeTest(
                 jsonMaskingConfig,
-                (bytes) -> new RandomJsonWhiteSpaceInjector(bytes, 50).getWhiteSpaceInjectedJson());
+                (bytes) -> {
+                    try {
+                        return new RandomJsonWhiteSpaceInjector(bytes, 50).getWhiteSpaceInjectedJson();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     private void executeTest(JsonMaskingConfig jsonMaskingConfig, @CheckForNull Function<byte[], byte[]> jsonMutator) {

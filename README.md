@@ -623,11 +623,11 @@ runtime dependencies and a convenient API out-of-the-box).
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score       Error  Units
-BaselineBenchmark.countBytes                  ascii         N/A         1kb                     0.1  thrpt    4  2603613.017 ± 97512.250  ops/s
-BaselineBenchmark.jacksonParseAndMask         ascii         N/A         1kb                     0.1  thrpt    4    15585.502 ±   377.551  ops/s
-BaselineBenchmark.regexReplace                ascii         N/A         1kb                     0.1  thrpt    4     5977.041 ±   162.784  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes           ascii       false         1kb                     0.1  thrpt    4   255166.860 ± 12806.279  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes           ascii        true         1kb                     0.1  thrpt    4   133205.836 ±  1473.641  ops/s
-JsonMaskerBenchmark.jsonMaskerString          ascii       false         1kb                     0.1  thrpt    4   224138.796 ± 14865.264  ops/s
-JsonMaskerBenchmark.jsonMaskerString          ascii        true         1kb                     0.1  thrpt    4   142942.361 ±  7024.178  ops/s
+BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2583317.302 ± 29799.898  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    21559.512 ±  1163.096  ops/s
+BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     5953.467 ±   111.899  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   332213.913 ±  5816.903  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   237622.075 ±  3442.911  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   186557.954 ±  1640.136  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   145561.527 ±  4101.735  ops/s
 ```

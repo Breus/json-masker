@@ -12,7 +12,7 @@ jobs:
   benchmarks:
     if: ${{ github.repository == 'Breus/json-masker' }}
     permissions:
-      content: read
+      contents: read
       pull-requests: write # for benchmark comment
     runs-on: ubuntu-latest
     env:

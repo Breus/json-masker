@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -12,18 +13,22 @@ import java.util.List;
  */
 public final class MaskingState {
     private final byte[] message;
-    private int currentIndex;
+    private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
 
     /**
      * Current json path is represented by a dequeue of segment references.
      */
-    private final Deque<JsonPathSegmentReference> currentJsonPath = new ArrayDeque<>();
+    private final Deque<JsonPathSegmentReference> currentJsonPath;
 
-    public MaskingState(byte[] message, int currentIndex) {
+    public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
-        this.currentIndex = currentIndex;
+        if (trackJsonPath) {
+            currentJsonPath = new ArrayDeque<>();
+        } else {
+            currentJsonPath = null;
+        }
     }
 
     public void incrementCurrentIndex() {
@@ -79,28 +84,38 @@ public final class MaskingState {
      * @param offset the length of a new segment.
      */
     void expandCurrentJsonPath(int start, int offset) {
-        currentJsonPath.push(new JsonPathSegmentReference.Node(start, offset));
+        if (currentJsonPath != null) {
+            currentJsonPath.push(new JsonPathSegmentReference.Node(start, offset));
+        }
     }
 
     /**
      * Expands current jsonpath with a new array segment.
      */
     void expandCurrentJsonPathWithArray() {
-        currentJsonPath.push(new JsonPathSegmentReference.Array(0));
+        if (currentJsonPath != null) {
+            currentJsonPath.push(new JsonPathSegmentReference.Array(0));
+        }
     }
 
     /**
      * Backtracks current jsonpath to the previous segment.
      */
     void backtrackCurrentJsonPath() {
-        currentJsonPath.pop();
+        if (currentJsonPath != null) {
+            currentJsonPath.pop();
+        }
     }
 
     /**
      * Returns the iterator over the json path component references from head to tail
      */
     Iterator<JsonPathSegmentReference> getCurrentJsonPath() {
-        return currentJsonPath.descendingIterator();
+        if (currentJsonPath != null) {
+            return currentJsonPath.descendingIterator();
+        } else {
+            return Collections.emptyIterator();
+        }
     }
 
     // for debugging purposes, shows the current state of message traversal

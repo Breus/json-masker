@@ -18,7 +18,11 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.repository == 'Breus/json-masker' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write # for publishing test results and annotations
     steps:
       - uses: actions/checkout@v3
         with:
@@ -86,10 +90,11 @@ jobs:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 
       - name: Sonar
-        if: always() # always run even if the previous step fails
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
+        # skip on the forked repositories that don't have access to secrets
+        if: ${{ always() && env.SONAR_TOKEN != '' }}
         run: |
           ./gradlew \
             -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} \

@@ -5,11 +5,15 @@ on:
       - master
 
 concurrency:
-  group: format('{0}-{1}', github.workflow_ref, github.head_ref)
+  group: ${{ format('{0}-{1}', github.workflow_ref, github.head_ref) }}
   cancel-in-progress: true
 
 jobs:
   benchmarks:
+    if: ${{ github.repository == 'Breus/json-masker' }}
+    permissions:
+      contents: read
+      pull-requests: write # for benchmark comment
     runs-on: ubuntu-latest
     env:
       COMMENT_FILE: ${{ github.workspace }}/benchmark-comment.md

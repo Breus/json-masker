@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.repository == 'Breus/json-masker' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -86,7 +87,8 @@ jobs:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 
       - name: Sonar
-        if: always() # always run even if the previous step fails
+        # skip on the forked repositories that don't have access to secrets
+        if: ${{ always() && secrets.SONAR_CLOUD_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}

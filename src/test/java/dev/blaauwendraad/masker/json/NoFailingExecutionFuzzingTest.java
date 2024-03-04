@@ -2,10 +2,12 @@ package dev.blaauwendraad.masker.json;
 
 import static org.assertj.core.api.Assertions.fail;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
+import dev.blaauwendraad.masker.json.util.JsonFormatter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,9 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
-import dev.blaauwendraad.masker.randomgen.RandomJsonWhiteSpaceInjector;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -58,10 +58,10 @@ final class NoFailingExecutionFuzzingTest {
     void whitespaceInjectedRandomJson(JsonMaskingConfig jsonMaskingConfig) {
         executeTest(
                 jsonMaskingConfig,
-                (bytes) -> new RandomJsonWhiteSpaceInjector(bytes, 50).getWhiteSpaceInjectedJson());
+                (jsonNode) -> JsonFormatter.RANDOM_WHITESPACE.format(jsonNode));
     }
 
-    private void executeTest(JsonMaskingConfig jsonMaskingConfig, @CheckForNull Function<byte[], byte[]> jsonMutator) {
+    private void executeTest(JsonMaskingConfig jsonMaskingConfig, @CheckForNull Function<JsonNode, String> jsonMutator) {
         long timeLimit = FuzzingDurationUtil.determineTestTimeLimit(failureFuzzingConfigurations().count());
         String jsonMutatorUsageMessage =
                 jsonMutator != null ? "WITH a JSON mutator function" : "WITHOUT a JSON mutator function";
@@ -79,20 +79,19 @@ final class NoFailingExecutionFuzzingTest {
                                 KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
                                 RandomJsonGenerator randomJsonGenerator =
                                         new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
-                                byte[] jsonBytes =
-                                        randomJsonGenerator.createRandomJsonString().getBytes(StandardCharsets.UTF_8);
-                                byte[] mutatedJsonBytes;
+                                JsonNode jsonNode = randomJsonGenerator.createRandomJsonNode();
+                                String mutatedJsonNodeString;
                                 if (jsonMutator != null) {
-                                    mutatedJsonBytes = jsonMutator.apply(jsonBytes);
+                                    mutatedJsonNodeString = jsonMutator.apply(jsonNode);
                                 } else {
-                                    mutatedJsonBytes = jsonBytes;
+                                    mutatedJsonNodeString = jsonNode.toString();
                                 }
-                                lastExecutedJson.set(new String(mutatedJsonBytes, StandardCharsets.UTF_8));
+                                lastExecutedJson.set(mutatedJsonNodeString);
                                 Assertions.assertDoesNotThrow(
-                                        () -> keyContainsMasker.mask(mutatedJsonBytes),
+                                        () -> keyContainsMasker.mask(mutatedJsonNodeString),
                                         String.format(
                                                 "Failed for the following JSON:\n%s",
-                                                new String(mutatedJsonBytes, StandardCharsets.UTF_8)));
+                                                mutatedJsonNodeString));
                                 randomTestsExecuted.incrementAndGet();
                             }
                         },

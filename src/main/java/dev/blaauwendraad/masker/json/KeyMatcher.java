@@ -205,6 +205,9 @@ final class KeyMatcher {
         if (node == null) {
             return null;
         }
+        if (node.endOfWord) {
+            return node;
+        }
         while (jsonPath.hasNext()) {
             node = node.children['.' + BYTE_OFFSET];
             if (node == null) {
@@ -227,16 +230,6 @@ final class KeyMatcher {
                     node = node.children[b + BYTE_OFFSET];
                     if (node == null) {
                         return null;
-                    }
-                }
-                // a special case required for handling primitive values in arrays
-                if (!jsonPath.hasNext()) {
-                    wildcardLookAhead = node.children['.' + BYTE_OFFSET];
-                    if (wildcardLookAhead != null) {
-                        wildcardLookAhead = wildcardLookAhead.children['*' + BYTE_OFFSET];
-                        if (wildcardLookAhead != null && wildcardLookAhead.endOfWord) {
-                            return wildcardLookAhead;
-                        }
                     }
                 }
             } else if (jsonPathSegmentReference instanceof JsonPathNode.Array) {

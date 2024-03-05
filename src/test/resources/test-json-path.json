@@ -595,8 +595,8 @@
     "maskingConfig": {
       "maskJsonPaths": [
         "$.[java][util][*].key",
-        "$.java[io].*",
-        "$.java.net.URI.*"
+        "$.java[io]",
+        "$.java.net.URI"
       ]
     },
     "input": {
@@ -794,7 +794,7 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.java.net.*.URI.*"
+        "$.java.net.*.URI"
       ]
     },
     "input": {
@@ -894,7 +894,7 @@
     "maskingConfig": {
       "allowJsonPaths": [
         "$.java.util.*.key",
-        "$.java.io.*",
+        "$.java.io",
         "$.java.net.*.*.key"
       ]
     },
@@ -1093,7 +1093,7 @@
   {
     "maskingConfig": {
       "allowJsonPaths": [
-        "$.java.net.*.URI.*"
+        "$.java.net.*.URI"
       ]
     },
     "input": {
@@ -1192,7 +1192,7 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.array.*.nestedArray.*"
+        "$.array.*.nestedArray"
       ]
     },
     "input": {
@@ -1254,7 +1254,7 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.*.nestedArray.*"
+        "$.*.nestedArray"
       ]
     },
     "input": [
@@ -1297,7 +1297,7 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.*"
+        "$"
       ]
     },
     "input": [
@@ -1322,7 +1322,7 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.*"
+        "$"
       ]
     },
     "input": {
@@ -1353,7 +1353,7 @@
   {
     "maskingConfig": {
       "allowJsonPaths": [
-        "$.*.nestedArray.*"
+        "$.*.nestedArray"
       ]
     },
     "input": [
@@ -1396,7 +1396,7 @@
   {
     "maskingConfig": {
       "allowJsonPaths": [
-        "$.*"
+        "$"
       ]
     },
     "input": [
@@ -1417,5 +1417,71 @@
         "key": "do not mask"
       }
     ]
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.path.array"
+      ]
+    },
+    "input": {
+      "path": {
+        "array": [
+          "mask",
+          {
+            "key": "mask"
+          },
+          "mask"
+        ],
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    },
+    "expectedOutput": {
+      "path": {
+        "array": [
+          "***",
+          {
+            "key": "***"
+          },
+          "***"
+        ],
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.path.array"
+      ]
+    },
+    "input": {
+      "path": {
+        "array": [
+          "do not mask",
+          {
+            "key": "do not mask"
+          },
+          "do not mask"
+        ],
+        "key": "mask"
+      },
+      "otherKey": "mask"
+    },
+    "expectedOutput": {
+      "path": {
+        "array": [
+          "do not mask",
+          {
+            "key": "do not mask"
+          },
+          "do not mask"
+        ],
+        "key": "***"
+      },
+      "otherKey": "***"
+    }
   }
 ]

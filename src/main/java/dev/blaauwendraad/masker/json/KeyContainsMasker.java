@@ -47,8 +47,8 @@ public final class KeyContainsMasker implements JsonMasker {
 
         KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
         if (maskingState.jsonPathEnabled()) {
-            // Check for "$.*" json path key.
-            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, Collections.singleton(new JsonPathNode.Array()).iterator());
+            // Check for "$" json path key.
+            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, Collections.emptyIterator());
         }
         visitValue(maskingState, keyMaskingConfig);
 

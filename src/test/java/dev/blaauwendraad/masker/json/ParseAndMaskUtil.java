@@ -102,16 +102,18 @@ public final class ParseAndMaskUtil {
                     }
             );
         } else if (jsonNode instanceof ArrayNode arrayNode) {
+            String jsonPathKey = currentJsonPath + "[*]";
+            String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
+                    ? jsonPathKey
+                    : jsonPathKey.toLowerCase();
+            boolean mask = jsonMaskingConfig.isInMaskMode()
+                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
+                    || jsonMaskingConfig.isInAllowMode()
+                    && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+            boolean visit = !jsonMaskingConfig.isInAllowMode()
+                    || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
             for (int i = 0; i < arrayNode.size(); i++) {
-                String jsonPathKey = currentJsonPath + "[" + i + "]";
-                String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
-                        ? jsonPathKey
-                        : jsonPathKey.toLowerCase();
-
-                if (jsonMaskingConfig.isInMaskMode()
-                        && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
-                        || jsonMaskingConfig.isInAllowMode()
-                        && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                if (mask) {
                     arrayNode.set(
                             i,
                             maskJsonValue(
@@ -121,8 +123,7 @@ public final class ParseAndMaskUtil {
                                     casingAppliedTargetKeys
                             )
                     );
-                } else if (!jsonMaskingConfig.isInAllowMode()
-                        || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                } else if (visit) {
                     mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                 }
             }

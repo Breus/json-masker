@@ -212,7 +212,6 @@ public final class JsonMaskingConfig {
                     targetKeyConfigs.put(parsed.toString(), config);
                 }
             }
-            JSON_PATH_PARSER.checkAmbiguity(targetJsonPaths);
             return this;
         }
 
@@ -247,7 +246,6 @@ public final class JsonMaskingConfig {
                 }
                 targetJsonPaths.add(parsed);
             }
-            JSON_PATH_PARSER.checkAmbiguity(targetJsonPaths);
             return this;
         }
 
@@ -404,6 +402,7 @@ public final class JsonMaskingConfig {
          * @return the new instance
          */
         public JsonMaskingConfig build() {
+            JSON_PATH_PARSER.checkAmbiguity(targetJsonPaths);
             return new JsonMaskingConfig(this);
         }
     }

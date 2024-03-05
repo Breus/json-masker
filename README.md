@@ -313,8 +313,10 @@ To have more control over the nesting, JsonPath can be used to specify the keys 
 
 The following JsonPath features are not supported:
 * Descendant segments.
-* Wildcard selectors.
+* Child segments.
+* Name selectors.
 * Array slice selectors.
+* Index selectors.
 * Filter selectors.
 * Function extensions.
 * Escape characters.
@@ -322,6 +324,7 @@ The following JsonPath features are not supported:
 The library also imposes a number of additional restrictions:
 * Numbers as key names are disallowed.
 * JsonPath keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
+* JsonPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.  
 
 
 #### Usage

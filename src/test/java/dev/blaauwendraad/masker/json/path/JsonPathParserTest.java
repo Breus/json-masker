@@ -61,7 +61,9 @@ class JsonPathParserTest {
                 Arguments.of("$.a.[b][c]", new JsonPath(new String[]{"$", "a", "b", "c"})),
                 Arguments.of("$[][][]", new JsonPath(new String[]{"$", "", "", ""})),
                 Arguments.of("$.a.*.c", new JsonPath(new String[]{"$", "a", "*", "c"})),
-                Arguments.of("$.*.b.*", new JsonPath(new String[]{"$", "*", "b", "*"})),
+                Arguments.of("$.*.b", new JsonPath(new String[]{"$", "*", "b"})),
+                Arguments.of("$", new JsonPath(new String[]{"$"})),
+                Arguments.of("$.a.*.*", new JsonPath(new String[]{"$", "a", "*", "*"})),
                 Arguments.of("$[*].*.*", new JsonPath(new String[]{"$", "*", "*", "*"}))
         );
     }
@@ -71,6 +73,8 @@ class JsonPathParserTest {
                 "$..a.b.c",
                 "$a.b.c",
                 "$a.13.c",
+                "$.a.b.*",
+                "$.*",
                 "$[12].b.c",
                 "$.a[?@].b",
                 "$.a.'b'.c",
@@ -86,26 +90,32 @@ class JsonPathParserTest {
 
     private static Stream<Set<String>> ambiguousJsonPaths() {
         return Stream.of(
-                Set.of("$.a.b.c", "$.a.*.c"),
+                Set.of("$.a.b.c", "$.a.*.c", "$.i.r.l.v.n.*.t"),
                 Set.of("$.*.b.c", "$.a.b.c"),
                 Set.of("$.a.b.c", "$.*.*.*"),
-                Set.of("$.*.b.c", "$.*.b.*"),
+                Set.of("$.*.b.c", "$.*.b.*.d"),
                 Set.of("$.a.b.c", "$.a.b.d", "$.a.*.c"),
                 Set.of("$.a.b.c", "$.a.*.c", "$.a.b.s"),
                 Set.of("$.a.*.c", "$.a.b.c", "$.a.b.d"),
                 Set.of("$.a.b.c.f", "$.*.*.*.u"),
                 Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"),
-                Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f")
+                Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"),
+                Set.of("$.a.b.*.*.d", "$.a.b.*.c"),
+                Set.of("$.a.b.c", "$.a.b.c.*.f"),
+                Set.of("$.key.bbb.c", "$.key.bbb.c.d"),
+                Set.of("$.f.e.g", "$.n.*.m", "$", "$.a.b.c.d")
         );
     }
 
     private static Stream<Set<String>> notAmbiguousJsonPaths() {
         return Stream.of(
                 Set.of("$.a.b.c", "$.d.*.c", "$.f.*.v"),
-                Set.of("$.a.b.c", "$.a.d.*", "$.a[b]d"),
-                Set.of("$.a.b.*", "$.a.b.*.c"),
-                Set.of("$.a.b.c", "$.a.b.c.*"),
-                Set.of("$.a.b.c", "$.d.*.c", "$.d.*.v")
+                Set.of("$.a.b.c", "$.d.*.c", "$.d.*.v"),
+                Set.of("$.a.b.c", "$.a.b.d"),
+                Set.of("$.a.b.*.d", "$.a.b.*.c"),
+                Set.of("$.a.b.*.d", "$.a.b.*.c.f"),
+                Set.of("$.ab", "$.a"),
+                Set.of("$.a.b", "$.a", "$.a!", "$.a.c", "$.a0.i")
         );
     }
 

@@ -32,7 +32,7 @@ public class BaselineBenchmark {
     public static class State {
         @Param({ "1kb", "128kb", "2mb" })
         String jsonSize;
-        @Param({ "unicode" })
+        @Param({ "ascii", "unicode" })
         String characters;
         @Param({ "0.01" })
         double maskedKeyProbability;

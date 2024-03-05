@@ -42,11 +42,6 @@ public final class ParseAndMaskUtil {
         if (jsonMaskingConfig.isInAllowMode() && !jsonNode.isArray() && !jsonNode.isObject()) {
             return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
         }
-        return mask(jsonNode, jsonMaskingConfig, "$");
-    }
-
-    @Nonnull
-    static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig, String currentJsonPath) {
         Set<String> casingAppliedTargetKeys;
         Set<JsonPath> casingAppliedTargetJsonPathKeys;
         if (jsonMaskingConfig.caseSensitiveTargetKeys()) {
@@ -69,6 +64,17 @@ public final class ParseAndMaskUtil {
         if (casingAppliedTargetKeys.isEmpty() && casingAppliedTargetJsonPathKeys.isEmpty()) {
             return jsonNode;
         }
+        return mask(jsonNode, jsonMaskingConfig, "$", casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+    }
+
+    @Nonnull
+    static JsonNode mask(
+            JsonNode jsonNode,
+            JsonMaskingConfig jsonMaskingConfig,
+            String currentJsonPath,
+            Set<String> casingAppliedTargetKeys,
+            Set<JsonPath> casingAppliedTargetJsonPathKeys
+    ) {
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
                     key -> {
@@ -91,7 +97,7 @@ public final class ParseAndMaskUtil {
                             );
                         } else if (!jsonMaskingConfig.isInAllowMode()
                                 || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
-                            mask(jsonNode.get(key), jsonMaskingConfig, jsonPathKey);
+                            mask(jsonNode.get(key), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                         }
                     }
             );
@@ -117,7 +123,7 @@ public final class ParseAndMaskUtil {
                     );
                 } else if (!jsonMaskingConfig.isInAllowMode()
                         || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
-                    mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey);
+                    mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                 }
             }
         }

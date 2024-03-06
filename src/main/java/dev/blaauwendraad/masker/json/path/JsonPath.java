@@ -14,7 +14,7 @@ public record JsonPath(String[] segments) {
      * @return the last segment of the jsonpath key.
      */
     @CheckForNull
-    public String getLastSegment() {
+    public String getQueryArgument() {
         return segments.length != 0 ? segments[segments.length - 1] : null;
     }
 

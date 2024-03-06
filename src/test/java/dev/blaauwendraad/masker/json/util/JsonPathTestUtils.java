@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +63,7 @@ public class JsonPathTestUtils {
                     }
                 } else if (curr.getValue() instanceof ArrayNode currArray) {
                     for (int i = 0; i < currArray.size(); i++) {
-                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[" + i + "]", currArray.get(i)));
+                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", currArray.get(i)));
                     }
                 }
                 if (stack.isEmpty()) {
@@ -71,8 +72,29 @@ public class JsonPathTestUtils {
                 }
             }
         }
-        ArrayList<String> allKeys = new ArrayList<>(transformedTargetKeys);
+        List<String> allKeys = disambiguate(new ArrayList<>(transformedTargetKeys));
         Collections.shuffle(allKeys);
         return new HashSet<>(allKeys.subList(0, keys.size()));
+    }
+
+    /**
+     * Disambiguates the input list of jsonpath keys.
+     * <p>
+     * If two keys <code>$.a.b</code> and <code>$.a</code> are present, the more specific <code>$.a.b</code> will be chosen.
+     *
+     * @param jsonPathKeys the input list of jsonpath keys
+     * @return disambiguated set of jsonpath keys
+     */
+    public static List<String> disambiguate(List<String> jsonPathKeys) {
+        Set<String> disambiguated = new HashSet<>(jsonPathKeys);
+        Collections.sort(jsonPathKeys);
+        for (int i = 1; i < jsonPathKeys.size(); i++) {
+            String current = jsonPathKeys.get(i-1);
+            String next = jsonPathKeys.get(i);
+            if (next.indexOf(current) == 0 && !next.equals(current) && next.charAt(current.length()) == '.') {
+                disambiguated.remove(current);
+            }
+        }
+        return new ArrayList<>(disambiguated);
     }
 }

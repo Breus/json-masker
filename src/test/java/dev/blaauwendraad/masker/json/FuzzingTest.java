@@ -34,7 +34,7 @@ final class FuzzingTest {
         Set<String> allKeys = new HashSet<>(jsonMaskingConfig.getTargetKeys());
         allKeys.addAll(
                 jsonMaskingConfig.getTargetJsonPaths().stream()
-                        .map(JsonPath::getLastSegment)
+                        .map(JsonPath::getQueryArgument)
                         .collect(Collectors.toSet()));
         RandomJsonGenerator randomJsonGenerator =
                 new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetKeys(allKeys).createConfig());

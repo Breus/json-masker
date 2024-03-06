@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public final class ParseAndMaskUtil {
 
     public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
-    private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
     private ParseAndMaskUtil() {
         // util
@@ -43,10 +42,13 @@ public final class ParseAndMaskUtil {
             return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
         }
         Set<String> casingAppliedTargetKeys;
-        Set<JsonPath> casingAppliedTargetJsonPathKeys;
+        Set<String> casingAppliedTargetJsonPathKeys;
         if (jsonMaskingConfig.caseSensitiveTargetKeys()) {
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys();
-            casingAppliedTargetJsonPathKeys = jsonMaskingConfig.getTargetJsonPaths();
+            casingAppliedTargetJsonPathKeys = jsonMaskingConfig.getTargetJsonPaths()
+                    .stream()
+                    .map(JsonPath::toString)
+                    .collect(Collectors.toSet());
         } else {
             JsonPathParser jsonPathParser = new JsonPathParser();
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys()
@@ -57,7 +59,6 @@ public final class ParseAndMaskUtil {
                     .stream()
                     .map(JsonPath::toString)
                     .map(String::toLowerCase)
-                    .map(jsonPathParser::parse)
                     .collect(Collectors.toSet());
 
         }
@@ -73,7 +74,7 @@ public final class ParseAndMaskUtil {
             JsonMaskingConfig jsonMaskingConfig,
             String currentJsonPath,
             Set<String> casingAppliedTargetKeys,
-            Set<JsonPath> casingAppliedTargetJsonPathKeys
+            Set<String> casingAppliedTargetJsonPathKeys
     ) {
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
@@ -131,9 +132,9 @@ public final class ParseAndMaskUtil {
         return jsonNode;
     }
 
-    private static boolean isTargetKey(String jsonPathKey, Set<String> targetKeys, Set<JsonPath> targetJsonPathKeys) {
+    private static boolean isTargetKey(String jsonPathKey, Set<String> targetKeys, Set<String> targetJsonPathKeys) {
         return targetKeys.contains(jsonPathKey.substring(jsonPathKey.lastIndexOf('.') + 1))
-                || targetJsonPathKeys.contains(JSON_PATH_PARSER.tryParse(jsonPathKey));
+                || targetJsonPathKeys.contains(jsonPathKey);
     }
 
     @Nonnull

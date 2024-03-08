@@ -8,7 +8,6 @@ import dev.blaauwendraad.masker.json.util.Utf8Util;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 
 import javax.annotation.CheckForNull;
-import java.util.Collections;
 
 /**
  * Default implementation of the {@link JsonMasker}.
@@ -48,7 +47,7 @@ public final class KeyContainsMasker implements JsonMasker {
         KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
         if (maskingState.jsonPathEnabled()) {
             // Check for "$" json path key.
-            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, Collections.emptyIterator());
+            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, null, 0);
         }
         visitValue(maskingState, keyMaskingConfig);
 
@@ -126,7 +125,8 @@ public final class KeyContainsMasker implements JsonMasker {
                     maskingState.getMessage(),
                     openingQuoteIndex + 1, // plus one for the opening quote
                     keyLength,
-                    maskingState.getCurrentJsonPath()
+                    maskingState.getCurrentJsonPath(),
+                    maskingState.getCurrentJsonPathIndex() + 1
             );
             maskingState.incrementCurrentIndex();// step over the JSON key closing quote
             skipWhitespaceCharacters(maskingState);

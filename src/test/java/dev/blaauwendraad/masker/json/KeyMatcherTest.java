@@ -7,8 +7,6 @@ import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -56,8 +54,8 @@ final class KeyMatcherTest {
                 {"maskMe": "some value"}
                 """.strip().getBytes(StandardCharsets.UTF_8);
 
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator())).isNotNull();
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, Collections.emptyIterator())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null, -1)).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, null, -1)).isNotNull();
     }
 
     @Test
@@ -115,10 +113,11 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        List.of(
+                        new JsonPathNode[]{
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Node(indexOf(bytes, 'b'), 1)
-                        ).iterator()
+                        },
+                        2
                 )
         )
                 .isNotNull();
@@ -126,10 +125,11 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        List.of(
+                        new JsonPathNode[]{
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Node(indexOf(bytes, 'c'), 1)
-                        ).iterator()
+                        },
+                        1
                 )
         )
                 .isNull();
@@ -166,11 +166,12 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        List.of(
+                        new JsonPathNode[]{
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
                                 new JsonPathNode.Node(indexOf(bytes, 'b'), 1)
-                        ).iterator()
+                        },
+                        3
                 )
         )
                 .isNotNull();
@@ -178,11 +179,12 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        List.of(
+                        new JsonPathNode[]{
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
                                 new JsonPathNode.Node(indexOf(bytes, 'c'), 1)
-                        ).iterator()
+                        },
+                        3
                 )
         )
                 .isNotNull();
@@ -190,11 +192,12 @@ final class KeyMatcherTest {
                         bytes,
                         0,
                         0, // skip regular key matching
-                        List.of(
+                        new JsonPathNode[]{
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
                                 new JsonPathNode.Node(indexOf(bytes, 'd'), 1)
-                        ).iterator()
+                        },
+                        3
                 )
         )
                 .isNull();
@@ -209,7 +212,7 @@ final class KeyMatcherTest {
 
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
-        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator()));
+        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null, 0));
     }
 
     // utility to find specific char in the array, must not be duplicated

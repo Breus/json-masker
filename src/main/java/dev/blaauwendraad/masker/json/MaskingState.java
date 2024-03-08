@@ -1,10 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
-import java.util.ArrayDeque;
+import javax.annotation.CheckForNull;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -20,12 +17,13 @@ public final class MaskingState {
     /**
      * Current json path is represented by a dequeue of segment references.
      */
-    private final Deque<JsonPathNode> currentJsonPath;
+    private final JsonPathNode[] currentJsonPath;
+    private int currentJsonPathIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new ArrayDeque<>();
+            currentJsonPath = new JsonPathNode[100];
         } else {
             currentJsonPath = null;
         }
@@ -93,7 +91,7 @@ public final class MaskingState {
      */
     void expandCurrentJsonPath(int start, int offset) {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Node(start, offset));
+            currentJsonPath[++currentJsonPathIndex] = new JsonPathNode.Node(start, offset);
         }
     }
 
@@ -102,7 +100,7 @@ public final class MaskingState {
      */
     void expandCurrentJsonPathWithArray() {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Array());
+            currentJsonPath[++currentJsonPathIndex] = new JsonPathNode.Array();
         }
     }
 
@@ -111,19 +109,20 @@ public final class MaskingState {
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
-            currentJsonPath.pop();
+            currentJsonPath[currentJsonPathIndex--] = null;
         }
     }
 
     /**
      * Returns the iterator over the json path component references from head to tail
      */
-    Iterator<JsonPathNode> getCurrentJsonPath() {
-        if (currentJsonPath != null) {
-            return currentJsonPath.descendingIterator();
-        } else {
-            return Collections.emptyIterator();
-        }
+    @CheckForNull
+    JsonPathNode[] getCurrentJsonPath() {
+        return currentJsonPath;
+    }
+
+    int getCurrentJsonPathIndex() {
+        return currentJsonPathIndex;
     }
 
     // for debugging purposes, shows the current state of message traversal

@@ -56,5 +56,7 @@ public interface ValueMaskerContext {
      * Returns a textual representation of the original value. For string values, the opening and
      * closing quotes are EXCLUDED.
      */
+    // "//" => //
+    // String s = "Give me apple \ banana" -> "\\" => "Give me apple \\ banana" => "GIve me apple \\ *****"
     String asText();
 }

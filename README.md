@@ -68,7 +68,7 @@ var jsonMasker = JsonMasker.getMasker(
 // block-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskJsonPaths(Set.of("$.email", "$.nested.iban"))
+                .maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
                 .build()
 );
 
@@ -82,7 +82,7 @@ var jsonMasker = JsonMasker.getMasker(
 // allow-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskJsonPaths(Set.of("$.id", "$.nested.name"))
+                .maskJsonPaths(Set.of("$.id", "$.public.*", "$.nested.name"))
                 .build()
 );
 ```
@@ -309,7 +309,23 @@ String maskedJson = jsonMasker.mask(json);
 
 ### Masking with JsonPath
 
-To have more control over the nesting, JsonPath can be used to specify the keys that needs to be masked (allowed).
+To have more control over the nesting, JsonPath can be used to specify the keys that needs to be masked (allowed).  
+
+The following JsonPath features are not supported:
+* Descendant segments.
+* Child segments.
+* Name selectors.
+* Array slice selectors.
+* Index selectors.
+* Filter selectors.
+* Function extensions.
+* Escape characters.
+
+The library also imposes a number of additional restrictions:
+* Numbers as key names are disallowed.
+* JsonPath keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
+* JsonPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.  
+
 
 #### Usage
 
@@ -321,7 +337,8 @@ var jsonMasker = JsonMasker.getMasker(
                         "$.customerDetails.age",
                         "$.customerDetails.visaApproved",
                         "$.payment.iban",
-                        "$.payment.billingAddress"
+                        "$.payment.billingAddress",
+                        "$.customerDetails.identificationDocuments.*.number"
                 ))
                 .build()
 );
@@ -339,7 +356,19 @@ String maskedJson = jsonMasker.mask(json);
     "travelPurpose": "business",
     "email": "some-customer-email@example.com",
     "age": 29,
-    "visaApproved": true
+    "visaApproved": true,
+    "identificationDocuments": [
+      {
+        "type": "passport",
+        "country": "NL",
+        "number": "1234567890"
+      },
+      {
+        "type": "passport",
+        "country": "US",
+        "number": "E12345678"
+      }
+    ]
   },
   "payment": {
     "iban": "NL91 FAKE 0417 1643 00",
@@ -365,7 +394,19 @@ String maskedJson = jsonMasker.mask(json);
     "travelPurpose": "business",
     "email": "***",
     "age": "###",
-    "visaApproved": "&&&"
+    "visaApproved": "&&&",
+    "identificationDocuments": [
+      {
+        "type": "passport",
+        "country": "NL",
+        "number": "***"
+      },
+      {
+        "type": "passport",
+        "country": "US",
+        "number": "***"
+      }
+    ]
   },
   "payment": {
     "iban": "***",
@@ -622,12 +663,11 @@ Generally our implementation is ~15-25 times faster than using Jackson (besides 
 runtime dependencies and a convenient API out-of-the-box).
 
 ```text
-Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt     Score   Error  Units
-BaselineBenchmark.countBytes                unicode         N/A         2mb                    0.01  thrpt    2  1525.281          ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         N/A         2mb                    0.01  thrpt    2     3.353          ops/s
-BaselineBenchmark.regexReplace              unicode         N/A         2mb                    0.01  thrpt    2     2.684          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         2mb                    0.01  thrpt    2    79.309          ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         2mb                    0.01  thrpt    2    80.745          ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode       false         2mb                    0.01  thrpt    2    48.488          ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode        true         2mb                    0.01  thrpt    2    49.345          ops/s
-```
+Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units
+BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2578523.937 ± 133325.274  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    30917.311 ±   1055.254  ops/s
+BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     5272.318 ±     48.701  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   369819.788 ±   5381.612  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   214893.887 ±   2143.556  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   179303.261 ±   3833.357  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   154621.472 ±   2132.929  ops/s```

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public final class ParseAndMaskUtil {
 
     public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
-    private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
     private ParseAndMaskUtil() {
         // util
@@ -42,16 +41,14 @@ public final class ParseAndMaskUtil {
         if (jsonMaskingConfig.isInAllowMode() && !jsonNode.isArray() && !jsonNode.isObject()) {
             return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
         }
-        return mask(jsonNode, jsonMaskingConfig, "$");
-    }
-
-    @Nonnull
-    static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig, String currentJsonPath) {
         Set<String> casingAppliedTargetKeys;
-        Set<JsonPath> casingAppliedTargetJsonPathKeys;
+        Set<String> casingAppliedTargetJsonPathKeys;
         if (jsonMaskingConfig.caseSensitiveTargetKeys()) {
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys();
-            casingAppliedTargetJsonPathKeys = jsonMaskingConfig.getTargetJsonPaths();
+            casingAppliedTargetJsonPathKeys = jsonMaskingConfig.getTargetJsonPaths()
+                    .stream()
+                    .map(JsonPath::toString)
+                    .collect(Collectors.toSet());
         } else {
             JsonPathParser jsonPathParser = new JsonPathParser();
             casingAppliedTargetKeys = jsonMaskingConfig.getTargetKeys()
@@ -62,13 +59,23 @@ public final class ParseAndMaskUtil {
                     .stream()
                     .map(JsonPath::toString)
                     .map(String::toLowerCase)
-                    .map(jsonPathParser::parse)
                     .collect(Collectors.toSet());
 
         }
         if (casingAppliedTargetKeys.isEmpty() && casingAppliedTargetJsonPathKeys.isEmpty()) {
             return jsonNode;
         }
+        return mask(jsonNode, jsonMaskingConfig, "$", casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+    }
+
+    @Nonnull
+    static JsonNode mask(
+            JsonNode jsonNode,
+            JsonMaskingConfig jsonMaskingConfig,
+            String currentJsonPath,
+            Set<String> casingAppliedTargetKeys,
+            Set<String> casingAppliedTargetJsonPathKeys
+    ) {
         if (jsonNode instanceof ObjectNode objectNode) {
             objectNode.fieldNames().forEachRemaining(
                     key -> {
@@ -91,21 +98,23 @@ public final class ParseAndMaskUtil {
                             );
                         } else if (!jsonMaskingConfig.isInAllowMode()
                                 || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
-                            mask(jsonNode.get(key), jsonMaskingConfig, jsonPathKey);
+                            mask(jsonNode.get(key), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                         }
                     }
             );
         } else if (jsonNode instanceof ArrayNode arrayNode) {
+            String jsonPathKey = currentJsonPath + "[*]";
+            String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
+                    ? jsonPathKey
+                    : jsonPathKey.toLowerCase();
+            boolean mask = jsonMaskingConfig.isInMaskMode()
+                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
+                    || jsonMaskingConfig.isInAllowMode()
+                    && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+            boolean visit = !jsonMaskingConfig.isInAllowMode()
+                    || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
             for (int i = 0; i < arrayNode.size(); i++) {
-                String jsonPathKey = currentJsonPath + "[" + i + "]";
-                String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
-                        ? jsonPathKey
-                        : jsonPathKey.toLowerCase();
-
-                if (jsonMaskingConfig.isInMaskMode()
-                        && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
-                        || jsonMaskingConfig.isInAllowMode()
-                        && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                if (mask) {
                     arrayNode.set(
                             i,
                             maskJsonValue(
@@ -115,18 +124,17 @@ public final class ParseAndMaskUtil {
                                     casingAppliedTargetKeys
                             )
                     );
-                } else if (!jsonMaskingConfig.isInAllowMode()
-                        || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
-                    mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey);
+                } else if (visit) {
+                    mask(arrayNode.get(i), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                 }
             }
         }
         return jsonNode;
     }
 
-    private static boolean isTargetKey(String jsonPathKey, Set<String> targetKeys, Set<JsonPath> targetJsonPathKeys) {
+    private static boolean isTargetKey(String jsonPathKey, Set<String> targetKeys, Set<String> targetJsonPathKeys) {
         return targetKeys.contains(jsonPathKey.substring(jsonPathKey.lastIndexOf('.') + 1))
-                || targetJsonPathKeys.contains(JSON_PATH_PARSER.tryParse(jsonPathKey));
+                || targetJsonPathKeys.contains(jsonPathKey);
     }
 
     @Nonnull

@@ -2,17 +2,17 @@ package dev.blaauwendraad.masker.json;
 
 /**
  * A mutable reference to a sequence of bytes in <code>dev.blaauwendraad.masker.json.MaskingState#message</code>.
- * It is used to represent json path segments.
+ * It is used to represent json path nodes.
  * <p>
- * There are two types of segment references:
+ * There are two types of nodes:
  * <ul>
  *     <li>{@link Node} - a reference to a node in a json path, where <code>offset</code> denotes the start index of a
  *     segment in the message and <code>length</code> denotes the length of a segment in the message</li>
- *     <li>{@link Array} - a reference to an array in a json path, where <code>index</code> denotes the element index.</li>
+ *     <li>{@link Array} - a reference to an array in a json path. Only wildcard indexes are supported.</li>
  * </ul>
  */
-sealed interface JsonPathSegmentReference permits JsonPathSegmentReference.Array, JsonPathSegmentReference.Node {
-    final class Node implements JsonPathSegmentReference {
+sealed interface JsonPathNode permits JsonPathNode.Array, JsonPathNode.Node {
+    final class Node implements JsonPathNode {
         private final int offset;
         private final int length;
 
@@ -30,19 +30,7 @@ sealed interface JsonPathSegmentReference permits JsonPathSegmentReference.Array
         }
     }
 
-    final class Array implements JsonPathSegmentReference {
-        private int index;
-
-        public Array(int index) {
-            this.index = index;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-
-        public void increment() {
-            this.index++;
-        }
+    final class Array implements JsonPathNode {
+        // only wildcard indexes are supported
     }
 }

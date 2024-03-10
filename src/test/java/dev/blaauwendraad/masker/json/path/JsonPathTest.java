@@ -8,13 +8,13 @@ class JsonPathTest {
     @Test
     void getLastSegment() {
         JsonPath jsonPath = new JsonPath(new String[]{"a", "b"});
-        Assertions.assertEquals("b", jsonPath.getLastSegment());
+        Assertions.assertEquals("b", jsonPath.getQueryArgument());
     }
 
     @Test
     void getLastSegmentForEmptyJsonPath() {
         JsonPath jsonPath = new JsonPath(new String[]{});
-        Assertions.assertNull(jsonPath.getLastSegment());
+        Assertions.assertNull(jsonPath.getQueryArgument());
     }
 
 }

@@ -8,6 +8,7 @@ import dev.blaauwendraad.masker.json.util.Utf8Util;
 import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 
 import javax.annotation.CheckForNull;
+import java.util.Collections;
 
 /**
  * Default implementation of the {@link JsonMasker}.
@@ -44,7 +45,12 @@ public final class KeyContainsMasker implements JsonMasker {
     public byte[] mask(byte[] input) {
         MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
 
-        visitValue(maskingState, maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null);
+        KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
+        if (maskingState.jsonPathEnabled()) {
+            // Check for "$" json path key.
+            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, Collections.emptyIterator());
+        }
+        visitValue(maskingState, keyMaskingConfig);
 
         return ValueMaskingUtil.flushReplacementOperations(maskingState);
     }

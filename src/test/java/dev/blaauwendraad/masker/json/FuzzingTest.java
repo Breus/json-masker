@@ -1,7 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
@@ -34,21 +34,16 @@ final class FuzzingTest {
         Set<String> allKeys = new HashSet<>(jsonMaskingConfig.getTargetKeys());
         allKeys.addAll(
                 jsonMaskingConfig.getTargetJsonPaths().stream()
-                        .map(JsonPath::getLastSegment)
+                        .map(JsonPath::getQueryArgument)
                         .collect(Collectors.toSet()));
         RandomJsonGenerator randomJsonGenerator =
                 new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().setTargetKeys(allKeys).createConfig());
         JsonMasker masker = JsonMasker.getMasker(jsonMaskingConfig);
         while (Duration.between(startTime, Instant.now()).toMillis() < timeLimit) {
+            JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             for (JsonFormatter formatter : JsonFormatter.values()) {
-                String randomJsonString = formatter.format(randomJsonGenerator.createRandomJsonNode());
-                String jacksonMaskingOutput;
-                try {
-                    jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toString();
-                } catch (JsonParseException e) {
-                    // if jackson rejects it, then we don't test
-                    continue;
-                }
+                String randomJsonString = formatter.format(randomJsonNode);
+                String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toString();
                 try {
                     String keyContainsOutput = masker.mask(randomJsonString);
                     // parsing again by jackson to get canonical representation

@@ -15,12 +15,16 @@
         "path": {
           "misleadingPath": {
             "key": "do not mask",
-            "empty": {  }
+            "empty": {}
           },
-          "[]": [{}],
+          "[]": [
+            {}
+          ],
           "[": {
-            "]" : {
-              "{": ["}"]
+            "]": {
+              "{": [
+                "}"
+              ]
             }
           },
           "key": "mask",
@@ -44,12 +48,16 @@
         "path": {
           "misleadingPath": {
             "key": "do not mask",
-            "empty": {  }
+            "empty": {}
           },
-          "[]": [{}],
+          "[]": [
+            {}
+          ],
           "[": {
-            "]" : {
-              "{": ["}"]
+            "]": {
+              "{": [
+                "}"
+              ]
             }
           },
           "key": "***",
@@ -523,8 +531,8 @@
         "empty": {},
         "path": {
           "misleadingPath": {
-            "empty": {  },
-            "otherEmpty": {  }
+            "empty": {},
+            "otherEmpty": {}
           },
           "key": "mask",
           "empty": {}
@@ -537,13 +545,943 @@
         "empty": {},
         "path": {
           "misleadingPath": {
-            "empty": {  },
-            "otherEmpty": {  }
+            "empty": {},
+            "otherEmpty": {}
           },
           "key": "***",
           "empty": {}
         }
       }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.*weird.js*on.path*.*.key"
+      ]
+    },
+    "input": {
+      "*weird": {
+        "js*on": {
+          "path*": {
+            "irrelevant": {
+              "key": "mask",
+              "wrongKey": "do not mask"
+            },
+            "wrongKey": "do not mask"
+          },
+          "wrongKey": "do not mask"
+        },
+        "wrongKey": "do not mask"
+      }
+    },
+    "expectedOutput": {
+      "*weird": {
+        "js*on": {
+          "path*": {
+            "irrelevant": {
+              "key": "***",
+              "wrongKey": "do not mask"
+            },
+            "wrongKey": "do not mask"
+          },
+          "wrongKey": "do not mask"
+        },
+        "wrongKey": "do not mask"
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.[java][util][*].key",
+        "$.java[io]",
+        "$.java.net.URI"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "mask",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "mask"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "mask"
+          },
+          "OutputStream": "mask",
+          "File": {
+            "key": "mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "***",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "***"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "***"
+          },
+          "OutputStream": "***",
+          "File": {
+            "key": "***"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.*.*.*.key"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "mask",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "mask"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "mask"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "***",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "***"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "***"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "***"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.java.net.*.URI"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "mask",
+              "otherKey": "mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "do not mask",
+          "String": "do not mask",
+          "Math": "do not mask"
+        },
+        "util": {
+          "List": "do not mask",
+          "Map": "do not mask",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "do not mask"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "do not mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "do not mask"
+          },
+          {
+            "URI": {
+              "key": "***",
+              "otherKey": "***"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.java.util.*.key",
+        "$.java.io",
+        "$.java.net.*.*.key"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "mask",
+          "String": "mask",
+          "Math": "mask"
+        },
+        "util": {
+          "List": "mask",
+          "Map": "mask",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "mask"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "***",
+          "String": "***",
+          "Math": "***"
+        },
+        "util": {
+          "List": "***",
+          "Map": "***",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "***"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "***"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "do not mask",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "***"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "***"
+            }
+          },
+          {
+            "Socket": {
+              "key": "do not mask"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.*.*.*.key"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "mask",
+          "String": "mask",
+          "Math": "mask"
+        },
+        "util": {
+          "List": "mask",
+          "Map": "mask",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "mask"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "mask",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "mask"
+          },
+          {
+            "URI": {
+              "key": "mask",
+              "otherKey": "mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "***",
+          "String": "***",
+          "Math": "***"
+        },
+        "util": {
+          "List": "***",
+          "Map": "***",
+          "HashMap": {
+            "key": "do not mask",
+            "otherKey": "***"
+          },
+          "ArrayList": {
+            "key": "do not mask"
+          },
+          "key": "***"
+        },
+        "io": {
+          "InputStream": {
+            "key": "do not mask"
+          },
+          "OutputStream": "***",
+          "File": {
+            "key": "do not mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "***"
+          },
+          {
+            "URI": {
+              "key": "***",
+              "otherKey": "***"
+            }
+          },
+          {
+            "Socket": {
+              "key": "***"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.java.net.*.URI"
+      ]
+    },
+    "input": {
+      "java": {
+        "lang": {
+          "Object": "mask",
+          "String": "mask",
+          "Math": "mask"
+        },
+        "util": {
+          "List": "mask",
+          "Map": "mask",
+          "HashMap": {
+            "key": "mask",
+            "otherKey": "mask"
+          },
+          "ArrayList": {
+            "key": "mask"
+          },
+          "key": "mask"
+        },
+        "io": {
+          "InputStream": {
+            "key": "mask"
+          },
+          "OutputStream": "mask",
+          "File": {
+            "key": "mask"
+          }
+        },
+        "net": [
+          {
+            "URL": "mask"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "mask"
+            }
+          }
+        ]
+      }
+    },
+    "expectedOutput": {
+      "java": {
+        "lang": {
+          "Object": "***",
+          "String": "***",
+          "Math": "***"
+        },
+        "util": {
+          "List": "***",
+          "Map": "***",
+          "HashMap": {
+            "key": "***",
+            "otherKey": "***"
+          },
+          "ArrayList": {
+            "key": "***"
+          },
+          "key": "***"
+        },
+        "io": {
+          "InputStream": {
+            "key": "***"
+          },
+          "OutputStream": "***",
+          "File": {
+            "key": "***"
+          }
+        },
+        "net": [
+          {
+            "URL": "***"
+          },
+          {
+            "URI": {
+              "key": "do not mask",
+              "otherKey": "do not mask"
+            }
+          },
+          {
+            "Socket": {
+              "key": "***"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.array.*.nestedArray"
+      ]
+    },
+    "input": {
+      "array": [
+        {
+          "nestedArray": [
+            {
+              "key": "mask"
+            }
+          ]
+        },
+        {
+          "key": "do not mask"
+        }
+      ],
+      "key": "do not mask"
+    },
+    "expectedOutput": {
+      "array": [
+        {
+          "nestedArray": [
+            {
+              "key": "***"
+            }
+          ]
+        },
+        {
+          "key": "do not mask"
+        }
+      ],
+      "key": "do not mask"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.*.key"
+      ]
+    },
+    "input": [
+      {
+        "key": "mask"
+      },
+      "do not mask",
+      {
+        "key": "mask"
+      }
+    ],
+    "expectedOutput": [
+      {
+        "key": "***"
+      },
+      "do not mask",
+      {
+        "key": "***"
+      }
+    ]
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.*.nestedArray"
+      ]
+    },
+    "input": [
+      {
+        "key": "do not mask"
+      },
+      "do not mask",
+      {
+        "key": "do not mask",
+        "nestedArray": [
+          {
+            "otherKey": "mask"
+          },
+          "mask",
+          {
+            "anotherKey": "mask"
+          }
+        ]
+      }
+    ],
+    "expectedOutput": [
+      {
+        "key": "do not mask"
+      },
+      "do not mask",
+      {
+        "key": "do not mask",
+        "nestedArray": [
+          {
+            "otherKey": "***"
+          },
+          "***",
+          {
+            "anotherKey": "***"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$"
+      ]
+    },
+    "input": [
+      {
+        "key": "mask"
+      },
+      "mask",
+      {
+        "key": "mask"
+      }
+    ],
+    "expectedOutput": [
+      {
+        "key": "***"
+      },
+      "***",
+      {
+        "key": "***"
+      }
+    ]
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$"
+      ]
+    },
+    "input": {
+      "key": "mask",
+      "path": {
+        "otherKey": "mask"
+      },
+      "array": [
+        "mask",
+        {
+          "anotherKey": "mask"
+        }
+      ]
+    },
+    "expectedOutput": {
+      "key": "***",
+      "path": {
+        "otherKey": "***"
+      },
+      "array": [
+        "***",
+        {
+          "anotherKey": "***"
+        }
+      ]
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.*.nestedArray"
+      ]
+    },
+    "input": [
+      {
+        "key": "mask"
+      },
+      "mask",
+      {
+        "key": "mask",
+        "nestedArray": [
+          {
+            "otherKey": "do not mask"
+          },
+          "do not mask",
+          {
+            "anotherKey": "do not mask"
+          }
+        ]
+      }
+    ],
+    "expectedOutput": [
+      {
+        "key": "***"
+      },
+      "***",
+      {
+        "key": "***",
+        "nestedArray": [
+          {
+            "otherKey": "do not mask"
+          },
+          "do not mask",
+          {
+            "anotherKey": "do not mask"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$"
+      ]
+    },
+    "input": [
+      {
+        "key": "do not mask"
+      },
+      "do not mask",
+      {
+        "key": "do not mask"
+      }
+    ],
+    "expectedOutput": [
+      {
+        "key": "do not mask"
+      },
+      "do not mask",
+      {
+        "key": "do not mask"
+      }
+    ]
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.path.array"
+      ]
+    },
+    "input": {
+      "path": {
+        "array": [
+          "mask",
+          {
+            "key": "mask"
+          },
+          "mask"
+        ],
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    },
+    "expectedOutput": {
+      "path": {
+        "array": [
+          "***",
+          {
+            "key": "***"
+          },
+          "***"
+        ],
+        "key": "do not mask"
+      },
+      "otherKey": "do not mask"
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.path.array"
+      ]
+    },
+    "input": {
+      "path": {
+        "array": [
+          "do not mask",
+          {
+            "key": "do not mask"
+          },
+          "do not mask"
+        ],
+        "key": "mask"
+      },
+      "otherKey": "mask"
+    },
+    "expectedOutput": {
+      "path": {
+        "array": [
+          "do not mask",
+          {
+            "key": "do not mask"
+          },
+          "do not mask"
+        ],
+        "key": "***"
+      },
+      "otherKey": "***"
     }
   }
 ]

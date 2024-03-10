@@ -33,7 +33,6 @@ import java.util.Iterator;
  * we can fail fast if the incoming key is not of the same length.
  */
 final class KeyMatcher {
-    private static final int DECIMAL_RADIX = 10;
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
@@ -134,7 +133,7 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathSegmentReference> jsonPath) {
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathNode> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
             // check json path first, as it's more specific
@@ -176,14 +175,6 @@ final class KeyMatcher {
         }
     }
 
-    /**
-     * An overload of {@code dev.blaauwendraad.masker.json.KeyMatcher#getMaskConfigIfMatched(byte[], int, int, java.util.Iterator)} specifically for jsonpath look-ups.
-     */
-    @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, Iterator<JsonPathSegmentReference> jsonPath) {
-        return getMaskConfigIfMatched(bytes, 0, SKIP_KEY_LOOKUP, jsonPath);
-    }
-
     @CheckForNull
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
         if (!knownByteLengths[length]) {
@@ -208,19 +199,30 @@ final class KeyMatcher {
     }
 
     @CheckForNull
-    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<? extends JsonPathSegmentReference> jsonPath) {
+    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<? extends JsonPathNode> jsonPath) {
         TrieNode node = root;
         node = node.children['$' + BYTE_OFFSET];
         if (node == null) {
             return null;
+        }
+        if (node.endOfWord) {
+            return node;
         }
         while (jsonPath.hasNext()) {
             node = node.children['.' + BYTE_OFFSET];
             if (node == null) {
                 return null;
             }
-            JsonPathSegmentReference jsonPathSegmentReference = jsonPath.next();
-            if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Node jsonPathNode) {
+            JsonPathNode jsonPathSegmentReference = jsonPath.next();
+            TrieNode wildcardLookAhead = node.children['*' + BYTE_OFFSET];
+            if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.children['.' + BYTE_OFFSET] != null)) {
+                node = wildcardLookAhead;
+                if (node.endOfWord) {
+                    return node;
+                }
+                continue;
+            }
+            if (jsonPathSegmentReference instanceof JsonPathNode.Node jsonPathNode) {
                 int keyOffset = jsonPathNode.getOffset();
                 int keyLength = jsonPathNode.getLength();
                 for (int i = keyOffset; i < keyOffset + keyLength; i++) {
@@ -230,26 +232,9 @@ final class KeyMatcher {
                         return null;
                     }
                 }
-            } else if (jsonPathSegmentReference instanceof JsonPathSegmentReference.Array jsonPathArray) {
-                // for arrays keyOffset is the index of the element
-                if (jsonPathArray.getIndex() >= 10) {
-                    char[] digits = String.valueOf(jsonPathArray.getIndex()).toCharArray();
-                    for (char digit : digits) {
-                        node = node.children[digit + BYTE_OFFSET];
-                        if (node == null) {
-                            return null;
-                        }
-                    }
-                } else {
-                    char digit = Character.forDigit(jsonPathArray.getIndex(), DECIMAL_RADIX);
-                    if (digit == '\u0000') {
-                        throw new IllegalStateException("Invalid digit " + jsonPathArray.getIndex());
-                    }
-                    node = node.children[digit + BYTE_OFFSET];
-                    if (node == null) {
-                        return null;
-                    }
-                }
+            } else if (jsonPathSegmentReference instanceof JsonPathNode.Array) {
+                // only wildcard indexes are supported
+                return null;
             } else {
                 throw new IllegalStateException("Unknown json path segment reference type " + jsonPathSegmentReference.getClass());
             }

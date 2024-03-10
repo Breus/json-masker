@@ -402,6 +402,7 @@ public final class JsonMaskingConfig {
          * @return the new instance
          */
         public JsonMaskingConfig build() {
+            JSON_PATH_PARSER.checkAmbiguity(targetJsonPaths);
             return new JsonMaskingConfig(this);
         }
     }

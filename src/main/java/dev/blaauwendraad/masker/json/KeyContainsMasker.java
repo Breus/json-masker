@@ -344,7 +344,6 @@ public final class KeyContainsMasker implements JsonMasker {
             case 'f' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
             case '{' -> skipObjectValue(maskingState);
             case '[' -> skipArrayValue(maskingState);
-            default -> throw new IllegalStateException("Invalid JSON value");
         }
     }
 

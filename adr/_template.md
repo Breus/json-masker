@@ -4,7 +4,7 @@ Date: <current-date>
 
 ## Status
 
-Accepted | Deprecated | Superseded by <link-to-new-adr>
+Accepted | Draft | Deprecated | Superseded by <link-to-new-adr>
 
 ## Context
 

@@ -21,7 +21,7 @@ and in terms of default behaviour.
 
 ### Change the default masking behaviors for all JSON types
 
-By default we
+By default:
 1. We will not make a masking decision based on type. 
     The main reason is that masking is explicitly requested by the user by specifying the target keys (either block
     or allow) and it would be unexpected that we do not mask an explicitly requested key because it's a number and 
@@ -64,7 +64,7 @@ public class MaskingConfig {
 
     // String masking, mutually exclusive options
     private String maskStringsWith = "***";         // default
-    private Char maskStringCharactersWith;          // mask all characters with masking character, preserves original length
+    private String maskStringCharactersWith;          // mask all characters with masking string, preserves original length
 
     // Boolean masking, mutually exclusive options
     private Boolean disableBooleanMasking = false;  // disables boolean masking
@@ -79,7 +79,7 @@ public class MaskingConfig {
         public Builder maskNumberDigitsWith(int) { ... };
 
         public Builder maskStringsWith(String) { ... };
-        public Builder maskStringCharactersWith(char) { ... };
+        public Builder maskStringCharactersWith(String) { ... };
 
         public Builder disableBooleanMasking() { ... };
         public Builder maskBooleanWith(String) { ... };
@@ -120,7 +120,7 @@ public class JsonmaskingConfig {
         public Builder maskNumberDigitsWith(int value) { defaultConfigBuilder.maskNumberDigitsWith(value) };
 
         public Builder maskStringsWith(String value) { defaultConfigBuilder.maskStringsWith(value) };
-        public Builder maskStringCharactersWith(char value) { defaultConfigBuilder.maskStringCharactersWith(value) };
+        public Builder maskStringCharactersWith(String value) { defaultConfigBuilder.maskStringCharactersWith(value) };
 
         public Builder disableBooleanMasking() { defaultConfigBuilder.disableBooleanMasking() };
         public Builder maskBooleanWith(String value) { defaultConfigBuilder.maskBooleanWith(value) };
@@ -137,7 +137,7 @@ JsonmaskingConfig.builder()
       .mask("clientPin")
       .mask("cardNumber", MaskingConfig.builder()
         .maskNumberDigitsWith(8) // preserves type and length of cardNumber if number
-        .maskStringCharactersWith('*') // preserves type and length of cardNumber if string
+        .maskStringCharactersWith("*") // preserves type and length of cardNumber if string
         .maskBooleanWith(false) // preserves type of cardNumber if boolean (¯\_(ツ)_/¯)
         .build()
       )
@@ -153,7 +153,7 @@ JsonMasker.getMasker(Set.of("email", "iban"))
 JsonMasker.getMasker(
     JsonmaskingConfig.builder()
           .mask("email", "iban")
-          .maskStringCharactersWith('*')
+          .maskStringCharactersWith("*")
           .disableNumberMasking()
           .disableBooleanMasking()
           .build()
@@ -172,7 +172,7 @@ JsonMasker.getMasker(
 JsonMasker.getMasker(
     JsonmaskingConfig.builder()
           .mask("clientPin")
-          .maskStringCharactersWith('*')
+          .maskStringCharactersWith("*")
           .maskNumberDigitsWith(8)
           .disableBooleanMasking()
           .build()

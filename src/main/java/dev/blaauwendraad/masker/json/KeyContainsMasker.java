@@ -64,12 +64,39 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void visitValue(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         skipWhitespaceCharacters(maskingState);
-        if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
-            visitArray(maskingState, keyMaskingConfig);
-        } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) {
-            visitObject(maskingState, keyMaskingConfig);
-        } else {
-            visitPrimitive(maskingState, keyMaskingConfig);
+        // using switch-case over ifs to improve performance by ~20% (measured in benchmarks)
+        switch (maskingState.byteAtCurrentIndex()) {
+            case '[' -> visitArray(maskingState, keyMaskingConfig);
+            case '{' -> visitObject(maskingState, keyMaskingConfig);
+            case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
+                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableNumberMasking()) {
+                    maskNumber(maskingState, keyMaskingConfig);
+                } else {
+                    skipNumericValue(maskingState);
+                }
+            }
+            case '"' -> {
+                if (keyMaskingConfig != null) {
+                    maskString(maskingState, keyMaskingConfig);
+                } else {
+                    skipStringValue(maskingState);
+                }
+            }
+            case 't' -> {
+                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableBooleanMasking()) {
+                    maskBoolean(maskingState, keyMaskingConfig);
+                } else {
+                    maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
+                }
+            }
+            case 'f' -> {
+                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableBooleanMasking()) {
+                    maskBoolean(maskingState, keyMaskingConfig);
+                } else {
+                    maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
+                }
+            }
+            case 'n' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
         }
     }
 
@@ -159,32 +186,6 @@ public final class KeyContainsMasker implements JsonMasker {
             maskingState.backtrackCurrentJsonPath();
         }
         maskingState.incrementCurrentIndex(); // step over closing curly bracket
-    }
-
-    /**
-     * Visits a primitive value in the JSON. A primitive value can be a string, number, boolean or null.
-     *
-     * @param maskingState     the current {@link MaskingState}
-     * @param keyMaskingConfig if not null it means that the current value is being masked according to the
-     *                         {@link KeyMaskingConfig}. Otherwise, the value is not being masked
-     */
-    private void visitPrimitive(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
-        if (keyMaskingConfig == null) {
-            skipValue(maskingState);
-            return;
-        }
-        if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
-            maskString(maskingState, keyMaskingConfig);
-        } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())
-                && !keyMaskingConfig.isDisableNumberMasking()) {
-            maskNumber(maskingState, keyMaskingConfig);
-        } else if ((AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())
-                || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()))
-                && !keyMaskingConfig.isDisableBooleanMasking()) {
-            maskBoolean(maskingState, keyMaskingConfig);
-        } else {
-            skipValue(maskingState);
-        }
     }
 
     /**
@@ -337,19 +338,13 @@ public final class KeyContainsMasker implements JsonMasker {
      * includes (e.g. nested arrays, objects, etc.).
      */
     private static void skipValue(MaskingState maskingState) {
-        if (AsciiCharacter.isLowercaseN(maskingState.byteAtCurrentIndex())
-                || AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex())) { // null and true
-            maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
-        } else if (AsciiCharacter.isLowercaseF(maskingState.byteAtCurrentIndex())) { // false
-            maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
-        } else if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) { // strings
-            skipStringValue(maskingState);
-        } else if (AsciiJsonUtil.isFirstNumberChar(maskingState.byteAtCurrentIndex())) { // numbers
-            skipNumericValue(maskingState);
-        } else if (AsciiCharacter.isCurlyBracketOpen(maskingState.byteAtCurrentIndex())) { // object
-            skipObjectValue(maskingState);
-        } else if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) { // array
-            skipArrayValue(maskingState);
+        switch (maskingState.byteAtCurrentIndex()) {
+            case '"' -> skipStringValue(maskingState);
+            case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-' -> skipNumericValue(maskingState);
+            case 't', 'n' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
+            case 'f' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
+            case '{' -> skipObjectValue(maskingState);
+            case '[' -> skipArrayValue(maskingState);
         }
     }
 
@@ -372,6 +367,7 @@ public final class KeyContainsMasker implements JsonMasker {
      * value.
      */
     private static void skipNumericValue(MaskingState maskingState) {
+        maskingState.incrementCurrentIndex(); // step over the first numeric character
         while (maskingState.currentIndex() < maskingState.getMessage().length
                 && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
             maskingState.incrementCurrentIndex();

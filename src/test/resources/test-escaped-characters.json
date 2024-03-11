@@ -255,5 +255,18 @@
         }
       ]
     }
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowMe"
+      ]
+    },
+    "input": {
+      "allowMe": "\\"
+    },
+    "expectedOutput": {
+      "allowMe": "\\"
+    }
   }
 ]

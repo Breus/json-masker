@@ -42,36 +42,23 @@ public final class Utf8Util {
      * @param message the byte array containing the string
      * @param fromIndex the starting index of the string value (after the quote)
      * @param length the length of the string value (excluding the quotes)
-     * @return the amount of non-visible characters in the string - escape characters, utf-8 character data ('\u0000'),
+     * @return the amount of non-visible characters in the string - escape characters, UTF-8 character data ('\u0000'),
      * characters that use more than a single byte
      */
     public static int countNonVisibleCharacters(byte[] message, int fromIndex, int length) {
         int index = fromIndex;
         int toIndex = fromIndex + length;
         boolean isEscapeCharacter = false;
-        boolean previousCharacterCountedAsEscapeCharacter = false;
         int nonVisibleCharacterCount = 0;
         while (index < toIndex) {
             byte currentByte = message[index];
-            int codePointByteLength = Utf8Util.getCodePointByteLength(currentByte);
-            if (codePointByteLength > 1) {
-                /*
-                 * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
-                 * be represented by a single asterisk and the additional bytes used for encoding need to be
-                 * removed.
-                 */
-                nonVisibleCharacterCount += codePointByteLength - 1;
-            }
-            isEscapeCharacter = !isEscapeCharacter && AsciiCharacter.isEscapeCharacter(currentByte);
             if (isEscapeCharacter) {
                 /*
                  * Non-escaped backslashes are escape characters and are not actually part of the string but
                  * only used for character encoding, so must not be included in the mask.
                  */
                 nonVisibleCharacterCount++;
-                previousCharacterCountedAsEscapeCharacter = true;
-            } else {
-                if (previousCharacterCountedAsEscapeCharacter && AsciiCharacter.isLowercaseU(currentByte)) {
+                if (AsciiCharacter.isLowercaseU(currentByte)) {
                     /*
                      * The next 4 characters are hexadecimal digits which form a single character and are only
                      * there for encoding, so must not be included in the mask.
@@ -79,8 +66,18 @@ public final class Utf8Util {
                     nonVisibleCharacterCount += 4;
                     index += 4;
                 }
-                previousCharacterCountedAsEscapeCharacter = false;
+            } else {
+                int codePointByteLength = Utf8Util.getCodePointByteLength(currentByte);
+                if (codePointByteLength > 1) {
+                    /*
+                     * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
+                     * be represented by a single asterisk and the additional bytes used for encoding need to be
+                     * removed.
+                     */
+                    nonVisibleCharacterCount += codePointByteLength - 1;
+                }
             }
+            isEscapeCharacter = !isEscapeCharacter && AsciiCharacter.isEscapeCharacter(currentByte);
             index++;
         }
         return nonVisibleCharacterCount;

@@ -268,5 +268,19 @@
     "expectedOutput": {
       "allowMe": "\\"
     }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "maskMe"
+      ],
+      "maskStringCharactersWith": "*"
+    },
+    "input": {
+      "maskMe": "d\u001Eb\u0018n9"
+    },
+    "expectedOutput": {
+      "maskMe": "*******"
+    }
   }
 ]

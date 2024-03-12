@@ -41,10 +41,6 @@ public final class RandomJsonGenerator {
         return createRandomJsonNode(new Context(random), 0);
     }
 
-    public String createRandomJsonString() {
-        return createRandomJsonNode().toPrettyString();
-    }
-
     private JsonNode createRandomJsonNode(Context context, int depth) {
         boolean primitiveOnly = depth >= config.getMaxNodeDepth();
         NodeType nodeType = getRandomNodeType(context, primitiveOnly);
@@ -154,7 +150,12 @@ public final class RandomJsonGenerator {
         int stringLength = context.random.nextInt(config.getMaxStringLength());
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < stringLength; i++) {
-            sb.append(getRandomCharacter(context));
+            Character randomCharacter = getRandomCharacter(context);
+            if (randomCharacter == '\\') {
+                // escape the escape character
+                sb.append(randomCharacter);
+            }
+            sb.append(randomCharacter);
         }
         return sb.toString();
     }

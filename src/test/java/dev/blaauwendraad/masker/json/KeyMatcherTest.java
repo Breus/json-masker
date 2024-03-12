@@ -72,13 +72,13 @@ final class KeyMatcherTest {
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
                 .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .isEqualTo("***");
+                .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
                 .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .isEqualTo("[redacted]");
+                .isEqualTo("\"[redacted]\"");
     }
 
     @Test
@@ -95,13 +95,13 @@ final class KeyMatcherTest {
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
                 .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .isEqualTo("***");
+                .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getMaskStringsWith)
                 .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
-                .isEqualTo("[redacted]");
+                .isEqualTo("\"[redacted]\"");
     }
 
     @Test

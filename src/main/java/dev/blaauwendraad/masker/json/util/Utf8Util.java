@@ -34,4 +34,44 @@ public final class Utf8Util {
         }
         throw new IllegalArgumentException("Input byte is not using UTF-8 encoding");
     }
+    
+    public static int countNonVisibleCharacters(byte[] message, int fromIndex, int length) {
+        int index = fromIndex;
+        boolean isEscapeCharacter;
+        boolean previousCharacterCountedAsEscapeCharacter = false;
+        int nonVisibleCharacterCount = 0;
+        while (index < length) {
+            int codePointByteLength = Utf8Util.getCodePointByteLength(message[index]);
+            if (codePointByteLength > 1) {
+                /*
+                 * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
+                 * be represented by a single asterisk and the additional bytes used for encoding need to be
+                 * removed.
+                 */
+                nonVisibleCharacterCount += codePointByteLength - 1;
+            }
+            isEscapeCharacter = AsciiCharacter.isEscapeCharacter(message[index])
+                                && !previousCharacterCountedAsEscapeCharacter;
+            if (isEscapeCharacter) {
+                /*
+                 * Non-escaped backslashes are escape characters and are not actually part of the string but
+                 * only used for character encoding, so must not be included in the mask.
+                 */
+                nonVisibleCharacterCount++;
+                previousCharacterCountedAsEscapeCharacter = true;
+            } else {
+                if (previousCharacterCountedAsEscapeCharacter
+                    && AsciiCharacter.isLowercaseU(message[index])) {
+                    /*
+                     * The next 4 characters are hexadecimal digits which form a single character and are only
+                     * there for encoding, so must not be included in the mask.
+                     */
+                    nonVisibleCharacterCount += 4;
+                }
+                previousCharacterCountedAsEscapeCharacter = false;
+            }
+            index++;
+        }
+        return nonVisibleCharacterCount;
+    }
 }

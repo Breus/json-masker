@@ -5,7 +5,6 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
-import dev.blaauwendraad.masker.json.util.ValueMaskingUtil;
 
 import javax.annotation.CheckForNull;
 import java.util.Collections;
@@ -52,7 +51,7 @@ public final class KeyContainsMasker implements JsonMasker {
         }
         visitValue(maskingState, keyMaskingConfig);
 
-        return ValueMaskingUtil.flushReplacementOperations(maskingState);
+        return maskingState.flushReplacementOperations();
     }
 
     /**
@@ -141,13 +140,11 @@ public final class KeyContainsMasker implements JsonMasker {
         while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
             // In case target keys should be considered as allow list, we need to NOT mask certain keys
             int openingQuoteIndex = maskingState.currentIndex();
-            maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
-            while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
-                maskingState.incrementCurrentIndex();
-            }
+
+            expandStringValue(maskingState);
 
             int closingQuoteIndex = maskingState.currentIndex();
-            int keyLength = closingQuoteIndex - openingQuoteIndex - 1; // minus one for the quote
+            int keyLength = closingQuoteIndex - openingQuoteIndex - 2; // minus the quotes
             maskingState.expandCurrentJsonPath(openingQuoteIndex + 1, keyLength);
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
                     maskingState.getMessage(),
@@ -155,7 +152,6 @@ public final class KeyContainsMasker implements JsonMasker {
                     keyLength,
                     maskingState.getCurrentJsonPath()
             );
-            maskingState.incrementCurrentIndex();// step over the JSON key closing quote
             skipWhitespaceCharacters(maskingState);
             maskingState.incrementCurrentIndex(); // step over the colon ':'
             skipWhitespaceCharacters(maskingState);
@@ -197,50 +193,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskString(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        maskingState.incrementCurrentIndex(); // step over the string value opening quote
-        int targetValueLength = 0;
-        int noOfEscapeCharacters = 0;
-        int additionalBytesForEncoding = 0;
-        boolean isEscapeCharacter = false;
-        boolean previousCharacterCountedAsEscapeCharacter = false;
-        while (!AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex()) || (
-                AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
-                        && isEscapeCharacter)) {
-            if (Utf8Util.getCodePointByteLength(maskingState.byteAtCurrentIndex()) > 1) {
-                /*
-                 * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
-                 * be represented by a single asterisk and the additional bytes used for encoding need to be
-                 * removed.
-                 */
-                additionalBytesForEncoding += Utf8Util.getCodePointByteLength(maskingState.byteAtCurrentIndex()) - 1;
-            }
-            isEscapeCharacter =
-                    AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndex())
-                            && !previousCharacterCountedAsEscapeCharacter;
-            if (isEscapeCharacter) {
-                /*
-                 * Non-escaped backslashes are escape characters and are not actually part of the string but
-                 * only used for character encoding, so must not be included in the mask.
-                 */
-                noOfEscapeCharacters++;
-                previousCharacterCountedAsEscapeCharacter = true;
-            } else {
-                if (previousCharacterCountedAsEscapeCharacter
-                        && AsciiCharacter.isLowercaseU(maskingState.byteAtCurrentIndex())) {
-                    /*
-                     * The next 4 characters are hexadecimal digits which form a single character and are only
-                     * there for encoding, so must not be included in the mask.
-                     */
-                    additionalBytesForEncoding += 4;
-                }
-                previousCharacterCountedAsEscapeCharacter = false;
-            }
-            targetValueLength++;
-            maskingState.incrementCurrentIndex();
-        }
+        int valueStartIndex = maskingState.currentIndex();
+        int nonVisibleCharacters = expandStringValue(maskingState);
+        int targetValueLength = maskingState.currentIndex() - valueStartIndex;
         if (keyMaskingConfig.getMaskStringsWith() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
+            maskingState.replaceTargetValueWith(
+                    valueStartIndex,
                     targetValueLength,
                     keyMaskingConfig.getMaskStringsWith(),
                     1
@@ -253,10 +211,11 @@ public final class KeyContainsMasker implements JsonMasker {
             string length). Also, unicode characters are denoted as 4-hex digits but represent actually
             just one character, so for each of them 3 asterisks should be removed.
              */
-            int maskLength = targetValueLength - noOfEscapeCharacters - additionalBytesForEncoding;
+            targetValueLength -= 2; // remove quotes from the value length
+            int maskLength = targetValueLength - nonVisibleCharacters;
 
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
+            maskingState.replaceTargetValueWith(
+                    valueStartIndex + 1, // offset by opening quote
                     targetValueLength,
                     keyMaskingConfig.getMaskStringCharactersWith(),
                     maskLength
@@ -264,7 +223,6 @@ public final class KeyContainsMasker implements JsonMasker {
         } else {
             throw new IllegalStateException("Invalid string masking configuration");
         }
-        maskingState.incrementCurrentIndex(); // step over closing quote of string value to start looking for the next JSON key.
     }
 
     /**
@@ -277,6 +235,7 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void maskNumber(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         // This block deals with numeric values
+        int targetValueStartIndex = maskingState.currentIndex();
         int targetValueLength = 0;
         while (maskingState.currentIndex() < maskingState.getMessage().length
                 && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
@@ -288,15 +247,15 @@ public final class KeyContainsMasker implements JsonMasker {
             maskingState.incrementCurrentIndex();
         }
         if (keyMaskingConfig.getMaskNumbersWith() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
+            maskingState.replaceTargetValueWith(
+                    targetValueStartIndex,
                     targetValueLength,
                     keyMaskingConfig.getMaskNumbersWith(),
                     1
             );
         } else if (keyMaskingConfig.getMaskNumberDigitsWith() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
+            maskingState.replaceTargetValueWith(
+                    targetValueStartIndex,
                     targetValueLength,
                     keyMaskingConfig.getMaskNumberDigitsWith(),
                     targetValueLength
@@ -316,10 +275,9 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         int targetValueLength = AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5;
-        maskingState.setCurrentIndex(maskingState.currentIndex() + targetValueLength);
         if (keyMaskingConfig.getMaskBooleansWith() != null) {
-            ValueMaskingUtil.replaceTargetValueWith(
-                    maskingState,
+            maskingState.replaceTargetValueWith(
+                    maskingState.currentIndex(),
                     targetValueLength,
                     keyMaskingConfig.getMaskBooleansWith(),
                     1
@@ -327,6 +285,7 @@ public final class KeyContainsMasker implements JsonMasker {
         } else {
             throw new IllegalStateException("Invalid boolean masking configuration");
         }
+        maskingState.setCurrentIndex(maskingState.currentIndex() + targetValueLength);
     }
 
     /**
@@ -379,11 +338,7 @@ public final class KeyContainsMasker implements JsonMasker {
      * current index in the masking state until the current index is one position after the string.
      */
     private static void skipStringValue(MaskingState maskingState) {
-        maskingState.incrementCurrentIndex(); // step over the opening quote
-        while (!currentByteIsUnescapedDoubleQuote(maskingState)) {
-            maskingState.incrementCurrentIndex(); // step over the string content
-        }
-        maskingState.incrementCurrentIndex(); // step over the closing quote
+        expandStringValue(maskingState);
     }
 
     /**
@@ -396,7 +351,9 @@ public final class KeyContainsMasker implements JsonMasker {
         int objectDepth = 1;
         while (objectDepth > 0) {
             // We need to specifically skip strings to not consider curly brackets which are part of a string
-            if (currentByteIsUnescapedDoubleQuote(maskingState)) {
+            // this will expand until the end of unescaped double quote, so we're guaranteed to never have unescaped
+            // quote in this condition
+            if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
                 // this makes sure that we skip curly brackets (open and close) which are part of strings
                 skipStringValue(maskingState);
             } else {
@@ -420,7 +377,9 @@ public final class KeyContainsMasker implements JsonMasker {
         int arrayDepth = 1;
         while (arrayDepth > 0) {
             // We need to specifically skip strings to not consider square brackets which are part of a string
-            if (currentByteIsUnescapedDoubleQuote(maskingState)) {
+            // this will expand until the end of unescaped double quote, so we're guaranteed to never have unescaped
+            // quote in this condition
+            if (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())) {
                 skipStringValue(maskingState);
             } else {
                 if (AsciiCharacter.isSquareBracketOpen(maskingState.byteAtCurrentIndex())) {
@@ -434,14 +393,52 @@ public final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Checks if the byte at the current index in the {@link MaskingState} is an unescaped double quote character in
-     * UTF-8.
+     * Expands the index from a double quote (current index) until end of the non-escaped double quote (including the
+     * double quote).
      *
      * @param maskingState the current {@link MaskingState}
-     * @return whether the byte at the current index is an unescaped double quote
+     * @return the amount of non-visible characters in the string - escape characters, utf-8 character data ('\u0000'),
+     * characters that use more than a single byte
      */
-    private static boolean currentByteIsUnescapedDoubleQuote(MaskingState maskingState) {
-        return AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
-                && !AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndexMinusOne());
+    private static int expandStringValue(MaskingState maskingState) {
+        maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
+        int nonVisibleCharacters = 0;
+        boolean isEscapeCharacter = false;
+        boolean previousCharacterCountedAsEscapeCharacter = false;
+        while (!AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
+               || (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex()) && isEscapeCharacter)) {
+            if (Utf8Util.getCodePointByteLength(maskingState.byteAtCurrentIndex()) > 1) {
+                /*
+                 * We only support UTF-8, so whenever code points are encoded using multiple bytes this should
+                 * be represented by a single asterisk and the additional bytes used for encoding need to be
+                 * removed.
+                 */
+                nonVisibleCharacters += Utf8Util.getCodePointByteLength(maskingState.byteAtCurrentIndex()) - 1;
+            }
+            isEscapeCharacter =
+                    AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndex())
+                    && !previousCharacterCountedAsEscapeCharacter;
+            if (isEscapeCharacter) {
+                /*
+                 * Non-escaped backslashes are escape characters and are not actually part of the string but
+                 * only used for character encoding, so must not be included in the mask.
+                 */
+                nonVisibleCharacters++;
+                previousCharacterCountedAsEscapeCharacter = true;
+            } else {
+                if (previousCharacterCountedAsEscapeCharacter
+                    && AsciiCharacter.isLowercaseU(maskingState.byteAtCurrentIndex())) {
+                    /*
+                     * The next 4 characters are hexadecimal digits which form a single character and are only
+                     * there for encoding, so must not be included in the mask.
+                     */
+                    nonVisibleCharacters += 4;
+                }
+                previousCharacterCountedAsEscapeCharacter = false;
+            }
+            maskingState.incrementCurrentIndex();
+        }
+        maskingState.incrementCurrentIndex(); // step over the closing quote
+        return nonVisibleCharacters;
     }
 }

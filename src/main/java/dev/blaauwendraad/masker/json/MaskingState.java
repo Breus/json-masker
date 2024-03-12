@@ -11,7 +11,7 @@ import java.util.List;
  * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(byte[])}
  * operation.
  */
-public final class MaskingState {
+final class MaskingState {
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
@@ -43,10 +43,6 @@ public final class MaskingState {
         return message[currentIndex];
     }
 
-    public byte byteAtCurrentIndexMinusOne() {
-        return message[currentIndex - 1];
-    }
-
     public int currentIndex() {
         return currentIndex;
     }
@@ -56,26 +52,82 @@ public final class MaskingState {
     }
 
     /**
-     * Adds new delayed replacement operation to the list of operations to be applied to the message.
+     * Replaces a target value (byte slice) with a mask byte. If lengths of both target value and mask are equal, the
+     * replacement is done in-place, otherwise a replacement operation is recorded to be performed as a batch using
+     * {@link #flushReplacementOperations}.
+     *
+     * @see ReplacementOperation
      */
-    public void addReplacementOperation(int startIndex, int endIndex, byte[] mask, int maskRepeat) {
-        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, endIndex, mask, maskRepeat);
+    public void replaceTargetValueWith(int startIndex, int length, byte[] mask, int maskRepeat) {
+        ReplacementOperation replacementOperation = new ReplacementOperation(startIndex, length, mask, maskRepeat);
         replacementOperations.add(replacementOperation);
         replacementOperationsTotalDifference += replacementOperation.difference();
     }
 
     /**
-     * Returns the list of replacement operations that need to be applied to the message.
+     * Performs all replacement operations to the message array, must be called at the end of the replacements.
+     * <p>
+     * For every operation that required resizing of the original array, to avoid copying the array multiple times,
+     * those operations were stored in a list and can be performed in one go, thus resizing the array only once.
+     * <p>
+     * Replacement operation is only recorded if the length of the target value is different from the length of the mask,
+     * otherwise the replacement must have been done in-place.
+     *
+     * @return the message array with all replacement operations performed.
      */
-    public List<ReplacementOperation> getReplacementOperations() {
-        return replacementOperations;
-    }
+    public byte[] flushReplacementOperations() {
+        if (replacementOperations.isEmpty()) {
+            return message;
+        }
 
-    /**
-     * Returns the total difference between the masks and target values lengths of all replacement operations.
-     */
-    public int getReplacementOperationsTotalDifference() {
-        return replacementOperationsTotalDifference;
+        // Create new empty array with a length computed by the difference of all mismatches of lengths between the target values and the masks
+        // in some edge cases the length difference might be equal to 0, but since some indices mismatch (otherwise there would be no replacement operations)
+        // we still have to copy the array to keep track of data according to original indices
+        byte[] newMessage = new byte[message.length + replacementOperationsTotalDifference];
+
+        // Index of the original message array
+        int index = 0;
+        // Offset is the difference between the original and new array indices, we need it to calculate indices
+        // in the new message array using startIndex and endIndex, which are indices in the original array
+        int offset = 0;
+        for (ReplacementOperation replacementOperation : replacementOperations) {
+            // Copy everything from message up until replacement operation start index
+            System.arraycopy(
+                    message,
+                    index,
+                    newMessage,
+                    index + offset,
+                    replacementOperation.startIndex - index
+            );
+            // Insert the mask bytes
+            int length = replacementOperation.mask.length;
+            for (int i = 0; i < replacementOperation.maskRepeat; i++) {
+                System.arraycopy(
+                        replacementOperation.mask,
+                        0,
+                        newMessage,
+                        replacementOperation.startIndex + offset + i * length,
+                        length
+                );
+            }
+            // Adjust index and offset to continue copying from the end of the replacement operation
+            index = replacementOperation.startIndex + replacementOperation.length;
+            offset += replacementOperation.difference();
+        }
+
+        // Copy the remainder of the original array
+        System.arraycopy(
+                message,
+                index,
+                newMessage,
+                index + offset,
+                message.length - index
+        );
+
+        // make sure no operations are performed after this
+        this.currentIndex = Integer.MAX_VALUE;
+
+        return newMessage;
     }
 
     /**
@@ -140,19 +192,21 @@ public final class MaskingState {
      * a single resize operation.
      *
      * @param startIndex index from which to start replacing
-     * @param endIndex   index at which to stop replacing
+     * @param length     the length of the target value slice
      * @param mask       byte array mask to use as replacement for the value
      * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
+     *
+     * @see #flushReplacementOperations()
      */
     @SuppressWarnings("java:S6218") // never used for comparison
-    public record ReplacementOperation(int startIndex, int endIndex, byte[] mask, int maskRepeat) {
+    private record ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
 
         /**
          * The difference between the mask length and the length of the target value to replace.
          * Used to calculate keep track of the offset during replacements.
          */
         public int difference() {
-            return mask.length * maskRepeat - (endIndex - startIndex);
+            return mask.length * maskRepeat - length;
         }
     }
 

@@ -173,7 +173,8 @@ public final class ParseAndMaskUtil {
     private static TextNode maskTextNode(TextNode textNode, KeyMaskingConfig config) {
         String text = textNode.textValue();
         if (config.getMaskStringsWith() != null) {
-            text = new String(config.getMaskStringsWith(), StandardCharsets.UTF_8);
+            // strip the quotes
+            text = new String(config.getMaskStringsWith(), 1, config.getMaskStringsWith().length - 2, StandardCharsets.UTF_8);
         } else if (config.getMaskStringCharactersWith() != null) {
             text = new String(config.getMaskStringCharactersWith(), StandardCharsets.UTF_8).repeat(text.length());
         } else {

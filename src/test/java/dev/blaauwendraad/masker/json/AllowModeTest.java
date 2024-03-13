@@ -36,14 +36,14 @@ final class AllowModeTest {
                 .build());
         return Stream.of(
                 new JsonMaskerTestInstance("""
-                         [                                                                                      
+                         [                               \s
                           {
                             "allowedKey": "yes",
                             "notAllowedKey": "hello"
                           }
                         ]
                         """, """
-                         [                                                                                      
+                         [                               \s
                           {
                             "allowedKey": "yes",
                             "notAllowedKey": "***"

@@ -18,15 +18,13 @@ public final class KeyMaskingConfig {
 
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
         if (builder.maskStringsWith != null) {
-            this.maskStringsWith = builder.maskStringsWith.getBytes(StandardCharsets.UTF_8);
+            this.maskStringsWith = ("\"" + builder.maskStringsWith + "\"").getBytes(StandardCharsets.UTF_8);
             this.maskStringCharactersWith = null;
         } else if (builder.maskStringCharactersWith != null) {
             this.maskStringsWith = null;
             this.maskStringCharactersWith = builder.maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
         } else {
-            // no quotes for strings as opposed to numbers and booleans because we never change the type of the string
-            // and only mask value inside the quotes
-            this.maskStringsWith = "***".getBytes(StandardCharsets.UTF_8);
+            this.maskStringsWith = "\"***\"".getBytes(StandardCharsets.UTF_8);
             this.maskStringCharactersWith = null;
         }
         if (builder.maskNumbersWithString != null) {

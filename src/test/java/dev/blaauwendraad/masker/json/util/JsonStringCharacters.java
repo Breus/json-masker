@@ -17,7 +17,6 @@ public final class JsonStringCharacters {
     private static final Set<Character> asciiUppercaseLetters =
             IntStream.rangeClosed(65, 90).mapToObj(i -> (char) i).collect(Collectors.toSet());
     private static final Set<Character> asciiSpecialChars2 = IntStream.rangeClosed(91, 96)
-            .filter(i -> i != 92 /* escape character */)
             .mapToObj(i -> (char) i)
             .collect(Collectors.toSet());
     private static final Set<Character> asciiLowercaseLetters =

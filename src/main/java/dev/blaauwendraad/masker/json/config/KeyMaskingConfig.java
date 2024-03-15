@@ -55,20 +55,11 @@ public final class KeyMaskingConfig {
     public ValueMasker getBooleanValueMasker() {
         return maskBooleansWith;
     }
-// TODO: it would be nice to have it back for debuggability purposes
-//    @Override
-//    public String toString() {
-//        return "KeyMaskingConfig{" +
-//                "maskStringsWith='" + bytesToString(maskStringsWith) + '\'' +
-//                ", maskStringCharactersWith='" + bytesToString(maskStringCharactersWith) + '\'' +
-//                ", maskNumbersWith=" + bytesToString(maskNumbersWith) +
-//                ", maskNumberDigitsWith=" + bytesToString(maskNumberDigitsWith) +
-//                ", maskBooleansWith=" + bytesToString(maskBooleansWith) +
-//                '}';
-//    }
 
-    private String bytesToString(@CheckForNull byte[] bytes) {
-        return bytes != null ? new String(bytes, StandardCharsets.UTF_8) : null;
+    @Override
+    public String toString() {
+        return "maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s"
+                .formatted(maskStringsWith, maskNumbersWith, maskBooleansWith);
     }
 
     public static class Builder {
@@ -85,9 +76,8 @@ public final class KeyMaskingConfig {
          * <p>
          * Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
          *
-         * @see #maskStringCharactersWith(String)
-         *
          * @return the builder instance
+         * @see #maskStringCharactersWith(String)
          */
         public Builder maskStringsWith(String value) {
             checkMutuallyExclusiveStringMaskingOptions();
@@ -99,9 +89,8 @@ public final class KeyMaskingConfig {
          * Mask all characters of string values with the provided character, preserving the length.
          * For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
-         * @see #maskStringsWith(String)
-         *
          * @return the builder instance
+         * @see #maskStringsWith(String)
          */
         public Builder maskStringCharactersWith(String value) {
             checkMutuallyExclusiveStringMaskingOptions();
@@ -118,11 +107,10 @@ public final class KeyMaskingConfig {
         /**
          * Disables number masking.
          *
+         * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
          */
         public Builder disableNumberMasking() {
             checkMutuallyExclusiveNumberMaskingOptions();
@@ -136,11 +124,10 @@ public final class KeyMaskingConfig {
          * <p>
          * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
          */
         public Builder maskNumbersWith(String value) {
             checkMutuallyExclusiveNumberMaskingOptions();
@@ -152,11 +139,10 @@ public final class KeyMaskingConfig {
          * Mask all number values with the provided value.
          * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
          */
         public Builder maskNumbersWith(int value) {
             if (maskNumbersWith != null) {
@@ -171,11 +157,10 @@ public final class KeyMaskingConfig {
          * Mask all digits of number values with the provided digit, preserving the length.
          * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumbersWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskNumberDigitsWith(int digit) {
             checkMutuallyExclusiveNumberMaskingOptions();
@@ -192,10 +177,9 @@ public final class KeyMaskingConfig {
         /**
          * Disables boolean masking.
          *
+         * @return the builder instance
          * @see #maskBooleansWith(String)
          * @see #maskBooleansWith(boolean)
-         *
-         * @return the builder instance
          */
         public Builder disableBooleanMasking() {
             checkMutuallyExclusiveBooleanMaskingOptions();
@@ -209,10 +193,9 @@ public final class KeyMaskingConfig {
          * <p>
          * Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
-         *
-         * @return the builder instance
          */
         public Builder maskBooleansWith(String value) {
             checkMutuallyExclusiveBooleanMaskingOptions();
@@ -224,10 +207,9 @@ public final class KeyMaskingConfig {
          * Mask all boolean values with the provided value.
          * For example, {@literal "maskMe": true -> "maskMe": false}.
          *
+         * @return the builder instance
          * @see #disableBooleanMasking()
          * @see #maskBooleansWith(String)
-         *
-         * @return the builder instance
          */
         public Builder maskBooleansWith(boolean value) {
             checkMutuallyExclusiveBooleanMaskingOptions();

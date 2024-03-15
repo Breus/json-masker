@@ -1,5 +1,8 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.util.Utf8Util;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +14,7 @@ import java.util.List;
  * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(byte[])}
  * operation.
  */
-final class MaskingState {
+final class MaskingState implements ValueMaskerContext {
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
@@ -21,6 +24,8 @@ final class MaskingState {
      * Current json path is represented by a dequeue of segment references.
      */
     private final Deque<JsonPathNode> currentJsonPath;
+
+    private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
@@ -35,8 +40,8 @@ final class MaskingState {
         currentIndex++;
     }
 
-    public void setCurrentIndex(int currentIndex) {
-        this.currentIndex = currentIndex;
+    public void incrementCurrentIndex(int length) {
+        currentIndex += length;
     }
 
     public byte byteAtCurrentIndex() {
@@ -184,6 +189,50 @@ final class MaskingState {
         return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
                 " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
                 " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
+    }
+
+    public int getCurrentValueStartIndex() {
+        if (currentValueStartIndex == -1) {
+            throw new IllegalStateException("No current value index set to mask");
+        }
+        return currentValueStartIndex;
+    }
+
+    public void setCurrentValueStartIndex() {
+        this.currentValueStartIndex = currentIndex;
+    }
+
+    public void unsetCurrentValueStartIndex() {
+        this.currentValueStartIndex = -1;
+    }
+
+    @Override
+    public byte getByte(int index) {
+        return message[getCurrentValueStartIndex() + index];
+    }
+
+    @Override
+    public int valueLength() {
+        return currentIndex - getCurrentValueStartIndex();
+    }
+
+    @Override
+    public void replaceValue(int fromIndex, int length, byte[] mask, int maskRepeat) {
+        replaceTargetValueWith(getCurrentValueStartIndex() + fromIndex, length, mask, maskRepeat);
+    }
+
+    @Override
+    public int countNonVisibleCharacters(int fromIndex, int length) {
+        return Utf8Util.countNonVisibleCharacters(
+                message,
+                getCurrentValueStartIndex() + fromIndex,
+                length
+        );
+    }
+
+    @Override
+    public String asString() {
+        return new String(message, getCurrentValueStartIndex(), currentIndex - getCurrentValueStartIndex(), StandardCharsets.UTF_8);
     }
 
     /**

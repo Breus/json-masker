@@ -204,4 +204,91 @@ class CustomKeyMaskingConfigTest {
                 }
                 """);
     }
+
+    @Test
+    void maskEmailKeepPrefixAndDomain() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("string", "number", "boolean"))
+                .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(2, true, "***"))
+                        .build()
+                )
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": false,
+                  "email": "agavlyukovskiy@gmail.com"
+                }
+                """);
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "string": "***",
+                  "number": "###",
+                  "boolean": "&&&",
+                  "email": "ag***@gmail.com"
+                }
+                """
+        );
+    }
+
+    @Test
+    void maskEmailKeepPrefix() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("string", "number", "boolean"))
+                .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(3, false, "***"))
+                        .build()
+                )
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": false,
+                  "email": "agavlyukovskiy@gmail.com"
+                }
+                """);
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "string": "***",
+                  "number": "###",
+                  "boolean": "&&&",
+                  "email": "aga***"
+                }
+                """
+        );
+    }
+
+    @Test
+    void maskWithStringFunction() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("string", "number", "boolean"))
+                .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskStringWithFunction(value -> value.replaceAll("\\[this secret]", "***")))
+                        .build()
+                )
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": false,
+                  "function": "mask [this secret] please"
+                }
+                """);
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "string": "***",
+                  "number": "###",
+                  "boolean": "&&&",
+                  "function": "mask *** please"
+                }
+                """
+        );
+    }
 }

@@ -77,7 +77,7 @@ final class KeyMatcherTest {
                     masker.maskValue(context);
                     return context.asText();
                 })
-                .isEqualTo("***");
+                .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
@@ -87,7 +87,7 @@ final class KeyMatcherTest {
                     masker.maskValue(context);
                     return context.asText();
                 })
-                .isEqualTo("[redacted]");
+                .isEqualTo("\"[redacted]\"");
     }
 
     @Test
@@ -108,7 +108,7 @@ final class KeyMatcherTest {
                     masker.maskValue(context);
                     return context.getMaskedValue();
                 })
-                .isEqualTo("***");
+                .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
@@ -118,7 +118,7 @@ final class KeyMatcherTest {
                     masker.maskValue(context);
                     return context.getMaskedValue();
                 })
-                .isEqualTo("[redacted]");
+                .isEqualTo("\"[redacted]\"");
     }
 
     @Test

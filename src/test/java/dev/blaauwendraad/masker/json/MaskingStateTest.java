@@ -14,28 +14,28 @@ class MaskingStateTest {
                 }
                 """.getBytes(StandardCharsets.UTF_8), false);
 
-        Assertions.assertThat(maskingState.toString()).isEqualTo("""
+        Assertions.assertThat(maskingState).hasToString("""
                 >{<
                     "mask
                 """.stripTrailing());
 
         maskingState.incrementCurrentIndex(10);
 
-        Assertions.assertThat(maskingState.toString()).isEqualTo("""
+        Assertions.assertThat(maskingState).hasToString("""
                 {
                     "mas>k<Me": "some
                 """.stripTrailing());
 
         maskingState.incrementCurrentIndex(20);
 
-        Assertions.assertThat(maskingState.toString()).isEqualTo("""
+        Assertions.assertThat(maskingState).hasToString("""
                 e value"
                 }>
                 """);
 
         maskingState.incrementCurrentIndex(1);
 
-        Assertions.assertThat(maskingState.toString()).isEqualTo("""
+        Assertions.assertThat(maskingState).hasToString("""
                  value"
                 }
                 ><end of json>

@@ -28,6 +28,7 @@ final class FuzzingTest {
     @ParameterizedTest
     @MethodSource("jsonMaskingConfigs")
     void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
+        System.out.println(jsonMaskingConfig);
         long timeLimit = FuzzingDurationUtil.determineTestTimeLimit(jsonMaskingConfigs().count());
         Instant startTime = Instant.now();
         int randomTestExecuted = 0;

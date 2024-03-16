@@ -62,8 +62,8 @@ public interface ValueMasker {
     }
 
     static ValueMasker noop() {
-        return context -> {
-        };
+        return withDescription("<no masking>", context -> {
+        });
     }
 
     static ValueMasker maskEmail(int keepPrefixLength, boolean keepDomain, String mask) {
@@ -97,17 +97,7 @@ public interface ValueMasker {
     }
 
     static ValueMasker withDescription(String description, ValueMasker delegate) {
-        return new ValueMasker() {
-            @Override
-            public void maskValue(ValueMaskerContext context) {
-                delegate.maskValue(context);
-            }
-
-            @Override
-            public String toString() {
-                return description;
-            }
-        };
+        return new DescriptiveValueMasker(description, delegate);
     }
 
     void maskValue(ValueMaskerContext context);

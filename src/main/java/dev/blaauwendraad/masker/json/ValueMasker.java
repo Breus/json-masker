@@ -105,10 +105,11 @@ public interface ValueMasker {
     /**
      * Masks a target string value (containing an email) while keeping some amount of the prefix characters and ability
      * to keep the domain unmasked.
-     * For example,
+     * For example:
      * {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"}
      * {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***"}
      * {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***@gmail.com"}
+     * {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***iy@gmail.com"}
      *
      * @param keepPrefixLength amount of prefix characters to keep unmasked
      * @param keepDomain if true - the email domain will remain unmasked

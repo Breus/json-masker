@@ -232,7 +232,17 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public String asString() {
-        return new String(message, getCurrentValueStartIndex(), currentIndex - getCurrentValueStartIndex(), StandardCharsets.UTF_8);
+        int currentValueStartIndex = getCurrentValueStartIndex();
+        if (message[currentValueStartIndex] == '"') {
+            // remove quotes from the string value
+            return new String(
+                    message,
+                    currentValueStartIndex + 1,
+                    currentIndex - currentValueStartIndex - 2,
+                    StandardCharsets.UTF_8
+            );
+        }
+        return new String(message, currentValueStartIndex, currentIndex - currentValueStartIndex, StandardCharsets.UTF_8);
     }
 
     /**

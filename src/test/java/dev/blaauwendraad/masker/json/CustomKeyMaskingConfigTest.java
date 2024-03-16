@@ -268,7 +268,15 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
                 .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskStringWithFunction(value -> value.replaceAll("\\[this secret]", "***")))
+                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> value.replaceAll("\\[this secret]", "***")))
+                        .build()
+                )
+                .maskKeys(Set.of("functionNull"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> null))
+                        .build()
+                )
+                .maskKeys(Set.of("functionConditional"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> value.startsWith("secret:") ? "***" : value))
                         .build()
                 )
                 .build());
@@ -278,7 +286,12 @@ class CustomKeyMaskingConfigTest {
                   "string": "maskMe",
                   "number": 12345,
                   "boolean": false,
-                  "function": "mask [this secret] please"
+                  "function": "mask [this secret] please",
+                  "functionNull": "maskMe",
+                  "functionConditional": {
+                    "value1": "not a secret",
+                    "value2": "secret: very much"
+                  }
                 }
                 """);
         Assertions.assertThat(masked).isEqualTo("""
@@ -286,7 +299,12 @@ class CustomKeyMaskingConfigTest {
                   "string": "***",
                   "number": "###",
                   "boolean": "&&&",
-                  "function": "mask *** please"
+                  "function": "mask *** please",
+                  "functionNull": null,
+                  "functionConditional": {
+                    "value1": "not a secret",
+                    "value2": "***"
+                  }
                 }
                 """
         );

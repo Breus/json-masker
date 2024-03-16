@@ -106,7 +106,7 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asText();
+                    return context.getMaskedValue();
                 })
                 .isEqualTo("***");
 
@@ -116,7 +116,7 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asText();
+                    return context.getMaskedValue();
                 })
                 .isEqualTo("[redacted]");
     }

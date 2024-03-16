@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * {@link ValueMaskerContext} implementation that uses a byte array as the value. Used only for testing purposes due
- * to absence of global {@link dev.blaauwendraad.masker.json.MaskingState} when masking with Jackson.
+ * to absence of {@code MaskingState} when masking with Jackson.
  */
 public class ByteValueMaskerContext implements ValueMaskerContext {
     private final byte[] value;
@@ -14,6 +14,7 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
 
     public ByteValueMaskerContext(byte[] value) {
         this.value = value;
+        this.maskedValue = value;
     }
 
     public ByteValueMaskerContext(String value) {
@@ -32,17 +33,14 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
 
     @Override
     public void replaceValue(int fromIndex, int length, byte[] mask, int maskRepeat) {
-        if (this.maskedValue != null) {
-            throw new IllegalStateException("Value already masked, this implementation does not support that");
-        }
-        int suffixLength = value.length - (length + fromIndex);
+        int suffixLength = maskedValue.length - (length + fromIndex);
         int newArraySize = fromIndex + (mask.length * maskRepeat) + suffixLength;
-        this.maskedValue = new byte[newArraySize];
+        byte[] newMaskedValue = new byte[newArraySize];
         // copy the prefix
         System.arraycopy(
-                value,
-                0,
                 maskedValue,
+                0,
+                newMaskedValue,
                 0,
                 fromIndex
         );
@@ -51,19 +49,21 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
             System.arraycopy(
                     mask,
                     0,
-                    maskedValue,
+                    newMaskedValue,
                     fromIndex + i * mask.length,
                     mask.length
             );
         }
         // copy the suffix
         System.arraycopy(
-                value,
-                fromIndex + length,
                 maskedValue,
-                maskedValue.length - suffixLength,
+                fromIndex + length,
+                newMaskedValue,
+                newMaskedValue.length - suffixLength,
                 suffixLength
         );
+
+        this.maskedValue = newMaskedValue;
     }
 
     @Override
@@ -81,9 +81,6 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
     }
 
     public String getMaskedValue() {
-        if (maskedValue == null) {
-            return new String(value, StandardCharsets.UTF_8);
-        }
         return new String(maskedValue, StandardCharsets.UTF_8);
     }
 }

@@ -56,8 +56,9 @@ public interface ValueMasker {
         }
         byte[] replacementBytes = String.valueOf(digit).getBytes(StandardCharsets.UTF_8);
         String description = "every digit as %s".formatted(digit);
-        return withDescription(description, context ->
-                context.replaceValue(0, context.valueLength(), replacementBytes, context.valueLength())
+        return withDescription(
+                description,
+                context -> context.replaceValue(0, context.valueLength(), replacementBytes, context.valueLength())
         );
     }
 

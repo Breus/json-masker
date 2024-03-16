@@ -60,8 +60,7 @@ public interface ValueMasker {
      */
     static ValueMasker maskStringCharactersWith(String value) {
         byte[] replacementBytes = value.getBytes(StandardCharsets.UTF_8);
-        String description = "every character as %s".formatted(value);
-        return withDescription(description, context -> {
+        return withDescription("every character as %s".formatted(value), context -> {
             /*
             So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
 
@@ -86,9 +85,8 @@ public interface ValueMasker {
             throw new IllegalArgumentException("Masking digit must be between 1 and 9 to avoid leading zeroes");
         }
         byte[] replacementBytes = String.valueOf(digit).getBytes(StandardCharsets.UTF_8);
-        String description = "every digit as %s".formatted(digit);
         return withDescription(
-                description,
+                "every digit as %s".formatted(digit),
                 context -> context.replaceValue(0, context.valueLength(), replacementBytes, context.valueLength())
         );
     }
@@ -118,7 +116,8 @@ public interface ValueMasker {
      */
     static ValueMasker maskEmail(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
-        String description = "email, keep prefix: %s, keep domain: %s".formatted(keepPrefixLength, keepDomain);
+        String description = "email, keep prefix: %s, keep suffix: %s, keep domain: %s"
+                .formatted(keepPrefixLength, keepSuffixLength, keepDomain);
         return withDescription(description, context -> {
             int prefixLength = keepPrefixLength + 1; // add opening quote
             int suffixLength = keepSuffixLength + 1; // keep closing quote

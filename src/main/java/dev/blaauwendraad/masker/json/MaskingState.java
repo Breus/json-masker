@@ -251,9 +251,19 @@ final class MaskingState implements ValueMaskerContext {
     // for debugging purposes, shows the current state of message traversal
     @Override
     public String toString() {
-        return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
-               " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
-               " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
+        StringBuilder sb = new StringBuilder();
+        sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)));
+        sb.append(">");
+        if (currentIndex == message.length) {
+            sb.append((Object) "<end of json>");
+        } else {
+            sb.append((Object) (char) message[currentIndex]);
+            if (currentIndex + 1 < message.length) {
+                sb.append("<");
+                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex + 1)));
+            }
+        }
+        return sb.toString();
     }
 
     /**

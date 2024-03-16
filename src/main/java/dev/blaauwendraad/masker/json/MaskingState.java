@@ -183,14 +183,6 @@ final class MaskingState implements ValueMaskerContext {
         }
     }
 
-    // for debugging purposes, shows the current state of message traversal
-    @Override
-    public String toString() {
-        return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
-                " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
-                " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
-    }
-
     public int getCurrentValueStartIndex() {
         if (currentValueStartIndex == -1) {
             throw new IllegalStateException("No current value index set to mask");
@@ -208,6 +200,7 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public byte getByte(int index) {
+        checkCurrentValueBounds(index);
         return message[getCurrentValueStartIndex() + index];
     }
 
@@ -218,11 +211,15 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public void replaceValue(int fromIndex, int length, byte[] mask, int maskRepeat) {
+        checkCurrentValueBounds(fromIndex);
+        checkCurrentValueBounds(fromIndex + length - 1);
         replaceTargetValueWith(getCurrentValueStartIndex() + fromIndex, length, mask, maskRepeat);
     }
 
     @Override
     public int countNonVisibleCharacters(int fromIndex, int length) {
+        checkCurrentValueBounds(fromIndex);
+        checkCurrentValueBounds(fromIndex + length - 1);
         return Utf8Util.countNonVisibleCharacters(
                 message,
                 getCurrentValueStartIndex() + fromIndex,
@@ -243,6 +240,20 @@ final class MaskingState implements ValueMaskerContext {
             );
         }
         return new String(message, currentValueStartIndex, currentIndex - currentValueStartIndex, StandardCharsets.UTF_8);
+    }
+
+    private void checkCurrentValueBounds(int index) {
+        if (index < 0 || index >= valueLength()) {
+            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + valueLength());
+        }
+    }
+
+    // for debugging purposes, shows the current state of message traversal
+    @Override
+    public String toString() {
+        return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
+               " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
+               " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
     }
 
     /**

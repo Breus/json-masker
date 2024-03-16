@@ -151,21 +151,21 @@ public final class ParseAndMaskUtil {
     private static JsonNode maskBooleanNode(BooleanNode booleanNode, KeyMaskingConfig config) throws JsonProcessingException {
         ByteValueMaskerContext context = new ByteValueMaskerContext(booleanNode.toString());
         config.getBooleanValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.asString());
+        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
     }
 
     @Nonnull
     private static JsonNode maskTextNode(TextNode textNode, KeyMaskingConfig config) throws JsonProcessingException {
         ByteValueMaskerContext context = new ByteValueMaskerContext(textNode.toString());
         config.getStringValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.asString());
+        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
     }
 
     @Nonnull
     private static JsonNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) throws JsonProcessingException {
         ByteValueMaskerContext context = new ByteValueMaskerContext(numericNode.toString());
         config.getNumberValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.asString());
+        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
     }
 
     @Nonnull

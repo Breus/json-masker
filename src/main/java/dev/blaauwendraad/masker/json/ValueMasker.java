@@ -5,6 +5,10 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
+/**
+ * A functional interface for masking JSON values. Accepts {@link ValueMaskerContext} that contains context of the
+ * current value being masked.
+ */
 @FunctionalInterface
 public interface ValueMasker {
 
@@ -112,25 +116,25 @@ public interface ValueMasker {
      * @param keepDomain if true - the email domain will remain unmasked
      * @param mask the static mask applied to the rest of the value
      */
-    static ValueMasker maskEmail(int keepPrefixLength, boolean keepDomain, String mask) {
+    static ValueMasker maskEmail(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
         String description = "email, keep prefix: %s, keep domain: %s".formatted(keepPrefixLength, keepDomain);
         return withDescription(description, context -> {
-            int suffixLength = 1; // keep closing quote
+            int prefixLength = keepPrefixLength + 1; // add opening quote
+            int suffixLength = keepSuffixLength + 1; // keep closing quote
             if (keepDomain) {
                 for (int i = 0; i < context.valueLength(); i++) {
                     if (context.getByte(i) == '@') {
-                        suffixLength = context.valueLength() - i;
+                        // include domain in the suffix
+                        suffixLength = context.valueLength() - i + keepSuffixLength;
+                        break;
                     }
                 }
             }
-            int maskLength = context.valueLength() - keepPrefixLength - suffixLength;
-            context.replaceValue(
-                    keepPrefixLength + 1, // keep opening quote
-                    maskLength - 1, // keep closing quote
-                    replacementBytes,
-                    1
-            );
+            int maskLength = context.valueLength() - prefixLength - suffixLength;
+            if (maskLength > 0) {
+                context.replaceValue(prefixLength, maskLength, replacementBytes, 1);
+            }
         });
     }
 
@@ -145,7 +149,7 @@ public interface ValueMasker {
      */
     static ValueMasker maskWithStringFunction(Function<String, String> masker) {
         return withDescription("Function<String, String>", context -> {
-            String value = context.asString();
+            String value = context.asText();
             String maskedValue = masker.apply(value);
             if (maskedValue == null) {
                 maskedValue = "null";

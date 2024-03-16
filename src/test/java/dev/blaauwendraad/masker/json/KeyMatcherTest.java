@@ -75,9 +75,9 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asString();
+                    return context.asText();
                 })
-                .isEqualTo("\"***\"");
+                .isEqualTo("***");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
@@ -85,9 +85,9 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asString();
+                    return context.asText();
                 })
-                .isEqualTo("\"[redacted]\"");
+                .isEqualTo("[redacted]");
     }
 
     @Test
@@ -106,9 +106,9 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asString();
+                    return context.asText();
                 })
-                .isEqualTo("\"***\"");
+                .isEqualTo("***");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
@@ -116,9 +116,9 @@ final class KeyMatcherTest {
                 .extracting(masker -> {
                     ByteValueMaskerContext context = new ByteValueMaskerContext("value");
                     masker.maskValue(context);
-                    return context.asString();
+                    return context.asText();
                 })
-                .isEqualTo("\"[redacted]\"");
+                .isEqualTo("[redacted]");
     }
 
     @Test

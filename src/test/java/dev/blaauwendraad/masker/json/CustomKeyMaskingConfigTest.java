@@ -206,11 +206,23 @@ class CustomKeyMaskingConfigTest {
     }
 
     @Test
-    void maskEmailKeepPrefixAndDomain() {
+    void maskEmail() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
-                .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(2, true, "***"))
+                .maskKeys(Set.of("emailPrefixSuffixDomain"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(2, 2, true, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailPrefixOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(2, 0, false, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailSuffixOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(0, 2, false, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailDomainOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMasker.maskEmail(0, 0, true, "***"))
                         .build()
                 )
                 .build());
@@ -220,7 +232,10 @@ class CustomKeyMaskingConfigTest {
                   "string": "maskMe",
                   "number": 12345,
                   "boolean": false,
-                  "email": "agavlyukovskiy@gmail.com"
+                  "emailPrefixSuffixDomain": "agavlyukovskiy@gmail.com",
+                  "emailPrefixOnly": "agavlyukovskiy@gmail.com",
+                  "emailSuffixOnly": "agavlyukovskiy@gmail.com",
+                  "emailDomainOnly": "agavlyukovskiy@gmail.com"
                 }
                 """);
         Assertions.assertThat(masked).isEqualTo("""
@@ -228,36 +243,10 @@ class CustomKeyMaskingConfigTest {
                   "string": "***",
                   "number": "###",
                   "boolean": "&&&",
-                  "email": "ag***@gmail.com"
-                }
-                """
-        );
-    }
-
-    @Test
-    void maskEmailKeepPrefix() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("string", "number", "boolean"))
-                .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(3, false, "***"))
-                        .build()
-                )
-                .build());
-
-        String masked = jsonMasker.mask("""
-                {
-                  "string": "maskMe",
-                  "number": 12345,
-                  "boolean": false,
-                  "email": "agavlyukovskiy@gmail.com"
-                }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
-                {
-                  "string": "***",
-                  "number": "###",
-                  "boolean": "&&&",
-                  "email": "aga***"
+                  "emailPrefixSuffixDomain": "ag***iy@gmail.com",
+                  "emailPrefixOnly": "ag***",
+                  "emailSuffixOnly": "***om",
+                  "emailDomainOnly": "***@gmail.com"
                 }
                 """
         );

@@ -231,7 +231,7 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     @Override
-    public String asString() {
+    public String asText() {
         int currentValueStartIndex = getCurrentValueStartIndex();
         if (message[currentValueStartIndex] == '"') {
             // remove quotes from the string value

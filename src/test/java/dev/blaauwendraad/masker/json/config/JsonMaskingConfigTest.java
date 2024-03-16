@@ -49,6 +49,7 @@ final class JsonMaskingConfigTest {
                 () -> JsonMaskingConfig.builder().disableNumberMasking().maskNumbersWith(123),
                 () -> JsonMaskingConfig.builder().disableNumberMasking().maskNumberDigitsWith(1),
                 () -> JsonMaskingConfig.builder().maskNumberDigitsWith(0),
+                () -> JsonMaskingConfig.builder().maskNumberDigitsWith(10),
                 () -> JsonMaskingConfig.builder().maskBooleansWith("&&&").maskBooleansWith("&&&"),
                 () -> JsonMaskingConfig.builder().maskBooleansWith(false).maskBooleansWith(false),
                 () -> JsonMaskingConfig.builder().maskBooleansWith("&&&").maskBooleansWith(false),

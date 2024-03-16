@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -36,19 +35,14 @@ public class ValueMaskerBenchmark {
         double maskedKeyProbability;
 
         private final JsonMasker nativeMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("targetKey"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskWith("***"))
-                        .maskNumbersWith(ValueMasker.maskWith("###"))
-                        .maskBooleansWith(ValueMasker.maskWith("&&&"))
-                        .build())
+                .maskKeys(Set.of("targetKey"))
                 .build()
         );
         private final JsonMasker functionalMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("targetKey"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskWithStringFunction(context -> "***"))
-                        .maskNumbersWith(ValueMasker.maskWithStringFunction(context -> "###"))
-                        .maskBooleansWith(ValueMasker.maskWithStringFunction(context -> "&&&"))
-                        .build())
+                .maskKeys(Set.of("targetKey"))
+                .maskStringsWith(ValueMasker.maskWithStringFunction(value -> "***"))
+                .maskNumbersWith(ValueMasker.maskWithStringFunction(value -> "###"))
+                .maskBooleansWith(ValueMasker.maskWithStringFunction(value -> "&&&"))
                 .build()
         );
 

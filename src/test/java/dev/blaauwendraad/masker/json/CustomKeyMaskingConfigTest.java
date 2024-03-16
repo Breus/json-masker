@@ -258,6 +258,9 @@ class CustomKeyMaskingConfigTest {
     void maskWithStringFunction() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
+                .maskStringsWith(ValueMasker.maskWithStringFunction(value -> "***"))
+                .maskNumbersWith(ValueMasker.maskWithStringFunction(value -> "###"))
+                .maskBooleansWith(ValueMasker.maskWithStringFunction(value -> "&&&"))
                 .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMasker.maskWithStringFunction(value -> value.replaceAll("\\[this secret]", "***")))
                         .build()

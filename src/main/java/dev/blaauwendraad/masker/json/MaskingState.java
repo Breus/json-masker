@@ -229,17 +229,17 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public String asText() {
-        int currentValueStartIndex = getCurrentValueStartIndex();
-        if (message[currentValueStartIndex] == '"') {
+        int offset = getCurrentValueStartIndex();
+        if (message[offset] == '"') {
             // remove quotes from the string value
             return new String(
                     message,
-                    currentValueStartIndex + 1,
-                    currentIndex - currentValueStartIndex - 2,
+                    offset + 1,
+                    currentIndex - offset - 2,
                     StandardCharsets.UTF_8
             );
         }
-        return new String(message, currentValueStartIndex, currentIndex - currentValueStartIndex, StandardCharsets.UTF_8);
+        return new String(message, offset, currentIndex - offset, StandardCharsets.UTF_8);
     }
 
     private void checkCurrentValueBounds(int index) {

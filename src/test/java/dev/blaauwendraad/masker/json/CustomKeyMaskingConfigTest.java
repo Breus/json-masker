@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 class CustomKeyMaskingConfigTest {
 
     @Test
@@ -297,5 +299,39 @@ class CustomKeyMaskingConfigTest {
                 }
                 """
         );
+    }
+
+    @Test
+    void shouldNotAllowGettingValuesOutsideOfIndex() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("customValueMasker"), KeyMaskingConfig.builder()
+                        .maskStringsWith(context -> {
+                            assertThatThrownBy(() -> context.getByte(-1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.getByte(context.valueLength()))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+
+                            assertThatThrownBy(() -> context.replaceValue(-1, 1, new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.replaceValue(0, context.valueLength() + 1, new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.replaceValue(1, context.valueLength(), new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(-1, 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(0, context.valueLength() + 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.valueLength()))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                        })
+                        .build()
+                )
+                .build());
+        jsonMasker.mask("""
+                {
+                  "customValueMasker": "maskMe"
+                }
+                """);
     }
 }

@@ -8,26 +8,62 @@ Draft
 
 ## Context
 
-Support for JsonPATH was requested by some potential library clients.  
-However, JsonPATH RFC specifies way too many features which are tedious to implement without having runtime dependencies.  
-Therefore, we have to decide which features are necessary and which are not. 
+A json may contain multiple nested objects with name/value pairs that have the same name but require a different masking strategy.  
+For example, in the following json
+
+```json
+{
+  "name": "do not mask",
+  "nestedObject": {
+    "name": "mask",
+    "public": "do not mask",
+    "private": "mask"
+  }
+}
+```
+The outer `name` value must not be masked but the inner `name` value in `nestedObject` must be masked.  
+This cannot be achieved with regular key masking.
 
 ## Decisions
 
-The decisions are premised on the following expectations:
-1. Most of the clients will not use JsonPATH keys.  
-2. The correctness of the library takes precedent over the amount of features.
+### JsonPATH  
 
-Any implemented jsonpath feature adds some performance overhead both on configuration and on masking time, even if it is not used. In general, it also increases the likelihood of incorrect behaviour as the amount of code increases.
-Therefore, we decided to keep support for JsonPATH as limited as possible and to extend it only when someone specifically requests it.
+The solution to the described problem is to provide a way to disambiguate name/value pairs by selecting the target pair using its location in json.  
+The industry standard for selecting values in json is JsonPATH. Most developers are expected to know how to create basic JsonPATH queries using either bracket or dot notation.  
+Therefore, we decided to solve the name ambiguity problem using JsonPATH.  
 
-The following features are deemed necessary:
-1. Support for bracket, dot and mixed notations.  
-2. Support for object segments.  
-3. Support for array segments with wildcard indexing only.  
-4. Wildcard segments and selectors.   
+### Supported features  
 
-The rest of the features are deemed unnecessary.
+JsonPATH RFC specifies a wide variety of features. Not all of them are required to solve the described problem.  
+Therefore, we have to decide which features are necessary and which are not. 
+  
+The decision is premised on the following expectations:
+1. Most of the clients will not face the name ambiguity problem, therefore they will not use JsonPATH.  
+2. Correctness, performance and maintainability of the library takes precedent over the amount of features.  
+3. JsonPATH support is required only for solving the name ambiguity problem.  
+
+Any implemented JsonPATH feature adds some performance overhead both on configuration and on masking time, even if it is not used. In general, it also increases the likelihood of incorrect behaviour as the amount of code increases. Therefore, having unnecessary features violates the premises.   
+Therefore, we decided to keep support for JsonPATH as limited as possible and extend it only when someone specifically requests it.
+
+The following features are necessary to support:
+1. **Support for bracket, dot and mixed notations**.   
+We expect developers to know either of these notations, but we cannot know which one exactly.  
+2. **Support for segments**.  
+This is the main building block of JsonPATH queries.
+3. **Support for wildcard segments and selectors**.  
+Wildcard selectors are necessary for traversing array values. 
+
+## Not supported features
+
+1. **Name selectors**.  
+Using segments is enough to select any value in the json.  
+2. **Index selectors, array slice selectors, filter selectors**.  
+We do not expect clients to mask only some elements of an array value.  
+3. **Function extensions.**  
+We expect the name/value pairs locations in json to be known apriori. Therefore, no computation is required.  
+4. **Descendant segments**.  
+The same reason as point 3.
+
 
 ## Consequences
 
@@ -39,5 +75,4 @@ We decided to disable JsonPATH in case no JsonPATH keys are supplied.
 ### Potential bugs
 
 Mixing keys and JsonPATH keys in the same trie opens up some bugs:
-1. https://github.com/Breus/json-masker/issues/94  
-We do not expect this issue to be reproduced naturally.
+1. https://github.com/Breus/json-masker/issues/94

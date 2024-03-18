@@ -102,10 +102,12 @@ public final class ValueMaskers {
      * Masks a target string value (containing an email) while keeping some amount of the prefix
      * characters and ability to keep the domain unmasked.
      * <p> For example:
-     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"} </li>
-     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***"} </li>
-     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***@gmail.com"} </li>
-     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***iy@gmail.com"} </li>
+     * <ul>
+     *  <li>{@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"}</li>
+     *  <li>{@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***"}</li>
+     *  <li>{@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***@gmail.com"}</li>
+     *  <li>{@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***iy@gmail.com"}</li>
+     * </ul>
      *
      * @param keepPrefixLength amount of prefix characters to keep unmasked
      * @param keepDomain       if true - the email domain will remain unmasked

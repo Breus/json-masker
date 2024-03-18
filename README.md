@@ -664,7 +664,7 @@ For convenience we have provided couple out-of-the-box maskers available in `Val
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("value"))
+                .maskKeys(Set.of("values"))
                 .maskStringsWith(ValueMaskers.ofStringFunction(value -> value.startsWith("secret:") ? "***" : value))
                 .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(/* prefix */ 2, /* suffix */ 2, /* keep domain */ true, "***"))

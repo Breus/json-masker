@@ -5,7 +5,7 @@ package dev.blaauwendraad.masker.json;
  * ValueMasker#maskValue(ValueMaskerContext)} to allow the implementation to replace the JSON value
  * with a custom mask.
  *
- * <p>The JSON value is represented by a byte array to provide a way to access the content of the
+ * <p> The JSON value is represented by a byte array to provide a way to access the content of the
  * original value, based on index. The index includes the JSON value in its entirety which means
  * that for example for strings the opening and closing quotes are included. The reason for this is
  * that the API becomes more flexible as it enables strings to be replaced by {@code null}, for

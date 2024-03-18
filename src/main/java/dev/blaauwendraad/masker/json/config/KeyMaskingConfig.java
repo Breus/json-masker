@@ -71,9 +71,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all string values with the provided value.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
-         * <p>
-         * Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
+         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
+         * <p> Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
@@ -86,7 +85,7 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all characters of string values with the provided character, preserving the length.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
+         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
@@ -114,7 +113,7 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all numeric values with the provided value.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
          * <p>
          * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
@@ -130,7 +129,7 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all numeric values with the provided value.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -144,7 +143,7 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all digits of numeric values with the provided digit, preserving the length.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -174,9 +173,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
-         * <p>
-         * Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
+         * <p> For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
+         * <p> Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
@@ -189,7 +187,7 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": false}.
+         * <p> For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)

@@ -3,15 +3,17 @@ package dev.blaauwendraad.masker.json;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
-/** Provides out-of-the-box implementations of {@link ValueMasker}. */
+/**
+ * Provides out-of-the-box implementations of {@link ValueMasker}.
+ */
 public final class ValueMaskers {
     private ValueMaskers() {
         // don't instantiate
     }
 
     /**
-     * Masks a target value with a static string value. For example, {@literal "maskMe": "secret" ->
-     * "maskMe": "***"}.
+     * Masks a target value with a static string value.
+     * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
      */
     public static ValueMasker with(String value) {
         String replacement = "\"" + value + "\"";
@@ -21,8 +23,8 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks a target value with a static integer value. For example, {@literal "maskMe": 12345 ->
-     * "maskMe": 0}.
+     * Masks a target value with a static integer value.
+     * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
      */
     public static ValueMasker with(int value) {
         byte[] replacementBytes = String.valueOf(value).getBytes(StandardCharsets.UTF_8);
@@ -31,8 +33,8 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks a target value with a static boolean value. For example, {@literal "maskMe": true ->
-     * "maskMe": false}.
+     * Masks a target value with a static boolean value.
+     * <p> For example, {@literal "maskMe": true -> "maskMe": false}.
      */
     public static ValueMasker with(boolean value) {
         byte[] replacementBytes = String.valueOf(value).getBytes(StandardCharsets.UTF_8);
@@ -41,12 +43,12 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks all characters of a target string value with a static string value. For example,
-     * {@literal "maskMe": "secret" -> "maskMe": "******"}.
+     * Masks all characters of a target string value with a static string value.
+     * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
      *
-     * <p>Note: this implementation only replaces visible characters with a mask, meaning that JSON
-     * escape character ('\') will not count towards the length of the masked value and the UTF-8
-     * character data ('{@code \}u1000'), including 4-byte UTF-8 characters ('{@code \}uD83D{@code
+     * <p> Note: this implementation only replaces visible characters with a mask, meaning that JSON
+     * escape character ('\') will not count towards the length of the masked value and the unicode
+     * characters ('{@code \}u1000'), including 4-byte UTF-8 characters ('{@code \}uD83D{@code
      * \}uDCA9'), will only count as a single character in the masked value.
      */
     public static ValueMasker eachCharacterWith(String value) {
@@ -70,8 +72,8 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks all digits of a target numeric value with a static digit. For example, {@literal
-     * "maskMe": 12345 -> "maskMe": 88888}.
+     * Masks all digits of a target numeric value with a static digit.
+     * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
      */
     public static ValueMasker eachDigitWith(int digit) {
         if (digit < 1 || digit > 9) {
@@ -88,26 +90,26 @@ public final class ValueMaskers {
      * Does not mask a target value (no-operation). Can be used if certain JSON value types do not
      * need to be masked, for example, not masking booleans or numbers.
      *
-     * @see
-     *     dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker)
-     * @see
-     *     dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker)
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker)
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker)
      */
     public static ValueMasker noop() {
-        return withDescription("<no masking>", context -> {});
+        return withDescription("<no masking>", context -> {
+        });
     }
 
     /**
      * Masks a target string value (containing an email) while keeping some amount of the prefix
-     * characters and ability to keep the domain unmasked. For example: {@literal "maskMe":
-     * "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"} {@literal "maskMe":
-     * "agavlyukovskiy@gmail.com" -> "maskMe": "ag***"} {@literal "maskMe":
-     * "agavlyukovskiy@gmail.com" -> "maskMe": "ag***@gmail.com"} {@literal "maskMe":
-     * "agavlyukovskiy@gmail.com" -> "maskMe": "ag***iy@gmail.com"}
+     * characters and ability to keep the domain unmasked.
+     * <p> For example:
+     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"} </li>
+     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***"} </li>
+     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***@gmail.com"} </li>
+     * <li> {@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "ag***iy@gmail.com"} </li>
      *
      * @param keepPrefixLength amount of prefix characters to keep unmasked
-     * @param keepDomain if true - the email domain will remain unmasked
-     * @param mask the static mask applied to the rest of the value
+     * @param keepDomain       if true - the email domain will remain unmasked
+     * @param mask             the static mask applied to the rest of the value
      */
     public static ValueMasker email(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);

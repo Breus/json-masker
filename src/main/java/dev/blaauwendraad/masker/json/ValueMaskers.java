@@ -111,11 +111,9 @@ public final class ValueMaskers {
      */
     public static ValueMasker email(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
-        String description =
-                "email, keep prefix: %s, keep suffix: %s, keep domain: %s"
-                        .formatted(keepPrefixLength, keepSuffixLength, keepDomain);
         return withDescription(
-                description,
+                "email, keep prefix: %s, keep suffix: %s, keep domain: %s"
+                        .formatted(keepPrefixLength, keepSuffixLength, keepDomain),
                 context -> {
                     int prefixLength = keepPrefixLength + 1; // add opening quote
                     int suffixLength = keepSuffixLength + 1; // keep closing quote

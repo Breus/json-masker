@@ -11,11 +11,11 @@ package dev.blaauwendraad.masker.json;
  *
  * @see ValueMasker#withDescription(String, ValueMasker)
  */
-public class DescriptiveValueMasker implements ValueMasker {
+class DescriptiveValueMasker implements ValueMasker {
     private final String description;
     private final ValueMasker delegate;
 
-    public DescriptiveValueMasker(String description, ValueMasker delegate) {
+    DescriptiveValueMasker(String description, ValueMasker delegate) {
         this.description = description;
         this.delegate = delegate;
     }

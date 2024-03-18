@@ -42,27 +42,25 @@ The decision is premised on the following expectations:
 2. Correctness, performance and maintainability of the library takes precedent over the amount of features.  
 3. JsonPATH support is required only for solving the name ambiguity problem.  
 
-Any implemented JsonPATH feature adds some performance overhead both on configuration and on masking time, even if it is not used. In general, it also increases the likelihood of incorrect behaviour as the amount of code increases. Therefore, having unnecessary features violates the premises.   
+Any implemented JsonPATH feature adds some performance overhead both on configuration and on masking time, even if it is not used. In general, it also increases the likelihood of incorrect behaviour as the amount of code increases. So having unnecessary features violates the premises.   
 Therefore, we decided to keep support for JsonPATH as limited as possible and extend it only when someone specifically requests it.
 
 The following features are necessary to support:
 1. **Support for bracket, dot and mixed notations**.   
 We expect developers to know either of these notations, but we cannot know which one exactly.  
-2. **Support for segments**.  
+2. **Support for name selectors**.  
 This is the main building block of JsonPATH queries.
 3. **Support for wildcard segments and selectors**.  
 Wildcard selectors are necessary for traversing array values. 
 
 ## Not supported features
-
-1. **Name selectors**.  
-Using segments is enough to select any value in the json.  
-2. **Index selectors, array slice selectors, filter selectors**.  
+ 
+1. **Index selectors, array slice selectors, filter selectors**.  
 We do not expect clients to mask only some elements of an array value.  
-3. **Function extensions.**  
+2. **Function extensions.**  
 We expect the name/value pairs locations in json to be known apriori. Therefore, no computation is required.  
-4. **Descendant segments**.  
-The same reason as point 3.
+3. **Descendant segments**.  
+The same reason as point 2.
 
 
 ## Consequences

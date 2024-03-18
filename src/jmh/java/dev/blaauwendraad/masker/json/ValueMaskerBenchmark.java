@@ -40,9 +40,9 @@ public class ValueMaskerBenchmark {
         );
         private final JsonMasker functionalMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("targetKey"))
-                .maskStringsWith(ValueMasker.maskWithStringFunction(value -> "***"))
-                .maskNumbersWith(ValueMasker.maskWithStringFunction(value -> "###"))
-                .maskBooleansWith(ValueMasker.maskWithStringFunction(value -> "&&&"))
+                .maskStringsWith(ValueMaskers.ofStringFunction(value -> "***"))
+                .maskNumbersWith(ValueMaskers.ofStringFunction(value -> "###"))
+                .maskBooleansWith(ValueMaskers.ofStringFunction(value -> "&&&"))
                 .build()
         );
 

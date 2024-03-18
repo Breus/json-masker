@@ -190,11 +190,17 @@ final class MaskingState implements ValueMaskerContext {
         return currentValueStartIndex;
     }
 
-    public void setCurrentValueStartIndex() {
+    /**
+     * Register the current index as the start index of the value to be masked.
+     */
+    public void registerValueStartIndex() {
         this.currentValueStartIndex = currentIndex;
     }
 
-    public void unsetCurrentValueStartIndex() {
+    /**
+     * Clears the previous registered value start index.
+     */
+    public void clearValueStartIndex() {
         this.currentValueStartIndex = -1;
     }
 
@@ -205,12 +211,12 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     @Override
-    public int valueLength() {
+    public int byteLength() {
         return currentIndex - getCurrentValueStartIndex();
     }
 
     @Override
-    public void replaceValue(int fromIndex, int length, byte[] mask, int maskRepeat) {
+    public void replaceBytes(int fromIndex, int length, byte[] mask, int maskRepeat) {
         checkCurrentValueBounds(fromIndex);
         checkCurrentValueBounds(fromIndex + length - 1);
         replaceTargetValueWith(getCurrentValueStartIndex() + fromIndex, length, mask, maskRepeat);
@@ -243,8 +249,8 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     private void checkCurrentValueBounds(int index) {
-        if (index < 0 || index >= valueLength()) {
-            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + valueLength());
+        if (index < 0 || index >= byteLength()) {
+            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + byteLength());
         }
     }
 

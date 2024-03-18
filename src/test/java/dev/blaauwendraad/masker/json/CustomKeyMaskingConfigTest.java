@@ -212,19 +212,19 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
                 .maskKeys(Set.of("emailPrefixSuffixDomain"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(2, 2, true, "***"))
+                        .maskStringsWith(ValueMaskers.email(2, 2, true, "***"))
                         .build()
                 )
                 .maskKeys(Set.of("emailPrefixOnly"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(2, 0, false, "***"))
+                        .maskStringsWith(ValueMaskers.email(2, 0, false, "***"))
                         .build()
                 )
                 .maskKeys(Set.of("emailSuffixOnly"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(0, 2, false, "***"))
+                        .maskStringsWith(ValueMaskers.email(0, 2, false, "***"))
                         .build()
                 )
                 .maskKeys(Set.of("emailDomainOnly"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskEmail(0, 0, true, "***"))
+                        .maskStringsWith(ValueMaskers.email(0, 0, true, "***"))
                         .build()
                 )
                 .build());
@@ -258,19 +258,19 @@ class CustomKeyMaskingConfigTest {
     void maskWithStringFunction() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
-                .maskStringsWith(ValueMasker.maskWithStringFunction(value -> "***"))
-                .maskNumbersWith(ValueMasker.maskWithStringFunction(value -> "###"))
-                .maskBooleansWith(ValueMasker.maskWithStringFunction(value -> "&&&"))
+                .maskStringsWith(ValueMaskers.ofStringFunction(value -> "***"))
+                .maskNumbersWith(ValueMaskers.ofStringFunction(value -> "###"))
+                .maskBooleansWith(ValueMaskers.ofStringFunction(value -> "&&&"))
                 .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> value.replaceAll("\\[this secret]", "***")))
+                        .maskStringsWith(ValueMaskers.ofStringFunction(value -> value.replaceAll("\\[this secret]", "***")))
                         .build()
                 )
                 .maskKeys(Set.of("functionNull"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> null))
+                        .maskStringsWith(ValueMaskers.ofStringFunction(value -> null))
                         .build()
                 )
                 .maskKeys(Set.of("functionConditional"), KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMasker.maskWithStringFunction(value -> value.startsWith("secret:") ? "***" : value))
+                        .maskStringsWith(ValueMaskers.ofStringFunction(value -> value.startsWith("secret:") ? "***" : value))
                         .build()
                 )
                 .build());
@@ -311,21 +311,21 @@ class CustomKeyMaskingConfigTest {
                         .maskStringsWith(context -> {
                             assertThatThrownBy(() -> context.getByte(-1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.getByte(context.valueLength()))
+                            assertThatThrownBy(() -> context.getByte(context.byteLength()))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
 
-                            assertThatThrownBy(() -> context.replaceValue(-1, 1, new byte[0], 1))
+                            assertThatThrownBy(() -> context.replaceBytes(-1, 1, new byte[0], 1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.replaceValue(0, context.valueLength() + 1, new byte[0], 1))
+                            assertThatThrownBy(() -> context.replaceBytes(0, context.byteLength() + 1, new byte[0], 1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.replaceValue(1, context.valueLength(), new byte[0], 1))
+                            assertThatThrownBy(() -> context.replaceBytes(1, context.byteLength(), new byte[0], 1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
 
                             assertThatThrownBy(() -> context.countNonVisibleCharacters(-1, 1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.countNonVisibleCharacters(0, context.valueLength() + 1))
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(0, context.byteLength() + 1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.valueLength()))
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.byteLength()))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
                         })
                         .build()

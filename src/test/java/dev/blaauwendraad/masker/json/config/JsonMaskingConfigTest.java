@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.ValueMasker;
+import dev.blaauwendraad.masker.json.ValueMaskers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -38,27 +39,27 @@ final class JsonMaskingConfigTest {
                 () -> JsonMaskingConfig.builder().caseSensitiveTargetKeys().caseSensitiveTargetKeys(),
                 () -> JsonMaskingConfig.builder().maskStringsWith("***").maskStringsWith("***"),
                 () -> JsonMaskingConfig.builder().maskStringsWith("***").maskStringCharactersWith("*"),
-                () -> JsonMaskingConfig.builder().maskStringsWith(ValueMasker.maskWith("***")).maskStringsWith(ValueMasker.maskWith("***")),
+                () -> JsonMaskingConfig.builder().maskStringsWith(ValueMaskers.with("***")).maskStringsWith(ValueMaskers.with("***")),
                 () -> JsonMaskingConfig.builder().maskStringCharactersWith("*").maskStringCharactersWith("*"),
-                () -> JsonMaskingConfig.builder().maskStringCharactersWith("*").maskStringsWith(ValueMasker.maskWith("***")),
+                () -> JsonMaskingConfig.builder().maskStringCharactersWith("*").maskStringsWith(ValueMaskers.with("***")),
                 () -> JsonMaskingConfig.builder().maskNumbersWith("###").maskNumbersWith("###"),
                 () -> JsonMaskingConfig.builder().maskNumbersWith("###").maskNumbersWith(123),
                 () -> JsonMaskingConfig.builder().maskNumbersWith("###").maskNumberDigitsWith(1),
                 () -> JsonMaskingConfig.builder().maskNumbersWith(123).maskNumbersWith(123),
                 () -> JsonMaskingConfig.builder().maskNumbersWith(123).maskNumberDigitsWith(1),
-                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMasker.maskWith(0)).maskNumbersWith(ValueMasker.maskWith(0)),
-                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMasker.maskWith(0)).maskNumbersWith("###"),
-                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMasker.maskWith(0)).maskNumbersWith(123),
-                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMasker.maskWith(0)).maskNumberDigitsWith(1),
+                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMaskers.with(0)).maskNumbersWith(ValueMaskers.with(0)),
+                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMaskers.with(0)).maskNumbersWith("###"),
+                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMaskers.with(0)).maskNumbersWith(123),
+                () -> JsonMaskingConfig.builder().maskNumbersWith(ValueMaskers.with(0)).maskNumberDigitsWith(1),
                 () -> JsonMaskingConfig.builder().maskNumberDigitsWith(1).maskNumberDigitsWith(1),
                 () -> JsonMaskingConfig.builder().maskNumberDigitsWith(0),
                 () -> JsonMaskingConfig.builder().maskNumberDigitsWith(10),
                 () -> JsonMaskingConfig.builder().maskBooleansWith("&&&").maskBooleansWith("&&&"),
                 () -> JsonMaskingConfig.builder().maskBooleansWith(false).maskBooleansWith(false),
                 () -> JsonMaskingConfig.builder().maskBooleansWith("&&&").maskBooleansWith(false),
-                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMasker.maskWith(false)).maskBooleansWith("&&&"),
-                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMasker.maskWith(false)).maskBooleansWith(false),
-                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMasker.maskWith(false)).maskBooleansWith(ValueMasker.maskWith(false))
+                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMaskers.with(false)).maskBooleansWith("&&&"),
+                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMaskers.with(false)).maskBooleansWith(false),
+                () -> JsonMaskingConfig.builder().maskBooleansWith(ValueMaskers.with(false)).maskBooleansWith(ValueMaskers.with(false))
         );
     }
 }

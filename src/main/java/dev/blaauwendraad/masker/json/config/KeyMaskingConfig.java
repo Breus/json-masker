@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.ValueMasker;
+import dev.blaauwendraad.masker.json.ValueMaskers;
 
 import java.util.Objects;
 
@@ -12,15 +13,15 @@ public final class KeyMaskingConfig {
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
         this.maskStringsWith = Objects.requireNonNullElseGet(
                 builder.maskStringsWith,
-                () -> ValueMasker.maskWith("***")
+                () -> ValueMaskers.with("***")
         );
         this.maskNumbersWith = Objects.requireNonNullElseGet(
                 builder.maskNumbersWith,
-                () -> ValueMasker.maskWith("###")
+                () -> ValueMaskers.with("###")
         );
         this.maskBooleansWith = Objects.requireNonNullElseGet(
                 builder.maskBooleansWith,
-                () -> ValueMasker.maskWith("&&&")
+                () -> ValueMaskers.with("&&&")
         );
     }
 
@@ -79,7 +80,7 @@ public final class KeyMaskingConfig {
          * @see #maskStringsWith(ValueMasker)
          */
         public Builder maskStringsWith(String value) {
-            maskStringsWith(ValueMasker.maskWith(value));
+            maskStringsWith(ValueMaskers.with(value));
             return this;
         }
 
@@ -92,7 +93,7 @@ public final class KeyMaskingConfig {
          * @see #maskStringsWith(ValueMasker)
          */
         public Builder maskStringCharactersWith(String value) {
-            maskStringsWith(ValueMasker.maskStringCharactersWith(value));
+            maskStringsWith(ValueMaskers.eachCharacterWith(value));
             return this;
         }
 
@@ -123,7 +124,7 @@ public final class KeyMaskingConfig {
          * @see #maskNumbersWith(ValueMasker)
          */
         public Builder maskNumbersWith(String value) {
-            maskNumbersWith(ValueMasker.maskWith(value));
+            maskNumbersWith(ValueMaskers.with(value));
             return this;
         }
 
@@ -137,7 +138,7 @@ public final class KeyMaskingConfig {
          * @see #maskNumbersWith(ValueMasker)
          */
         public Builder maskNumbersWith(int value) {
-            maskNumbersWith(ValueMasker.maskWith(value));
+            maskNumbersWith(ValueMaskers.with(value));
             return this;
         }
 
@@ -151,7 +152,7 @@ public final class KeyMaskingConfig {
          * @see #maskNumbersWith(ValueMasker)
          */
         public Builder maskNumberDigitsWith(int digit) {
-            maskNumbersWith(ValueMasker.maskNumberDigitsWith(digit));
+            maskNumbersWith(ValueMaskers.eachDigitWith(digit));
             return this;
         }
 
@@ -182,7 +183,7 @@ public final class KeyMaskingConfig {
          * @see #maskBooleansWith(ValueMasker)
          */
         public Builder maskBooleansWith(String value) {
-            maskBooleansWith(ValueMasker.maskWith(value));
+            maskBooleansWith(ValueMaskers.with(value));
             return this;
         }
 
@@ -195,7 +196,7 @@ public final class KeyMaskingConfig {
          * @see #maskBooleansWith(ValueMasker)
          */
         public Builder maskBooleansWith(boolean value) {
-            maskBooleansWith(ValueMasker.maskWith(value));
+            maskBooleansWith(ValueMaskers.with(value));
             return this;
         }
 

@@ -1,13 +1,15 @@
 package dev.blaauwendraad.masker.json;
 
 /**
- * {@link DescriptiveValueMasker} provides description of what the implementation does when serialized.
+ * {@link DescriptiveValueMasker} provides the description of what the implementation does.
  *
- * <p>In order to keep the API concise, the {@link ValueMasker} only requires the implementation code, but for debugging
- * and tests it's convenient to know how each JSON value is supposed to be masked.
+ * <p>In order to keep the API concise, the {@link ValueMasker} only requires the implementation
+ * code, but for debugging and tests, it's convenient to know how each JSON value is supposed to be
+ * masked.
  *
- * <p>As a result when {@link dev.blaauwendraad.masker.json.config.KeyMaskingConfig} is serialized, we can see the
- * configuration as {@code maskNumbersWith="###"} instead of {@code maskNumbersWith=dev.blaauwendraad.masker.json.ValueMasker$$Lambda$425/0x000000080022e890@1039bfc4}
+ * <p>As a result, when {@link dev.blaauwendraad.masker.json.config.KeyMaskingConfig} is serialized,
+ * we can see the configuration as {@code maskNumbersWith="###"} instead of {@code
+ * maskNumbersWith=dev.blaauwendraad.masker.json.ValueMasker$$Lambda$425/0x000000080022e890@1039bfc4}
  *
  * @see ValueMasker#withDescription(String, ValueMasker)
  */

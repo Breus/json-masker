@@ -11,7 +11,7 @@ import java.util.Collections;
 /**
  * Default implementation of the {@link JsonMasker}.
  */
-public final class KeyContainsMasker implements JsonMasker {
+ final class KeyContainsMasker implements JsonMasker {
     /**
      * Look-up trie containing the target keys.
      */
@@ -26,7 +26,7 @@ public final class KeyContainsMasker implements JsonMasker {
      *
      * @param maskingConfig the {@link JsonMaskingConfig} for the created masker
      */
-    public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
+    KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
         this.keyMatcher = new KeyMatcher(maskingConfig);
     }
@@ -100,6 +100,7 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
             }
             case 'n' -> maskingState.incrementCurrentIndex(4);
+            default -> { /* return */ }
         }
     }
 
@@ -200,12 +201,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskString(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        maskingState.setCurrentValueStartIndex();
+        maskingState.registerValueStartIndex();
         stepOverStringValue(maskingState);
 
         keyMaskingConfig.getStringValueMasker().maskValue(maskingState);
 
-        maskingState.unsetCurrentValueStartIndex();
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -221,12 +222,12 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void maskNumber(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         // This block deals with numeric values
-        maskingState.setCurrentValueStartIndex();
+        maskingState.registerValueStartIndex();
         stepOverNumericValue(maskingState);
 
         keyMaskingConfig.getNumberValueMasker().maskValue(maskingState);
 
-        maskingState.unsetCurrentValueStartIndex();
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -238,12 +239,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        maskingState.setCurrentValueStartIndex();
+        maskingState.registerValueStartIndex();
         maskingState.incrementCurrentIndex(AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5);
 
         keyMaskingConfig.getBooleanValueMasker().maskValue(maskingState);
 
-        maskingState.unsetCurrentValueStartIndex();
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -262,6 +263,7 @@ public final class KeyContainsMasker implements JsonMasker {
             case 'f' -> maskingState.incrementCurrentIndex(5); // false
             case '{' -> stepOverObject(maskingState);
             case '[' -> stepOverArray(maskingState);
+            default -> { /* return */ }
         }
     }
 

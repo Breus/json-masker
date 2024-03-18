@@ -1,16 +1,14 @@
 package dev.blaauwendraad.masker.json.util;
 
-/**
- * UTF-8 encoding utilities class
- */
+/** UTF-8 encoding utilities class */
 public final class Utf8Util {
     private Utf8Util() {
         // util
     }
 
     /**
-     * UTF-8: variable width 1-4 byte code points: 1 byte:  0xxxxxxx 2 bytes: 110xxxxx 10xxxxxx 3 bytes: 1110xxxx
-     * 10xxxxxx 10xxxxxx 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     * UTF-8: variable width 1-4 byte code points: 1 byte: 0xxxxxxx 2 bytes: 110xxxxx 10xxxxxx 3
+     * bytes: 1110xxxx 10xxxxxx 10xxxxxx 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
      *
      * @param input first (or only) code point byte
      * @return code point length in bytes
@@ -36,14 +34,16 @@ public final class Utf8Util {
     }
 
     /**
-     * Counts amount of non-visible characters inside the string. The intervals supplied must be within a single string
-     * (already inside quotes) as this method will not do boundary checks or look for end of string value.
-     * an escaped quotes.
+     * Counts the number of non-visible characters inside the string. The intervals provided must be
+     * within a single string as this method will not do boundary checks or terminate at the end of
+     * string value.
+     *
      * @param message the byte array containing the string
      * @param fromIndex the starting index of the string value (after the quote)
      * @param length the length of the string value (excluding the quotes)
-     * @return the amount of non-visible characters in the string - escape characters, UTF-8 character data ('\u0000'),
-     * characters that use more than a single byte
+     * @return the number of non-visible characters in the string, i.e., escape characters, unicode
+     *     characters ('\u0000'), or other characters that are represented by more than a single
+     *     byte are counted as one character
      */
     public static int countNonVisibleCharacters(byte[] message, int fromIndex, int length) {
         int index = fromIndex;

@@ -27,12 +27,12 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
     }
 
     @Override
-    public int valueLength() {
+    public int byteLength() {
         return value.length;
     }
 
     @Override
-    public void replaceValue(int fromIndex, int length, byte[] mask, int maskRepeat) {
+    public void replaceBytes(int fromIndex, int length, byte[] mask, int maskRepeat) {
         int suffixLength = maskedValue.length - (length + fromIndex);
         int newArraySize = fromIndex + (mask.length * maskRepeat) + suffixLength;
         byte[] newMaskedValue = new byte[newArraySize];

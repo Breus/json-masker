@@ -1,7 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
-
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 

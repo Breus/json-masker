@@ -308,28 +308,12 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Disables number masking.
-         *
-         * @return the builder instance
-         * @see #maskNumbersWith(String)
-         * @see #maskNumbersWith(int)
-         * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#disableNumberMasking()
-         */
-        public Builder disableNumberMasking() {
-            defaultConfigBuilder.disableNumberMasking();
-            return this;
-        }
-
-        /**
          * Mask all number values with the provided value.
          * For example, "maskMe": 12345 -> "maskMe": "###".
          * <p>
          * Masking numbers with '###' is the default behaviour if no number masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -345,7 +329,6 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": 12345 -> "maskMe": 0.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -361,7 +344,6 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": 12345 -> "maskMe": 88888.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -376,7 +358,6 @@ public final class JsonMaskingConfig {
          * Mask all numeric values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #disableNumberMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
@@ -389,27 +370,12 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Disables boolean masking.
-         *
-         * @return the builder instance
-         * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(boolean)
-         * @see #maskBooleansWith(ValueMasker)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
-         */
-        public Builder disableBooleanMasking() {
-            defaultConfigBuilder.disableBooleanMasking();
-            return this;
-        }
-
-        /**
          * Mask all boolean values with the provided value.
          * For example, {@literal "maskMe": true -> "maskMe": "&&&".}
          * <p>
          * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(ValueMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
@@ -424,7 +390,6 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": true -> "maskMe": false.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(String)
          * @see #maskBooleansWith(ValueMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(boolean)
@@ -438,7 +403,6 @@ public final class JsonMaskingConfig {
          * Mask all boolean values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker)

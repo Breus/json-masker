@@ -112,27 +112,12 @@ public final class KeyMaskingConfig {
         }
 
         /**
-         * Disables number masking.
-         *
-         * @return the builder instance
-         * @see #maskNumbersWith(String)
-         * @see #maskNumbersWith(int)
-         * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
-         */
-        public Builder disableNumberMasking() {
-            maskNumbersWith(ValueMasker.noop());
-            return this;
-        }
-
-        /**
          * Mask all numeric values with the provided value.
          * For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
          * <p>
          * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -147,7 +132,6 @@ public final class KeyMaskingConfig {
          * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -162,7 +146,6 @@ public final class KeyMaskingConfig {
          * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumbersWith(ValueMasker)
@@ -176,7 +159,6 @@ public final class KeyMaskingConfig {
          * Mask all numeric values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #disableNumberMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
@@ -190,26 +172,12 @@ public final class KeyMaskingConfig {
         }
 
         /**
-         * Disables boolean masking.
-         *
-         * @return the builder instance
-         * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(boolean)
-         * @see #maskBooleansWith(ValueMasker)
-         */
-        public Builder disableBooleanMasking() {
-            maskBooleansWith(ValueMasker.noop());
-            return this;
-        }
-
-        /**
          * Mask all boolean values with the provided value.
          * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
          * <p>
          * Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(ValueMasker)
          */
@@ -223,7 +191,6 @@ public final class KeyMaskingConfig {
          * For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(String)
          * @see #maskBooleansWith(ValueMasker)
          */
@@ -236,7 +203,6 @@ public final class KeyMaskingConfig {
          * Mask all boolean values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(String)
          */

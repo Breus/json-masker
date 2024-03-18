@@ -6,13 +6,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,11 +59,6 @@ public final class JsonMaskerTestUtil {
                 }
                 case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
                 case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
-                case "disableNumberMasking" -> {
-                    if (value.booleanValue()) {
-                        builder.disableNumberMasking();
-                    }
-                }
                 case "maskNumbersWith" -> {
                     if (value.isInt()) {
                         builder.maskNumbersWith(value.intValue());
@@ -77,11 +67,6 @@ public final class JsonMaskerTestUtil {
                     }
                 }
                 case "maskNumberDigitsWith" -> builder.maskNumberDigitsWith(value.intValue());
-                case "disableBooleanMasking" -> {
-                    if (value.booleanValue()) {
-                        builder.disableBooleanMasking();
-                    }
-                }
                 case "maskBooleansWith" -> {
                     if (value.isBoolean()) {
                         builder.maskBooleansWith(value.booleanValue());

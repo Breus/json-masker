@@ -93,9 +93,6 @@ public interface ValueMasker {
 
     /**
      * Does not mask a target value.
-     *
-     * @see KeyMaskingConfig.Builder#disableBooleanMasking()
-     * @see KeyMaskingConfig.Builder#disableNumberMasking()
      */
     static ValueMasker noop() {
         return withDescription("<no masking>", context -> {

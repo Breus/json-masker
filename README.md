@@ -648,9 +648,12 @@ In addition to standard options like `maskStringsWith`, `maskNumbersWith` and `m
 a functional interface for low-level value masking, which allows fully customizing the masking process. It can be used 
 for masking all values or specific keys alike.
 
-The `ValueMasker` operates on the full value on the byte level (i.e. the value is `byte[]`). This allows implementations
-to modify JSON value in any way, but also means that the implementation needs to be careful with parsing the value of
-any JSON type and replacing correct slice of the value, otherwise masking could produce an invalid JSON.
+The `ValueMasker` operates on the full value on the byte level (i.e. the value is `byte[]`).
+
+> [!NOTE]
+> `ValueMasker` can modify JSON value in any way, but also means that the implementation needs to be careful with
+> parsing the value of any JSON type and replacing correct slice of the value, otherwise masking could produce an
+> invalid JSON.
 
 For convenience we have provided couple out-of-the-box maskers available in `ValueMaskers` as well as adapter to 
 `Function<String, String>`.
@@ -670,12 +673,6 @@ var jsonMasker = JsonMasker.getMasker(
 
 String maskedJson = jsonMasker.mask(json);
 ```
-
-> [!NOTE]
-> The `ValueMasker` operates on the full value on the byte level (i.e. the value is `byte[]`). This allows
-> implementations to modify JSON value in any way, but also means that the implementation needs to be careful with
-> parsing the value of any JSON type and replacing correct slice of the value, otherwise masking could produce an
-> invalid JSON.
 
 #### Input
 

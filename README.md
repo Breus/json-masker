@@ -576,7 +576,8 @@ var jsonMasker = JsonMasker.getMasker(
                 .maskKeys(Set.of("email", "age", "visaApproved", "billingAddress"))
                 .maskKeys(Set.of("iban"), KeyMaskingConfig.builder()
                         .maskStringCharactersWith("*")
-                        .build())
+                        .build()
+                )
                 .build()
 );
 
@@ -667,7 +668,8 @@ var jsonMasker = JsonMasker.getMasker(
                 .maskStringsWith(ValueMaskers.ofStringFunction(value -> value.startsWith("secret:") ? "***" : value))
                 .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(/* prefix */ 2, /* suffix */ 2, /* keep domain */ true, "***"))
-                        .build())
+                        .build()
+                )
                 .build()
 );
 

@@ -113,6 +113,13 @@ import java.util.Collections;
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
     private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
+        if (keyMaskingConfig != null && keyMaskingConfig.getArrayValueMasker() != null) {
+            maskingState.registerValueStartIndex();
+            stepOverArray(maskingState);
+            keyMaskingConfig.getArrayValueMasker().maskValue(maskingState);
+            maskingState.clearValueStartIndex();
+            return;
+        }
         // This block deals with masking arrays
         maskingState.expandCurrentJsonPathWithArray();
         maskingState.incrementCurrentIndex(); // step over array opening square bracket
@@ -140,6 +147,13 @@ import java.util.Collections;
      *                               {@link KeyMaskingConfig}. Otherwise, the value is not being masked
      */
     private void visitObject(MaskingState maskingState, @CheckForNull KeyMaskingConfig parentKeyMaskingConfig) {
+        if (parentKeyMaskingConfig != null && parentKeyMaskingConfig.getObjectValueMasker() != null) {
+            maskingState.registerValueStartIndex();
+            stepOverObject(maskingState);
+            parentKeyMaskingConfig.getObjectValueMasker().maskValue(maskingState);
+            maskingState.clearValueStartIndex();
+            return;
+        }
         maskingState.incrementCurrentIndex(); // step over opening curly bracket
         stepOverWhitespaceCharacters(maskingState);
         while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {

@@ -9,6 +9,8 @@ public final class KeyMaskingConfig {
     private final ValueMasker maskStringsWith;
     private final ValueMasker maskNumbersWith;
     private final ValueMasker maskBooleansWith;
+    private final ValueMasker maskArraysWith;
+    private final ValueMasker maskObjectsWith;
 
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
         this.maskStringsWith = Objects.requireNonNullElseGet(
@@ -23,6 +25,12 @@ public final class KeyMaskingConfig {
                 builder.maskBooleansWith,
                 () -> ValueMaskers.with("&&&")
         );
+        this.maskArraysWith = context -> {
+            context.replaceBytes(1, context.byteLength() - 2, new byte[0], 1);
+        };
+        this.maskObjectsWith = context -> {
+            context.replaceBytes(1, context.byteLength() - 2, new byte[0], 1);
+        };
     }
 
     /**
@@ -35,24 +43,38 @@ public final class KeyMaskingConfig {
     }
 
     /**
-     * Returns a function to mask a string value.
+     * Returns a {@link ValueMasker} to mask a string value.
      */
     public ValueMasker getStringValueMasker() {
         return maskStringsWith;
     }
 
     /**
-     * Returns a function to mask a number value.
+     * Returns a {@link ValueMasker} to mask a number value.
      */
     public ValueMasker getNumberValueMasker() {
         return maskNumbersWith;
     }
 
     /**
-     * Returns a function to mask a number value.
+     * Returns a {@link ValueMasker} to mask a number value.
      */
     public ValueMasker getBooleanValueMasker() {
         return maskBooleansWith;
+    }
+
+    /**
+     * Returns a {@link ValueMasker} to mask an array value.
+     */
+    public ValueMasker getArrayValueMasker() {
+        return maskArraysWith;
+    }
+
+    /**
+     * Returns a {@link ValueMasker} to mask an object value.
+     */
+    public ValueMasker getObjectValueMasker() {
+        return maskObjectsWith;
     }
 
     @Override

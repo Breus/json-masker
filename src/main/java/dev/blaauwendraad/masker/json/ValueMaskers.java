@@ -167,7 +167,7 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks a target value with a supplied {@link Function}. The target value is passed into the
+     * Masks a target value with the provided {@link Function}. The target value is passed into the
      * function as a text, regardless of the type (string, numeric or a boolean), however any
      * non-null returned value from the function will always be a JSON string (with quotes added
      * automatically).

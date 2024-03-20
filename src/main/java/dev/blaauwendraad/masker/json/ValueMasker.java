@@ -15,10 +15,10 @@ package dev.blaauwendraad.masker.json;
  * @see ValueMaskers for out-of-the-box implementations
  */
 public sealed interface ValueMasker permits
-        ValueMasker.AnyValueMasker,
-        ValueMasker.BooleanMasker,
+        ValueMasker.StringMasker,
         ValueMasker.NumberMasker,
-        ValueMasker.StringMasker {
+        ValueMasker.BooleanMasker,
+        ValueMasker.AnyValueMasker {
     /**
      * Used for masking JSON values. Accepts {@link ValueMaskerContext} that contains context of the
      * current value being masked.
@@ -47,9 +47,9 @@ public sealed interface ValueMasker permits
     }
 
     /**
-     * {@link ValueMasker} that can mask any JSON value (string, boolean or a number)
+     * {@link ValueMasker} that can mask any JSON value (string, number or a boolean)
      */
     @FunctionalInterface
-    non-sealed interface AnyValueMasker extends ValueMasker, StringMasker, BooleanMasker, NumberMasker {
+    non-sealed interface AnyValueMasker extends ValueMasker, StringMasker, NumberMasker, BooleanMasker {
     }
 }

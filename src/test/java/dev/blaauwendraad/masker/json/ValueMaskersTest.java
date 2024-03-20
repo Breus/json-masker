@@ -1,8 +1,11 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
 
 class ValueMaskersTest {
     @Test
@@ -137,5 +140,63 @@ class ValueMaskersTest {
                 .isEqualTo("\"12345\"");
         Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
                 .isEqualTo("\"true\"");
+    }
+
+    @Test
+    void customAnyValueMasker() {
+        ValueMasker.AnyValueMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
+
+        // checking that can be used with all types in the builder
+        KeyMaskingConfig.builder()
+                .maskStringsWith(valueMasker)
+                .maskNumbersWith(valueMasker)
+                .maskBooleansWith(valueMasker)
+                .build();
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\"secret\"", valueMasker))
+                .isEqualTo("null");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("null");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
+                .isEqualTo("null");
+    }
+
+    @Test
+    void customStringValueMasker() {
+        ValueMasker.StringMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
+
+        // checking that can be used with string types in the builder
+        KeyMaskingConfig.builder()
+                .maskStringsWith(valueMasker)
+                .build();
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\"secret\"", valueMasker))
+                .isEqualTo("null");
+    }
+
+    @Test
+    void customNumberValueMasker() {
+        ValueMasker.NumberMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
+
+        // checking that can be used with string types in the builder
+        KeyMaskingConfig.builder()
+                .maskNumbersWith(valueMasker)
+                .build();
+
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("null");
+    }
+
+    @Test
+    void customBooleanValueMasker() {
+        ValueMasker.BooleanMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
+
+        // checking that can be used with string types in the builder
+        KeyMaskingConfig.builder()
+                .maskBooleansWith(valueMasker)
+                .build();
+
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
+                .isEqualTo("null");
     }
 }

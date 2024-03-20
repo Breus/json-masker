@@ -27,6 +27,8 @@ public sealed interface ValueMasker permits
 
     /**
      * {@link ValueMasker} that can mask string values.
+     *
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker.StringMasker)
      */
     @FunctionalInterface
     non-sealed interface StringMasker extends ValueMasker {
@@ -34,6 +36,8 @@ public sealed interface ValueMasker permits
 
     /**
      * {@link ValueMasker} that can mask number values.
+     *
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker.NumberMasker)
      */
     @FunctionalInterface
     non-sealed interface NumberMasker extends ValueMasker {
@@ -41,13 +45,15 @@ public sealed interface ValueMasker permits
 
     /**
      * {@link ValueMasker} that can mask boolean values.
+     *
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
      */
     @FunctionalInterface
     non-sealed interface BooleanMasker extends ValueMasker {
     }
 
     /**
-     * {@link ValueMasker} that can mask any JSON value (string, number or a boolean)
+     * {@link ValueMasker} that can mask any JSON value (string, number or a boolean).
      */
     @FunctionalInterface
     non-sealed interface AnyValueMasker extends ValueMasker, StringMasker, NumberMasker, BooleanMasker {

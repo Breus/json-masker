@@ -300,7 +300,7 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskStringsWith(String)
          * @see #maskStringCharactersWith(String)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker.StringMasker)
          */
         public Builder maskStringsWith(ValueMasker.StringMasker valueMasker) {
             defaultConfigBuilder.maskStringsWith(valueMasker);

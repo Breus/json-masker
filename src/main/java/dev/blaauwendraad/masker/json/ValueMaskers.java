@@ -178,7 +178,7 @@ public final class ValueMaskers {
      */
     public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
         return describe(
-                "Function<String, String> (%s)".formatted(masker),
+                "withTextFunction (%s)".formatted(masker),
                 context -> {
                     String value = context.asText();
                     String maskedValue = masker.apply(value);

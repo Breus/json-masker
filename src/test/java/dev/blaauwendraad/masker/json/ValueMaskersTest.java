@@ -178,7 +178,7 @@ class ValueMaskersTest {
     void customNumberValueMasker() {
         ValueMasker.NumberMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
 
-        // checking that can be used with string types in the builder
+        // checking that can be used with number types in the builder
         KeyMaskingConfig.builder()
                 .maskNumbersWith(valueMasker)
                 .build();
@@ -191,7 +191,7 @@ class ValueMaskersTest {
     void customBooleanValueMasker() {
         ValueMasker.BooleanMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
 
-        // checking that can be used with string types in the builder
+        // checking that can be used with boolean types in the builder
         KeyMaskingConfig.builder()
                 .maskBooleansWith(valueMasker)
                 .build();

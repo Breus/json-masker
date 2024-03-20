@@ -72,6 +72,7 @@ class Utf8UtilTest {
                 Arguments.of("̀", 1),
                 Arguments.of("€", 2),
                 Arguments.of("†", 2),
+                Arguments.of("\\\\", 1), // the value without Java escape is "\\", which is a JSON escape
                 Arguments.of("\u2020", 2), // same as the above
                 // same as the above, but using UTF-8 string with character data so that Java doesn't convert it
                 // into a single character

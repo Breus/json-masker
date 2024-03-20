@@ -36,7 +36,7 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
      * Transforms the given JSON string value into a {@link ValueMaskerContext}, runs it through the {@link ValueMasker}
      * and returns the masked value.
      *
-     * @param value the textual representation of JSON value, strings must include quotes
+     * @param value the numeric value
      * @param valueMasker the {@link ValueMasker} implementation to mask the value with
      * @return the masked value
      */
@@ -50,7 +50,7 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
      * Transforms the given JSON string value into a {@link ValueMaskerContext}, runs it through the {@link ValueMasker}
      * and returns the masked value.
      *
-     * @param value the textual representation of JSON value, strings must include quotes
+     * @param value the boolean value
      * @param valueMasker the {@link ValueMasker} implementation to mask the value with
      * @return the masked value
      */

@@ -82,7 +82,7 @@ var jsonMasker = JsonMasker.getMasker(
 // allow-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskJsonPaths(Set.of("$.id", "$.public.*", "$.nested.name"))
+                .maskJsonPaths(Set.of("$.id", "$.clients.*.phone", "$.nested.name"))
                 .build()
 );
 ```

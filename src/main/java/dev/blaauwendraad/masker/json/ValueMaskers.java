@@ -128,8 +128,8 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks a target string value (containing an email) while keeping some amount of the prefix
-     * characters and ability to keep the domain unmasked.
+     * Masks a target string value (containing an email) while keeping some number of the prefix or suffix
+     * characters and the ability to keep the domain unmasked.
      * <p> For example:
      * <ul>
      *  <li>{@literal "maskMe": "agavlyukovskiy@gmail.com" -> "maskMe": "***@gmail.com"}</li>

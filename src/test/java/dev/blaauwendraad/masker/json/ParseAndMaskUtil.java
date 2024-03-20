@@ -149,23 +149,20 @@ public final class ParseAndMaskUtil {
     }
 
     private static JsonNode maskBooleanNode(BooleanNode booleanNode, KeyMaskingConfig config) throws JsonProcessingException {
-        ByteValueMaskerContext context = new ByteValueMaskerContext(booleanNode.toString());
-        config.getBooleanValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
+        String maskedValue = ByteValueMaskerContext.maskBooleanWith(booleanNode.booleanValue(), config.getBooleanValueMasker());
+        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
     @Nonnull
     private static JsonNode maskTextNode(TextNode textNode, KeyMaskingConfig config) throws JsonProcessingException {
-        ByteValueMaskerContext context = new ByteValueMaskerContext(textNode.toString());
-        config.getStringValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
+        String maskedValue = ByteValueMaskerContext.maskStringWith(textNode.toString(), config.getStringValueMasker());
+        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
     @Nonnull
     private static JsonNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) throws JsonProcessingException {
-        ByteValueMaskerContext context = new ByteValueMaskerContext(numericNode.toString());
-        config.getNumberValueMasker().maskValue(context);
-        return DEFAULT_OBJECT_MAPPER.readTree(context.getMaskedValue());
+        String maskedValue = ByteValueMaskerContext.maskNumberWith(numericNode.numberValue(), config.getNumberValueMasker());
+        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
     @Nonnull

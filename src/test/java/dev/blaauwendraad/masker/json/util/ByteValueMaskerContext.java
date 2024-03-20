@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json.util;
 
+import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskerContext;
 
 import java.nio.charset.StandardCharsets;
@@ -12,13 +13,51 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
     private final byte[] value;
     private byte[] maskedValue;
 
-    public ByteValueMaskerContext(byte[] value) {
-        this.value = value;
-        this.maskedValue = value;
+    public ByteValueMaskerContext(String value) {
+        this.value = value.getBytes(StandardCharsets.UTF_8);
+        this.maskedValue = this.value;
     }
 
-    public ByteValueMaskerContext(String value) {
-        this(value.getBytes(StandardCharsets.UTF_8));
+    /**
+     * Transforms the given JSON string value into a {@link ValueMaskerContext}, runs it through the {@link ValueMasker}
+     * and returns the masked value.
+     *
+     * @param value the textual representation of JSON value, strings must include quotes
+     * @param valueMasker the {@link ValueMasker} implementation to mask the value with
+     * @return the masked value
+     */
+    public static String maskStringWith(String value, ValueMasker.StringMasker valueMasker) {
+        ByteValueMaskerContext context = new ByteValueMaskerContext(value);
+        valueMasker.maskValue(context);
+        return context.getMaskedValue();
+    }
+
+    /**
+     * Transforms the given JSON string value into a {@link ValueMaskerContext}, runs it through the {@link ValueMasker}
+     * and returns the masked value.
+     *
+     * @param value the textual representation of JSON value, strings must include quotes
+     * @param valueMasker the {@link ValueMasker} implementation to mask the value with
+     * @return the masked value
+     */
+    public static String maskNumberWith(Number value, ValueMasker.NumberMasker valueMasker) {
+        ByteValueMaskerContext context = new ByteValueMaskerContext(String.valueOf(value));
+        valueMasker.maskValue(context);
+        return context.getMaskedValue();
+    }
+
+    /**
+     * Transforms the given JSON string value into a {@link ValueMaskerContext}, runs it through the {@link ValueMasker}
+     * and returns the masked value.
+     *
+     * @param value the textual representation of JSON value, strings must include quotes
+     * @param valueMasker the {@link ValueMasker} implementation to mask the value with
+     * @return the masked value
+     */
+    public static String maskBooleanWith(boolean value, ValueMasker.BooleanMasker valueMasker) {
+        ByteValueMaskerContext context = new ByteValueMaskerContext(String.valueOf(value));
+        valueMasker.maskValue(context);
+        return context.getMaskedValue();
     }
 
     @Override

@@ -6,9 +6,9 @@ import dev.blaauwendraad.masker.json.ValueMaskers;
 import java.util.Objects;
 
 public final class KeyMaskingConfig {
-    private final ValueMasker maskStringsWith;
-    private final ValueMasker maskNumbersWith;
-    private final ValueMasker maskBooleansWith;
+    private final ValueMasker.StringMasker maskStringsWith;
+    private final ValueMasker.NumberMasker maskNumbersWith;
+    private final ValueMasker.BooleanMasker maskBooleansWith;
 
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
         this.maskStringsWith = Objects.requireNonNullElseGet(
@@ -35,23 +35,23 @@ public final class KeyMaskingConfig {
     }
 
     /**
-     * Returns a function to mask a string value.
+     * Returns a {@link ValueMasker} to mask a string value.
      */
-    public ValueMasker getStringValueMasker() {
+    public ValueMasker.StringMasker getStringValueMasker() {
         return maskStringsWith;
     }
 
     /**
-     * Returns a function to mask a number value.
+     * Returns a {@link ValueMasker} to mask a number value.
      */
-    public ValueMasker getNumberValueMasker() {
+    public ValueMasker.NumberMasker getNumberValueMasker() {
         return maskNumbersWith;
     }
 
     /**
-     * Returns a function to mask a number value.
+     * Returns a {@link ValueMasker} to mask a number value.
      */
-    public ValueMasker getBooleanValueMasker() {
+    public ValueMasker.BooleanMasker getBooleanValueMasker() {
         return maskBooleansWith;
     }
 
@@ -62,9 +62,9 @@ public final class KeyMaskingConfig {
     }
 
     public static class Builder {
-        private ValueMasker maskStringsWith;
-        private ValueMasker maskNumbersWith;
-        private ValueMasker maskBooleansWith;
+        private ValueMasker.StringMasker maskStringsWith;
+        private ValueMasker.NumberMasker maskNumbersWith;
+        private ValueMasker.BooleanMasker maskBooleansWith;
 
         private Builder() {
         }
@@ -76,7 +76,7 @@ public final class KeyMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
-         * @see #maskStringsWith(ValueMasker)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          */
         public Builder maskStringsWith(String value) {
             maskStringsWith(ValueMaskers.with(value));
@@ -89,7 +89,7 @@ public final class KeyMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
-         * @see #maskStringsWith(ValueMasker)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          */
         public Builder maskStringCharactersWith(String value) {
             maskStringsWith(ValueMaskers.eachCharacterWith(value));
@@ -102,8 +102,9 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          * @see #maskStringsWith(String)
          * @see #maskStringCharactersWith(String)
+         * @see ValueMaskers for out-of-the-box implementations
          */
-        public Builder maskStringsWith(ValueMasker valueMasker) {
+        public Builder maskStringsWith(ValueMasker.StringMasker valueMasker) {
             if (maskStringsWith != null) {
                 throw new IllegalArgumentException("'maskStringsWith' was already set");
             }
@@ -120,7 +121,7 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumbersWith(String value) {
             maskNumbersWith(ValueMaskers.with(value));
@@ -134,7 +135,7 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumbersWith(int value) {
             maskNumbersWith(ValueMaskers.with(value));
@@ -148,7 +149,7 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumberDigitsWith(int digit) {
             maskNumbersWith(ValueMaskers.eachDigitWith(digit));
@@ -162,8 +163,9 @@ public final class KeyMaskingConfig {
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
+         * @see ValueMaskers for out-of-the-box implementations
          */
-        public Builder maskNumbersWith(ValueMasker valueMasker) {
+        public Builder maskNumbersWith(ValueMasker.NumberMasker valueMasker) {
             if (maskNumbersWith != null) {
                 throw new IllegalArgumentException("'maskNumbersWith' was already set");
             }
@@ -178,7 +180,7 @@ public final class KeyMaskingConfig {
          *
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
-         * @see #maskBooleansWith(ValueMasker)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          */
         public Builder maskBooleansWith(String value) {
             maskBooleansWith(ValueMaskers.with(value));
@@ -191,7 +193,7 @@ public final class KeyMaskingConfig {
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(ValueMasker)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          */
         public Builder maskBooleansWith(boolean value) {
             maskBooleansWith(ValueMaskers.with(value));
@@ -204,8 +206,9 @@ public final class KeyMaskingConfig {
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(String)
+         * @see ValueMaskers for out-of-the-box implementations
          */
-        public Builder maskBooleansWith(ValueMasker valueMasker) {
+        public Builder maskBooleansWith(ValueMasker.BooleanMasker valueMasker) {
             if (maskBooleansWith != null) {
                 throw new IllegalArgumentException("'maskBooleansWith' was already set");
             }

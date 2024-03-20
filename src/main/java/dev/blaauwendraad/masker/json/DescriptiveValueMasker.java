@@ -11,13 +11,13 @@ package dev.blaauwendraad.masker.json;
  * we can see the configuration as {@code maskNumbersWith="###"} instead of {@code
  * maskNumbersWith=dev.blaauwendraad.masker.json.ValueMasker$$Lambda$425/0x000000080022e890@1039bfc4}
  *
- * @see ValueMaskers#withDescription(String, ValueMasker)
+ * @see ValueMaskers#describe(String, T)
  */
-class DescriptiveValueMasker implements ValueMasker {
+final class DescriptiveValueMasker<T extends ValueMasker> implements ValueMasker.AnyValueMasker {
     private final String description;
-    private final ValueMasker delegate;
+    private final T delegate;
 
-    DescriptiveValueMasker(String description, ValueMasker delegate) {
+    DescriptiveValueMasker(String description, T delegate) {
         this.description = description;
         this.delegate = delegate;
     }

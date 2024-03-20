@@ -272,7 +272,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
-         * @see #maskStringsWith(ValueMasker)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(String)
          */
         public Builder maskStringsWith(String value) {
@@ -286,7 +286,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
-         * @see #maskStringsWith(ValueMasker)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringCharactersWith(String)
          */
         public Builder maskStringCharactersWith(String value) {
@@ -302,7 +302,7 @@ public final class JsonMaskingConfig {
          * @see #maskStringCharactersWith(String)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker)
          */
-        public Builder maskStringsWith(ValueMasker valueMasker) {
+        public Builder maskStringsWith(ValueMasker.StringMasker valueMasker) {
             defaultConfigBuilder.maskStringsWith(valueMasker);
             return this;
         }
@@ -316,7 +316,7 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(String)
          */
         public Builder maskNumbersWith(String value) {
@@ -331,7 +331,7 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(int)
          */
         public Builder maskNumbersWith(int value) {
@@ -346,7 +346,7 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
-         * @see #maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumberDigitsWith(int)
          */
         public Builder maskNumberDigitsWith(int digit) {
@@ -361,10 +361,10 @@ public final class JsonMaskingConfig {
          * @see #maskNumbersWith(String)
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         * @see #maskNumbersWith(ValueMasker)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker.NumberMasker)
          */
-        public Builder maskNumbersWith(ValueMasker valueMasker) {
+        public Builder maskNumbersWith(ValueMasker.NumberMasker valueMasker) {
             defaultConfigBuilder.maskNumbersWith(valueMasker);
             return this;
         }
@@ -377,7 +377,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
-         * @see #maskBooleansWith(ValueMasker)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
          */
         public Builder maskBooleansWith(String value) {
@@ -391,7 +391,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(ValueMasker)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(boolean)
          */
         public Builder maskBooleansWith(boolean value) {
@@ -405,9 +405,9 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(String)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
          */
-        public Builder maskBooleansWith(ValueMasker valueMasker) {
+        public Builder maskBooleansWith(ValueMasker.BooleanMasker valueMasker) {
             defaultConfigBuilder.maskBooleansWith(valueMasker);
             return this;
         }

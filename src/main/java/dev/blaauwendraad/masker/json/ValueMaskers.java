@@ -12,34 +12,62 @@ public final class ValueMaskers {
     }
 
     /**
+     * Provides information about the {@link ValueMasker} implementation. Which is useful for
+     * debugging and testing purposes.
+     *
+     * @see DescriptiveValueMasker
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends ValueMasker> T describe(String description, T delegate) {
+        return (T) new DescriptiveValueMasker<>(description, delegate);
+    }
+
+    /**
      * Masks a target value with a static string value.
      * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
      */
-    public static ValueMasker with(String value) {
+    public static ValueMasker.AnyValueMasker with(String value) {
         String replacement = "\"" + value + "\"";
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
-        return withDescription(
-                replacement, context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1));
+        return describe(
+                replacement,
+                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1)
+        );
     }
 
     /**
      * Masks a target value with a static integer value.
      * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
      */
-    public static ValueMasker with(int value) {
+    public static ValueMasker.AnyValueMasker with(int value) {
         byte[] replacementBytes = String.valueOf(value).getBytes(StandardCharsets.UTF_8);
-        return withDescription(
-                String.valueOf(value), context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1));
+        return describe(
+                String.valueOf(value),
+                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1)
+        );
     }
 
     /**
      * Masks a target value with a static boolean value.
      * <p> For example, {@literal "maskMe": true -> "maskMe": false}.
      */
-    public static ValueMasker with(boolean value) {
+    public static ValueMasker.AnyValueMasker with(boolean value) {
         byte[] replacementBytes = String.valueOf(value).getBytes(StandardCharsets.UTF_8);
-        return withDescription(
-                String.valueOf(value), context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1));
+        return describe(
+                String.valueOf(value),
+                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1)
+        );
+    }
+
+    /**
+     * Masks a target value with {@code null}.
+     */
+    public static ValueMasker.AnyValueMasker withNull() {
+        byte[] replacementBytes = "null".getBytes(StandardCharsets.UTF_8);
+        return describe(
+                "null (literal)",
+                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, 1)
+        );
     }
 
     /**
@@ -51,9 +79,9 @@ public final class ValueMaskers {
      * characters ('{@code \}u1000'), including 4-byte UTF-8 characters ('{@code \}uD83D{@code
      * \}uDCA9'), will only count as a single character in the masked value.
      */
-    public static ValueMasker eachCharacterWith(String value) {
+    public static ValueMasker.StringMasker eachCharacterWith(String value) {
         byte[] replacementBytes = value.getBytes(StandardCharsets.UTF_8);
-        return withDescription(
+        return describe(
                 "every character as %s".formatted(value),
                 context -> {
                     /*
@@ -75,26 +103,27 @@ public final class ValueMaskers {
      * Masks all digits of a target numeric value with a static digit.
      * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
      */
-    public static ValueMasker eachDigitWith(int digit) {
+    public static ValueMasker.NumberMasker eachDigitWith(int digit) {
         if (digit < 1 || digit > 9) {
             throw new IllegalArgumentException(
                     "Masking digit must be between 1 and 9 to avoid leading zeroes which is invalid in JSON");
         }
         byte[] replacementBytes = String.valueOf(digit).getBytes(StandardCharsets.UTF_8);
-        return withDescription(
+        return describe(
                 "every digit as %s".formatted(digit),
-                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, context.byteLength()));
+                context -> context.replaceBytes(0, context.byteLength(), replacementBytes, context.byteLength())
+        );
     }
 
     /**
      * Does not mask a target value (no-operation). Can be used if certain JSON value types do not
      * need to be masked, for example, not masking booleans or numbers.
      *
-     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker)
-     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker)
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
+     * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker.NumberMasker)
      */
-    public static ValueMasker noop() {
-        return withDescription("<no masking>", context -> {
+    public static ValueMasker.AnyValueMasker noop() {
+        return describe("<no masking>", context -> {
         });
     }
 
@@ -113,9 +142,9 @@ public final class ValueMaskers {
      * @param keepDomain       if true - the email domain will remain unmasked
      * @param mask             the static mask applied to the rest of the value
      */
-    public static ValueMasker email(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
+    public static ValueMasker.StringMasker email(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
-        return withDescription(
+        return describe(
                 "email, keep prefix: %s, keep suffix: %s, keep domain: %s"
                         .formatted(keepPrefixLength, keepSuffixLength, keepDomain),
                 context -> {
@@ -139,7 +168,7 @@ public final class ValueMaskers {
 
     /**
      * Masks a target value with a supplied {@link Function}. The target value is passed into the
-     * function as a string, regardless of the type (string, numeric or a boolean), however any
+     * function as a text, regardless of the type (string, numeric or a boolean), however any
      * non-null returned value from the function will always be a JSON string (with quotes added
      * automatically).
      *
@@ -147,9 +176,9 @@ public final class ValueMaskers {
      * into intermediate objects, however this implementation will have to allocate a {@link String}
      * before passing it into the function and then turn it back into a byte array for replacement.
      */
-    public static ValueMasker ofStringFunction(Function<String, String> masker) {
-        return withDescription(
-                "Function<String, String>",
+    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
+        return describe(
+                "Function<String, String> (%s)".formatted(masker),
                 context -> {
                     String value = context.asText();
                     String maskedValue = masker.apply(value);
@@ -160,15 +189,5 @@ public final class ValueMaskers {
                     }
                     context.replaceBytes(0, context.byteLength(), maskedValue.getBytes(StandardCharsets.UTF_8), 1);
                 });
-    }
-
-    /**
-     * Provides information about the {@link ValueMasker} implementation. Which is useful for
-     * debugging and testing purposes.
-     *
-     * @see DescriptiveValueMasker
-     */
-    public static ValueMasker withDescription(String description, ValueMasker delegate) {
-        return new DescriptiveValueMasker(description, delegate);
     }
 }

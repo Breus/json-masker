@@ -1,18 +1,18 @@
 package dev.blaauwendraad.masker.json;
 
 /**
- * A functional interface for masking JSON values. Accepts {@link ValueMaskerContext} that contains
- * context of the current value being masked.
+ * A functional interface which enables masking JSON values (boolean, numbers, and strings) in almost every imaginable
+ * way. Accepts {@link ValueMaskerContext} that contains the context of the current value being masked.
  *
  * <p> This is a sealed interface in order to make sure that correct JSON type is only masked with the implementation
  * that supports masking of that particular type of the value. There's also a special {@link ValueMasker.AnyValueMasker}
- * that can mask values of any type.
+ * that can mask values of any JSON type.
  * <p> Most of the out-of-the-box implementation are, in fact, instances of {@link ValueMasker.AnyValueMasker}, but
- * some concrete implementations can only mask values of the specific type: for strings it's
+ * some concrete implementations can only mask values of the specific type: For strings it's
  * {@link ValueMaskers#email(int, int, boolean, String)} and {@link ValueMaskers#eachCharacterWith(String)}, for numbers
  * {@link ValueMaskers#eachDigitWith(int)}.
  *
- * @see ValueMaskers for out-of-the-box implementations
+ * @see ValueMaskers for several out-of-the-box implementations
  */
 public sealed interface ValueMasker permits
         ValueMasker.StringMasker,
@@ -26,7 +26,7 @@ public sealed interface ValueMasker permits
     void maskValue(ValueMaskerContext context);
 
     /**
-     * {@link ValueMasker} that can mask string values.
+     * {@link ValueMasker} that can mask JSON string values.
      *
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker.StringMasker)
      */
@@ -35,7 +35,7 @@ public sealed interface ValueMasker permits
     }
 
     /**
-     * {@link ValueMasker} that can mask number values.
+     * {@link ValueMasker} that can mask JSON number values.
      *
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker.NumberMasker)
      */
@@ -44,7 +44,7 @@ public sealed interface ValueMasker permits
     }
 
     /**
-     * {@link ValueMasker} that can mask boolean values.
+     * {@link ValueMasker} that can mask JSON boolean values.
      *
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
      */

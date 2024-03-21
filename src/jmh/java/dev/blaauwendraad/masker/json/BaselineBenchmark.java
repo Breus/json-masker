@@ -82,6 +82,11 @@ public class BaselineBenchmark {
     }
 
     @Benchmark
+    public String jacksonParseOnly(State state) throws IOException {
+        return ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(state.jsonString).toString();
+    }
+
+    @Benchmark
     public String jacksonParseAndMask(State state) throws IOException {
         return ParseAndMaskUtil.mask(
                 state.jsonString,

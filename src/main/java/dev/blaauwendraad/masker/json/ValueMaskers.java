@@ -19,6 +19,8 @@ public final class ValueMaskers {
      */
     @SuppressWarnings("unchecked")
     public static <T extends ValueMasker> T describe(String description, T delegate) {
+        // descriptive masker is ValueMasker.AnyValueMasker and can be cast to any type
+        // using the more restrictive type if supplied
         return (T) new DescriptiveValueMasker<>(description, delegate);
     }
 

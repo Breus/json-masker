@@ -9,6 +9,17 @@ import java.nio.charset.StandardCharsets;
 
 class ValueMaskersTest {
     @Test
+    void describe() {
+        ValueMasker.AnyValueMasker valueMasker = context -> context.replaceBytes(0, context.byteLength(), "null".getBytes(StandardCharsets.UTF_8), 1);
+        ValueMasker.AnyValueMasker descriptiveValueMasker = ValueMaskers.describe("null (literal)", valueMasker);
+
+        Assertions.assertThat(valueMasker.toString())
+                .startsWith("dev.blaauwendraad.masker.json.ValueMaskersTest$$Lambda$");
+        Assertions.assertThat(descriptiveValueMasker.toString())
+                .isEqualTo("null (literal)");
+    }
+
+    @Test
     void withStringValue() {
         var valueMasker = ValueMaskers.with("***");
 

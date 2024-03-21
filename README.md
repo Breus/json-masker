@@ -7,12 +7,14 @@
 [![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON masker library which can be used to mask sensitive values inside JSON corresponding to a set of keys (**block-mode**) 
+JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (*
+*block-mode**)
 or, alternatively, allow only specific values to be unmasked corresponding to a set of keys while all others are
 masked (**allow-mode**).
 
-The library provides a modern and convenient Java API which offers a wide range of masking customizations. 
-Furthermore, the implementation is focused on maximum (time) performance and minimal heap allocations.
+The library provides modern and convenient Java APIs which offers a wide range of masking customizations.
+Furthermore, the implementation is focused on maximum (time) performance and minimal heap memory allocations to minimize
+GC pressure.
 
 Finally, no additional third-party runtime dependencies are required to use this library.
 
@@ -24,7 +26,7 @@ Finally, no additional third-party runtime dependencies are required to use this
   be masked, recursively
 * If the value of a targeted key corresponds to an `array`, all values of the array, including nested arrays and
   objects, will be masked, recursively
-* Ability to define different masking strategies, per value type
+* Ability to define a custom masking strategy per value type
     - **(default)** mask strings with a different string: `"maskMe": "secret"` -> `"maskMe": "***"`
     - mask _characters_ of a string with a different character: `"maskMe": "secret"` -> `"maskMe": "*****"` (preserves
       length)
@@ -34,21 +36,22 @@ Finally, no additional third-party runtime dependencies are required to use this
       and length)
     - **(default)** mask booleans with a string: `"maskMe": true` -> `"maskMe": "&&&"` (changes boolean type to string)
     - mask booleans with a different boolean: `"maskMe": true` -> `"maskMe": false` (preserves boolean type)
-* Ability to define masking strategy per key
+* Ability to define a custom masking strategy per key
+* Ability to configure JSON type preserving masking configurations so the masked JSON can be deserialized back into a
+  Java object it was serialized from
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
-* Limited support for JsonPath masking in **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`) modes
-* Masking a valid JSON will always return a valid JSON 
+* Limited support for JsonPATH masking in both  **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`)
+  modes
+* Masking a valid JSON will always return a valid JSON
 
 Note: Since [RFC-8529](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the library only support UTF-8 encoding.
 
-
 ## JDK Compatibility
 
-The `json-masker` baseline JDK requirement is JDK 17. However, we would be open to add a version which lowers this 
-requirement to JDK 11, on request.
-
+The `json-masker` baseline JDK requirement is JDK 17. However, we might consider releasing a version which lowers this
+requirement to JDK 11, when requested.
 
 ## Usage examples
 
@@ -65,7 +68,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// block-mode, JSONPath
+// block-mode, JsonPATH
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
@@ -79,7 +82,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// allow-mode, JSONPath
+// allow-mode, JsonPATH
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.id", "$.clients.*.phone", "$.nested.name"))
@@ -87,12 +90,12 @@ var jsonMasker = JsonMasker.getMasker(
 );
 ```
 
-Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSONPath or mix keys and JSON
+Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JsonPATH or mix keys and JSON
 paths.
 
 > [!NOTE]
 > Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively
-> regardless of the nesting, whereas using a JsonPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only
+> regardless of the nesting, whereas using a JsonPATH (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only
 > mask those keys on the top level JSON
 
 After creating the `JsonMasker` instance, it can be used to mask a JSON as following:
@@ -307,11 +310,12 @@ String maskedJson = jsonMasker.mask(json);
 }
 ```
 
-### Masking with JsonPath
+### Masking with JsonPATH
 
-To have more control over the nesting, JsonPath can be used to specify the keys that needs to be masked (allowed).  
+To have more control over the nesting, JsonPATH can be used to specify the keys that needs to be masked (allowed).
 
-The following JsonPath features are not supported:
+The following JsonPATH features are not supported:
+
 * Descendant segments.
 * Child segments.
 * Name selectors.
@@ -322,10 +326,10 @@ The following JsonPath features are not supported:
 * Escape characters.
 
 The library also imposes a number of additional restrictions:
-* Numbers as key names are disallowed.
-* JsonPath keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
-* JsonPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.  
 
+* Numbers as key names are disallowed.
+* JsonPATH keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
+* JsonPATH must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
 
 #### Usage
 
@@ -588,7 +592,7 @@ String maskedJson = jsonMasker.mask(json);
 > When defining a config for the specific key and value of that key is an `object` or an `array`, the config will apply
 > recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration.
 >
-> If config is attached to a JsonPath it has a precedence over a regular key.
+> If config is attached to a JsonPATH it has a precedence over a regular key.
 
 #### Input
 
@@ -642,21 +646,21 @@ String maskedJson = jsonMasker.mask(json);
 }
 ```
 
-
 ### Masking with a `ValueMasker`
 
 In addition to standard options like `maskStringsWith`, `maskNumbersWith` and `maskBooleansWith`, the `ValueMasker` is
-a functional interface for low-level value masking, which allows fully customizing the masking process. It can be used 
-for masking all values or specific keys alike.
+a functional interface for low-level value masking, which allows fully customizing the masking process. It can be used
+for masking all values, specific JSON value types, or specific keys.
 
-The `ValueMasker` operates on the full value on the byte level (i.e. the value is `byte[]`).
+The `ValueMasker` operates on the full value on the byte level, i.e., the value is `byte[]`.
 
 > [!NOTE]
 > `ValueMasker` can modify JSON value in any way, but also means that the implementation needs to be careful with
-> parsing the value of any JSON type and replacing correct slice of the value, otherwise masking could produce an
+> parsing the value of any JSON type and replacing the correct slice of the value. Otherwise, the masking process could
+> produce an
 > invalid JSON.
 
-For convenience we have provided couple out-of-the-box maskers available in `ValueMaskers` as well as adapter to 
+For convenience, a couple out-of-the-box maskers are available in `ValueMaskers` as well as adapters to
 `Function<String, String>`.
 
 #### Usage
@@ -701,6 +705,7 @@ String maskedJson = jsonMasker.mask(json);
 ```
 
 ## Dependencies
+
 * **The library has no third-party runtime dependencies**
 * The library only has a single JSR-305 compilation dependency for nullability annotations
 * The test/benchmark dependencies for this library are listed in the `build.gradle`
@@ -713,13 +718,14 @@ The input is only scanned once and memory allocations are avoided whenever possi
 ### Benchmarks
 
 For benchmarking, we compare the implementation against multiple baseline benchmarks, which are:
+
 - Counting the bytes of the JSON message without doing any other operation
-- Using Jackson to parse a JSON message into `JsonNode` and masking it by iterating over and replacing all values 
+- Using Jackson to parse a JSON message into `JsonNode` and masking it by iterating over and replacing all values
   corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
-Generally our implementation is ~15-25 times faster than using Jackson (besides the additional benefits of no
-runtime dependencies and a convenient API out-of-the-box).
+Generally our implementation is ~15-25 times faster than using Jackson, besides the additional benefits of no
+runtime dependencies and a convenient API out-of-the-box.
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units

@@ -44,7 +44,7 @@ Therefore, we decided to solve the key ambiguity problem using JsonPATH.
 
 ### Supported features
 
-The JsonPATH RFC specifies a wide variety of features. Not all of them are required to solve the described problem.  
+The [JsonPATH RFC 9535](https://www.rfc-editor.org/rfc/rfc9535.html) specifies a wide variety of features. Not all of them are required to solve the described problem.  
 Therefore, we have to decide which features are necessary and which are not.
 
 The decision is premised on the following expectations:

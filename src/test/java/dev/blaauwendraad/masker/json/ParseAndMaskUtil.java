@@ -155,7 +155,10 @@ public final class ParseAndMaskUtil {
 
     @Nonnull
     private static JsonNode maskTextNode(TextNode textNode, KeyMaskingConfig config) throws JsonProcessingException {
-        String maskedValue = ByteValueMaskerContext.maskStringWith(textNode.toString(), config.getStringValueMasker());
+        // can't use testValue due to not preserving
+        String stringRepresentation = textNode.toString();
+        String withoutQuotes = stringRepresentation.substring(1, stringRepresentation.length() - 1);
+        String maskedValue = ByteValueMaskerContext.maskStringWith(withoutQuotes, config.getStringValueMasker());
         return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 

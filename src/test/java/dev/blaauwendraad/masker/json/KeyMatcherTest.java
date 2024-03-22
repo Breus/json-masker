@@ -72,13 +72,13 @@ final class KeyMatcherTest {
         assertThatConfig(keyMatcher, "maskMe")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("\"value\"", masker))
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("\"value\"", masker))
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"[redacted]\"");
     }
 
@@ -95,13 +95,13 @@ final class KeyMatcherTest {
         assertThatConfig(keyMatcher, "maskMe")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("\"value\"", masker))
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("\"value\"", masker))
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"[redacted]\"");
     }
 

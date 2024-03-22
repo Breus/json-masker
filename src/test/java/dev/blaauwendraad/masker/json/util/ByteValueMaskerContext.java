@@ -27,7 +27,7 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
      * @return the masked value
      */
     public static String maskStringWith(String value, ValueMasker.StringMasker valueMasker) {
-        ByteValueMaskerContext context = new ByteValueMaskerContext(value);
+        ByteValueMaskerContext context = new ByteValueMaskerContext("\"" + value + "\"");
         valueMasker.maskValue(context);
         return context.getMaskedValue();
     }

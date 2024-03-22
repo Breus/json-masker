@@ -74,14 +74,10 @@ final class FuzzingTest {
                 JsonMaskingConfig.builder()
                         .maskKeys(DEFAULT_TARGET_KEYS)
                         .maskStringsWith("***")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .maskKeys(DEFAULT_TARGET_KEYS)
                         .maskStringsWith("")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .maskKeys(DEFAULT_TARGET_KEYS)
@@ -99,8 +95,6 @@ final class FuzzingTest {
                 JsonMaskingConfig.builder()
                         .allowKeys(DEFAULT_TARGET_KEYS)
                         .maskStringsWith("")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .allowKeys(DEFAULT_TARGET_KEYS)
@@ -118,24 +112,22 @@ final class FuzzingTest {
                 JsonMaskingConfig.builder()
                         .maskJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringsWith("***")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .maskJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringsWith("")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .maskJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringsWith("*")
                         .maskNumbersWith(1)
+                        .maskBooleansWith(false)
                         .build(),
                 JsonMaskingConfig.builder()
                         .maskJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringsWith("***")
                         .maskNumbersWith(111)
+                        .maskBooleansWith(false)
                         .build(),
                 JsonMaskingConfig.builder().allowJsonPaths(DEFAULT_JSON_PATH_KEYS).build(),
                 JsonMaskingConfig.builder().allowJsonPaths(DEFAULT_JSON_PATH_KEYS).caseSensitiveTargetKeys().build(),
@@ -143,8 +135,6 @@ final class FuzzingTest {
                 JsonMaskingConfig.builder()
                         .allowJsonPaths(DEFAULT_JSON_PATH_KEYS)
                         .maskStringsWith("")
-                        .disableNumberMasking()
-                        .disableBooleanMasking()
                         .build(),
                 JsonMaskingConfig.builder()
                         .allowJsonPaths(DEFAULT_JSON_PATH_KEYS)

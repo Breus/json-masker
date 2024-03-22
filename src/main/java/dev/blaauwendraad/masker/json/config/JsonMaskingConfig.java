@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json.config;
 
+import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 
@@ -120,15 +121,14 @@ public final class JsonMaskingConfig {
     @Override
     public String toString() {
         return """
-                JsonMaskingConfig{
-                targetKeys=%s,
-                targetJsonPaths=%s,
-                targetKeyMode=%s,
-                caseSensitiveTargetKeys=%s,
-                defaultConfig=%s,
-                targetKeyConfigs=%s
-                }"""
-                .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+               targetKeys=%s,
+               targetJsonPaths=%s,
+               targetKeyMode=%s,
+               caseSensitiveTargetKeys=%s,
+               defaultConfig=%s,
+               targetKeyConfigs=%s
+               """
+               .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
     /**
@@ -272,6 +272,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(String)
          */
         public Builder maskStringsWith(String value) {
@@ -285,6 +286,7 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringCharactersWith(String)
          */
         public Builder maskStringCharactersWith(String value) {
@@ -293,16 +295,15 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Disables number masking.
+         * Mask all string values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #maskNumbersWith(String)
-         * @see #maskNumbersWith(int)
-         * @see #maskNumberDigitsWith(int)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#disableNumberMasking()
+         * @see #maskStringsWith(String)
+         * @see #maskStringCharactersWith(String)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(ValueMasker.StringMasker)
          */
-        public Builder disableNumberMasking() {
-            defaultConfigBuilder.disableNumberMasking();
+        public Builder maskStringsWith(ValueMasker.StringMasker valueMasker) {
+            defaultConfigBuilder.maskStringsWith(valueMasker);
             return this;
         }
 
@@ -313,9 +314,9 @@ public final class JsonMaskingConfig {
          * Masking numbers with '###' is the default behaviour if no number masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(String)
          */
         public Builder maskNumbersWith(String value) {
@@ -328,9 +329,9 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": 12345 -> "maskMe": 0.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(int)
          */
         public Builder maskNumbersWith(int value) {
@@ -343,9 +344,9 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": 12345 -> "maskMe": 88888.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
-         * @see #maskNumbersWith(int)
          * @see #maskNumbersWith(String)
+         * @see #maskNumbersWith(int)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumberDigitsWith(int)
          */
         public Builder maskNumberDigitsWith(int digit) {
@@ -354,15 +355,17 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Disables boolean masking.
+         * Mask all numeric values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
-         * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(boolean)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
+         * @see #maskNumbersWith(String)
+         * @see #maskNumbersWith(int)
+         * @see #maskNumberDigitsWith(int)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(ValueMasker.NumberMasker)
          */
-        public Builder disableBooleanMasking() {
-            defaultConfigBuilder.disableBooleanMasking();
+        public Builder maskNumbersWith(ValueMasker.NumberMasker valueMasker) {
+            defaultConfigBuilder.maskNumbersWith(valueMasker);
             return this;
         }
 
@@ -373,8 +376,8 @@ public final class JsonMaskingConfig {
          * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(boolean)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(String)
          */
         public Builder maskBooleansWith(String value) {
@@ -387,12 +390,25 @@ public final class JsonMaskingConfig {
          * For example, "maskMe": true -> "maskMe": false.
          *
          * @return the builder instance
-         * @see #disableBooleanMasking()
          * @see #maskBooleansWith(String)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(boolean)
          */
         public Builder maskBooleansWith(boolean value) {
             defaultConfigBuilder.maskBooleansWith(value);
+            return this;
+        }
+
+        /**
+         * Mask all boolean values with the provided {@link ValueMasker}.
+         *
+         * @return the builder instance
+         * @see #maskBooleansWith(boolean)
+         * @see #maskBooleansWith(String)
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
+         */
+        public Builder maskBooleansWith(ValueMasker.BooleanMasker valueMasker) {
+            defaultConfigBuilder.maskBooleansWith(valueMasker);
             return this;
         }
 

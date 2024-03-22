@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
@@ -70,14 +71,14 @@ final class KeyMatcherTest {
 
         assertThatConfig(keyMatcher, "maskMe")
                 .isNotNull()
-                .extracting(KeyMaskingConfig::getMaskStringsWith)
-                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
-                .extracting(KeyMaskingConfig::getMaskStringsWith)
-                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"[redacted]\"");
     }
 
@@ -93,14 +94,14 @@ final class KeyMatcherTest {
 
         assertThatConfig(keyMatcher, "maskMe")
                 .isNotNull()
-                .extracting(KeyMaskingConfig::getMaskStringsWith)
-                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"***\"");
 
         assertThatConfig(keyMatcher, "maskMeLikeCIA")
                 .isNotNull()
-                .extracting(KeyMaskingConfig::getMaskStringsWith)
-                .extracting(bytes -> new String(bytes, StandardCharsets.UTF_8))
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"[redacted]\"");
     }
 

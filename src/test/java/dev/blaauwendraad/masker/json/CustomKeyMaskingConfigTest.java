@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 class CustomKeyMaskingConfigTest {
 
     @Test
@@ -201,6 +203,137 @@ class CustomKeyMaskingConfigTest {
                       "boolean": "&&&"
                     }
                   }
+                }
+                """);
+    }
+
+    @Test
+    void maskEmail() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("string", "number", "boolean"))
+                .maskKeys(Set.of("emailPrefixSuffixDomain"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.email(2, 2, true, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailPrefixOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.email(2, 0, false, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailSuffixOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.email(0, 2, false, "***"))
+                        .build()
+                )
+                .maskKeys(Set.of("emailDomainOnly"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.email(0, 0, true, "***"))
+                        .build()
+                )
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": false,
+                  "emailPrefixSuffixDomain": "agavlyukovskiy@gmail.com",
+                  "emailPrefixOnly": "agavlyukovskiy@gmail.com",
+                  "emailSuffixOnly": "agavlyukovskiy@gmail.com",
+                  "emailDomainOnly": "agavlyukovskiy@gmail.com"
+                }
+                """);
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "string": "***",
+                  "number": "###",
+                  "boolean": "&&&",
+                  "emailPrefixSuffixDomain": "ag***iy@gmail.com",
+                  "emailPrefixOnly": "ag***",
+                  "emailSuffixOnly": "***om",
+                  "emailDomainOnly": "***@gmail.com"
+                }
+                """
+        );
+    }
+
+    @Test
+    void maskWithStringFunction() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("string", "number", "boolean"))
+                .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
+                .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
+                .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
+                .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.withTextFunction(value -> value.replaceAll("\\[this secret]", "***")))
+                        .build()
+                )
+                .maskKeys(Set.of("functionNull"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.withTextFunction(value -> null))
+                        .build()
+                )
+                .maskKeys(Set.of("functionConditional"), KeyMaskingConfig.builder()
+                        .maskStringsWith(ValueMaskers.withTextFunction(value -> value.startsWith("secret:") ? "***" : value))
+                        .build()
+                )
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": false,
+                  "function": "mask [this secret] please",
+                  "functionNull": "maskMe",
+                  "functionConditional": {
+                    "value1": "not a secret",
+                    "value2": "secret: very much"
+                  }
+                }
+                """);
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "string": "***",
+                  "number": "###",
+                  "boolean": "&&&",
+                  "function": "mask *** please",
+                  "functionNull": null,
+                  "functionConditional": {
+                    "value1": "not a secret",
+                    "value2": "***"
+                  }
+                }
+                """
+        );
+    }
+
+    @Test
+    void shouldNotAllowGettingValuesOutsideOfIndex() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("customValueMasker"), KeyMaskingConfig.builder()
+                        .maskStringsWith(context -> {
+                            assertThatThrownBy(() -> context.getByte(-1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.getByte(context.byteLength()))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+
+                            assertThatThrownBy(() -> context.replaceBytes(-1, 1, new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.replaceBytes(0, context.byteLength() + 1, new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.replaceBytes(1, context.byteLength(), new byte[0], 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(-1, 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(0, context.byteLength() + 1))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                            assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.byteLength()))
+                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                        })
+                        .build()
+                )
+                .build());
+        jsonMasker.mask("""
+                {
+                  "customValueMasker": "maskMe"
                 }
                 """);
     }

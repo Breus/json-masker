@@ -1,5 +1,8 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.util.Utf8Util;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +14,7 @@ import java.util.List;
  * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(byte[])}
  * operation.
  */
-final class MaskingState {
+final class MaskingState implements ValueMaskerContext {
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
@@ -21,6 +24,8 @@ final class MaskingState {
      * Current json path is represented by a dequeue of segment references.
      */
     private final Deque<JsonPathNode> currentJsonPath;
+
+    private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
@@ -35,8 +40,8 @@ final class MaskingState {
         currentIndex++;
     }
 
-    public void setCurrentIndex(int currentIndex) {
-        this.currentIndex = currentIndex;
+    public void incrementCurrentIndex(int length) {
+        currentIndex += length;
     }
 
     public byte byteAtCurrentIndex() {
@@ -178,12 +183,93 @@ final class MaskingState {
         }
     }
 
+    public int getCurrentValueStartIndex() {
+        if (currentValueStartIndex == -1) {
+            throw new IllegalStateException("No current value index set to mask");
+        }
+        return currentValueStartIndex;
+    }
+
+    /**
+     * Register the current index as the start index of the value to be masked.
+     */
+    public void registerValueStartIndex() {
+        this.currentValueStartIndex = currentIndex;
+    }
+
+    /**
+     * Clears the previous registered value start index.
+     */
+    public void clearValueStartIndex() {
+        this.currentValueStartIndex = -1;
+    }
+
+    @Override
+    public byte getByte(int index) {
+        checkCurrentValueBounds(index);
+        return message[getCurrentValueStartIndex() + index];
+    }
+
+    @Override
+    public int byteLength() {
+        return currentIndex - getCurrentValueStartIndex();
+    }
+
+    @Override
+    public void replaceBytes(int fromIndex, int length, byte[] mask, int maskRepeat) {
+        checkCurrentValueBounds(fromIndex);
+        checkCurrentValueBounds(fromIndex + length - 1);
+        replaceTargetValueWith(getCurrentValueStartIndex() + fromIndex, length, mask, maskRepeat);
+    }
+
+    @Override
+    public int countNonVisibleCharacters(int fromIndex, int length) {
+        checkCurrentValueBounds(fromIndex);
+        checkCurrentValueBounds(fromIndex + length - 1);
+        return Utf8Util.countNonVisibleCharacters(
+                message,
+                getCurrentValueStartIndex() + fromIndex,
+                length
+        );
+    }
+
+    @Override
+    public String asText() {
+        int offset = getCurrentValueStartIndex();
+        if (message[offset] == '"') {
+            // remove quotes from the string value
+            return new String(
+                    message,
+                    offset + 1,
+                    currentIndex - offset - 2,
+                    StandardCharsets.UTF_8
+            );
+        }
+        return new String(message, offset, currentIndex - offset, StandardCharsets.UTF_8);
+    }
+
+    private void checkCurrentValueBounds(int index) {
+        if (index < 0 || index >= byteLength()) {
+            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + byteLength());
+        }
+    }
+
     // for debugging purposes, shows the current state of message traversal
     @Override
     public String toString() {
-        return "current: '" + (currentIndex == message.length ? "<end of json>" : (char) message[currentIndex]) + "'," +
-                " before: '" + new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)) + "'," +
-                " after: '" + new String(message, currentIndex, Math.min(10, message.length - currentIndex)) + "'";
+        StringBuilder sb = new StringBuilder();
+        sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)));
+        sb.append(">");
+        if (currentIndex == message.length) {
+            sb.append((Object) "<end of json>");
+        } else {
+            sb.append((Object) (char) message[currentIndex]);
+            if (currentIndex + 1 < message.length) {
+                sb.append("<");
+                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex + 1)));
+            }
+        }
+        return sb.toString();
     }
 
     /**

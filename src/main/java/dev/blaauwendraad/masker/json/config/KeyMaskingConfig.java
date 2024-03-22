@@ -1,57 +1,28 @@
 package dev.blaauwendraad.masker.json.config;
 
-import javax.annotation.CheckForNull;
-import java.nio.charset.StandardCharsets;
+import dev.blaauwendraad.masker.json.ValueMasker;
+import dev.blaauwendraad.masker.json.ValueMaskers;
+
 import java.util.Objects;
 
 public final class KeyMaskingConfig {
-    @CheckForNull
-    private final byte[] maskStringsWith;
-    @CheckForNull
-    private final byte[] maskStringCharactersWith;
-    @CheckForNull
-    private final byte[] maskNumbersWith;
-    @CheckForNull
-    private final byte[] maskNumberDigitsWith;
-    @CheckForNull
-    private final byte[] maskBooleansWith;
+    private final ValueMasker.StringMasker maskStringsWith;
+    private final ValueMasker.NumberMasker maskNumbersWith;
+    private final ValueMasker.BooleanMasker maskBooleansWith;
 
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
-        if (builder.maskStringsWith != null) {
-            this.maskStringsWith = ("\"" + builder.maskStringsWith + "\"").getBytes(StandardCharsets.UTF_8);
-            this.maskStringCharactersWith = null;
-        } else if (builder.maskStringCharactersWith != null) {
-            this.maskStringsWith = null;
-            this.maskStringCharactersWith = builder.maskStringCharactersWith.getBytes(StandardCharsets.UTF_8);
-        } else {
-            this.maskStringsWith = "\"***\"".getBytes(StandardCharsets.UTF_8);
-            this.maskStringCharactersWith = null;
-        }
-        if (builder.maskNumbersWithString != null) {
-            this.maskNumbersWith = ("\"" + builder.maskNumbersWithString + "\"").getBytes(StandardCharsets.UTF_8);
-            this.maskNumberDigitsWith = null;
-        } else if (builder.maskNumbersWith != null) {
-            this.maskNumbersWith = builder.maskNumbersWith.toString().getBytes(StandardCharsets.UTF_8);
-            this.maskNumberDigitsWith = null;
-        } else if (builder.maskNumberDigitsWith != null) {
-            this.maskNumbersWith = null;
-            this.maskNumberDigitsWith = builder.maskNumberDigitsWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else if (builder.disableNumberMasking != null && builder.disableNumberMasking) {
-            this.maskNumbersWith = null;
-            this.maskNumberDigitsWith = null;
-        } else {
-            this.maskNumbersWith = "\"###\"".getBytes(StandardCharsets.UTF_8);
-            this.maskNumberDigitsWith = null;
-        }
-        if (builder.maskBooleansWithString != null) {
-            this.maskBooleansWith = ("\"" + builder.maskBooleansWithString + "\"").getBytes(StandardCharsets.UTF_8);
-        } else if (builder.maskBooleansWith != null) {
-            this.maskBooleansWith = builder.maskBooleansWith.toString().getBytes(StandardCharsets.UTF_8);
-        } else if (builder.disableBooleanMasking != null && builder.disableBooleanMasking) {
-            this.maskBooleansWith = null;
-        } else {
-            this.maskBooleansWith = "\"&&&\"".getBytes(StandardCharsets.UTF_8);
-        }
+        this.maskStringsWith = Objects.requireNonNullElseGet(
+                builder.maskStringsWith,
+                () -> ValueMaskers.with("***")
+        );
+        this.maskNumbersWith = Objects.requireNonNullElseGet(
+                builder.maskNumbersWith,
+                () -> ValueMaskers.with("###")
+        );
+        this.maskBooleansWith = Objects.requireNonNullElseGet(
+                builder.maskBooleansWith,
+                () -> ValueMaskers.with("&&&")
+        );
     }
 
     /**
@@ -64,262 +35,184 @@ public final class KeyMaskingConfig {
     }
 
     /**
-     * @see Builder#maskStringsWith(String)
+     * Returns a {@link ValueMasker} to mask a string value.
      */
-    @CheckForNull
-    public byte[] getMaskStringsWith() {
+    public ValueMasker.StringMasker getStringValueMasker() {
         return maskStringsWith;
     }
 
     /**
-     * @see Builder#maskStringCharactersWith(String)
+     * Returns a {@link ValueMasker} to mask a number value.
      */
-    @CheckForNull
-    public byte[] getMaskStringCharactersWith() {
-        return maskStringCharactersWith;
-    }
-
-    /**
-     * @see Builder#disableNumberMasking()
-     */
-    public boolean isDisableNumberMasking() {
-        return maskNumbersWith == null && maskNumberDigitsWith == null;
-    }
-
-    /**
-     * @see Builder#maskNumbersWith(int)
-     */
-    @CheckForNull
-    public byte[] getMaskNumbersWith() {
+    public ValueMasker.NumberMasker getNumberValueMasker() {
         return maskNumbersWith;
     }
 
     /**
-     * @see Builder#maskNumberDigitsWith(int)
+     * Returns a {@link ValueMasker} to mask a number value.
      */
-    @CheckForNull
-    public byte[] getMaskNumberDigitsWith() {
-        return maskNumberDigitsWith;
-    }
-
-    /**
-     * @see Builder#disableBooleanMasking()
-     */
-    public boolean isDisableBooleanMasking() {
-        return maskBooleansWith == null;
-    }
-
-    /**
-     * @see Builder#maskBooleansWith(boolean)
-     */
-    @CheckForNull
-    public byte[] getMaskBooleansWith() {
+    public ValueMasker.BooleanMasker getBooleanValueMasker() {
         return maskBooleansWith;
     }
 
     @Override
     public String toString() {
-        return "KeyMaskingConfig{" +
-                "maskStringsWith='" + bytesToString(maskStringsWith) + '\'' +
-                ", maskStringCharactersWith='" + bytesToString(maskStringCharactersWith) + '\'' +
-                ", maskNumbersWith=" + bytesToString(maskNumbersWith) +
-                ", maskNumberDigitsWith=" + bytesToString(maskNumberDigitsWith) +
-                ", maskBooleansWith=" + bytesToString(maskBooleansWith) +
-                '}';
-    }
-
-    private String bytesToString(@CheckForNull byte[] bytes) {
-        return bytes != null ? new String(bytes, StandardCharsets.UTF_8) : null;
+        return "maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s"
+                .formatted(maskStringsWith, maskNumbersWith, maskBooleansWith);
     }
 
     public static class Builder {
-
-        // String masking, mutually exclusive options
-        private String maskStringsWith;
-        private String maskStringCharactersWith;
-
-        // Number masking, mutually exclusive options
-        private Boolean disableNumberMasking;
-        private String maskNumbersWithString;
-        private Integer maskNumbersWith;
-        private Integer maskNumberDigitsWith;
-
-        // Boolean masking, mutually exclusive options
-        private Boolean disableBooleanMasking;
-        private String maskBooleansWithString;
-        private Boolean maskBooleansWith;
+        private ValueMasker.StringMasker maskStringsWith;
+        private ValueMasker.NumberMasker maskNumbersWith;
+        private ValueMasker.BooleanMasker maskBooleansWith;
 
         private Builder() {
         }
 
         /**
          * Mask all string values with the provided value.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
-         * <p>
-         * Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
-         *
-         * @see #maskStringCharactersWith(String)
+         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
+         * <p> Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
          *
          * @return the builder instance
+         * @see #maskStringCharactersWith(String)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          */
         public Builder maskStringsWith(String value) {
-            if (maskStringsWith != null) {
-                throw new IllegalArgumentException("'maskStringsWith(String)' was already set");
-            }
-            checkMutuallyExclusiveStringMaskingOptions();
-            maskStringsWith = value;
+            maskStringsWith(ValueMaskers.with(value));
             return this;
         }
 
         /**
          * Mask all characters of string values with the provided character, preserving the length.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
-         *
-         * @see #maskStringsWith(String)
+         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
          * @return the builder instance
+         * @see #maskStringsWith(String)
+         * @see #maskStringsWith(ValueMasker.StringMasker)
          */
         public Builder maskStringCharactersWith(String value) {
-            if (maskStringCharactersWith != null) {
-                throw new IllegalArgumentException("'maskStringCharactersWith(String)' was already set");
-            }
-            checkMutuallyExclusiveStringMaskingOptions();
-            maskStringCharactersWith = value;
+            maskStringsWith(ValueMaskers.eachCharacterWith(value));
             return this;
         }
 
         /**
-         * Disables number masking.
-         *
-         * @see #maskNumbersWith(String)
-         * @see #maskNumbersWith(int)
-         * @see #maskNumberDigitsWith(int)
+         * Mask all string values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
+         * @see #maskStringsWith(String)
+         * @see #maskStringCharactersWith(String)
+         * @see ValueMaskers for out-of-the-box implementations
          */
-        public Builder disableNumberMasking() {
-            if (disableNumberMasking != null) {
-                throw new IllegalArgumentException("'disableNumberMasking()' was already set");
+        public Builder maskStringsWith(ValueMasker.StringMasker valueMasker) {
+            if (maskStringsWith != null) {
+                throw new IllegalArgumentException("'maskStringsWith' was already set");
             }
-            checkMutuallyExclusiveNumberMaskingOptions();
-            disableNumberMasking = true;
+            maskStringsWith = valueMasker;
             return this;
         }
 
         /**
-         * Mask all number values with the provided value.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
+         * Mask all numeric values with the provided value.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
          * <p>
          * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
-         * @see #disableBooleanMasking()
+         * @return the builder instance
          * @see #maskNumbersWith(int)
          * @see #maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumbersWith(String value) {
-            if (maskNumbersWithString != null) {
-                throw new IllegalArgumentException("'maskNumbersWith(String)' was already set");
-            }
-            checkMutuallyExclusiveNumberMaskingOptions();
-            maskNumbersWithString = Objects.requireNonNull(value);
+            maskNumbersWith(ValueMaskers.with(value));
             return this;
         }
 
         /**
-         * Mask all number values with the provided value.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
+         * Mask all numeric values with the provided value.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
-         * @see #disableBooleanMasking()
+         * @return the builder instance
          * @see #maskNumbersWith(String)
          * @see #maskNumberDigitsWith(int)
-         *
-         * @return the builder instance
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumbersWith(int value) {
-            if (maskNumbersWith != null) {
-                throw new IllegalArgumentException("'maskNumbersWith(int)' was already set");
-            }
-            checkMutuallyExclusiveNumberMaskingOptions();
-            maskNumbersWith = value;
+            maskNumbersWith(ValueMaskers.with(value));
             return this;
         }
 
         /**
-         * Mask all digits of number values with the provided digit, preserving the length.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
-         *
-         * @see #disableBooleanMasking()
-         * @see #maskNumbersWith(int)
-         * @see #maskNumbersWith(String)
+         * Mask all digits of numeric values with the provided digit, preserving the length.
+         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
+         * @see #maskNumbersWith(String)
+         * @see #maskNumbersWith(int)
+         * @see #maskNumbersWith(ValueMasker.NumberMasker)
          */
         public Builder maskNumberDigitsWith(int digit) {
-            if (maskNumberDigitsWith != null) {
-                throw new IllegalArgumentException("'maskNumberDigitsWith(int)' was already set");
-            }
-            checkMutuallyExclusiveNumberMaskingOptions();
-            if (digit < 1 || digit > 9) {
-                throw new IllegalArgumentException("Masking digit must be between 1 and 9 to avoid leading zeroes");
-            }
-            maskNumberDigitsWith = digit;
+            maskNumbersWith(ValueMaskers.eachDigitWith(digit));
             return this;
         }
 
         /**
-         * Disables boolean masking.
-         *
-         * @see #maskBooleansWith(String)
-         * @see #maskBooleansWith(boolean)
+         * Mask all numeric values with the provided {@link ValueMasker}.
          *
          * @return the builder instance
+         * @see #maskNumbersWith(String)
+         * @see #maskNumbersWith(int)
+         * @see #maskNumberDigitsWith(int)
+         * @see ValueMaskers for out-of-the-box implementations
          */
-        public Builder disableBooleanMasking() {
-            if (disableBooleanMasking != null) {
-                throw new IllegalArgumentException("'disableBooleanMasking()' was already set");
+        public Builder maskNumbersWith(ValueMasker.NumberMasker valueMasker) {
+            if (maskNumbersWith != null) {
+                throw new IllegalArgumentException("'maskNumbersWith' was already set");
             }
-            checkMutuallyExclusiveBooleanMaskingOptions();
-            disableBooleanMasking = true;
+            maskNumbersWith = valueMasker;
             return this;
         }
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
-         * <p>
-         * Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
-         *
-         * @see #disableBooleanMasking()
-         * @see #maskBooleansWith(boolean)
+         * <p> For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
+         * <p> Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
+         * @see #maskBooleansWith(boolean)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          */
         public Builder maskBooleansWith(String value) {
-            if (maskBooleansWithString != null) {
-                throw new IllegalArgumentException("'maskBooleansWith(String)' was already set");
-            }
-            checkMutuallyExclusiveBooleanMaskingOptions();
-            maskBooleansWithString = Objects.requireNonNull(value);
+            maskBooleansWith(ValueMaskers.with(value));
             return this;
         }
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": false}.
-         *
-         * @see #disableBooleanMasking()
-         * @see #maskBooleansWith(String)
+         * <p> For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
+         * @see #maskBooleansWith(String)
+         * @see #maskBooleansWith(ValueMasker.BooleanMasker)
          */
         public Builder maskBooleansWith(boolean value) {
+            maskBooleansWith(ValueMaskers.with(value));
+            return this;
+        }
+
+        /**
+         * Mask all boolean values with the provided {@link ValueMasker}.
+         *
+         * @return the builder instance
+         * @see #maskBooleansWith(boolean)
+         * @see #maskBooleansWith(String)
+         * @see ValueMaskers for out-of-the-box implementations
+         */
+        public Builder maskBooleansWith(ValueMasker.BooleanMasker valueMasker) {
             if (maskBooleansWith != null) {
-                throw new IllegalArgumentException("'maskBooleansWith(boolean)' was already set");
+                throw new IllegalArgumentException("'maskBooleansWith' was already set");
             }
-            checkMutuallyExclusiveBooleanMaskingOptions();
-            maskBooleansWith = value;
+            maskBooleansWith = valueMasker;
             return this;
         }
 
@@ -330,24 +223,6 @@ public final class KeyMaskingConfig {
          */
         public KeyMaskingConfig build() {
             return new KeyMaskingConfig(this);
-        }
-
-        private void checkMutuallyExclusiveStringMaskingOptions() {
-            if (maskStringsWith != null || maskStringCharactersWith != null) {
-                throw new IllegalArgumentException("'maskStringsWith(String)' and 'maskStringCharactersWith(String)' are mutually exclusive");
-            }
-        }
-
-        private void checkMutuallyExclusiveNumberMaskingOptions() {
-            if (disableNumberMasking != null || maskNumbersWith != null || maskNumbersWithString != null || maskNumberDigitsWith != null) {
-                throw new IllegalArgumentException("'disableNumberMasking()', 'maskNumbersWith(int)', 'maskNumbersWith(String)' and 'maskNumberDigitsWith(int)' are mutually exclusive");
-            }
-        }
-
-        private void checkMutuallyExclusiveBooleanMaskingOptions() {
-            if (disableBooleanMasking != null || maskBooleansWith != null || maskBooleansWithString != null) {
-                throw new IllegalArgumentException("'disableBooleanMasking()', 'maskBooleansWith(boolean)' and 'maskBooleansWith(String)' are mutually exclusive");
-            }
         }
     }
 }

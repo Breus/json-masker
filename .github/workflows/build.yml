@@ -85,7 +85,7 @@ jobs:
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v4
-        if: always() # always run even if the previous step fails
+        if: ${{ !cancelled() }} # always run even if the previous step fails
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 
@@ -94,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_CLOUD_TOKEN }}
         # skip on the forked repositories that don't have access to secrets
-        if: ${{ always() && env.SONAR_TOKEN != '' }}
+        if: ${{ !cancelled() && env.SONAR_TOKEN != '' }}
         run: |
           ./gradlew \
             -Pversion=${{ steps.get-snapshot-version.outputs.snapshot-version }} \

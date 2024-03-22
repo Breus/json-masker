@@ -4,7 +4,6 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
-import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import javax.annotation.CheckForNull;
 import java.util.Collections;
@@ -12,7 +11,7 @@ import java.util.Collections;
 /**
  * Default implementation of the {@link JsonMasker}.
  */
-public final class KeyContainsMasker implements JsonMasker {
+ final class KeyContainsMasker implements JsonMasker {
     /**
      * Look-up trie containing the target keys.
      */
@@ -27,7 +26,7 @@ public final class KeyContainsMasker implements JsonMasker {
      *
      * @param maskingConfig the {@link JsonMaskingConfig} for the created masker
      */
-    public KeyContainsMasker(JsonMaskingConfig maskingConfig) {
+    KeyContainsMasker(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
         this.keyMatcher = new KeyMatcher(maskingConfig);
     }
@@ -73,7 +72,7 @@ public final class KeyContainsMasker implements JsonMasker {
             case '[' -> visitArray(maskingState, keyMaskingConfig);
             case '{' -> visitObject(maskingState, keyMaskingConfig);
             case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
-                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableNumberMasking()) {
+                if (keyMaskingConfig != null) {
                     maskNumber(maskingState, keyMaskingConfig);
                 } else {
                     stepOverNumericValue(maskingState);
@@ -87,20 +86,21 @@ public final class KeyContainsMasker implements JsonMasker {
                 }
             }
             case 't' -> {
-                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableBooleanMasking()) {
+                if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
-                    maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
+                    maskingState.incrementCurrentIndex(4);
                 }
             }
             case 'f' -> {
-                if (keyMaskingConfig != null && !keyMaskingConfig.isDisableBooleanMasking()) {
+                if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
-                    maskingState.setCurrentIndex(maskingState.currentIndex() + 5);
+                    maskingState.incrementCurrentIndex(5);
                 }
             }
-            case 'n' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 4);
+            case 'n' -> maskingState.incrementCurrentIndex(4);
+            default -> { /* return */ }
         }
     }
 
@@ -201,42 +201,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskString(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        int valueStartIndex = maskingState.currentIndex();
-        stepOverStringValue(maskingState); // we step over the string to find its length to mask it
-        int targetValueLength = maskingState.currentIndex() - valueStartIndex;
-        if (keyMaskingConfig.getMaskStringsWith() != null) {
-            maskingState.replaceTargetValueWith(
-                    valueStartIndex,
-                    targetValueLength,
-                    keyMaskingConfig.getMaskStringsWith(),
-                    1
-            );
-        } else if (keyMaskingConfig.getMaskStringCharactersWith() != null) {
-            /*
-            So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
+        maskingState.registerValueStartIndex();
+        stepOverStringValue(maskingState);
 
-            The actual length of the string is the length minus escape characters (which are not part of the
-            string length). Also, unicode characters are denoted as 4-hex digits but represent actually
-            just one character, so for each of them 3 asterisks should be removed.
-             */
-            valueStartIndex += 1; // offset by opening quote
-            targetValueLength -= 2; // remove quotes from the value length
+        keyMaskingConfig.getStringValueMasker().maskValue(maskingState);
 
-            int nonVisibleCharacters = Utf8Util.countNonVisibleCharacters(
-                    maskingState.getMessage(),
-                    valueStartIndex,
-                    targetValueLength
-            );
-
-            maskingState.replaceTargetValueWith(
-                    valueStartIndex,
-                    targetValueLength,
-                    keyMaskingConfig.getMaskStringCharactersWith(),
-                    targetValueLength - nonVisibleCharacters
-            );
-        } else {
-            throw new IllegalStateException("Invalid string masking configuration");
-        }
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -252,26 +222,12 @@ public final class KeyContainsMasker implements JsonMasker {
      */
     private void maskNumber(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         // This block deals with numeric values
-        int targetValueStartIndex = maskingState.currentIndex();
+        maskingState.registerValueStartIndex();
         stepOverNumericValue(maskingState);
-        int targetValueLength = maskingState.currentIndex() - targetValueStartIndex;
-        if (keyMaskingConfig.getMaskNumbersWith() != null) {
-            maskingState.replaceTargetValueWith(
-                    targetValueStartIndex,
-                    targetValueLength,
-                    keyMaskingConfig.getMaskNumbersWith(),
-                    1
-            );
-        } else if (keyMaskingConfig.getMaskNumberDigitsWith() != null) {
-            maskingState.replaceTargetValueWith(
-                    targetValueStartIndex,
-                    targetValueLength,
-                    keyMaskingConfig.getMaskNumberDigitsWith(),
-                    targetValueLength
-            );
-        } else {
-            throw new IllegalStateException("Invalid number masking configuration");
-        }
+
+        keyMaskingConfig.getNumberValueMasker().maskValue(maskingState);
+
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -283,19 +239,12 @@ public final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
-        // true (4 bytes) or false (5 bytes)
-        int targetValueLength = AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5;
-        if (keyMaskingConfig.getMaskBooleansWith() != null) {
-            maskingState.replaceTargetValueWith(
-                    maskingState.currentIndex(),
-                    targetValueLength,
-                    keyMaskingConfig.getMaskBooleansWith(),
-                    1
-            );
-        } else {
-            throw new IllegalStateException("Invalid boolean masking configuration");
-        }
-        maskingState.setCurrentIndex(maskingState.currentIndex() + targetValueLength);
+        maskingState.registerValueStartIndex();
+        maskingState.incrementCurrentIndex(AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5);
+
+        keyMaskingConfig.getBooleanValueMasker().maskValue(maskingState);
+
+        maskingState.clearValueStartIndex();
     }
 
     /**
@@ -309,11 +258,12 @@ public final class KeyContainsMasker implements JsonMasker {
     private static void stepOverValue(MaskingState maskingState) {
         switch (maskingState.byteAtCurrentIndex()) {
             case '"' -> stepOverStringValue(maskingState);
-            case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-' -> stepOverNumericValue(maskingState);
-            case 't', 'n' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 4); // true or null
-            case 'f' -> maskingState.setCurrentIndex(maskingState.currentIndex() + 5); // false
+            case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> stepOverNumericValue(maskingState);
+            case 't', 'n' -> maskingState.incrementCurrentIndex(4); // true or null
+            case 'f' -> maskingState.incrementCurrentIndex(5); // false
             case '{' -> stepOverObject(maskingState);
             case '[' -> stepOverArray(maskingState);
+            default -> { /* return */ }
         }
     }
 

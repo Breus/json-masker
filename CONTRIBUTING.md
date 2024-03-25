@@ -20,7 +20,7 @@ To contribute to this project, please open a pull request as follows:
 3. If you've changed APIs, update the JavaDoc
 4. Ensure the test suite passes
 5. Make sure the line-length your code is 120 characters
-6. Open your pull request on Github
+6. Open your pull request on GitHub
 
 ## Any contributions you make will be under the MIT Software License
 

@@ -53,6 +53,8 @@ import java.util.Collections;
                     Collections.emptyIterator()
             );
         }
+
+        stepOverWhitespaceCharacters(maskingState);
         visitValue(maskingState, keyMaskingConfig);
 
         return maskingState.flushReplacementOperations();
@@ -66,7 +68,6 @@ import java.util.Collections;
      *                         being masked
      */
     private void visitValue(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
-        stepOverWhitespaceCharacters(maskingState);
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
             case '[' -> visitArray(maskingState, keyMaskingConfig);
@@ -89,17 +90,17 @@ import java.util.Collections;
                 if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
-                    maskingState.incrementCurrentIndex(4);
+                    maskingState.incrementIndex(4);
                 }
             }
             case 'f' -> {
                 if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
-                    maskingState.incrementCurrentIndex(5);
+                    maskingState.incrementIndex(5);
                 }
             }
-            case 'n' -> maskingState.incrementCurrentIndex(4);
+            case 'n' -> maskingState.incrementIndex(4);
             default -> { /* return */ }
         }
     }
@@ -115,15 +116,22 @@ import java.util.Collections;
     private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
         // This block deals with masking arrays
         maskingState.expandCurrentJsonPathWithArray();
-        maskingState.incrementCurrentIndex(); // step over array opening square bracket
-        while (!AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
-            visitValue(maskingState, keyMaskingConfig);
+        while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
-            if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {
-                maskingState.incrementCurrentIndex();
+            // check if we're in an empty array
+            if (maskingState.byteAtCurrentIndex() == ']') {
+                break;
+            }
+
+            visitValue(maskingState, keyMaskingConfig);
+
+            stepOverWhitespaceCharacters(maskingState);
+            // check if we're at the end of a (non-empty) array
+            if (maskingState.byteAtCurrentIndex() == ']') {
+                break;
             }
         }
-        maskingState.incrementCurrentIndex(); // step over array closing square bracket
+        maskingState.next(); // step over array closing square bracket
         maskingState.backtrackCurrentJsonPath();
     }
 
@@ -140,9 +148,12 @@ import java.util.Collections;
      *                               {@link KeyMaskingConfig}. Otherwise, the value is not being masked
      */
     private void visitObject(MaskingState maskingState, @CheckForNull KeyMaskingConfig parentKeyMaskingConfig) {
-        maskingState.incrementCurrentIndex(); // step over opening curly bracket
-        stepOverWhitespaceCharacters(maskingState);
-        while (!AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
+        while (maskingState.next()) {
+            stepOverWhitespaceCharacters(maskingState);
+            // check if we're in an empty object
+            if (maskingState.byteAtCurrentIndex() == '}') {
+                break;
+            }
             // In case target keys should be considered as allow list, we need to NOT mask certain keys
             int openingQuoteIndex = maskingState.currentIndex();
 
@@ -158,7 +169,8 @@ import java.util.Collections;
                     maskingState.getCurrentJsonPath()
             );
             stepOverWhitespaceCharacters(maskingState);
-            maskingState.incrementCurrentIndex(); // step over the colon ':'
+            // step over the colon ':'
+            maskingState.next();
             stepOverWhitespaceCharacters(maskingState);
 
             // if we're in the allow mode, then getting a null as config, means that the key has been explicitly
@@ -178,15 +190,15 @@ import java.util.Collections;
                 }
                 visitValue(maskingState, keyMaskingConfig);
             }
-            stepOverWhitespaceCharacters(maskingState);
-            if (AsciiCharacter.isComma(maskingState.byteAtCurrentIndex())) {
-                maskingState.incrementCurrentIndex(); // step over comma separating elements
-            }
-            stepOverWhitespaceCharacters(maskingState);
-
             maskingState.backtrackCurrentJsonPath();
+
+            stepOverWhitespaceCharacters(maskingState);
+            // check if we're at the end of a (non-empty) object
+            if (maskingState.byteAtCurrentIndex() == '}') {
+                break;
+            }
         }
-        maskingState.incrementCurrentIndex(); // step over closing curly bracket
+        maskingState.next();
     }
 
     /**
@@ -240,7 +252,7 @@ import java.util.Collections;
      */
     private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
         maskingState.registerValueStartIndex();
-        maskingState.incrementCurrentIndex(AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5);
+        maskingState.incrementIndex(AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5);
 
         keyMaskingConfig.getBooleanValueMasker().maskValue(maskingState);
 
@@ -259,8 +271,8 @@ import java.util.Collections;
         switch (maskingState.byteAtCurrentIndex()) {
             case '"' -> stepOverStringValue(maskingState);
             case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> stepOverNumericValue(maskingState);
-            case 't', 'n' -> maskingState.incrementCurrentIndex(4); // true or null
-            case 'f' -> maskingState.incrementCurrentIndex(5); // false
+            case 't', 'n' -> maskingState.incrementIndex(4); // true or null
+            case 'f' -> maskingState.incrementIndex(5); // false
             case '{' -> stepOverObject(maskingState);
             case '[' -> stepOverArray(maskingState);
             default -> { /* return */ }
@@ -275,8 +287,8 @@ import java.util.Collections;
      * @param maskingState the current {@link MaskingState}
      */
     private static void stepOverWhitespaceCharacters(MaskingState maskingState) {
-        while (AsciiJsonUtil.isWhiteSpace(maskingState.byteAtCurrentIndex())) {
-            maskingState.incrementCurrentIndex();
+        while (!maskingState.endOfJson() && AsciiJsonUtil.isWhiteSpace(maskingState.byteAtCurrentIndex())) {
+            maskingState.next();
         }
     }
 
@@ -286,10 +298,11 @@ import java.util.Collections;
      * value.
      */
     private static void stepOverNumericValue(MaskingState maskingState) {
-        maskingState.incrementCurrentIndex(); // step over the first numeric character
+        // step over the first numeric character
+        maskingState.next();
         while (maskingState.currentIndex() < maskingState.getMessage().length
                 && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
-            maskingState.incrementCurrentIndex();
+            maskingState.next();
         }
     }
 
@@ -301,15 +314,14 @@ import java.util.Collections;
      * @param maskingState the current {@link MaskingState}
      */
     private static void stepOverStringValue(MaskingState maskingState) {
-        maskingState.incrementCurrentIndex(); // step over the JSON key opening quote
         boolean isEscapeCharacter = false;
-        while (!AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex())
-                || (AsciiCharacter.isDoubleQuote(maskingState.byteAtCurrentIndex()) && isEscapeCharacter)) {
-            isEscapeCharacter = !isEscapeCharacter
-                    && AsciiCharacter.isEscapeCharacter(maskingState.byteAtCurrentIndex());
-            maskingState.incrementCurrentIndex();
+        while (maskingState.next()) {
+            if (!isEscapeCharacter && maskingState.byteAtCurrentIndex() == '"') {
+                maskingState.next();  // step over the closing quote
+                break;
+            }
+            isEscapeCharacter = !isEscapeCharacter && maskingState.byteAtCurrentIndex() == '\\';
         }
-        maskingState.incrementCurrentIndex(); // step over the closing quote
     }
 
     /**
@@ -318,7 +330,8 @@ import java.util.Collections;
      * the object.
      */
     private static void stepOverObject(MaskingState maskingState) {
-        maskingState.incrementCurrentIndex(); // step over opening curly bracket
+        // step over opening curly bracket
+        maskingState.next();
         int objectDepth = 1;
         while (objectDepth > 0) {
             // We need to specifically step over strings to not consider curly brackets which are part of a string
@@ -333,7 +346,7 @@ import java.util.Collections;
                 } else if (AsciiCharacter.isCurlyBracketClose(maskingState.byteAtCurrentIndex())) {
                     objectDepth--;
                 }
-                maskingState.incrementCurrentIndex();
+                maskingState.next();
             }
         }
     }
@@ -344,7 +357,8 @@ import java.util.Collections;
      * of the array.
      */
     private static void stepOverArray(MaskingState maskingState) {
-        maskingState.incrementCurrentIndex(); // step over opening square bracket
+        // step over opening square bracket
+        maskingState.next();
         int arrayDepth = 1;
         while (arrayDepth > 0) {
             // We need to specifically step over strings to not consider square brackets which are part of a string
@@ -358,7 +372,7 @@ import java.util.Collections;
                 } else if (AsciiCharacter.isSquareBracketClose(maskingState.byteAtCurrentIndex())) {
                     arrayDepth--;
                 }
-                maskingState.incrementCurrentIndex();
+                maskingState.next();
             }
         }
     }

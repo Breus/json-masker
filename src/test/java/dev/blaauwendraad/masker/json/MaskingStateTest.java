@@ -19,21 +19,21 @@ class MaskingStateTest {
                     "mask
                 """.stripTrailing());
 
-        maskingState.incrementCurrentIndex(10);
+        maskingState.incrementIndex(10);
 
         Assertions.assertThat(maskingState).hasToString("""
                 {
                     "mas>k<Me": "some
                 """.stripTrailing());
 
-        maskingState.incrementCurrentIndex(20);
+        maskingState.incrementIndex(20);
 
         Assertions.assertThat(maskingState).hasToString("""
                 e value"
                 }>
                 """);
 
-        maskingState.incrementCurrentIndex(1);
+        maskingState.incrementIndex(1);
 
         Assertions.assertThat(maskingState).hasToString("""
                  value"

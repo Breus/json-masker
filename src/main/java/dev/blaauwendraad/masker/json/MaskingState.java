@@ -36,16 +36,20 @@ final class MaskingState implements ValueMaskerContext {
         }
     }
 
-    public void incrementCurrentIndex() {
-        currentIndex++;
+    public boolean next() {
+        return ++currentIndex < message.length;
     }
 
-    public void incrementCurrentIndex(int length) {
+    public void incrementIndex(int length) {
         currentIndex += length;
     }
 
     public byte byteAtCurrentIndex() {
         return message[currentIndex];
+    }
+
+    public boolean endOfJson() {
+        return currentIndex == message.length;
     }
 
     public int currentIndex() {
@@ -261,12 +265,12 @@ final class MaskingState implements ValueMaskerContext {
         sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)));
         sb.append(">");
         if (currentIndex == message.length) {
-            sb.append((Object) "<end of json>");
+            sb.append("<end of json>");
         } else {
-            sb.append((Object) (char) message[currentIndex]);
+            sb.append((char) message[currentIndex]);
             if (currentIndex + 1 < message.length) {
                 sb.append("<");
-                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex + 1)));
+                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex - 1)));
             }
         }
         return sb.toString();

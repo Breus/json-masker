@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -42,6 +43,9 @@ final class FuzzingTest {
         while (Duration.between(startTime, Instant.now()).toMillis() < timeLimit) {
             JsonNode randomJsonNode = randomJsonGenerator.createRandomJsonNode();
             for (JsonFormatter formatter : JsonFormatter.values()) {
+                if (!formatter.isValid()) {
+                    continue;
+                }
                 String randomJsonString = formatter.format(randomJsonNode);
                 String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toString();
                 try {

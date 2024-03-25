@@ -51,20 +51,7 @@ final class NoFailingExecutionFuzzingTest {
                 CompletableFuture.runAsync(
                         () -> {
                             while (Duration.between(startTime, Instant.now()).toMillis() < timeLimit) {
-                                KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
-                                RandomJsonGenerator randomJsonGenerator =
-                                        new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
-                                JsonNode jsonNode = randomJsonGenerator.createRandomJsonNode();
-                                for (JsonFormatter formatter : JsonFormatter.values()) {
-                                    String mutatedJsonNodeString = formatter.format(jsonNode);
-                                    lastExecutedJson.set(mutatedJsonNodeString);
-                                    Assertions.assertDoesNotThrow(
-                                            () -> keyContainsMasker.mask(mutatedJsonNodeString),
-                                            String.format(
-                                                    "Failed for the following JSON:\n%s",
-                                                    mutatedJsonNodeString));
-                                    randomTestsExecuted.incrementAndGet();
-                                }
+                                generateAndMask(jsonMaskingConfig, lastExecutedJson, randomTestsExecuted);
                             }
                         },
                         executor);
@@ -98,6 +85,31 @@ final class NoFailingExecutionFuzzingTest {
         System.out.printf(
                 "Successfully executed %d randomly generated test scenarios in %dms. ",
                 randomTestsExecuted.get(), timeLimit);
+    }
+
+    private static void generateAndMask(JsonMaskingConfig jsonMaskingConfig, AtomicReference<String> lastExecutedJson, AtomicInteger randomTestsExecuted) {
+        KeyContainsMasker keyContainsMasker = new KeyContainsMasker(jsonMaskingConfig);
+        RandomJsonGenerator randomJsonGenerator =
+                new RandomJsonGenerator(RandomJsonGeneratorConfig.builder().createConfig());
+        JsonNode jsonNode = randomJsonGenerator.createRandomJsonNode();
+        for (JsonFormatter formatter : JsonFormatter.values()) {
+            String mutatedJsonNodeString = formatter.format(jsonNode);
+            lastExecutedJson.set(mutatedJsonNodeString);
+            if (formatter.isValid()) {
+                Assertions.assertDoesNotThrow(
+                        () -> keyContainsMasker.mask(mutatedJsonNodeString),
+                        String.format(
+                                "Failed for the following JSON:\n%s",
+                                mutatedJsonNodeString));
+            } else {
+                try {
+                    keyContainsMasker.mask(mutatedJsonNodeString);
+                } catch (RuntimeException e) {
+                    // ignoring failures for an invalid json
+                }
+            }
+            randomTestsExecuted.incrementAndGet();
+        }
     }
 
     @Nonnull

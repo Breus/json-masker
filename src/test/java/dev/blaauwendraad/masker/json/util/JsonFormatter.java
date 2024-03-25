@@ -1,14 +1,19 @@
 package dev.blaauwendraad.masker.json.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.blaauwendraad.masker.randomgen.InvalidJsonPrettyPrinter;
 import dev.blaauwendraad.masker.randomgen.RandomWhiteSpacePrettyPrinter;
+
+import java.util.List;
 
 public enum JsonFormatter {
     PRETTY,
     COMPACT,
-    RANDOM_WHITESPACE;
+    RANDOM_WHITESPACE,
+    INVALID_JSON;
 
     private final static int MAX_NUMBER_OF_SPACES_TO_INJECT = 50;
 
@@ -18,14 +23,18 @@ public enum JsonFormatter {
         return switch (this) {
             case PRETTY -> jsonNode.toPrettyString();
             case COMPACT -> jsonNode.toString();
-            case RANDOM_WHITESPACE -> getRandomWhiteSpaceJson(jsonNode, MAX_NUMBER_OF_SPACES_TO_INJECT);
+            case RANDOM_WHITESPACE -> withPrinter(jsonNode, new RandomWhiteSpacePrettyPrinter(JsonFormatter.MAX_NUMBER_OF_SPACES_TO_INJECT));
+            case INVALID_JSON -> withPrinter(jsonNode, new InvalidJsonPrettyPrinter());
         };
     }
 
-    private String getRandomWhiteSpaceJson(JsonNode jsonNode, int maxNumberOfWhiteSpacesToInject) {
-        RandomWhiteSpacePrettyPrinter prettyPrinter = new RandomWhiteSpacePrettyPrinter(maxNumberOfWhiteSpacesToInject);
+    public boolean isValid() {
+        return this != INVALID_JSON;
+    }
+
+    private String withPrinter(JsonNode jsonNode, PrettyPrinter printer) {
         try {
-            return objectMapper.writer(prettyPrinter).writeValueAsString(jsonNode);
+            return objectMapper.writer(printer).writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

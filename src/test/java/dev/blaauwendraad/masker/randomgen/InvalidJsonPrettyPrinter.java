@@ -31,7 +31,12 @@ public class InvalidJsonPrettyPrinter implements PrettyPrinter {
             'a',
             't',
             'f',
-            'n'
+            'n',
+            '-',
+            '0',
+            '1',
+            '.',
+            'e'
     );
 
     private final DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter();

@@ -43,7 +43,7 @@ class InvalidJsonTest {
         } catch (ExecutionException e) {
             // execution failed with an exception, that's acceptable
             Assertions.assertThat(e.getCause())
-                    .isInstanceOfAny(ArrayIndexOutOfBoundsException.class);
+                    .isInstanceOfAny(InvalidJsonException.class);
         } catch (InterruptedException | TimeoutException e) {
             Assertions.fail("Masking of %s hasn't completed within 50ms.".formatted(json));
         } finally {

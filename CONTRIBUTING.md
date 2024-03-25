@@ -9,7 +9,7 @@ We very much welcome your input! We want to make contributing to this project as
 
 ## We develop with Github
 
-We use Github to host the code, have discussions about (additional) features, track issues, as well as accept pull requests.
+We use GitHub to host the code, have discussions about (additional) features, track issues, as well as accept pull requests.
 
 ## All code changes happen through pull requests
 

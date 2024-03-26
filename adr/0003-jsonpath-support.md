@@ -5,11 +5,10 @@ Date: 15-03-2024
 ## Status
 
 Accepted by:
-
 - [Breus](https://github.com/Breus)
 - [gavlyukovskiy](https://github.com/gavlyukovskiy)
 - [donavdey](https://github.com/donavdey)
-- 
+
 ## Context
 
 A JSON message may contain multiple nested objects with key/value pairs that have the same key but require a different

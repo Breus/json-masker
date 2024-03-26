@@ -41,23 +41,27 @@ import java.util.Collections;
      */
     @Override
     public byte[] mask(byte[] input) {
-        MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
+        try {
+            MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
 
-        KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
-        if (maskingState.jsonPathEnabled()) {
-            // Check for "$" json path key.
-            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
-                    maskingState.getMessage(),
-                    -1,
-                    -1,
-                    Collections.emptyIterator()
-            );
+            KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
+            if (maskingState.jsonPathEnabled()) {
+                // Check for "$" json path key.
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
+                        maskingState.getMessage(),
+                        -1,
+                        -1,
+                        Collections.emptyIterator()
+                );
+            }
+
+            stepOverWhitespaceCharacters(maskingState);
+            visitValue(maskingState, keyMaskingConfig);
+
+            return maskingState.flushReplacementOperations();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
         }
-
-        stepOverWhitespaceCharacters(maskingState);
-        visitValue(maskingState, keyMaskingConfig);
-
-        return maskingState.flushReplacementOperations();
     }
 
     /**
@@ -114,7 +118,6 @@ import java.util.Collections;
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
     private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
-        // This block deals with masking arrays
         maskingState.expandCurrentJsonPathWithArray();
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
@@ -198,6 +201,7 @@ import java.util.Collections;
                 break;
             }
         }
+        // step over closing curly bracket ending the object
         maskingState.next();
     }
 

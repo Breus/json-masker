@@ -38,6 +38,7 @@ public interface JsonMasker {
      *
      * @param input the JSON input as bytes
      * @return the masked JSON output as bytes
+     * @throws InvalidJsonException in case invalid JSON input was provided
      */
     byte[] mask(byte[] input);
 
@@ -46,6 +47,7 @@ public interface JsonMasker {
      *
      * @param input the JSON input as String
      * @return the masked JSON output String
+     * @throws InvalidJsonException in case invalid JSON input was provided
      */
     @Nonnull
     default String mask(String input) {

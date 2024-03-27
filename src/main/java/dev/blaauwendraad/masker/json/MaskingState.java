@@ -238,6 +238,12 @@ final class MaskingState implements ValueMaskerContext {
         return new String(message, offset + fromIndex, length, StandardCharsets.UTF_8);
     }
 
+    @Override
+    public InvalidJsonException invalidJson(String message, int index) {
+        int offset = getCurrentValueStartIndex();
+        return new InvalidJsonException("%s at index %s".formatted(message, offset + index));
+    }
+
     private void checkCurrentValueBounds(int index) {
         if (index < 0 || index >= byteLength()) {
             throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + byteLength());

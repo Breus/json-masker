@@ -171,6 +171,26 @@ class ValueMaskersTest {
                 .isEqualTo("12345");
         Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
                 .isEqualTo("true");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, ValueMaskers.withRawValueFunction(value -> null)))
+                .isEqualTo("null");
+    }
+
+    @Test
+    void withTextFunction() {
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\u2020", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("†");
+            return value;
+        }))).isEqualTo("\"†\""); // doesn't have to be encoded back
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD800\\uDF48", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("𐍈");
+            return value;
+        }))).isEqualTo("\"𐍈\""); // doesn't have to be encoded back
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\n", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("\n");
+            return value;
+        }))).isEqualTo("\"\\n\""); // needs to be escaped
     }
 
     @Test

@@ -31,6 +31,14 @@ public final class Utf8Util {
         throw new IllegalArgumentException("Input byte is not using UTF-8 encoding");
     }
 
+    public static int bytesToCodePoint(byte b1, byte b2, byte b3, byte b4) {
+        int value = Character.digit(Byte.toUnsignedInt(b1), 16);
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b2), 16);;
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b3), 16);;
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b4), 16);;
+        return value;
+    }
+
     /**
      * Counts the number of non-visible characters inside the string. The intervals provided must be
      * within a single string as this method will not do boundary checks or terminate at the end of

@@ -169,25 +169,67 @@ public final class ValueMaskers {
     }
 
     /**
-     * Masks a target value with the provided {@link Function}. The target value is passed into the
-     * function as a text, regardless of the type (string, numeric or a boolean), however any
-     * non-null returned value from the function will always be a JSON string (with quotes added
-     * automatically).
+     * Masks a target value with the provided {@link Function}. The target value (as raw JSON literal) is passed into
+     * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
+     * a JSON string the value the function will receive a JSON encoded value with the quotes as it appears in the JSON
+     * with line breaks encoded as  \n, special characters like " or \ escaped with a backslash (\).
      *
-     * <p>Note: usually {@link ValueMasker} operates on a byte level without parsing JSON values
-     * into intermediate objects, however this implementation will have to allocate a {@link String}
-     * before passing it into the function and then turn it back into a byte array for replacement.
+     * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any JSON type), otherwise the masking will result in an invalid JSON.
+     *
+     * <p>The table below contains a couple examples for the masking
+     * <table>
+     *   <caption>Examples of using withRawValueFunction</caption>
+     *   <tr>
+     *     <th>Input JSON</th>
+     *     <th>Function</th>
+     *     <th>Masked JSON</th>
+     *   <tr>
+     *     <td>{@code { "maskMe": "a secret" }}
+     *     <td>{@code value -> value.replaceAll("secret", "***")}
+     *     <td>{@code { "maskMe": "a ***" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": 12345 }}
+     *     <td>{@code value -> value.startsWith(123) ? "0" : value}
+     *     <td>{@code { "maskMe": 0 }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret" }}
+     *     <td>{@code value -> "***"}
+     *     <td>{@code { "maskMe": *** }} (invalid JSON)
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret" }}
+     *     <td>{@code value -> "\"***\""}
+     *     <td>{@code { "maskMe": "***" }} (valid JSON)
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret value" }}
+     *     <td>{@code value -> value.substring(0, 3) + "***"}
+     *     <td>{@code { "maskMe": "se*** }} (invalid JSON
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret value" }}
+     *     <td>{@code value -> value.startsWith("\"") ? value.substring(0, 4) + "***\"" : value}
+     *     <td>{@code { "maskMe": "sec***" }} (valid JSON)
+     *   <tr>
+     *     <td>{@code { "maskMe": "Andrii \"Juice\" Pilshchykov" }}
+     *     <td>{@code value -> value.replaceAll("\"", "(quote)")}
+     *     <td>{@code { "maskMe": "Andrii \(quote)Juice\(quote) Pilshchykov" }} (invalid JSON)
+     *   <tr>
+     *     <td>{@code { "maskMe": "Andrii \"Juice\" Pilshchykov" }}
+     *     <td>{@code value -> value.replaceAll("\\\"", "(quote)")}
+     *     <td>{@code { "maskMe": "Andrii (quote)Juice(quote) Pilshchykov" }} (valid JSON)
+     * </table>
+     *
+     * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
+     * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
+     * before passing it into the function and then turn it back into a byte array for the replacement, which introduces 
+     * some performance overhead.
      */
-    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
+    public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {
         return describe(
-                "withTextFunction (%s)".formatted(masker),
+                "withRawValueFunction (%s)".formatted(masker),
                 context -> {
-                    String value = context.asText();
+                    String value = context.asString(0, context.byteLength());
                     String maskedValue = masker.apply(value);
                     if (maskedValue == null) {
                         maskedValue = "null";
-                    } else {
-                        maskedValue = "\"" + maskedValue + "\"";
                     }
                     context.replaceBytes(0, context.byteLength(), maskedValue.getBytes(StandardCharsets.UTF_8), 1);
                 });

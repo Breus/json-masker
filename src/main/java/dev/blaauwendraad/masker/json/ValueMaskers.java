@@ -179,6 +179,7 @@ public final class ValueMaskers {
      *
      * <p>The table below contains couple of examples for the masking
      * <table>
+     *   <caption>Examples of using withRawValueFunction</caption>
      *   <tr>
      *     <th>Input JSON</th>
      *     <th>Function</th>

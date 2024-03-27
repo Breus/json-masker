@@ -111,12 +111,8 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
     }
 
     @Override
-    public String asText() {
-        if (value[0] == '"') {
-            // remove quotes from the string value
-            return new String(value, 1, value.length - 2, StandardCharsets.UTF_8);
-        }
-        return new String(value, StandardCharsets.UTF_8);
+    public String asString(int fromIndex, int length) {
+        return new String(value, fromIndex, length, StandardCharsets.UTF_8);
     }
 
     public String getMaskedValue() {

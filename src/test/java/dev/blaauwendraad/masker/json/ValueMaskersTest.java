@@ -141,22 +141,24 @@ class ValueMaskersTest {
     }
 
     @Test
-    void withTextFunction() {
-        var valueMasker = ValueMaskers.withTextFunction(value -> {
-            if (value.startsWith("secret:")) {
-                return "***";
+    void withRawValueFunction() {
+        var valueMasker = ValueMaskers.withRawValueFunction(value -> {
+            if (value.startsWith("\"secret:")) {
+                return "\"***\"";
             }
             return value;
         });
+
+        ValueMaskers.withRawValueFunction(value -> value.startsWith("\"") ? value.substring(1, 4) + "***\"" : value);
 
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("not a secret", valueMasker))
                 .isEqualTo("\"not a secret\"");
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret: very much", valueMasker))
                 .isEqualTo("\"***\"");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
-                .isEqualTo("\"12345\"");
+                .isEqualTo("12345");
         Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
-                .isEqualTo("\"true\"");
+                .isEqualTo("true");
     }
 
     @Test

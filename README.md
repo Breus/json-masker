@@ -669,7 +669,7 @@ For convenience, a couple out-of-the-box maskers are available in `ValueMaskers`
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskKeys(Set.of("values"))
-                .maskStringsWith(ValueMaskers.withTextFunction(value -> value.startsWith("secret:") ? "***" : value))
+                .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.startsWith("\"secret:") ? "\"***\"" : value))
                 .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(/* prefix */ 2, /* suffix */ 2, /* keep domain */ true, "***"))
                         .build()

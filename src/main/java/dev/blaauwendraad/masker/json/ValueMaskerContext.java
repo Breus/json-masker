@@ -58,4 +58,6 @@ public interface ValueMaskerContext {
      * Note: this INCLUDES the opening and closing quotes for string values 
      */
     String asString(int fromIndex, int length);
+
+    InvalidJsonException invalidJson(String message, int index);
 }

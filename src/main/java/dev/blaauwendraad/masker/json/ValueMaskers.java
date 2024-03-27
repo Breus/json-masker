@@ -206,7 +206,7 @@ public final class ValueMaskers {
      *     <td>{@code { "maskMe": "se*** }} (invalid JSON
      *   <tr>
      *     <td>{@code { "maskMe": "secret value" }}
-     *     <td>{@code value -> value.startsWith("\"") ? value.substring(1, 4) + "***\"" : value}
+     *     <td>{@code value -> value.startsWith("\"") ? value.substring(0, 4) + "***\"" : value}
      *     <td>{@code { "maskMe": "sec***" }} (valid JSON)
      *   <tr>
      *     <td>{@code { "maskMe": "Andrii \"Juice\" Pilshchykov" }}

@@ -5,7 +5,6 @@ Date: 23-01-2024
 ## Status
 
 Accepted by:
-
 - [Breus](https://github.com/Breus)
 - [gavlyukovskiy](https://github.com/gavlyukovskiy)
 - [donavdey](https://github.com/donavdey)

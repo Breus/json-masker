@@ -4,7 +4,9 @@ Date: 2023-11-19
 
 ## Status
 
-Accepted
+Accepted by:
+- [Breus](https://github.com/Breus)
+- [gavlyukovskiy](https://github.com/gavlyukovskiy)
 
 ## Context
 

@@ -53,7 +53,9 @@ public interface ValueMaskerContext {
     int countNonVisibleCharacters(int fromIndex, int length);
 
     /**
-     * Returns a string representation of the original JSON value.
+     * Returns a string representation of the original JSON value. 
+     * <p>
+     * Note: this INCLUDES the opening and closing quotes for string values 
      */
     String asString(int fromIndex, int length);
 }

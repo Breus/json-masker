@@ -172,12 +172,11 @@ public final class ValueMaskers {
      * Masks a target value with the provided {@link Function}. The target value (as raw JSON literal) is passed into
      * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
      * a JSON string the value the function will receive a JSON encoded value with the quotes as it appears in the JSON
-     * with line breaks converted to \n, special characters like " or \ escaped with a backslash (\).
+     * with line breaks encoded as  \n, special characters like " or \ escaped with a backslash (\).
      *
-     * <p>Consequently the return value of the provided function must be a valid JSON literal (of any JSON type)
-     * with respective JSON encoding, otherwise the masking will result in an invalid JSON.
+     * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any JSON type), otherwise the masking will result in an invalid JSON.
      *
-     * <p>The table below contains couple of examples for the masking
+     * <p>The table below contains a couple examples for the masking
      * <table>
      *   <caption>Examples of using withRawValueFunction</caption>
      *   <tr>
@@ -218,9 +217,10 @@ public final class ValueMaskers {
      *     <td>{@code { "maskMe": "Andrii (quote)Juice(quote) Pilshchykov" }} (valid JSON)
      * </table>
      *
-     * <p>Note: usually {@link ValueMasker} operates on a byte level without parsing JSON values
-     * into intermediate objects, however this implementation will have to allocate a {@link String}
-     * before passing it into the function and then turn it back into a byte array for replacement.
+     * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
+     * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
+     * before passing it into the function and then turn it back into a byte array for the replacement, which introduces 
+     * some performance overhead.
      */
     public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {
         return describe(

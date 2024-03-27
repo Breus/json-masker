@@ -149,8 +149,6 @@ class ValueMaskersTest {
             return value;
         });
 
-        ValueMaskers.withRawValueFunction(value -> value.startsWith("\"") ? value.substring(1, 4) + "***\"" : value);
-
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("not a secret", valueMasker))
                 .isEqualTo("\"not a secret\"");
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret: very much", valueMasker))

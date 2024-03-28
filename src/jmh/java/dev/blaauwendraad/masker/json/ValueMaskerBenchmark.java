@@ -38,11 +38,20 @@ public class ValueMaskerBenchmark {
                 .maskKeys(Set.of("targetKey"))
                 .build()
         );
-        private final JsonMasker functionalMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+
+        private final JsonMasker rawValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("targetKey"))
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
+                .build()
+        );
+
+        private final JsonMasker textValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("targetKey"))
+                .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
+                .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
+                .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
                 .build()
         );
 
@@ -61,7 +70,12 @@ public class ValueMaskerBenchmark {
     }
 
     @Benchmark
-    public void maskWithFunctional(State state) {
-        state.functionalMasker.mask(state.jsonBytes);
+    public void maskWithRawValueFunction(State state) {
+        state.rawValueMasker.mask(state.jsonBytes);
+    }
+
+    @Benchmark
+    public void maskWithTextValueFunction(State state) {
+        state.textValueMasker.mask(state.jsonBytes);
     }
 }

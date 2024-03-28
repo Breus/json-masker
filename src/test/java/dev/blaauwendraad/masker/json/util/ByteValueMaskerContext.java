@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json.util;
 
+import dev.blaauwendraad.masker.json.InvalidJsonException;
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskerContext;
 
@@ -113,6 +114,11 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
     @Override
     public String asString(int fromIndex, int length) {
         return new String(value, fromIndex, length, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public InvalidJsonException invalidJson(String message, int index) {
+        return new InvalidJsonException("%s at index %s".formatted(message, index));
     }
 
     public String getMaskedValue() {

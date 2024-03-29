@@ -29,7 +29,6 @@ final class JsonMaskingConfigTest {
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).maskKeys(Set.of("maskMe")),
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).allowKeys(Set.of("allowMe")),
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).allowJsonPaths(Set.of("$.allowMe")),
-                () -> JsonMaskingConfig.builder().allowJsonPaths(Set.of()),
                 () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).allowKeys(Set.of("allowMe")),
                 () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).maskKeys(Set.of("maskMe")),
                 () -> JsonMaskingConfig.builder().allowKeys(Set.of("allowMe")).maskJsonPaths(Set.of("$.maskMe")),

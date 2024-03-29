@@ -5,6 +5,7 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -336,5 +337,61 @@ class CustomKeyMaskingConfigTest {
                   "customValueMasker": "maskMe"
                 }
                 """);
+    }
+
+    @Test
+    void maskEveryNumberDigitWithStringCharacter() {
+        JsonMasker jsonMasker =
+                JsonMasker.getMasker(
+                        JsonMaskingConfig.builder()
+                                .maskKeys(Set.of("customValueMasker"))
+                                .maskNumbersWith(
+                                        (context) ->
+                                                context.replaceBytes(
+                                                        0,
+                                                        context.byteLength(),
+                                                        ("\"" + "*".repeat(context.byteLength()) + "\"")
+                                                                .getBytes(StandardCharsets.UTF_8),
+                                                        1))
+                                .build());
+        Assertions.assertThat(
+                        jsonMasker.mask(
+                                """
+                                {
+                                  "customValueMasker": 0
+                                }
+                                """))
+                .isEqualTo(
+                        """
+                                {
+                                  "customValueMasker": "*"
+                                }
+                                """);
+        Assertions.assertThat(
+                        jsonMasker.mask(
+                                """
+                                {
+                                  "customValueMasker": 123
+                                }
+                                """))
+                .isEqualTo(
+                        """
+                                {
+                                  "customValueMasker": "***"
+                                }
+                                """);
+        Assertions.assertThat(
+                        jsonMasker.mask(
+                                """
+                                {
+                                  "customValueMasker": 12345
+                                }
+                                """))
+                .isEqualTo(
+                        """
+                                {
+                                  "customValueMasker": "*****"
+                                }
+                                """);
     }
 }

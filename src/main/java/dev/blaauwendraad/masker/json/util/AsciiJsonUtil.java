@@ -2,9 +2,8 @@ package dev.blaauwendraad.masker.json.util;
 
 public final class AsciiJsonUtil {
 
-    private AsciiJsonUtil() {
-        // don't instantiate
-    }
+    private AsciiJsonUtil() { /* don't instantiate */ }
+
     public static boolean isWhiteSpace(byte utf8Character) {
         return switch (utf8Character) {
             case '\n', '\t', '\r', ' ' -> true;

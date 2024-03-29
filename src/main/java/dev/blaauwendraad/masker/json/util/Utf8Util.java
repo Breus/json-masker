@@ -2,9 +2,7 @@ package dev.blaauwendraad.masker.json.util;
 
 /** UTF-8 encoding utilities class */
 public final class Utf8Util {
-    private Utf8Util() {
-        // util
-    }
+    private Utf8Util() { /* don't instantiate */ }
 
     /**
      * UTF-8: variable width 1-4 byte code points: 1 byte: 0xxxxxxx 2 bytes: 110xxxxx 10xxxxxx 3

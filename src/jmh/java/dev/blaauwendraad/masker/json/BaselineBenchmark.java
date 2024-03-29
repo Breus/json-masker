@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
@@ -51,7 +50,7 @@ public class BaselineBenchmark {
             regexList = targetKeys.stream()
                     // will only match primitive values, not objects or arrays, but it's good to show the difference
                     .map(key -> Pattern.compile("(\"" + key + "\"\\s*:\\s*)(\"?[^\"]*\"?)", Pattern.CASE_INSENSITIVE))
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 

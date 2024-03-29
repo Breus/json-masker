@@ -3,6 +3,7 @@ package dev.blaauwendraad.masker.json.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,6 +22,13 @@ class Utf8UtilTest {
         for (AsciiCharacter asciiCharacter : AsciiCharacter.values()) {
             assertThat(Utf8Util.getCodePointByteLength(asciiCharacter.getAsciiByteValue())).isEqualTo(1);
         }
+    }
+
+    @Test
+    void nonUtf8Byte() {
+        byte b = (byte) 127;
+        Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> Utf8Util.getCodePointByteLength((byte) (b << 1)));
     }
 
     @ParameterizedTest

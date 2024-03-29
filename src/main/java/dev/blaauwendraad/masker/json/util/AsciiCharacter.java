@@ -69,61 +69,6 @@ public enum AsciiCharacter {
     }
 
     /**
-     * Tests if the given byte corresponds to a lowercase 'a' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 'a' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseA(byte inputByte) {
-        return LOWERCASE_A.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lowercase 'e' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 'e' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseE(byte inputByte) {
-        return LOWERCASE_E.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lowercase 'l' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 'l' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseL(byte inputByte) {
-        return LOWERCASE_L.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lowercase 'r' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 'r' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseR(byte inputByte) {
-        return LOWERCASE_R.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lowercase 's' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 's' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseS(byte inputByte) {
-        return LOWERCASE_S.getAsciiByteValue() == inputByte;
-    }
-
-    /**
      * Tests if the given byte corresponds to a lowercase 'u' in ASCII encoding.
      *
      * @param inputByte the input byte
@@ -132,16 +77,6 @@ public enum AsciiCharacter {
      */
     public static boolean isLowercaseU(byte inputByte) {
         return LOWERCASE_U.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a colon ':' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a colon ':' in ASCII encoding and false otherwise.
-     */
-    public static boolean isColon(byte inputByte) {
-        return COLON.getAsciiByteValue() == inputByte;
     }
 
     /**
@@ -192,27 +127,6 @@ public enum AsciiCharacter {
     }
 
     /**
-     * Tests if the given byte corresponds to a comma ',' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a comma ',' in ASCII encoding and false otherwise.
-     */
-    public static boolean isComma(byte inputByte) {
-        return COMMA.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lower case n 'n' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lower case n 'n' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseN(byte inputByte) {
-        return LOWERCASE_N.getAsciiByteValue() == inputByte;
-    }
-
-    /**
      * Tests if the given byte corresponds to a lower case t 't' in ASCII encoding.
      *
      * @param inputByte the input byte
@@ -221,17 +135,6 @@ public enum AsciiCharacter {
      */
     public static boolean isLowercaseT(byte inputByte) {
         return LOWERCASE_T.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Tests if the given byte corresponds to a lower case f 'f' in ASCII encoding.
-     *
-     * @param inputByte the input byte
-     * @return true if the byte corresponds to a lower case f 'f' in ASCII encoding and false
-     *     otherwise.
-     */
-    public static boolean isLowercaseF(byte inputByte) {
-        return LOWERCASE_F.getAsciiByteValue() == inputByte;
     }
 
     /**

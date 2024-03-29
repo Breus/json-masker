@@ -345,14 +345,7 @@ class CustomKeyMaskingConfigTest {
                 JsonMasker.getMasker(
                         JsonMaskingConfig.builder()
                                 .maskKeys(Set.of("customValueMasker"))
-                                .maskNumbersWith(
-                                        (context) ->
-                                                context.replaceBytes(
-                                                        0,
-                                                        context.byteLength(),
-                                                        ("\"" + "*".repeat(context.byteLength()) + "\"")
-                                                                .getBytes(StandardCharsets.UTF_8),
-                                                        1))
+                                .maskNumbersWith(ValueMaskers.eachDigitWith("*"))
                                 .build());
         Assertions.assertThat(
                         jsonMasker.mask(

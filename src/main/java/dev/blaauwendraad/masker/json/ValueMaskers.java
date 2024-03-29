@@ -112,9 +112,36 @@ public final class ValueMaskers {
         }
         byte[] replacementBytes = String.valueOf(digit).getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every digit as %s".formatted(digit),
+                "every digit as integer: %s".formatted(digit),
                 context -> context.replaceBytes(0, context.byteLength(), replacementBytes, context.byteLength())
         );
+    }
+
+    /**
+     * Masks all digits of a target numeric value with a static String (which can also be a single
+     * character).
+     *
+     * <p> For example, {@literal "maskMe": 12345 -> "maskMe": "*****"}.
+     * <p> Or, for example {@literal "maskMe": 123 -> "maskMe": "NoNoNo"}.
+     */
+    public static ValueMasker.NumberMasker eachDigitWith(String value) {
+        byte[] maskValueBytes = value.getBytes(StandardCharsets.UTF_8);
+        int maskValueBytesLength = maskValueBytes.length;
+        return describe(
+                "every digit as string: %s".formatted(value),
+                context -> {
+                    int originalValueBytesLength = context.byteLength();
+                    int totalMaskLength = originalValueBytesLength * maskValueBytesLength;
+                    byte[] mask = new byte[2 + totalMaskLength]; // 2 for the opening and closing quotes
+                    mask[0] = '\"';
+                    for (int i = 0; i < totalMaskLength; i += maskValueBytesLength) {
+                        for (int j = 0; j < maskValueBytesLength; j++) {
+                            mask[1 + i + j] = maskValueBytes[j]; // 1 to step over the opening quote of the mask
+                        }
+                    }
+                    mask[totalMaskLength + 1] = '\"';
+                    context.replaceBytes(0, context.byteLength(), mask, 1);
+                });
     }
 
     /**
@@ -219,7 +246,7 @@ public final class ValueMaskers {
      *
      * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
      * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
-     * before passing it into the function and then turn it back into a byte array for the replacement, which introduces 
+     * before passing it into the function and then turn it back into a byte array for the replacement, which introduces
      * some performance overhead.
      */
     public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {

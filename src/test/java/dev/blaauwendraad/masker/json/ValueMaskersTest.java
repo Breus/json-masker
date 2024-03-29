@@ -77,11 +77,25 @@ class ValueMaskersTest {
     }
 
     @Test
-    void eachDigitWith() {
+    void eachDigitWithInteger() {
         var valueMasker = ValueMaskers.eachDigitWith(1);
 
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("11111");
+    }
+
+    @Test
+    void eachDigitWithSingleCharacter() {
+        var valueMasker = ValueMaskers.eachDigitWith("*");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("\"*****\"");
+    }
+
+    @Test
+    void eachDigitWithString() {
+        var valueMasker = ValueMaskers.eachDigitWith("Nope");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("\"NopeNopeNopeNopeNope\"");
     }
 
     @Test

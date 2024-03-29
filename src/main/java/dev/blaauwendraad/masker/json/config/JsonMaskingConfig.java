@@ -233,11 +233,6 @@ public final class JsonMaskingConfig {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");
             }
-            // as opposed to allowKeys, that can accept an empty list (i.e. mask everything)
-            // the same does not make sense for allowJsonPaths, as this would be equivalent to allowKeys
-            if (jsonPaths.isEmpty()) {
-                throw new IllegalArgumentException("At least one json path must be provided");
-            }
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);

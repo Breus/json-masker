@@ -349,12 +349,12 @@ public final class ValueMaskers {
                                 originalByte = context.getByte(encodedIndex++);
                                 switch (originalByte) {
                                     // First, ones that are mapped
-                                    case 'b' -> decodedBytes[decodedIndex] = '\b';
-                                    case 't' -> decodedBytes[decodedIndex] = '\t';
-                                    case 'n' -> decodedBytes[decodedIndex] = '\n';
-                                    case 'f' -> decodedBytes[decodedIndex] = '\f';
-                                    case 'r' -> decodedBytes[decodedIndex] = '\r';
-                                    case '"', '/', '\\' -> decodedBytes[decodedIndex] = originalByte;
+                                    case 'b' -> decodedBytes[decodedIndex++] = '\b';
+                                    case 't' -> decodedBytes[decodedIndex++] = '\t';
+                                    case 'n' -> decodedBytes[decodedIndex++] = '\n';
+                                    case 'f' -> decodedBytes[decodedIndex++] = '\f';
+                                    case 'r' -> decodedBytes[decodedIndex++] = '\r';
+                                    case '"', '/', '\\' -> decodedBytes[decodedIndex++] = originalByte;
                                     case 'u' -> {
                                         // Decode Unicode character
                                         // the copy of String#encodeUTF8_UTF16 with the only difference that it
@@ -406,14 +406,12 @@ public final class ValueMaskers {
                                             decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >> 6) & 0x3f));
                                             decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
                                         }
-                                        continue;
                                     }
                                     default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
                                 }
                             } else {
-                                decodedBytes[decodedIndex] = originalByte;
+                                decodedBytes[decodedIndex++] = originalByte;
                             }
-                            decodedIndex++;
                         }
                         decodedValue = new String(decodedBytes, 0, decodedIndex, StandardCharsets.UTF_8);
                     } else {

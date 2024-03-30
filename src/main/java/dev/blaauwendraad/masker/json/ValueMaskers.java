@@ -337,7 +337,7 @@ public final class ValueMaskers {
                 "withTextFunction (%s)".formatted(masker),
                 context -> {
                     String decodedValue;
-                    if (context.byteLength() > 0 && context.getByte(0) == '"') {
+                    if (context.getByte(0) == '"') {
                         int encodedIndex = 1; // skip opening quote
                         int valueEndIndex = context.byteLength() - 1; // skip closing quote
                         int decodedIndex = 0;

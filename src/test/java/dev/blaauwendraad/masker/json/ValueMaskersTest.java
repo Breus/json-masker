@@ -317,6 +317,11 @@ class ValueMaskersTest {
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
+        // high surrogate without low surrogate but an escape character
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\n0000", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
+
         // low surrogate without high surrogate
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uDCA9", ValueMaskers.withTextFunction(value -> value)))
                 .isInstanceOf(InvalidJsonException.class)

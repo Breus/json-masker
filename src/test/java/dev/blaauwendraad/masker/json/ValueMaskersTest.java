@@ -240,12 +240,6 @@ class ValueMaskersTest {
         }))).isEqualTo("\"/\""); // does not need to be escaped
     }
 
-    @Test
-    void withTextFunctionInvalidEscape() {
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\z", ValueMaskers.withTextFunction(value -> value)))
-                .isInstanceOf(InvalidJsonException.class);
-    }
-
     private static Stream<List<String>> unicodeCharacters() {
         // equivalent pairs of unicode characters: actual character (expected), JSON-escaped, Java-escaped
         return Stream.of(
@@ -298,30 +292,33 @@ class ValueMaskersTest {
     }
 
     @Test
+    void withTextFunctionInvalidEscape() {
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\z", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessageStartingWith("Unexpected character after '\\': 'z' at index 3");
+    }
+
+    @Test
     void withTextFunctionInvalidUnicode() {
         // high surrogate without low surrogate
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD83D", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("?");
-            return value;
-        }))).isEqualTo("\"?\"");
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                        .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // high surrogate without low surrogate but other suffix
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("?suffix");
-            return value;
-        }))).isEqualTo("\"?suffix\"");
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // low surrogate without high surrogate
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uDCA9", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("?");
-            return value;
-        }))).isEqualTo("\"?\"");
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uDCA9", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessageStartingWith("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 1");
 
         // low surrogate without high surrogate but other prefix
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("prefix?");
-            return value;
-        }))).isEqualTo("\"prefix?\"");
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessageStartingWith("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 7");
     }
 
     @Test

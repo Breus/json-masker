@@ -292,8 +292,9 @@ public final class ValueMaskers {
                                     case 'u' -> {
                                         // Decode Unicode character
                                         // the copy of String#encodeUTF8_UTF16 with the only difference that it
-                                        // converts to chars from bytes
-                                        char c = Utf8Util.unicodeToChar(
+                                        // converts hex to chars instead of bytes
+                                        int valueStartIndex = encodedIndex - 2;
+                                        char c = Utf8Util.unicodeHexToChar(
                                                 context.getByte(encodedIndex++),
                                                 context.getByte(encodedIndex++),
                                                 context.getByte(encodedIndex++),
@@ -311,7 +312,7 @@ public final class ValueMaskers {
                                                 && context.getByte(encodedIndex) == '\\'
                                                 && context.getByte(encodedIndex + 1) == 'u') {
                                                 encodedIndex += 2;
-                                                char lowSurrogate = Utf8Util.unicodeToChar(
+                                                char lowSurrogate = Utf8Util.unicodeHexToChar(
                                                         context.getByte(encodedIndex++),
                                                         context.getByte(encodedIndex++),
                                                         context.getByte(encodedIndex++),
@@ -322,7 +323,8 @@ public final class ValueMaskers {
                                                 }
                                             }
                                             if (uc < 0) {
-                                                decodedBytes[decodedIndex++] = '?';
+                                                throw context.invalidJson("Invalid surrogate pair '%s', expected '\\uXXXX\\uXXXX'"
+                                                        .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
                                             } else {
                                                 decodedBytes[decodedIndex++] = (byte) (0xf0 | ((uc >> 18)));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
@@ -337,7 +339,7 @@ public final class ValueMaskers {
                                         }
                                         continue;
                                     }
-                                    default -> throw context.invalidJson("Unexpected character after '\\': " + (char) originalByte, encodedIndex);
+                                    default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
                                 }
                             } else {
                                 decodedBytes[decodedIndex] = originalByte;

@@ -31,7 +31,10 @@ public final class Utf8Util {
         throw new IllegalArgumentException("Input byte is not using UTF-8 encoding");
     }
 
-    public static char unicodeToChar(byte b1, byte b2, byte b3, byte b4) {
+    /**
+     * Converts a 4-byte UTF-8 encoded character ('\u0000') into a char.
+     */
+    public static char unicodeHexToChar(byte b1, byte b2, byte b3, byte b4) {
         int value = Character.digit(Byte.toUnsignedInt(b1), 16);
         value = (value << 4) | Character.digit(Byte.toUnsignedInt(b2), 16);
         value = (value << 4) | Character.digit(Byte.toUnsignedInt(b3), 16);

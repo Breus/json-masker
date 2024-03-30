@@ -323,7 +323,7 @@ public final class ValueMaskers {
      *     <td>{@code { "maskMe": "sec***" }}
      *   <tr>
      *     <td>{@code { "maskMe": "Andrii \"Juice\" Pilshchykov" }}
-     *     <td>{@code value -> value.replaceAll("\\\"", "(quote)")}
+     *     <td>{@code value -> value.replaceAll("\"", "(quote)")}
      *     <td>{@code { "maskMe": "Andrii (quote)Juice(quote) Pilshchykov" }}
      * </table>
      *

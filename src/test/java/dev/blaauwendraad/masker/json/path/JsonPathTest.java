@@ -17,4 +17,15 @@ class JsonPathTest {
         Assertions.assertNull(jsonPath.getQueryArgument());
     }
 
+    @Test
+    void shouldCheckSegmentsOnEquals() {
+        JsonPath a = new JsonPath(new String[]{"a", "b"});
+        JsonPath b = new JsonPath(new String[]{"a", "b"});
+
+        Assertions.assertEquals(a, a);
+        Assertions.assertEquals(a, b);
+        Assertions.assertEquals(a.hashCode(), b.hashCode());
+        Assertions.assertNotEquals(a, null);
+    }
+
 }

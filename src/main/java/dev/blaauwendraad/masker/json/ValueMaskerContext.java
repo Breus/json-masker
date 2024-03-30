@@ -59,5 +59,13 @@ public interface ValueMaskerContext {
      */
     String asString(int fromIndex, int length);
 
+    /**
+     * Create an {@link InvalidJsonException} with the given message and index relative to the value (i.e. an index
+     * between {@code 0} and {@link ValueMaskerContext#byteLength()}).
+     *
+     * @param message error message
+     * @param index relative index where the JSON contains invalid sequence
+     * @return the exception to be thrown
+     */
     InvalidJsonException invalidJson(String message, int index);
 }

@@ -1,9 +1,9 @@
 # High-performance JSON masker
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker?style=flat-square)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster&color=green&style=flat-square)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
-[![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=green&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=green&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster&style=flat-square)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
+[![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
 JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (**block-mode**)

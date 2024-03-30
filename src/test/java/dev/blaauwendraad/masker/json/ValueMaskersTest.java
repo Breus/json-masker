@@ -213,6 +213,8 @@ class ValueMaskersTest {
                 .isEqualTo("\"not a secret\"");
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret: very much", valueMasker))
                 .isEqualTo("\"***\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("", valueMasker))
+                .isEqualTo("\"\"");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("\"12345\"");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(23456, valueMasker))

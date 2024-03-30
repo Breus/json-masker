@@ -302,33 +302,35 @@ class ValueMaskersTest {
 
     @Test
     void withTextFunctionInvalidUnicode() {
+        ValueMasker.AnyValueMasker valueMasker = ValueMaskers.withTextFunction(value -> value);
+
         // high surrogate without low surrogate
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                         .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // high surrogate followed by another high surrogate
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\\uD83D", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\\uD83D", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uD83D\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // high surrogate without low surrogate but other suffix
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // high surrogate without low surrogate but an escape character
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\n0000", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\n0000", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
 
         // low surrogate without high surrogate
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uDCA9", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uDCA9", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 1");
 
         // low surrogate without high surrogate but other prefix
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", ValueMaskers.withTextFunction(value -> value)))
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessageStartingWith("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 7");
     }

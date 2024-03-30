@@ -201,10 +201,17 @@ public final class ValueMaskers {
     /**
      * Masks a target value with the provided {@link Function}. The target value (as raw JSON literal) is passed into
      * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
-     * a JSON string the value the function will receive a JSON encoded value with the quotes as it appears in the JSON
-     * with line breaks encoded as  \n, special characters like " or \ escaped with a backslash (\).
+     * a JSON string the value the function will receive a JSON encoded value as it appears in the JSON, including
+     * the opening and closing quotes, and the value containing escaped the control characters (e.g. {@code \n},
+     * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ({@code \}), and unicode-encoded
+     * characters ({@code \}{@code uXXXX}).
      *
-     * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any JSON type), otherwise the masking will result in an invalid JSON.
+     * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any
+     * JSON type), otherwise the masking will result in an invalid JSON.
+     * If the return value is {@code null}, the target value will be replaced with {@code null} JSON literal.
+     *
+     * <p>It is strongly advised to use an equivalent function {@link ValueMaskers#withTextFunction(Function)}
+     * which operates on a decoded string values and can never produce an invalid JSON.
      *
      * <p>The table below contains a couple examples for the masking
      * <table>
@@ -219,7 +226,15 @@ public final class ValueMaskers {
      *     <td>{@code { "maskMe": "a ***" }}
      *   <tr>
      *     <td>{@code { "maskMe": 12345 }}
-     *     <td>{@code value -> value.startsWith(123) ? "0" : value}
+     *     <td>{@code value -> value.startsWith("123") ? "0" : value}
+     *     <td>{@code { "maskMe": 0 }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "12345" }}
+     *     <td>{@code value -> value.startsWith("123") ? "0" : value}
+     *     <td>{@code { "maskMe": "12345" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "12345" }}
+     *     <td>{@code value -> value.startsWith("\"123") ? "0" : value}
      *     <td>{@code { "maskMe": 0 }}
      *   <tr>
      *     <td>{@code { "maskMe": "secret" }}
@@ -249,8 +264,10 @@ public final class ValueMaskers {
      *
      * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
      * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
-     * before passing it into the function and then turn it back into a byte array for the replacement, which introduces
-     * some performance overhead.
+     * before passing it into the function and then turn it back into a byte array for the replacement,
+     * which introduces some performance overhead.
+     *
+     * @see ValueMaskers#withTextFunction(Function)
      */
     public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {
         return describe(
@@ -266,6 +283,55 @@ public final class ValueMaskers {
                 });
     }
 
+
+    /**
+     * Masks a target value with the provided {@link Function}. The target value (as textual representation of a
+     * JSON value) is passed into the function as a string regardless of the JSON type (string, numeric or a boolean).
+     * In case original value was a JSON string, the function will receive a decoded string value without the quotes.
+     *
+     * <p>A non-null return value of the provided function will be encoded into a JSON string regardless of the
+     * JSON type of the original value. Any character that MUST be escaped (as per RFC 8259, section 7) will be escaped,
+     * characters that MAY be escaped (as per RFC 8259) WILL NOT be escaped.
+     * If the return value is {@code null}, the target value will be replaced with {@code null} JSON literal.
+     *
+     * <p>The table below contains a couple examples for the masking
+     * <table>
+     *   <caption>Examples of using withTextFunction</caption>
+     *   <tr>
+     *     <th>Input JSON</th>
+     *     <th>Function</th>
+     *     <th>Masked JSON</th>
+     *   <tr>
+     *     <td>{@code { "maskMe": "a secret" }}
+     *     <td>{@code value -> value.replaceAll("secret", "***")}
+     *     <td>{@code { "maskMe": "a ***" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": 12345 }}
+     *     <td>{@code value -> value.startsWith("123") ? "0" : value}
+     *     <td>{@code { "maskMe": "0" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": 12345 }}
+     *     <td>{@code value -> value}
+     *     <td>{@code { "maskMe": "12345" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret" }}
+     *     <td>{@code value -> "***"}
+     *     <td>{@code { "maskMe": "***" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "secret value" }}
+     *     <td>{@code value -> value.substring(0, 3) + "***"}
+     *     <td>{@code { "maskMe": "sec***" }}
+     *   <tr>
+     *     <td>{@code { "maskMe": "Andrii \"Juice\" Pilshchykov" }}
+     *     <td>{@code value -> value.replaceAll("\\\"", "(quote)")}
+     *     <td>{@code { "maskMe": "Andrii (quote)Juice(quote) Pilshchykov" }}
+     * </table>
+     *
+     * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
+     * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
+     * before passing it into the function and then turn it back into a byte array for the replacement,
+     * which introduces some performance overhead.
+     */
     public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
         return describe(
                 "withTextFunction (%s)".formatted(masker),

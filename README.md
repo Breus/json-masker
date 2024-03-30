@@ -1,11 +1,10 @@
 # High-performance JSON masker
 
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
-[![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=alert_status)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=coverage)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
-[![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker?style=flat-square)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster&color=green&style=flat-square)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
+[![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=green&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=green&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
+[![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
 JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (**block-mode**)
 or, alternatively, allow only specific values to be unmasked corresponding to a set of keys while all others are
@@ -44,8 +43,8 @@ Finally, no additional third-party runtime dependencies are required to use this
   modes
 * Masking a valid JSON will always return a valid JSON
 
-Note: Since [RFC-8529](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
-are not part of an enclosed system MUST be encoded using UTF-8, the library only support UTF-8 encoding.
+Note: Since [RFC-8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
+are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
 ## JDK Compatibility
 

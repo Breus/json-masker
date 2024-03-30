@@ -31,12 +31,12 @@ public final class Utf8Util {
         throw new IllegalArgumentException("Input byte is not using UTF-8 encoding");
     }
 
-    public static int bytesToCodePoint(byte b1, byte b2, byte b3, byte b4) {
+    public static char unicodeToChar(byte b1, byte b2, byte b3, byte b4) {
         int value = Character.digit(Byte.toUnsignedInt(b1), 16);
-        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b2), 16);;
-        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b3), 16);;
-        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b4), 16);;
-        return value;
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b2), 16);
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b3), 16);
+        value = (value << 4) | Character.digit(Byte.toUnsignedInt(b4), 16);
+        return (char) value;
     }
 
     /**

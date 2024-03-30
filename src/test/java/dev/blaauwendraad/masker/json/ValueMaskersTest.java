@@ -4,9 +4,13 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Stream;
 
 class ValueMaskersTest {
     @Test
@@ -82,6 +86,11 @@ class ValueMaskersTest {
 
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("11111");
+
+        Assertions.assertThatThrownBy(() -> ValueMaskers.eachDigitWith(0))
+                .isInstanceOf(IllegalArgumentException.class);
+        Assertions.assertThatThrownBy(() -> ValueMaskers.eachDigitWith(10))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -160,6 +169,12 @@ class ValueMaskersTest {
             if (value.startsWith("\"secret:")) {
                 return "\"***\"";
             }
+            if (value.startsWith("23")) {
+                return "\"###\"";
+            }
+            if (value.equals("false")) {
+                return "\"&&&\"";
+            }
             return value;
         });
 
@@ -169,28 +184,144 @@ class ValueMaskersTest {
                 .isEqualTo("\"***\"");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("12345");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(23456, valueMasker))
+                .isEqualTo("\"###\"");
         Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
                 .isEqualTo("true");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(false, valueMasker))
+                .isEqualTo("\"&&&\"");
         Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, ValueMaskers.withRawValueFunction(value -> null)))
                 .isEqualTo("null");
     }
 
     @Test
     void withTextFunction() {
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\u2020", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("†");
+        var valueMasker = ValueMaskers.withTextFunction(value -> {
+            if (value.startsWith("secret:")) {
+                return "***";
+            }
+            if (value.startsWith("23")) {
+                return "###";
+            }
+            if (value.equals("false")) {
+                return "&&&";
+            }
             return value;
-        }))).isEqualTo("\"†\""); // doesn't have to be encoded back
+        });
 
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD800\\uDF48", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("𐍈");
-            return value;
-        }))).isEqualTo("\"𐍈\""); // doesn't have to be encoded back
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("not a secret", valueMasker))
+                .isEqualTo("\"not a secret\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret: very much", valueMasker))
+                .isEqualTo("\"***\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("\"12345\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(23456, valueMasker))
+                .isEqualTo("\"###\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
+                .isEqualTo("\"true\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(false, valueMasker))
+                .isEqualTo("\"&&&\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, ValueMaskers.withTextFunction(value -> null)))
+                .isEqualTo("null");
+    }
 
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\n", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("\n");
+    @Test
+    void withTextFunctionEscapedCharacters() {
+        String jsonEncoded = "\\b\\t\\n\\f\\r\\\"\\\\";
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(jsonEncoded, ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("\b\t\n\f\r\"\\");
             return value;
-        }))).isEqualTo("\"\\n\""); // needs to be escaped
+        }))).isEqualTo("\"" + jsonEncoded + "\""); // needs to be escaped exactly like input
+
+        String forwardSlash = "\\/";
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(forwardSlash, ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("/");
+            return value;
+        }))).isEqualTo("\"/\""); // does not need to be escaped
+    }
+
+    @Test
+    void withTextFunctionInvalidEscape() {
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\z", ValueMaskers.withTextFunction(value -> value)))
+                .isInstanceOf(InvalidJsonException.class);
+    }
+
+    private static Stream<List<String>> unicodeCharacters() {
+        // equivalent pairs of unicode characters: actual character (expected), JSON-escaped, Java-escaped
+        return Stream.of(
+                List.of("a", "\\u0061", "\u0061"),              // 1-byte character
+                List.of("ƒ", "\\u0192", "\u0192"),              // 2-byte character
+                List.of("€", "\\u20AC", "\u20AC"),              // 3-byte character
+                List.of("䀀", "\\u4000", "\u4000"),              // 3-byte character
+                List.of("𐍈", "\\uD800\\uDF48", "\uD800\uDF48"), // 4-byte character
+                List.of("𠜎", "\\uD841\\uDF0E", "\uD841\uDF0E"), // 4-byte character
+                List.of("💩", "\\uD83D\\uDCA9", "\uD83D\uDCA9")  // 4-byte character
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("unicodeCharacters")
+    void withTextFunctionUnicodeEncoded(List<String> characters) {
+        String expected = characters.get(0);
+        // equivalent pairs of unicode characters: JSON-escaped, Java-escaped, and actual character
+        for (String unicodeCharacter : characters) {
+            // single value
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(unicodeCharacter, ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(expected);
+                return value;
+            }))).isEqualTo("\"" + expected + "\"");
+
+            // double value
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(unicodeCharacter + unicodeCharacter, ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(expected + expected);
+                return value;
+            }))).isEqualTo("\"" + expected + expected + "\"");
+
+            // with prefix
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith("prefix" + unicodeCharacter, ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo("prefix" + expected);
+                return value;
+            }))).isEqualTo("\"prefix" + expected + "\"");
+
+            // with suffix
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(unicodeCharacter + "suffix", ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(expected + "suffix");
+                return value;
+            }))).isEqualTo("\"" + expected + "suffix\"");
+
+            // with prefix and suffix
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith("prefix" + unicodeCharacter + "suffix", ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo("prefix" + expected + "suffix");
+                return value;
+            }))).isEqualTo("\"prefix" + expected + "suffix\"");
+        }
+    }
+
+    @Test
+    void withTextFunctionInvalidUnicode() {
+        // high surrogate without low surrogate
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD83D", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("?");
+            return value;
+        }))).isEqualTo("\"?\"");
+
+        // high surrogate without low surrogate but other suffix
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("?suffix");
+            return value;
+        }))).isEqualTo("\"?suffix\"");
+
+        // low surrogate without high surrogate
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\uDCA9", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("?");
+            return value;
+        }))).isEqualTo("\"?\"");
+
+        // low surrogate without high surrogate but other prefix
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("prefix?");
+            return value;
+        }))).isEqualTo("\"prefix?\"");
     }
 
     @Test

@@ -118,7 +118,7 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
 
     @Override
     public InvalidJsonException invalidJson(String message, int index) {
-        return new InvalidJsonException("%s at index %s".formatted(message, index));
+        return new InvalidJsonException("'%s' at index %s".formatted(message, index));
     }
 
     public String getMaskedValue() {

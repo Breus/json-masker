@@ -272,13 +272,15 @@ public final class ValueMaskers {
                 context -> {
                     String decodedValue;
                     if (context.byteLength() > 0 && context.getByte(0) == '"') {
+                        int encodedIndex = 1; // skip opening quote
+                        int valueEndIndex = context.byteLength() - 1; // skip closing quote
                         int decodedIndex = 0;
                         byte[] decodedBytes = new byte[context.byteLength()];
-                        for (int i = 1; i < context.byteLength() - 1; i++) {
-                            byte originalByte = context.getByte(i);
+                        while (encodedIndex < valueEndIndex) {
+                            byte originalByte = context.getByte(encodedIndex++);
                             // next character is escaped, removing the backslash
                             if (originalByte == '\\') {
-                                originalByte = context.getByte(++i);
+                                originalByte = context.getByte(encodedIndex++);
                                 switch (originalByte) {
                                     // First, ones that are mapped
                                     case 'b' -> decodedBytes[decodedIndex] = '\b';
@@ -288,56 +290,54 @@ public final class ValueMaskers {
                                     case 'r' -> decodedBytes[decodedIndex] = '\r';
                                     case '"', '/', '\\' -> decodedBytes[decodedIndex] = originalByte;
                                     case 'u' -> {
-                                        i++;
                                         // Decode Unicode character
-                                        int unicodeValue = Utf8Util.bytesToCodePoint(
-                                                context.getByte(i++),
-                                                context.getByte(i++),
-                                                context.getByte(i++),
-                                                context.getByte(i++)
+                                        // the copy of String#encodeUTF8_UTF16 with the only difference that it
+                                        // converts to chars from bytes
+                                        char c = Utf8Util.unicodeToChar(
+                                                context.getByte(encodedIndex++),
+                                                context.getByte(encodedIndex++),
+                                                context.getByte(encodedIndex++),
+                                                context.getByte(encodedIndex++)
                                         );
-                                        if (Character.isHighSurrogate((char) unicodeValue)) {
-                                            // If high surrogate, verify that low surrogate exists
-                                            // and read next code unit for low surrogate
-                                            if (i < context.byteLength() - 6
-                                                && context.getByte(i++) == '\\'
-                                                && context.getByte(i++) == 'u') {
-                                                int lowSurrogate = Utf8Util.bytesToCodePoint(
-                                                        context.getByte(i++),
-                                                        context.getByte(i++),
-                                                        context.getByte(i++),
-                                                        context.getByte(i++)
+                                        if (c < 0x80) {
+                                            decodedBytes[decodedIndex++] = (byte) c;
+                                        } else if (c < 0x800) {
+                                            decodedBytes[decodedIndex++] = (byte) (0xc0 | (c >> 6));
+                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
+                                        } else if (Character.isSurrogate(c)) {
+                                            int uc = -1;
+                                            if (Character.isHighSurrogate(c)
+                                                && encodedIndex < context.byteLength() - 6
+                                                && context.getByte(encodedIndex) == '\\'
+                                                && context.getByte(encodedIndex + 1) == 'u') {
+                                                encodedIndex += 2;
+                                                char lowSurrogate = Utf8Util.unicodeToChar(
+                                                        context.getByte(encodedIndex++),
+                                                        context.getByte(encodedIndex++),
+                                                        context.getByte(encodedIndex++),
+                                                        context.getByte(encodedIndex++)
                                                 );
-                                                if (Character.isLowSurrogate((char) lowSurrogate)) {
-                                                    // Combine high and low surrogates to form Unicode code point
-                                                    unicodeValue = Character.toCodePoint((char) unicodeValue, (char) lowSurrogate);
-
-                                                } else {
-                                                    throw context.invalidJson("Missing low surrogate for high surrogate in Unicode escape sequence", i);
+                                                if (Character.isLowSurrogate(lowSurrogate)) {
+                                                    uc = Character.toCodePoint(c, lowSurrogate);
                                                 }
-                                            } else {
-                                                throw context.invalidJson("Missing low surrogate for high surrogate in Unicode escape sequence", i);
                                             }
-                                        }
-                                        // Convert Unicode code point to UTF-8 bytes
-                                        if (unicodeValue <= 0x007f) {
-                                            decodedBytes[decodedIndex++] = (byte) unicodeValue;
-                                        } else if (unicodeValue <= 0x07ff) {
-                                            decodedBytes[decodedIndex++] = (byte) (0xc0 | (unicodeValue >> 6));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeValue & 0x3f));
-                                        } else if (unicodeValue <= 0xffff) {
-                                            decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeValue >> 12));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeValue >> 6) & 0x3f));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeValue & 0x3f));
+                                            if (uc < 0) {
+                                                decodedBytes[decodedIndex++] = '?';
+                                            } else {
+                                                decodedBytes[decodedIndex++] = (byte) (0xf0 | ((uc >> 18)));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >>  6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (uc & 0x3f));
+                                            }
                                         } else {
-                                            decodedBytes[decodedIndex++] = (byte) (0xf0 | (unicodeValue >> 18));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeValue >> 12) & 0x3f));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeValue >> 6) & 0x3f));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeValue & 0x3f));
+                                            // 3 bytes, 16 bits
+                                            decodedBytes[decodedIndex++] = (byte) (0xe0 | ((c >> 12)));
+                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >>  6) & 0x3f));
+                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
                                         }
                                         continue;
                                     }
-                                    default -> throw context.invalidJson("Unexpected character after '\\': " + (char) originalByte, i);
+                                    default -> throw context.invalidJson("Unexpected character after '\\': " + (char) originalByte, encodedIndex);
                                 }
                             } else {
                                 decodedBytes[decodedIndex] = originalByte;
@@ -364,7 +364,7 @@ public final class ValueMaskers {
                                 case '\n' -> encoded.append("\\n");
                                 case '\f' -> encoded.append("\\f");
                                 case '\r' -> encoded.append("\\r");
-                                case '"', '/', '\\' -> encoded.append("\\").append(ch);
+                                case '"', '\\' -> encoded.append("\\").append(ch);
                                 default -> encoded.append(ch);
                             }
                         }

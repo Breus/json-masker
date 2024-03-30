@@ -323,6 +323,9 @@ public final class ValueMaskers {
                                                 }
                                             }
                                             if (uc < 0) {
+                                                // default String behaviour is to replace invalid surrogate pairs
+                                                // with the character '?', but from the JSON perspective,
+                                                // it's better to throw an exception
                                                 throw context.invalidJson("Invalid surrogate pair '%s', expected '\\uXXXX\\uXXXX'"
                                                         .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
                                             } else {

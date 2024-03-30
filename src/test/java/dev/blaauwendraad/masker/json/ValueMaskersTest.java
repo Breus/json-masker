@@ -295,7 +295,9 @@ class ValueMaskersTest {
 
     @Test
     void withTextFunctionInvalidEscape() {
-        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\z", ValueMaskers.withTextFunction(value -> value)))
+        ValueMasker.AnyValueMasker valueMasker = ValueMaskers.withTextFunction(value -> value);
+
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\z", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessage("Unexpected character after '\\': 'z' at index 3");
     }

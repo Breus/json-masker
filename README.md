@@ -7,13 +7,12 @@
 [![Sonar Reliability](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Security](https://sonarcloud.io/api/project_badges/measure?project=Breus_json-masker&metric=security_rating)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (*
-*block-mode**)
+JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (**block-mode**)
 or, alternatively, allow only specific values to be unmasked corresponding to a set of keys while all others are
 masked (**allow-mode**).
 
 The library provides modern and convenient Java APIs which offers a wide range of masking customizations.
-Furthermore, the implementation is focused on maximum (time) performance and minimal heap memory allocations to minimize
+Furthermore, the implementation is focused on maximizing the throughput and minimizing heap memory allocations to minimize
 GC pressure.
 
 Finally, no additional third-party runtime dependencies are required to use this library.

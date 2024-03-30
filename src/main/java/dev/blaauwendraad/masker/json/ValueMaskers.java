@@ -397,13 +397,13 @@ public final class ValueMaskers {
                                             } else {
                                                 decodedBytes[decodedIndex++] = (byte) (0xf0 | (uc >> 18));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >>  6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 6) & 0x3f));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (uc & 0x3f));
                                             }
                                         } else {
                                             // 3 bytes, 16 bits
                                             decodedBytes[decodedIndex++] = (byte) (0xe0 | (c >> 12));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >>  6) & 0x3f));
+                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >> 6) & 0x3f));
                                             decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
                                         }
                                         continue;

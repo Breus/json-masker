@@ -267,6 +267,13 @@ class ValueMaskersTest {
                 return value;
             }))).isEqualTo("\"" + expected + "\"");
 
+            // lowercase hex value, isn't really allowed by JSON specification, but Java supports that in Character.digit
+            // i.e. \\u20AC and \\u20ac both decoded to the same value €
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(unicodeCharacter.toLowerCase(), ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(expected);
+                return value;
+            }))).isEqualTo("\"" + expected + "\"");
+
             // double value
             Assertions.assertThat(ByteValueMaskerContext.maskStringWith(unicodeCharacter + unicodeCharacter, ValueMaskers.withTextFunction(value -> {
                 Assertions.assertThat(value).isEqualTo(expected + expected);
@@ -309,32 +316,37 @@ class ValueMaskersTest {
         // high surrogate without low surrogate
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                        .hasMessage("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
+                        .hasMessage("Invalid surrogate pair '\\uD83D' at index 1");
 
         // high surrogate followed by another high surrogate
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\\uD83D", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                .hasMessage("Invalid surrogate pair '\\uD83D\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
+                .hasMessage("Invalid surrogate pair '\\uD83D\\uD83D' at index 1");
 
         // high surrogate without low surrogate but other suffix
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83Dsuffix", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                .hasMessage("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
+                .hasMessage("Invalid surrogate pair '\\uD83D' at index 1");
 
         // high surrogate without low surrogate but an escape character
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uD83D\\n0000", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                .hasMessage("Invalid surrogate pair '\\uD83D', expected '\\uXXXX\\uXXXX' at index 1");
+                .hasMessage("Invalid surrogate pair '\\uD83D' at index 1");
 
         // low surrogate without high surrogate
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uDCA9", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                .hasMessage("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 1");
+                .hasMessage("Invalid surrogate pair '\\uDCA9' at index 1");
 
         // low surrogate without high surrogate but other prefix
         Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("prefix\\uDCA9", valueMasker))
                 .isInstanceOf(InvalidJsonException.class)
-                .hasMessage("Invalid surrogate pair '\\uDCA9', expected '\\uXXXX\\uXXXX' at index 7");
+                .hasMessage("Invalid surrogate pair '\\uDCA9' at index 7");
+
+        // unicode character uses lowercase hex value
+        Assertions.assertThatThrownBy(() -> ByteValueMaskerContext.maskStringWith("\\uXXXX", valueMasker))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessage("Invalid hex character 'X' at index 1");
     }
 
     @Test

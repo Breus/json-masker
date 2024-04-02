@@ -360,51 +360,55 @@ public final class ValueMaskers {
                                         // the copy of String#encodeUTF8_UTF16 with the only difference that it
                                         // converts hex to chars instead of bytes
                                         int valueStartIndex = encodedIndex - 2;
-                                        char c = Utf8Util.unicodeHexToChar(
-                                                context.getByte(encodedIndex++),
-                                                context.getByte(encodedIndex++),
-                                                context.getByte(encodedIndex++),
-                                                context.getByte(encodedIndex++)
-                                        );
-                                        if (c < 0x80) {
-                                            decodedBytes[decodedIndex++] = (byte) c;
-                                        } else if (c < 0x800) {
-                                            decodedBytes[decodedIndex++] = (byte) (0xc0 | (c >> 6));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
-                                        } else if (Character.isSurrogate(c)) {
-                                            int uc = -1;
-                                            if (Character.isHighSurrogate(c)
-                                                && encodedIndex < context.byteLength() - 6
-                                                && context.getByte(encodedIndex) == '\\'
-                                                && context.getByte(encodedIndex + 1) == 'u') {
-                                                encodedIndex += 2;
-                                                char lowSurrogate = Utf8Util.unicodeHexToChar(
-                                                        context.getByte(encodedIndex++),
-                                                        context.getByte(encodedIndex++),
-                                                        context.getByte(encodedIndex++),
-                                                        context.getByte(encodedIndex++)
-                                                );
-                                                if (Character.isLowSurrogate(lowSurrogate)) {
-                                                    uc = Character.toCodePoint(c, lowSurrogate);
+                                        try {
+                                            char c = Utf8Util.unicodeHexToChar(
+                                                    context.getByte(encodedIndex++),
+                                                    context.getByte(encodedIndex++),
+                                                    context.getByte(encodedIndex++),
+                                                    context.getByte(encodedIndex++)
+                                            );
+                                            if (c < 0x80) {
+                                                decodedBytes[decodedIndex++] = (byte) c;
+                                            } else if (c < 0x800) {
+                                                decodedBytes[decodedIndex++] = (byte) (0xc0 | (c >> 6));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
+                                            } else if (Character.isSurrogate(c)) {
+                                                int uc = -1;
+                                                if (Character.isHighSurrogate(c)
+                                                    && encodedIndex < context.byteLength() - 6
+                                                    && context.getByte(encodedIndex) == '\\'
+                                                    && context.getByte(encodedIndex + 1) == 'u') {
+                                                    encodedIndex += 2;
+                                                    char lowSurrogate = Utf8Util.unicodeHexToChar(
+                                                            context.getByte(encodedIndex++),
+                                                            context.getByte(encodedIndex++),
+                                                            context.getByte(encodedIndex++),
+                                                            context.getByte(encodedIndex++)
+                                                    );
+                                                    if (Character.isLowSurrogate(lowSurrogate)) {
+                                                        uc = Character.toCodePoint(c, lowSurrogate);
+                                                    }
                                                 }
-                                            }
-                                            if (uc < 0) {
-                                                // default String behaviour is to replace invalid surrogate pairs
-                                                // with the character '?', but from the JSON perspective,
-                                                // it's better to throw an exception
-                                                throw context.invalidJson("Invalid surrogate pair '%s', expected '\\uXXXX\\uXXXX'"
-                                                        .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
+                                                if (uc < 0) {
+                                                    // default String behaviour is to replace invalid surrogate pairs
+                                                    // with the character '?', but from the JSON perspective,
+                                                    // it's better to throw an exception
+                                                    throw context.invalidJson("Invalid surrogate pair '%s'"
+                                                            .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
+                                                } else {
+                                                    decodedBytes[decodedIndex++] = (byte) (0xf0 | (uc >> 18));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 6) & 0x3f));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | (uc & 0x3f));
+                                                }
                                             } else {
-                                                decodedBytes[decodedIndex++] = (byte) (0xf0 | (uc >> 18));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 6) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (uc & 0x3f));
+                                                // 3 bytes, 16 bits
+                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (c >> 12));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >> 6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
                                             }
-                                        } else {
-                                            // 3 bytes, 16 bits
-                                            decodedBytes[decodedIndex++] = (byte) (0xe0 | (c >> 12));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                                            decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
+                                        } catch (IllegalArgumentException e) {
+                                            throw context.invalidJson(e.getMessage(), valueStartIndex);
                                         }
                                     }
                                     default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
@@ -444,4 +448,5 @@ public final class ValueMaskers {
                     context.replaceBytes(0, context.byteLength(), replacementBytes, 1);
                 });
     }
+
 }

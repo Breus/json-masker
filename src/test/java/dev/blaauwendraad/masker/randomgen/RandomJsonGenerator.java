@@ -16,6 +16,8 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class RandomJsonGenerator {
+
+    public static final long STATIC_RANDOM_SEED = 1285756302517652226L;
     private final RandomJsonGeneratorConfig config;
 
     private enum NodeType {

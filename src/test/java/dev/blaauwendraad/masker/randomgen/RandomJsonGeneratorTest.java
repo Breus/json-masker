@@ -78,7 +78,7 @@ public class RandomJsonGeneratorTest {
         RandomJsonGenerator randomJsonGenerator = new RandomJsonGenerator(
                 RandomJsonGeneratorConfig.builder()
                         .setTargetJsonSizeBytes(10 * 1024)
-                        .setRandomSeed(1285756302517652226L)
+                        .setRandomSeed(RandomJsonGenerator.STATIC_RANDOM_SEED)
                         .createConfig()
         );
 
@@ -107,13 +107,13 @@ public class RandomJsonGeneratorTest {
         RandomJsonGenerator randomJsonGenerator1 = new RandomJsonGenerator(
                 RandomJsonGeneratorConfig.builder()
                         .setTargetJsonSizeBytes(10 * 1024)
-                        .setRandomSeed(1285756302517652226L)
+                        .setRandomSeed(RandomJsonGenerator.STATIC_RANDOM_SEED)
                         .createConfig()
         );
         RandomJsonGenerator randomJsonGenerator2 = new RandomJsonGenerator(
                 RandomJsonGeneratorConfig.builder()
                         .setTargetJsonSizeBytes(10 * 1024 + 100)
-                        .setRandomSeed(1285756302517652226L)
+                        .setRandomSeed(RandomJsonGenerator.STATIC_RANDOM_SEED)
                         .createConfig()
         );
 

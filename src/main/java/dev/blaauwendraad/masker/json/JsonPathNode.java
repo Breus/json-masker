@@ -1,14 +1,14 @@
 package dev.blaauwendraad.masker.json;
 
 /**
- * A mutable reference to a sequence of bytes in <code>dev.blaauwendraad.masker.json.MaskingState#message</code>.
- * It is used to represent json path nodes.
+ * A mutable reference to a sequence of bytes in {@link MaskingState#getMessage()}.
+ * It is used to represent JSONPath nodes.
  * <p>
  * There are two types of nodes:
  * <ul>
- *     <li>{@link Node} - a reference to a node in a json path, where <code>offset</code> denotes the start index of a
+ *     <li>{@link Node} - a reference to a node in a JSONPath, where <code>offset</code> denotes the start index of a
  *     segment in the message and <code>length</code> denotes the length of a segment in the message</li>
- *     <li>{@link Array} - a reference to an array in a json path. Only wildcard indexes are supported.</li>
+ *     <li>{@link Array} - a reference to an array in a JSONPath. Only wildcard indexes are supported.</li>
  * </ul>
  */
 sealed interface JsonPathNode permits JsonPathNode.Array, JsonPathNode.Node {

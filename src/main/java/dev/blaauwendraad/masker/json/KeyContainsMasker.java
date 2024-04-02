@@ -33,7 +33,7 @@ import java.util.Collections;
 
     /**
      * Masks the values in the given input for all values having keys corresponding to any of the provided target keys.
-     * This implementation is optimized for multiple target keys. Since RFC-8259 dictates that JSON exchanges between
+     * This implementation is optimized for multiple target keys. Since RFC 8259 dictates that JSON exchanges between
      * systems that are not part of an enclosed system MUST be encoded using UTF-8, this method assumes UTF-8 encoding.
      *
      * @param input the input message for which values might be masked
@@ -46,7 +46,7 @@ import java.util.Collections;
 
             KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
             if (maskingState.jsonPathEnabled()) {
-                // Check for "$" json path key.
+                // Check for "$" JSONPath key.
                 keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
                         maskingState.getMessage(),
                         -1,

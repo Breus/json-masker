@@ -31,6 +31,31 @@ class Utf8UtilTest {
                 .isThrownBy(() -> Utf8Util.getCodePointByteLength((byte) (b << 1)));
     }
 
+    @Test
+    void unicodeHexToChar() {
+        Assertions.assertThat(Utf8Util.unicodeHexToChar((byte) '0', (byte) '0', (byte) '2', (byte) '0'))
+                .isEqualTo(' ');
+        Assertions.assertThat(Utf8Util.unicodeHexToChar((byte) '0', (byte) '0', (byte) '3', (byte) '0'))
+                .isEqualTo('0');
+        Assertions.assertThat(Utf8Util.unicodeHexToChar((byte) '0', (byte) '0', (byte) '4', (byte) '0'))
+                .isEqualTo('@');
+    }
+
+    @Test
+    void unicodeHexToCharInvalid() {
+        Assertions.assertThatThrownBy(() -> Utf8Util.unicodeHexToChar((byte) 35, (byte) '0', (byte) '2', (byte) '0'))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid hex character '#'");
+
+        Assertions.assertThatThrownBy(() -> Utf8Util.unicodeHexToChar((byte) 61, (byte) '0', (byte) '2', (byte) '0'))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid hex character '='");
+
+        Assertions.assertThatThrownBy(() -> Utf8Util.unicodeHexToChar((byte) 71, (byte) '0', (byte) '2', (byte) '0'))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid hex character 'G'");
+    }
+
     @ParameterizedTest
     @MethodSource("unicodeCharactersLength")
     void unicodeCharacters(String character, int utf8ByteLength) {

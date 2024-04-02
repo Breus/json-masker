@@ -54,6 +54,10 @@ class Utf8UtilTest {
         Assertions.assertThatThrownBy(() -> Utf8Util.unicodeHexToChar((byte) 71, (byte) '0', (byte) '2', (byte) '0'))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid hex character 'G'");
+
+        Assertions.assertThatThrownBy(() -> Utf8Util.unicodeHexToChar((byte) 103, (byte) '0', (byte) '2', (byte) '0'))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid hex character 'g'");
     }
 
     @ParameterizedTest

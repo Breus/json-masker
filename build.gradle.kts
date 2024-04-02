@@ -12,6 +12,9 @@ plugins {
 }
 
 description = "High-performance JSON masker in Java with no runtime dependencies"
+if (version == "unspecified") {
+    version = "0.1.0-SNAPSHOT"
+}
 
 group = "dev.blaauwendraad"
 

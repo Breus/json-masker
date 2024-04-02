@@ -21,7 +21,7 @@ final class MaskingState implements ValueMaskerContext {
     private int replacementOperationsTotalDifference = 0;
 
     /**
-     * Current json path is represented by a dequeue of segment references.
+     * Current JSONPath is represented by a dequeue of segment references.
      */
     private final Deque<JsonPathNode> currentJsonPath;
 
@@ -177,7 +177,7 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Returns the iterator over the json path component references from head to tail
+     * Returns the iterator over the JSONPath component references from head to tail
      */
     Iterator<JsonPathNode> getCurrentJsonPath() {
         if (currentJsonPath != null) {

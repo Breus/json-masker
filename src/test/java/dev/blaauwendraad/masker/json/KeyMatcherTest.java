@@ -54,7 +54,7 @@ final class KeyMatcherTest {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
         byte[] bytes = "maskMe".getBytes(StandardCharsets.UTF_8);
         byte[] bytesWithPadding = """
-                {"maskMe": "some value"}
+                {"maskMe": "secret"}
                 """.strip().getBytes(StandardCharsets.UTF_8);
 
         assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator())).isNotNull();
@@ -166,7 +166,7 @@ final class KeyMatcherTest {
         assertThat(keyMatcher.getMaskConfigIfMatched(
                         bytes,
                         0,
-                        0, // skip regular key matching
+                        -1, // skip regular key matching
                         List.of(
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
@@ -178,7 +178,7 @@ final class KeyMatcherTest {
         assertThat(keyMatcher.getMaskConfigIfMatched(
                         bytes,
                         0,
-                        0, // skip regular key matching
+                        -1, // skip regular key matching
                         List.of(
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
@@ -190,7 +190,7 @@ final class KeyMatcherTest {
         assertThat(keyMatcher.getMaskConfigIfMatched(
                         bytes,
                         0,
-                        0, // skip regular key matching
+                        -1, // skip regular key matching
                         List.of(
                                 new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
                                 new JsonPathNode.Array(),
@@ -206,6 +206,78 @@ final class KeyMatcherTest {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
         assertThatConfig(keyMatcher, "mask").isNull();
         assertThatConfig(keyMatcher, "maskMe").isNotNull();
+    }
+
+    @Test
+    void shouldNotMatchJsonPathPrefix() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.maskMe")).build());
+        String json = """
+                {"maskMe":"secret"}
+                """;
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 4)).iterator() // $.mask
+                )
+        )
+                .isNull();
+
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 6)).iterator() // $.maskMe
+                )
+        )
+                .isNotNull();
+    }
+
+    @Test
+    void shouldReturnMaskingConfigForJsonPathInAllowMode() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowJsonPaths(Set.of("$.allowMe"))
+                .maskJsonPaths(Set.of("$.maskMeLikeCIA"), KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+
+        var json = """
+                {"allowMe":"value","maskMe":"secret","maskMeLikeCIA":"secret"}
+                """;
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 7)).iterator() // $.allowMe
+                )
+        )
+                .isNull();
+
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(20, 6)).iterator() // $.maskMe
+                )
+        )
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
+                .isEqualTo("\"***\"");
+
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(38, 13)).iterator() // $.maskMeLikeCIA
+                )
+        )
+                .isNotNull()
+                .extracting(KeyMaskingConfig::getStringValueMasker)
+                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
+                .isEqualTo("\"[redacted]\"");
     }
 
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {

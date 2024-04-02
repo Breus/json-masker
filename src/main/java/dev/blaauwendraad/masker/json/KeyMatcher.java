@@ -136,7 +136,7 @@ final class KeyMatcher {
     public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathNode> jsonPath) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
-            // check json path first, as it's more specific
+            // check JSONPath first, as it's more specific
             TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
             // if found - mask with this config
             // if not found - do not mask
@@ -151,7 +151,7 @@ final class KeyMatcher {
             }
             return null;
         } else {
-            // check json path first, as it's more specific
+            // check JSONPath first, as it's more specific
             TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
             // if found and is not negativeMatch - do not mask
             // if found and is negative match - mask, but with a specific config
@@ -236,7 +236,7 @@ final class KeyMatcher {
                 // only wildcard indexes are supported
                 return null;
             } else {
-                throw new IllegalStateException("Unknown json path segment reference type " + jsonPathSegmentReference.getClass());
+                throw new IllegalStateException("Unknown JSONPath segment reference type " + jsonPathSegmentReference.getClass());
             }
         }
 

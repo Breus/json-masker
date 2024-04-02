@@ -39,11 +39,11 @@ Finally, no additional third-party runtime dependencies are required to use this
   Java object it was serialized from
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
-* Limited support for JsonPATH masking in both  **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`)
+* Limited support for JSONPath masking in both  **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`)
   modes
 * Masking a valid JSON will always return a valid JSON
 
-Note: Since [RFC-8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
+Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
 ## JDK Compatibility
@@ -66,7 +66,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// block-mode, JsonPATH
+// block-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskJsonPaths(Set.of("$.email", "$.nested.iban", "$.organization.*.name"))
@@ -80,7 +80,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-// allow-mode, JsonPATH
+// allow-mode, JSONPath
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .allowJsonPaths(Set.of("$.id", "$.clients.*.phone", "$.nested.name"))
@@ -88,12 +88,12 @@ var jsonMasker = JsonMasker.getMasker(
 );
 ```
 
-Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JsonPATH or mix keys and JSON
+Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSONPath or mix keys and JSON
 paths.
 
 > [!NOTE]
 > Whenever a simple key (`maskKeys(Set.of("email", "iban"))`) is specified, it is going to be masked recursively
-> regardless of the nesting, whereas using a JsonPATH (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only
+> regardless of the nesting, whereas using a JSONPath (`maskJsonPaths(Set.of("$.email", "$.iban"))`) would only
 > mask those keys on the top level JSON
 
 After creating the `JsonMasker` instance, it can be used to mask a JSON as following:
@@ -308,11 +308,11 @@ String maskedJson = jsonMasker.mask(json);
 }
 ```
 
-### Masking with JsonPATH
+### Masking with JSONPath
 
-To have more control over the nesting, JsonPATH can be used to specify the keys that needs to be masked (allowed).
+To have more control over the nesting, JSONPath can be used to specify the keys that needs to be masked (allowed).
 
-The following JsonPATH features are not supported:
+The following JSONPath features are not supported:
 
 * Descendant segments.
 * Child segments.
@@ -326,8 +326,8 @@ The following JsonPATH features are not supported:
 The library also imposes a number of additional restrictions:
 
 * Numbers as key names are disallowed.
-* JsonPATH keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
-* JsonPATH must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
+* JSONPath keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
+* JSONPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
 
 #### Usage
 
@@ -590,7 +590,7 @@ String maskedJson = jsonMasker.mask(json);
 > When defining a config for the specific key and value of that key is an `object` or an `array`, the config will apply
 > recursively to all nested keys and values, unless the nested key(s) defines its own masking configuration.
 >
-> If config is attached to a JsonPATH it has a precedence over a regular key.
+> If config is attached to a JSONPath it has a precedence over a regular key.
 
 #### Input
 

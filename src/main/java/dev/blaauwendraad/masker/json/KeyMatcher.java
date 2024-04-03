@@ -212,6 +212,7 @@ final class KeyMatcher {
      * @param keyLength the length of the segment.
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
      */
+    @CheckForNull
     public TrieNode traverseJsonPathSegment(byte[] bytes, @CheckForNull final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;

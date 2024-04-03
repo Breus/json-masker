@@ -341,6 +341,13 @@ public final class ValueMaskers {
                         int encodedIndex = 1; // skip opening quote
                         int valueEndIndex = context.byteLength() - 1; // skip closing quote
                         int decodedIndex = 0;
+                        // the length of decodedBytes is guaranteed to be lower or equal to the length
+                        // of the encoded bytes sequence:
+                        // 1. for every encoded character (2 bytes), the output is the character without escape - 1 byte
+                        // 2. for every unicode encoded character (6 bytes), the output character is within 1-3 bytes
+                        // 3. for the pair of unicode encoded surrogates (12 bytes), the output is always 4 bytes
+                        // which means that if any escape is present, the decodedBytes will have some null characters
+                        // at the tail, which are cut from the resulting string
                         byte[] decodedBytes = new byte[context.byteLength()];
                         while (encodedIndex < valueEndIndex) {
                             byte originalByte = context.getByte(encodedIndex++);

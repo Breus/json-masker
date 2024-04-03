@@ -2,12 +2,10 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
+import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,18 +19,19 @@ final class MaskingState implements ValueMaskerContext {
     private int replacementOperationsTotalDifference = 0;
 
     /**
-     * Current JSONPath is represented by a dequeue of segment references.
+     * Current JSONPath is represented by a stack of segment references.
+     * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    private final Deque<JsonPathNode> currentJsonPath;
+    private KeyMatcher.TrieNode[] currentJsonPath = null;
+    private int currentJsonPathIndex = -1;
+    private int currentJsonPathCapacity = 100;
 
     private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new ArrayDeque<>();
-        } else {
-            currentJsonPath = null;
+            currentJsonPath = new KeyMatcher.TrieNode[currentJsonPathCapacity];
         }
     }
 
@@ -147,23 +146,14 @@ final class MaskingState implements ValueMaskerContext {
         return currentJsonPath != null;
     }
 
-    /**
-     * Expands current jsonpath with a new "key" segment.
-     * @param start the index of a new segment start in <code>message</code>
-     * @param offset the length of a new segment.
-     */
-    void expandCurrentJsonPath(int start, int offset) {
+    void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Node(start, offset));
-        }
-    }
-
-    /**
-     * Expands current jsonpath with a new array segment.
-     */
-    void expandCurrentJsonPathWithArray() {
-        if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Array());
+            currentJsonPath[++currentJsonPathIndex] = trieNode;
+            if (currentJsonPathIndex == currentJsonPathCapacity) {
+                // resize
+                currentJsonPathCapacity *= 2;
+                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPathCapacity);
+            }
         }
     }
 
@@ -172,18 +162,18 @@ final class MaskingState implements ValueMaskerContext {
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
-            currentJsonPath.pop();
+            currentJsonPath[currentJsonPathIndex--] = null;
         }
     }
 
     /**
-     * Returns the iterator over the JSONPath component references from head to tail
+     * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
-    Iterator<JsonPathNode> getCurrentJsonPath() {
-        if (currentJsonPath != null) {
-            return currentJsonPath.descendingIterator();
+    public KeyMatcher.TrieNode getCurrentJsonPathNode() {
+        if (currentJsonPath != null && currentJsonPathIndex != -1) {
+            return currentJsonPath[currentJsonPathIndex];
         } else {
-            return Collections.emptyIterator();
+            return null;
         }
     }
 

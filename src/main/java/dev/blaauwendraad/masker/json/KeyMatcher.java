@@ -5,7 +5,6 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 
 import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 
 /**
  * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
@@ -133,14 +132,14 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, Iterator<? extends JsonPathNode> jsonPath) {
+    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @CheckForNull TrieNode currentJsonPathNode) {
         // first search by key
         if (maskingConfig.isInMaskMode()) {
             // check JSONPath first, as it's more specific
-            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
+            TrieNode node = currentJsonPathNode;
             // if found - mask with this config
             // if not found - do not mask
-            if (node != null && !node.negativeMatch) {
+            if (node != null && node.endOfWord && !node.negativeMatch) {
                 return node.keyMaskingConfig;
             } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
@@ -152,11 +151,11 @@ final class KeyMatcher {
             return null;
         } else {
             // check JSONPath first, as it's more specific
-            TrieNode node = searchForJsonPathKeyNode(bytes, jsonPath);
+            TrieNode node = currentJsonPathNode;
             // if found and is not negativeMatch - do not mask
             // if found and is negative match - mask, but with a specific config
             // if not found - mask with default config
-            if (node != null) {
+            if (node != null && node.endOfWord) {
                 if (node.negativeMatch) {
                     return node.keyMaskingConfig;
                 }
@@ -199,52 +198,35 @@ final class KeyMatcher {
     }
 
     @CheckForNull
-    private TrieNode searchForJsonPathKeyNode(byte[] bytes, Iterator<? extends JsonPathNode> jsonPath) {
-        TrieNode node = root;
-        node = node.children['$' + BYTE_OFFSET];
-        if (node == null) {
+    public TrieNode getJsonPathRootNode() {
+        return root.children['$' + BYTE_OFFSET];
+    }
+
+    /**
+     * Traverses the trie to the next JSONPath segment after {@code begin} node.
+     *
+     * @return the trie node where the segment ends
+     */
+    public TrieNode traverseJsonPathSegment(byte[] bytes, @CheckForNull final TrieNode begin, int keyOffset, int keyLength) {
+        if (begin == null) {
             return null;
         }
-        if (node.endOfWord) {
-            return node;
-        }
-        while (jsonPath.hasNext()) {
-            node = node.children['.' + BYTE_OFFSET];
-            if (node == null) {
-                return null;
-            }
-            JsonPathNode jsonPathSegmentReference = jsonPath.next();
-            TrieNode wildcardLookAhead = node.children['*' + BYTE_OFFSET];
-            if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.children['.' + BYTE_OFFSET] != null)) {
-                node = wildcardLookAhead;
-                if (node.endOfWord) {
-                    return node;
-                }
-                continue;
-            }
-            if (jsonPathSegmentReference instanceof JsonPathNode.Node jsonPathNode) {
-                int keyOffset = jsonPathNode.getOffset();
-                int keyLength = jsonPathNode.getLength();
-                for (int i = keyOffset; i < keyOffset + keyLength; i++) {
-                    int b = bytes[i];
-                    node = node.children[b + BYTE_OFFSET];
-                    if (node == null) {
-                        return null;
-                    }
-                }
-            } else if (jsonPathSegmentReference instanceof JsonPathNode.Array) {
-                // only wildcard indexes are supported
-                return null;
-            } else {
-                throw new IllegalStateException("Unknown JSONPath segment reference type " + jsonPathSegmentReference.getClass());
-            }
-        }
-
-        if (!node.endOfWord) {
+        TrieNode current = begin.children['.' + BYTE_OFFSET];
+        if (current == null) {
             return null;
         }
-
-        return node;
+        TrieNode wildcardLookAhead = current.children['*' + BYTE_OFFSET];
+        if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.children['.' + BYTE_OFFSET] != null)) {
+            return wildcardLookAhead;
+        }
+        for (int i = keyOffset; i < keyOffset + keyLength; i++) {
+            int b = bytes[i];
+            current = current.children[b + BYTE_OFFSET];
+            if (current == null) {
+                return null;
+            }
+        }
+        return current;
     }
 
     /**
@@ -252,7 +234,7 @@ final class KeyMatcher {
      * A padding of 128 is used to store references to the next positive and negative bytes (which range from -128 to
      * 128, hence the padding).
      */
-    private static class TrieNode {
+    static class TrieNode {
         private final TrieNode[] children = new TrieNode[256];
         /**
          * A marker that the character indicates that the key ends at this node.

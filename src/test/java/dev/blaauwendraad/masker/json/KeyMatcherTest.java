@@ -8,6 +8,8 @@ import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -55,8 +57,8 @@ final class KeyMatcherTest {
                 {"maskMe": "secret"}
                 """.strip().getBytes(StandardCharsets.UTF_8);
 
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null)).isNotNull();
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, null)).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, Collections.emptyIterator())).isNotNull();
     }
 
     @Test
@@ -110,16 +112,28 @@ final class KeyMatcherTest {
                 {"a":{"b":1,"c":2}}
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathNode.Node(indexOf(bytes, 'b'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        0, // skip regular key matching
+                        List.of(
+                                new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathNode.Node(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNull();
     }
 
     @Test
@@ -149,24 +163,42 @@ final class KeyMatcherTest {
                 }
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'd'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(
+                                new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathNode.Array(),
+                                new JsonPathNode.Node(indexOf(bytes, 'b'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(
+                                new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathNode.Array(),
+                                new JsonPathNode.Node(indexOf(bytes, 'c'), 1)
+                        ).iterator()
+                )
+        )
+                .isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(
+                                new JsonPathNode.Node(indexOf(bytes, 'a'), 1),
+                                new JsonPathNode.Array(),
+                                new JsonPathNode.Node(indexOf(bytes, 'd'), 1)
+                        ).iterator()
+                )
+        )
+                .isNull();
     }
 
     @Test
@@ -183,14 +215,23 @@ final class KeyMatcherTest {
                 {"maskMe":"secret"}
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 4)).iterator() // $.mask
+                )
+        )
+                .isNull();
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 4);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 6)).iterator() // $.maskMe
+                )
+        )
+                .isNotNull();
     }
 
     @Test
@@ -205,22 +246,34 @@ final class KeyMatcherTest {
                 {"allowMe":"value","maskMe":"secret","maskMeLikeCIA":"secret"}
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(2, 7)).iterator() // $.allowMe
+                )
+        )
+                .isNull();
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 7);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 20, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(20, 6)).iterator() // $.maskMe
+                )
+        )
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
                 .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
                 .isEqualTo("\"***\"");
 
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 38, 13);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
+        assertThat(keyMatcher.getMaskConfigIfMatched(
+                        bytes,
+                        0,
+                        -1, // skip regular key matching
+                        List.of(new JsonPathNode.Node(38, 13)).iterator() // $.maskMeLikeCIA
+                )
+        )
                 .isNotNull()
                 .extracting(KeyMaskingConfig::getStringValueMasker)
                 .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
@@ -229,7 +282,7 @@ final class KeyMatcherTest {
 
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
-        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null));
+        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, Collections.emptyIterator()));
     }
 
     // utility to find specific char in the array, must not be duplicated

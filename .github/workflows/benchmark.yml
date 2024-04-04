@@ -39,10 +39,25 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Setup async-profiler
+        run: |
+          mkdir -p /usr/local/async-profiler \
+            && curl -s -L "https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-x64.tar.gz" \
+            | tar -xz -C /usr/local/async-profiler --strip-components=1
+            
+          echo "async-profiler has been installed into /usr/local/async-profiler"
+          /usr/local/async-profiler/bin/asprof --version
+          
+          echo "Enabling perf events"
+          sysctl kernel.perf_event_paranoid=1
+          sysctl kernel.kptr_restrict=0
+          
+          echo "Done"
+
       - name: Run benchmarks (pull-request)
         working-directory: benchmark-pull-request
         run: |
-          ./gradlew jmh -PjmhShort
+          ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=/usr/local/async-profiler/lib/libasyncProfiler.so
           echo '> [!NOTE]' >> ${{ env.COMMENT_FILE }}
           echo '> These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on more stable machine before making any conclusions!' >> ${{ env.COMMENT_FILE }}
           echo '### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})' >> ${{ env.COMMENT_FILE }}
@@ -53,7 +68,7 @@ jobs:
       - name: Run benchmarks (master)
         working-directory: benchmark-master
         run: |
-          ./gradlew jmh -PjmhShort
+          ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=/usr/local/async-profiler/lib/libasyncProfiler.so
           echo '### Benchmark results (${{ github.base_ref }}, ${{ steps.get-sha.outputs.sha }})' >> ${{ env.COMMENT_FILE }}
           echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
@@ -74,3 +89,14 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: ${{ env.COMMENT_FILE }}
           edit-mode: replace
+
+      - name: Archive async-profiler results (pull-request)
+        working-directory: benchmark-pull-request
+        run: |
+          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
+
+      - name: Upload Artifact (pull-request)
+        uses: actions/upload-artifact@v3
+        with:
+          name: async-profiler
+          path: benchmark-pull-request/async-profiler.tar.gz

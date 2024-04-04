@@ -233,9 +233,6 @@ public final class JsonMaskingConfig {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");
             }
-            if (jsonPaths.contains("$")) {
-                throw new IllegalArgumentException("Root node JSONPath is not allowed in ALLOW mode");
-            }
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);

@@ -87,15 +87,15 @@ jobs:
           > These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on more stable machine before making any conclusions!
         
           ### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})
-          ```text
-          $(cat build/results/jmh/results.txt)
-          ```
+          \`\`\`text
+          $(cat  benchmark-pull-request/build/results/jmh/results.txt)
+          \`\`\`
           Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }})
           
           ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-sha.outputs.sha }})
-          ```text
-          $(cat build/results/jmh/results.txt)
-          ```
+          \`\`\`text
+          $(cat benchmark-master/build/results/jmh/results.txt)
+          \`\`\`
           Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }})
           EOF
 

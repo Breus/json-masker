@@ -4,9 +4,10 @@ import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(byte[])}
@@ -22,16 +23,16 @@ final class MaskingState implements ValueMaskerContext {
      * Current JSONPath is represented by a stack of segment references.
      * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    private KeyMatcher.TrieNode[] currentJsonPath = null;
-    private int currentJsonPathIndex = -1;
-    private int currentJsonPathCapacity = 100;
+    private final ArrayDeque<Optional<KeyMatcher.TrieNode>> currentJsonPath;
 
     private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.TrieNode[currentJsonPathCapacity];
+            currentJsonPath = new ArrayDeque<>();
+        } else {
+            currentJsonPath = null;
         }
     }
 
@@ -153,12 +154,7 @@ final class MaskingState implements ValueMaskerContext {
      */
     void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
-            currentJsonPath[++currentJsonPathIndex] = trieNode;
-            if (currentJsonPathIndex == currentJsonPathCapacity - 1) {
-                // resize
-                currentJsonPathCapacity *= 2;
-                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPathCapacity);
-            }
+            currentJsonPath.push(Optional.ofNullable(trieNode));
         }
     }
 
@@ -167,7 +163,7 @@ final class MaskingState implements ValueMaskerContext {
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
-            currentJsonPath[currentJsonPathIndex--] = null;
+            currentJsonPath.pop();
         }
     }
 
@@ -175,8 +171,8 @@ final class MaskingState implements ValueMaskerContext {
      * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
     public KeyMatcher.TrieNode getCurrentJsonPathNode() {
-        if (currentJsonPath != null && currentJsonPathIndex != -1) {
-            return currentJsonPath[currentJsonPathIndex];
+        if (currentJsonPath != null) {
+            return currentJsonPath.peek().orElse(null);
         } else {
             return null;
         }

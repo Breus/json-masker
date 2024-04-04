@@ -56,16 +56,10 @@ jobs:
 
       - name: Run benchmarks (pull-request)
         working-directory: benchmark-pull-request
-        run: |
-          ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
-          echo '> [!NOTE]' >> ${{ env.COMMENT_FILE }}
-          echo '> These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on more stable machine before making any conclusions!' >> ${{ env.COMMENT_FILE }}
-          echo '### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})' >> ${{ env.COMMENT_FILE }}
-          echo '```text' >> ${{ env.COMMENT_FILE }}
-          cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
-          echo '```' >> ${{ env.COMMENT_FILE }}
+        run: ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
 
       - name: Upload Artifact (pull-request)
+        id: upload-artifact-pull-request
         uses: actions/upload-artifact@v4
         with:
           name: async-profiler (pull-request)
@@ -75,20 +69,35 @@ jobs:
 
       - name: Run benchmarks (master)
         working-directory: benchmark-master
-        run: |
-          ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
-          echo '### Benchmark results (${{ github.base_ref }}, ${{ steps.get-sha.outputs.sha }})' >> ${{ env.COMMENT_FILE }}
-          echo '```text' >> ${{ env.COMMENT_FILE }}
-          cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
-          echo '```' >> ${{ env.COMMENT_FILE }}
+        run: ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
 
       - name: Upload Artifact (master)
+        id: upload-artifact-master
         uses: actions/upload-artifact@v4
         with:
           name: async-profiler (master)
           path: benchmark-master/build/results/jmh/async-profiler/
           retention-days: 7
           if-no-files-found: error
+
+      - name: Compose comment content
+        run: |
+          cat <<EOF >> ${{ env.COMMENT_FILE }}
+          > [!NOTE]
+          > These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on more stable machine before making any conclusions!
+        
+          ### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})
+          ```text
+          $(cat build/results/jmh/results.txt)
+          ```
+          Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }})
+          
+          ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-sha.outputs.sha }})
+          ```text
+          $(cat build/results/jmh/results.txt)
+          ```
+          Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }})
+          EOF
 
       - name: Find benchmark results comment
         uses: peter-evans/find-comment@v3

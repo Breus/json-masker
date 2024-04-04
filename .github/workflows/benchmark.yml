@@ -65,6 +65,17 @@ jobs:
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo '```' >> ${{ env.COMMENT_FILE }}
 
+      - name: Archive async-profiler results (pull-request)
+        working-directory: benchmark-pull-request
+        run: |
+          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
+
+      - name: Upload Artifact (pull-request)
+        uses: actions/upload-artifact@v3
+        with:
+          name: async-profiler-pull-request
+          path: benchmark-pull-request/async-profiler.tar.gz
+
       - name: Run benchmarks (master)
         working-directory: benchmark-master
         run: |
@@ -73,6 +84,17 @@ jobs:
           echo '```text' >> ${{ env.COMMENT_FILE }}
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo '```' >> ${{ env.COMMENT_FILE }}
+
+      - name: Archive async-profiler results (master)
+        working-directory: benchmark-master
+        run: |
+          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
+
+      - name: Upload Artifact (master)
+        uses: actions/upload-artifact@v3
+        with:
+          name: async-profiler-master
+          path: benchmark-master/async-profiler.tar.gz
 
       - name: Find benchmark results comment
         uses: peter-evans/find-comment@v3
@@ -89,14 +111,3 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: ${{ env.COMMENT_FILE }}
           edit-mode: replace
-
-      - name: Archive async-profiler results (pull-request)
-        working-directory: benchmark-pull-request
-        run: |
-          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
-
-      - name: Upload Artifact (pull-request)
-        uses: actions/upload-artifact@v3
-        with:
-          name: async-profiler
-          path: benchmark-pull-request/async-profiler.tar.gz

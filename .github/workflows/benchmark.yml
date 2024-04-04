@@ -46,7 +46,7 @@ jobs:
             | tar -xz -C $HOME/async-profiler --strip-components=1
             
           echo "async-profiler has been installed into $HOME/async-profiler"
-          /usr/local/async-profiler/bin/asprof --version
+          $HOME/async-profiler/bin/asprof --version
           
           echo "Enabling perf events"
           sudo sysctl kernel.perf_event_paranoid=1

@@ -65,16 +65,13 @@ jobs:
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo '```' >> ${{ env.COMMENT_FILE }}
 
-      - name: Archive async-profiler results (pull-request)
-        working-directory: benchmark-pull-request
-        run: |
-          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
-
       - name: Upload Artifact (pull-request)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: async-profiler-pull-request
-          path: benchmark-pull-request/async-profiler.tar.gz
+          name: async-profiler (pull-request)
+          path: benchmark-pull-request/build/results/jmh/async-profiler/
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Run benchmarks (master)
         working-directory: benchmark-master
@@ -85,16 +82,13 @@ jobs:
           cat build/results/jmh/results.txt >> ${{ env.COMMENT_FILE }}
           echo '```' >> ${{ env.COMMENT_FILE }}
 
-      - name: Archive async-profiler results (master)
-        working-directory: benchmark-master
-        run: |
-          tar -czvf async-profiler.tar.gz -C build/results/jmh/async-profiler/ .
-
       - name: Upload Artifact (master)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: async-profiler-master
-          path: benchmark-master/async-profiler.tar.gz
+          name: async-profiler (master)
+          path: benchmark-master/build/results/jmh/async-profiler/
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Find benchmark results comment
         uses: peter-evans/find-comment@v3

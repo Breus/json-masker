@@ -146,15 +146,10 @@ final class MaskingState implements ValueMaskerContext {
         return currentJsonPath != null;
     }
 
-    /**
-     * Expands current jsonpath.
-     *
-     * @param trieNode a node in the trie where the new segment ends.
-     */
     void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
             currentJsonPath[++currentJsonPathIndex] = trieNode;
-            if (currentJsonPathIndex == currentJsonPathCapacity - 1) {
+            if (currentJsonPathIndex == currentJsonPathCapacity) {
                 // resize
                 currentJsonPathCapacity *= 2;
                 currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPathCapacity);

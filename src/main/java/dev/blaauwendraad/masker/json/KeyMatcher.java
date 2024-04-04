@@ -203,14 +203,9 @@ final class KeyMatcher {
     }
 
     /**
-     * Traverses the trie along the passed JSONPath segment starting from {@code begin} node.
-     * The passed segment is represented as a key {@code (keyOffset, keyLength)} reference in {@code bytes} array.
+     * Traverses the trie to the next JSONPath segment after {@code begin} node.
      *
-     * @param bytes     the message bytes.
-     * @param begin     a TrieNode from which the traversal begins.
-     * @param keyOffset the offset in {@code bytes} of the segment.
-     * @param keyLength the length of the segment.
-     * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
+     * @return the trie node where the segment ends
      */
     public TrieNode traverseJsonPathSegment(byte[] bytes, @CheckForNull final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
@@ -240,19 +235,19 @@ final class KeyMatcher {
      * 128, hence the padding).
      */
     static class TrieNode {
-        final TrieNode[] children = new TrieNode[256];
+        private final TrieNode[] children = new TrieNode[256];
         /**
          * A marker that the character indicates that the key ends at this node.
          */
-        boolean endOfWord = false;
+        private boolean endOfWord = false;
         /**
          * Masking configuration for the key that ends at this node.
          */
         @CheckForNull
-        KeyMaskingConfig keyMaskingConfig = null;
+        private KeyMaskingConfig keyMaskingConfig = null;
         /**
          * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
          */
-        boolean negativeMatch = false;
+        private boolean negativeMatch = false;
     }
 }

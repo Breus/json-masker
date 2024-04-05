@@ -1462,11 +1462,16 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$.json.path"
-      ],
-      "maskJsonPathsAlternatively": [
-        "$.json.path.further.specific",
-        "$.json.path.array.*.specific"
+        "$.json.path",
+        {
+          "keys": [
+            "$.json.path.further.specific",
+            "$.json.path.array.*.specific"
+          ],
+          "keyMaskingConfig": {
+            "maskStringsWith": "###"
+          }
+        }
       ]
     },
     "input": {
@@ -1533,10 +1538,15 @@
   {
     "maskingConfig": {
       "maskJsonPaths": [
-        "$"
-      ],
-      "maskJsonPathsAlternatively": [
-        "$.specific"
+        "$",
+        {
+          "keys": [
+            "$.specific"
+          ],
+          "keyMaskingConfig": {
+            "maskStringsWith": "###"
+          }
+        }
       ]
     },
     "input": {

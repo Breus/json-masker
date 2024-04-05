@@ -43,9 +43,13 @@ public final class JsonMaskerTestUtil {
             JsonNode value = e.getValue();
             switch (key) {
                 case "maskKeys" -> builder.maskKeys(asSet(value, JsonNode::asText));
-                case "maskJsonPaths" -> builder.maskJsonPaths(asSet(value, JsonNode::asText));
-                case "maskJsonPathsAlternatively" ->
-                        builder.maskJsonPaths(asSet(value, JsonNode::asText), KeyMaskingConfig.builder().maskStringsWith("###").build());
+                case "maskJsonPaths" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
+                    if (node.isTextual()) {
+                        builder.maskJsonPaths(Set.of(node.asText()));
+                    } else {
+                        builder.maskJsonPaths(asSet(node.get("keys"), JsonNode::asText), applyKeyConfig(node.get("keyMaskingConfig")));
+                    }
+                });
                 case "allowKeys" -> builder.allowKeys(asSet(value, JsonNode::asText));
                 case "allowJsonPaths" -> builder.allowJsonPaths(asSet(value, JsonNode::asText));
                 case "caseSensitiveTargetKeys" -> {
@@ -72,6 +76,34 @@ public final class JsonMaskerTestUtil {
                 default -> throw new IllegalArgumentException("Unknown option " + key);
             }
         });
+    }
+
+    private static KeyMaskingConfig applyKeyConfig(JsonNode jsonNode) {
+        KeyMaskingConfig.Builder builder = KeyMaskingConfig.builder();
+        jsonNode.fields().forEachRemaining(e -> {
+            String key = e.getKey();
+            JsonNode value = e.getValue();
+            switch (key) {
+                case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
+                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
+                case "maskNumbersWith" -> {
+                    if (value.isInt()) {
+                        builder.maskNumbersWith(value.intValue());
+                    } else {
+                        builder.maskNumbersWith(value.textValue());
+                    }
+                }
+                case "maskNumberDigitsWith" -> builder.maskNumberDigitsWith(value.intValue());
+                case "maskBooleansWith" -> {
+                    if (value.isBoolean()) {
+                        builder.maskBooleansWith(value.booleanValue());
+                    }
+                    builder.maskBooleansWith(value.textValue());
+                }
+                default -> throw new IllegalArgumentException("Unknown option " + key);
+            }
+        });
+        return builder.build();
     }
 
     private static <T> Set<T> asSet(JsonNode value, Function<JsonNode, T> mapper) {

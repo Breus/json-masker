@@ -13,6 +13,7 @@ import java.util.List;
  * operation.
  */
 final class MaskingState implements ValueMaskerContext {
+    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the jsonpath array
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
@@ -23,13 +24,13 @@ final class MaskingState implements ValueMaskerContext {
      * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
     private KeyMatcher.TrieNode[] currentJsonPath = null;
-    private int currentJsonPathIndex = -1;
+    private int currentJsonPathHeadIndex = -1;
     private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.TrieNode[100];
+            currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
         }
     }
 
@@ -151,8 +152,8 @@ final class MaskingState implements ValueMaskerContext {
      */
     void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
-            currentJsonPath[++currentJsonPathIndex] = trieNode;
-            if (currentJsonPathIndex == currentJsonPath.length - 1) {
+            currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
+            if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
                 // resize
                 currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
             }
@@ -164,7 +165,7 @@ final class MaskingState implements ValueMaskerContext {
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
-            currentJsonPath[currentJsonPathIndex--] = null;
+            currentJsonPath[currentJsonPathHeadIndex--] = null;
         }
     }
 
@@ -172,8 +173,8 @@ final class MaskingState implements ValueMaskerContext {
      * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
     public KeyMatcher.TrieNode getCurrentJsonPathNode() {
-        if (currentJsonPath != null && currentJsonPathIndex != -1) {
-            return currentJsonPath[currentJsonPathIndex];
+        if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
+            return currentJsonPath[currentJsonPathHeadIndex];
         } else {
             return null;
         }

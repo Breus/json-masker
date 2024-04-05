@@ -100,10 +100,7 @@ class JsonPathParserTest {
                 Set.of("$.a.b.c.f", "$.*.*.*.u"),
                 Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"),
                 Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"),
-                Set.of("$.a.b.*.*.d", "$.a.b.*.c"),
-                Set.of("$.a.b.c", "$.a.b.c.*.f"),
-                Set.of("$.key.bbb.c", "$.key.bbb.c.d"),
-                Set.of("$.f.e.g", "$.n.*.m", "$", "$.a.b.c.d")
+                Set.of("$.a.b.*.*.d", "$.a.b.*.c")
         );
     }
 
@@ -115,7 +112,10 @@ class JsonPathParserTest {
                 Set.of("$.a.b.*.d", "$.a.b.*.c"),
                 Set.of("$.a.b.*.d", "$.a.b.*.c.f"),
                 Set.of("$.ab", "$.a"),
-                Set.of("$.a.b", "$.a", "$.a!", "$.a.c", "$.a0.i")
+                Set.of("$.a.b", "$.a", "$.a!", "$.a.c", "$.a0.i"),
+                Set.of("$.a.b.c", "$.a.b.c.*.f"),
+                Set.of("$.key.bbb.c", "$.key.bbb.c.d"),
+                Set.of("$.f.e.g", "$.n.*.m", "$", "$.a.b.c.d")
         );
     }
 

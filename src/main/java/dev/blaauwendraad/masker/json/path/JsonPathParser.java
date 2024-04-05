@@ -145,9 +145,6 @@ public class JsonPathParser {
                     }
                     break;
                 }
-                if (j == current.segments().length - 1) { // covers cases like a ("$.a.b", "$.a.b.c") combination
-                    throw new IllegalArgumentException(String.format("Ambiguous jsonpath keys. '%s' and '%s' combination is not supported.", current, next));
-                }
             }
         }
     }

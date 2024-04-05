@@ -90,13 +90,13 @@ jobs:
           \`\`\`text
           $(grep -v ':async' benchmark-pull-request/build/results/jmh/results.txt)
           \`\`\`
-          Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }})
+          Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }}) (link expires in 7 days)
           
           ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-master-sha.outputs.sha }})
           \`\`\`text
           $(grep -v ':async' benchmark-master/build/results/jmh/results.txt)
           \`\`\`
-          Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }})
+          Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }}) (link expires in 7 days)
           EOF
 
       - name: Find benchmark results comment

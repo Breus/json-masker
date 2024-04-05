@@ -24,14 +24,12 @@ final class MaskingState implements ValueMaskerContext {
      */
     private KeyMatcher.TrieNode[] currentJsonPath = null;
     private int currentJsonPathIndex = -1;
-    private int currentJsonPathCapacity = 100;
-
     private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.TrieNode[currentJsonPathCapacity];
+            currentJsonPath = new KeyMatcher.TrieNode[100];
         }
     }
 
@@ -154,10 +152,9 @@ final class MaskingState implements ValueMaskerContext {
     void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
             currentJsonPath[++currentJsonPathIndex] = trieNode;
-            if (currentJsonPathIndex == currentJsonPathCapacity - 1) {
+            if (currentJsonPathIndex == currentJsonPath.length - 1) {
                 // resize
-                currentJsonPathCapacity *= 2;
-                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPathCapacity);
+                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
             }
         }
     }

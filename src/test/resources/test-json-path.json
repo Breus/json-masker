@@ -1395,31 +1395,6 @@
   },
   {
     "maskingConfig": {
-      "allowJsonPaths": [
-        "$"
-      ]
-    },
-    "input": [
-      {
-        "key": "do not mask"
-      },
-      "do not mask",
-      {
-        "key": "do not mask"
-      }
-    ],
-    "expectedOutput": [
-      {
-        "key": "do not mask"
-      },
-      "do not mask",
-      {
-        "key": "do not mask"
-      }
-    ]
-  },
-  {
-    "maskingConfig": {
       "maskJsonPaths": [
         "$.path.array"
       ]

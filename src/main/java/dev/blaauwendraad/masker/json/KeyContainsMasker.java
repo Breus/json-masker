@@ -6,12 +6,11 @@ import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
 
 import javax.annotation.CheckForNull;
-import java.util.Collections;
 
 /**
  * Default implementation of the {@link JsonMasker}.
  */
- final class KeyContainsMasker implements JsonMasker {
+final class KeyContainsMasker implements JsonMasker {
     /**
      * Look-up trie containing the target keys.
      */
@@ -46,13 +45,8 @@ import java.util.Collections;
 
             KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
             if (maskingState.jsonPathEnabled()) {
-                // Check for "$" JSONPath key.
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
-                        maskingState.getMessage(),
-                        -1,
-                        -1,
-                        Collections.emptyIterator()
-                );
+                maskingState.expandCurrentJsonPath(keyMatcher.getJsonPathRootNode());
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
             }
 
             stepOverWhitespaceCharacters(maskingState);
@@ -118,7 +112,7 @@ import java.util.Collections;
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
     private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
-        maskingState.expandCurrentJsonPathWithArray();
+        maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), -1, -1));
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty array
@@ -164,13 +158,9 @@ import java.util.Collections;
 
             int afterClosingQuoteIndex = maskingState.currentIndex();
             int keyLength = afterClosingQuoteIndex - openingQuoteIndex - 2; // minus the opening and closing quotes
-            maskingState.expandCurrentJsonPath(openingQuoteIndex + 1, keyLength);
-            KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
-                    maskingState.getMessage(),
-                    openingQuoteIndex + 1, // plus one for the opening quote
-                    keyLength,
-                    maskingState.getCurrentJsonPath()
-            );
+            maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), openingQuoteIndex + 1, keyLength));
+            KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), openingQuoteIndex + 1, // plus one for the opening quote
+                    keyLength, maskingState.getCurrentJsonPathNode());
             stepOverWhitespaceCharacters(maskingState);
             // step over the colon ':'
             maskingState.next();
@@ -187,8 +177,7 @@ import java.util.Collections;
                 // we got was the default config, then it means that the key doesn't have a specific configuration and
                 // we should fall back to key specific config that the object is being masked with.
                 // E.g.: '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
-                if (parentKeyMaskingConfig != null && (keyMaskingConfig == null
-                        || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
+                if (parentKeyMaskingConfig != null && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
                     keyMaskingConfig = parentKeyMaskingConfig;
                 }
                 visitValue(maskingState, keyMaskingConfig);
@@ -304,8 +293,7 @@ import java.util.Collections;
     private static void stepOverNumericValue(MaskingState maskingState) {
         // step over the first numeric character
         maskingState.next();
-        while (maskingState.currentIndex() < maskingState.getMessage().length
-                && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
+        while (maskingState.currentIndex() < maskingState.getMessage().length && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
             maskingState.next();
         }
     }

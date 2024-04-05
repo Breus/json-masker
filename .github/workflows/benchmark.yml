@@ -88,13 +88,13 @@ jobs:
         
           ### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})
           \`\`\`text
-          $(cat  benchmark-pull-request/build/results/jmh/results.txt)
+          $(grep -v ':async' benchmark-pull-request/build/results/jmh/results.txt)
           \`\`\`
           Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }})
           
           ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-master-sha.outputs.sha }})
           \`\`\`text
-          $(cat benchmark-master/build/results/jmh/results.txt)
+          $(grep -v ':async' benchmark-master/build/results/jmh/results.txt)
           \`\`\`
           Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }})
           EOF

@@ -42,7 +42,13 @@ public final class JsonMaskerTestUtil {
             String key = e.getKey();
             JsonNode value = e.getValue();
             switch (key) {
-                case "maskKeys" -> builder.maskKeys(asSet(value, JsonNode::asText));
+                case "maskKeys" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
+                    if (node.isTextual()) {
+                        builder.maskKeys(Set.of(node.asText()));
+                    } else {
+                        builder.maskKeys(asSet(node.get("keys"), JsonNode::asText), applyKeyConfig(node.get("keyMaskingConfig")));
+                    }
+                });
                 case "maskJsonPaths" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
                     if (node.isTextual()) {
                         builder.maskJsonPaths(Set.of(node.asText()));

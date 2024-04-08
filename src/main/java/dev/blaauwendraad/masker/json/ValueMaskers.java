@@ -285,13 +285,14 @@ public final class ValueMaskers {
 
 
     /**
-     * Masks a target value with the provided {@link Function}. The target value (as textual representation of a
-     * JSON value) is passed into the function as a string regardless of the JSON type (string, numeric or a boolean).
-     * In case original value was a JSON string, the function will receive a decoded string value without the quotes.
+     * Masks a target value by applying the provided {@link Function} on the textual representation of the original
+     * value. The target is passed into the function as a string regardless of the JSON type (string, numeric or a
+     * boolean). In case the original value was a JSON string, the {@link Function} will receive a decoded string value
+     * without the quotes.
      *
      * <p>A non-null return value of the provided function will be encoded into a JSON string regardless of the
-     * JSON type of the original value. Any character that MUST be escaped (as per RFC 8259, section 7) will be escaped,
-     * characters that MAY be escaped (as per RFC 8259) WILL NOT be escaped.
+     * JSON type of the original value. Any character that MUST be escaped (as per RFC 8259, section 7) will be escaped.
+     * Characters that MAY be escaped (as per RFC 8259) WILL NOT be escaped.
      * If the return value is {@code null}, the target value will be replaced with {@code null} JSON literal.
      *
      * <p>The table below contains a couple examples for the masking
@@ -327,20 +328,24 @@ public final class ValueMaskers {
      *     <td>{@code { "maskMe": "Andrii (quote)Juice(quote) Pilshchykov" }}
      * </table>
      *
-     * <p>Note: usually the {@link ValueMasker} operates on a byte level without parsing JSON values
-     * into intermediate objects. This implementation, however,  needs to allocate a {@link String}
-     * before passing it into the function and then turn it back into a byte array for the replacement,
-     * which introduces some performance overhead.
+     * <p>Note: in all other cases, the {@link ValueMasker} operates on a byte level without parsing JSON values into
+     * intermediate objects. This implementation, however, needs to allocate a {@link String} before passing it to
+     * the {@link Function} and then turn it back into a byte array for the replacement, which introduces some
+     * performance overhead.
      */
     public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
         return describe(
                 "withTextFunction (%s)".formatted(masker),
                 context -> {
-                    String decodedValue;
-                    if (context.getByte(0) == '"') {
-                        int encodedIndex = 1; // skip opening quote
-                        int valueEndIndex = context.byteLength() - 1; // skip closing quote
-                        int decodedIndex = 0;
+                    String decodedValue; // the original value decoded
+                    if (context.getByte(0) != '"') {
+                        // deals with JSON numbers, booleans, and null
+                        decodedValue = context.asString(0, context.byteLength());
+                    } else {
+                        // deals with JSON strings
+                        int encodedIndex = 1; // skip opening quote of the JSON string
+                        int valueEndIndex = context.byteLength() - 1; // minus the closing quote
+                        int decodedIndex = 0; //
                         // the length of decodedBytes is guaranteed to be lower or equal to the length
                         // of the encoded bytes sequence:
                         // 1. for every encoded character (2 bytes), the output is the character without escape - 1 byte
@@ -352,10 +357,11 @@ public final class ValueMaskers {
                         while (encodedIndex < valueEndIndex) {
                             byte originalByte = context.getByte(encodedIndex++);
                             // next character is escaped, removing the backslash
-                            if (originalByte == '\\') {
+                            if (originalByte != '\\') {
+                                decodedBytes[decodedIndex++] = originalByte; // unescaped character are already decoded
+                            } else {
                                 originalByte = context.getByte(encodedIndex++);
                                 switch (originalByte) {
-                                    // First, ones that are mapped
                                     case 'b' -> decodedBytes[decodedIndex++] = '\b';
                                     case 't' -> decodedBytes[decodedIndex++] = '\t';
                                     case 'n' -> decodedBytes[decodedIndex++] = '\n';
@@ -363,29 +369,33 @@ public final class ValueMaskers {
                                     case 'r' -> decodedBytes[decodedIndex++] = '\r';
                                     case '"', '/', '\\' -> decodedBytes[decodedIndex++] = originalByte;
                                     case 'u' -> {
-                                        // Decode Unicode character
-                                        // the copy of String#encodeUTF8_UTF16 with the only difference that it
-                                        // converts hex to chars instead of bytes
+                                        // Decode hexadecimal encoded unicode character into
                                         int valueStartIndex = encodedIndex - 2;
                                         try {
-                                            char c = Utf8Util.unicodeHexToChar(
+                                            char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(
                                                     context.getByte(encodedIndex++),
                                                     context.getByte(encodedIndex++),
                                                     context.getByte(encodedIndex++),
                                                     context.getByte(encodedIndex++)
                                             );
-                                            if (c < 0x80) {
-                                                decodedBytes[decodedIndex++] = (byte) c;
-                                            } else if (c < 0x800) {
-                                                decodedBytes[decodedIndex++] = (byte) (0xc0 | (c >> 6));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
-                                            } else if (Character.isSurrogate(c)) {
-                                                int uc = -1;
-                                                if (Character.isHighSurrogate(c)
-                                                    && encodedIndex < context.byteLength() - 6
-                                                    && context.getByte(encodedIndex) == '\\'
-                                                    && context.getByte(encodedIndex + 1) == 'u') {
-                                                    encodedIndex += 2;
+                                            if (unicodeHexBytesAsChar < 0x80) {
+                                                // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
+                                                decodedBytes[decodedIndex++] = (byte) unicodeHexBytesAsChar;
+                                            } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
+                                                // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
+                                                decodedBytes[decodedIndex++] = (byte) (0xc0 | (unicodeHexBytesAsChar >> 6));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
+                                            } else if (Character.isSurrogate(unicodeHexBytesAsChar)) {
+                                                // decoding non-BMP characters in UTF-16 using a pair of high and low
+                                                // surrogates which together form one unicode character.
+                                                int codePoint = -1;
+                                                if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
+                                                        && encodedIndex < context.byteLength() - 6 /* -6 for all bytes of
+                                                       the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
+                                                        && context.getByte(encodedIndex) == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
+                                                        && context.getByte(encodedIndex + 1) == 'u'
+                                                ) {
+                                                    encodedIndex += 2; // step over the '\' and 'u'
                                                     char lowSurrogate = Utf8Util.unicodeHexToChar(
                                                             context.getByte(encodedIndex++),
                                                             context.getByte(encodedIndex++),
@@ -393,26 +403,27 @@ public final class ValueMaskers {
                                                             context.getByte(encodedIndex++)
                                                     );
                                                     if (Character.isLowSurrogate(lowSurrogate)) {
-                                                        uc = Character.toCodePoint(c, lowSurrogate);
+                                                        codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
                                                     }
                                                 }
-                                                if (uc < 0) {
+                                                if (codePoint < 0) {
                                                     // default String behaviour is to replace invalid surrogate pairs
                                                     // with the character '?', but from the JSON perspective,
-                                                    // it's better to throw an exception
+                                                    // it's better to throw an InvalidJsonException
                                                     throw context.invalidJson("Invalid surrogate pair '%s'"
                                                             .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
                                                 } else {
-                                                    decodedBytes[decodedIndex++] = (byte) (0xf0 | (uc >> 18));
-                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 12) & 0x3f));
-                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((uc >> 6) & 0x3f));
-                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | (uc & 0x3f));
+                                                    decodedBytes[decodedIndex++] = (byte) (0xf0 | (codePoint >> 18));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((codePoint >> 12) & 0x3f));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | ((codePoint >> 6) & 0x3f));
+                                                    decodedBytes[decodedIndex++] = (byte) (0x80 | (codePoint & 0x3f));
                                                 }
                                             } else {
-                                                // 3 bytes, 16 bits
-                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (c >> 12));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((c >> 6) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (c & 0x3f));
+                                                // dealing with characters with values between 2048 and 65536 which
+                                                // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeHexBytesAsChar >> 12));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
                                         } catch (IllegalArgumentException e) {
                                             throw context.invalidJson(e.getMessage(), valueStartIndex);
@@ -420,40 +431,35 @@ public final class ValueMaskers {
                                     }
                                     default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
                                 }
-                            } else {
-                                decodedBytes[decodedIndex++] = originalByte;
                             }
                         }
                         decodedValue = new String(decodedBytes, 0, decodedIndex, StandardCharsets.UTF_8);
-                    } else {
-                        decodedValue = context.asString(0, context.byteLength());
                     }
                     String maskedValue = masker.apply(decodedValue);
                     if (maskedValue == null) {
                         maskedValue = "null";
                     } else {
                         StringBuilder encoded = new StringBuilder();
-                        encoded.append("\"");
+                        encoded.append("\""); // opening quote of the encoded string
                         for (int i = 0; i < maskedValue.length(); i++) {
-                            char ch = maskedValue.charAt(i);
+                            char character = maskedValue.charAt(i);
                             // escape all characters that need to be escaped, unicode character do not have to be
                             // transformed into \ u form
-                            switch (ch) {
+                            switch (character) {
                                 case '\b' -> encoded.append("\\b");
                                 case '\t' -> encoded.append("\\t");
                                 case '\n' -> encoded.append("\\n");
                                 case '\f' -> encoded.append("\\f");
                                 case '\r' -> encoded.append("\\r");
-                                case '"', '\\' -> encoded.append("\\").append(ch);
-                                default -> encoded.append(ch);
+                                case '"', '\\' -> encoded.append("\\").append(character);
+                                default -> encoded.append(character);
                             }
                         }
-                        encoded.append("\"");
+                        encoded.append("\""); // closing quote of the encoded string
                         maskedValue = encoded.toString();
                     }
                     byte[] replacementBytes = maskedValue.getBytes(StandardCharsets.UTF_8);
                     context.replaceBytes(0, context.byteLength(), replacementBytes, 1);
                 });
     }
-
 }

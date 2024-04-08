@@ -171,7 +171,7 @@ final class KeyMatcherTest {
 
     @Test
     void shouldNotMatchPrefix() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build());
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe", "test")).build());
         assertThatConfig(keyMatcher, "mask").isNull();
         assertThatConfig(keyMatcher, "maskMe").isNotNull();
     }

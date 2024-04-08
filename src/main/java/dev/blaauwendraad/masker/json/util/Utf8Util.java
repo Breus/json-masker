@@ -32,6 +32,39 @@ public final class Utf8Util {
     }
 
     /**
+     * Converts a 4-byte UTF-8 encoded character ('\u0000') into a char.
+     * Each byte MUST represent a valid HEX character, i.e.
+     * <ul>
+     *     <li>in range from {@code 48} ({@code '0'}) to {@code 57} ({@code '9'})
+     *     <li>in range from {@code 65} ({@code 'A'}) to {@code 70} ({@code 'F'})
+     *     <li>in range from {@code 97} ({@code 'a'}) to {@code 102} ({@code 'f'})
+     * </ul>
+     */
+    public static char unicodeHexToChar(byte b1, byte b2, byte b3, byte b4) {
+        int value = Character.digit(validateHex(b1), 16);
+        // since each byte transformed into a value, that is guaranteed to be in range 0 - 16 (4 bits)
+        // we shift by that amount
+        value = (value << 4) | Character.digit(validateHex(b2), 16);
+        value = (value << 4) | Character.digit(validateHex(b3), 16);
+        value = (value << 4) | Character.digit(validateHex(b4), 16);
+        return (char) value;
+    }
+
+    private static byte validateHex(byte hexByte) {
+        if (hexByte >= 48 && hexByte <= 57) {
+            return hexByte; // a digit from 0 to 9
+        }
+        if (hexByte >= 65 && hexByte <= 70) {
+            return hexByte; // a character from A to F
+        }
+        if (hexByte >= 97 && hexByte <= 102) {
+            return hexByte; // a character from a to f
+        }
+        throw new IllegalArgumentException("Invalid hex character '%s'".formatted((char) hexByte));
+
+    }
+
+    /**
      * Counts the number of non-visible characters inside the string. The intervals provided must be
      * within a single string as this method will not do boundary checks or terminate at the end of
      * string value.

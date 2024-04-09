@@ -46,6 +46,28 @@ Finally, no additional third-party runtime dependencies are required to use this
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
+## Using the json-masker package
+
+The json-masker library is available from [Maven Central](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker).
+
+To use the package, you can use the following **Gradle** dependency:
+
+```groovy
+implementation("dev.blaauwendraad:json-masker:${version}")
+```
+
+Or using **Maven**:
+
+```xml
+<dependency>
+    <groupId>dev.blaauwendraad</groupId>
+    <artifactId>json-masker</artifactId>
+    <version>${version}</version>
+</dependency>
+```
+
+The package requires no additional runtime dependencies.
+
 ## JDK Compatibility
 
 The `json-masker` baseline JDK requirement is JDK 17. However, we might consider releasing a version which lowers this

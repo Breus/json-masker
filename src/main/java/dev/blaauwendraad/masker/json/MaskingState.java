@@ -2,12 +2,10 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
+import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -15,24 +13,24 @@ import java.util.List;
  * operation.
  */
 final class MaskingState implements ValueMaskerContext {
+    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the jsonpath array
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
 
     /**
-     * Current json path is represented by a dequeue of segment references.
+     * Current JSONPath is represented by a stack of segment references.
+     * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    private final Deque<JsonPathNode> currentJsonPath;
-
+    private KeyMatcher.TrieNode[] currentJsonPath = null;
+    private int currentJsonPathHeadIndex = -1;
     private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
         if (trackJsonPath) {
-            currentJsonPath = new ArrayDeque<>();
-        } else {
-            currentJsonPath = null;
+            currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
         }
     }
 
@@ -148,22 +146,17 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Expands current jsonpath with a new "key" segment.
-     * @param start the index of a new segment start in <code>message</code>
-     * @param offset the length of a new segment.
+     * Expands current jsonpath.
+     *
+     * @param trieNode a node in the trie where the new segment ends.
      */
-    void expandCurrentJsonPath(int start, int offset) {
+    void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
         if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Node(start, offset));
-        }
-    }
-
-    /**
-     * Expands current jsonpath with a new array segment.
-     */
-    void expandCurrentJsonPathWithArray() {
-        if (currentJsonPath != null) {
-            currentJsonPath.push(new JsonPathNode.Array());
+            currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
+            if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
+                // resize
+                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
+            }
         }
     }
 
@@ -172,18 +165,18 @@ final class MaskingState implements ValueMaskerContext {
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
-            currentJsonPath.pop();
+            currentJsonPath[currentJsonPathHeadIndex--] = null;
         }
     }
 
     /**
-     * Returns the iterator over the json path component references from head to tail
+     * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
-    Iterator<JsonPathNode> getCurrentJsonPath() {
-        if (currentJsonPath != null) {
-            return currentJsonPath.descendingIterator();
+    public KeyMatcher.TrieNode getCurrentJsonPathNode() {
+        if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
+            return currentJsonPath[currentJsonPathHeadIndex];
         } else {
-            return Collections.emptyIterator();
+            return null;
         }
     }
 
@@ -243,6 +236,12 @@ final class MaskingState implements ValueMaskerContext {
         checkCurrentValueBounds(fromIndex + length - 1);
         int offset = getCurrentValueStartIndex();
         return new String(message, offset + fromIndex, length, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public InvalidJsonException invalidJson(String message, int index) {
+        int offset = getCurrentValueStartIndex();
+        return new InvalidJsonException("%s at index %s".formatted(message, offset + index));
     }
 
     private void checkCurrentValueBounds(int index) {

@@ -26,7 +26,7 @@ public final class JsonMaskingConfig {
      */
     private final Set<String> targetKeys;
     /**
-     * Specifies the set of JSON paths for which the string/number values should be masked.
+     * Specifies the set of JSONPaths for which the string/number values should be masked.
      */
     private final Set<JsonPath> targetJsonPaths;
     /**
@@ -183,8 +183,8 @@ public final class JsonMaskingConfig {
 
         public Builder maskJsonPaths(Set<String> jsonPaths) {
             if (targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask json paths when in ALLOW mode, if you want to customize" +
-                                                   " masking for specific json paths in ALLOW mode, use " +
+                throw new IllegalArgumentException("Cannot mask JSONPaths when in ALLOW mode, if you want to customize " +
+                                                   "masking for specific JSONPaths in ALLOW mode, use " +
                                                    "maskJsonPaths(String jsonPath, KeyMaskingConfig config)");
             }
             return maskJsonPaths0(jsonPaths, null);
@@ -196,14 +196,14 @@ public final class JsonMaskingConfig {
 
         private Builder maskJsonPaths0(Set<String> jsonPaths, @CheckForNull KeyMaskingConfig config) {
             if (jsonPaths.isEmpty()) {
-                throw new IllegalArgumentException("At least one json path must be provided");
+                throw new IllegalArgumentException("At least one JSONPath must be provided");
             }
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
                 if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
-                    throw new IllegalArgumentException("Duplicate json path '%s'".formatted(jsonPath));
+                    throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
                 }
-                // in ALLOW mode this method can be used to set a specific masking config for a json path
+                // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
                 if (targetKeyMode != TargetKeyMode.ALLOW) {
                     targetKeyMode = TargetKeyMode.MASK;
                     targetJsonPaths.add(parsed);
@@ -233,11 +233,14 @@ public final class JsonMaskingConfig {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");
             }
+            if (jsonPaths.contains("$")) {
+                throw new IllegalArgumentException("Root node JSONPath is not allowed in ALLOW mode");
+            }
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
                 if (targetJsonPaths.contains(parsed)) {
-                    throw new IllegalArgumentException("Duplicate json path '%s'".formatted(jsonPath));
+                    throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
                 }
                 targetJsonPaths.add(parsed);
             }

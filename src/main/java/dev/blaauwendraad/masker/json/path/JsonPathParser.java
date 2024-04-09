@@ -127,7 +127,7 @@ public class JsonPathParser {
     }
 
     /**
-     * Validates if the input set of json path queries is ambiguous. Throws {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it is.
+     * Validates if the input set of JSONPath queries is ambiguous. Throws {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it is.
      * <p>
      * The method does a lexical sort of input jsonpath queries, iterates over sorted values and checks if any local pair is ambiguous.
      *
@@ -144,9 +144,6 @@ public class JsonPathParser {
                         throw new IllegalArgumentException(String.format("Ambiguous jsonpath keys. '%s' and '%s' combination is not supported.", current, next));
                     }
                     break;
-                }
-                if (j == current.segments().length - 1) { // covers cases like a ("$.a.b", "$.a.b.c") combination
-                    throw new IllegalArgumentException(String.format("Ambiguous jsonpath keys. '%s' and '%s' combination is not supported.", current, next));
                 }
             }
         }

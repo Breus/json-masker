@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
+import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
@@ -16,22 +17,23 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 public class JsonPathTestUtils {
 
     /**
-     * Transforms an input set of keys into a set of json path keys for a given json.
+     * Transforms an input set of keys into a set of JSONPath keys for a given json.
      * The input set of keys are assumed not to be jsonpath keys already.
      * If a key from the input set does not exist in the json,
      * then a path from the down-left most key in the json is used as a prefix to the key.
      * <p>
-     * Given that the input will expand to much larger set of json paths, which would lead to skewed benchmarks,
-     * only the subset of json paths is returned, that is equal to amount of incoming keys.
+     * Given that the input will expand to much larger set of JSONPaths, which would lead to skewed benchmarks,
+     * only the subset of JSONPaths is returned, that is equal to amount of incoming keys.
      *
      * @param keys a set of keys to be transformed into jason path keys. Assumed not to be jsonpath keys already.
      * @param json a target json.
-     * @return a set of json path keys transformed from <code>keys</code>.
+     * @return a set of JSONPath keys transformed from <code>keys</code>.
      */
     public static Set<String> transformToJsonPathKeys(Set<String> keys, String json) {
         JsonNode root;
@@ -73,7 +75,7 @@ public class JsonPathTestUtils {
             }
         }
         List<String> allKeys = disambiguate(new ArrayList<>(transformedTargetKeys));
-        Collections.shuffle(allKeys);
+        Collections.shuffle(allKeys, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
         return new HashSet<>(allKeys.subList(0, keys.size()));
     }
 

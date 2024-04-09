@@ -1395,31 +1395,6 @@
   },
   {
     "maskingConfig": {
-      "allowJsonPaths": [
-        "$"
-      ]
-    },
-    "input": [
-      {
-        "key": "do not mask"
-      },
-      "do not mask",
-      {
-        "key": "do not mask"
-      }
-    ],
-    "expectedOutput": [
-      {
-        "key": "do not mask"
-      },
-      "do not mask",
-      {
-        "key": "do not mask"
-      }
-    ]
-  },
-  {
-    "maskingConfig": {
       "maskJsonPaths": [
         "$.path.array"
       ]
@@ -1482,6 +1457,174 @@
         "key": "***"
       },
       "otherKey": "***"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.json.path",
+        {
+          "keys": [
+            "$.json.path.further.specific",
+            "$.json.path.array.*.specific"
+          ],
+          "keyMaskingConfig": {
+            "maskStringsWith": "###"
+          }
+        }
+      ]
+    },
+    "input": {
+      "json": {
+        "irrelevant": "do not mask",
+        "path": {
+          "field": "mask",
+          "further": {
+            "field": "mask",
+            "specific": {
+              "nested": "mask specifically",
+              "nestedObject": {
+                "nestedObjectField": "do not mask"
+              },
+              "otherField": "mask specifically"
+            }
+          },
+          "otherField": "mask",
+          "array": [
+            {
+              "field": "mask",
+              "specific": "mask specifically"
+            }
+          ],
+          "anotherField": "mask",
+          "objectField": {
+            "nestedField": "mask",
+            "ignore": "mask"
+          }
+        }
+      }
+    },
+    "expectedOutput": {
+      "json": {
+        "irrelevant": "do not mask",
+        "path": {
+          "field": "***",
+          "further": {
+            "field": "***",
+            "specific": {
+              "nested": "###",
+              "nestedObject": {
+                "nestedObjectField": "###"
+              },
+              "otherField": "###"
+            }
+          },
+          "otherField": "***",
+          "array": [
+            {
+              "field": "***",
+              "specific": "###"
+            }
+          ],
+          "anotherField": "***",
+          "objectField": {
+            "nestedField": "***",
+            "ignore": "***"
+          }
+        }
+      }
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$",
+        {
+          "keys": [
+            "$.specific"
+          ],
+          "keyMaskingConfig": {
+            "maskStringsWith": "###"
+          }
+        }
+      ]
+    },
+    "input": {
+      "field": "mask",
+      "specific": "mask"
+    },
+    "expectedOutput": {
+      "field": "***",
+      "specific": "###"
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.json.path",
+        "$.json.path.further.specific",
+        "$.json.path.array.*.specific"
+      ]
+    },
+    "input": {
+      "json": {
+        "irrelevant": "mask",
+        "path": {
+          "field": "do not mask",
+          "further": {
+            "field": "do not mask",
+            "ignore": {
+              "nested": "do not mask",
+              "nestedObject": {
+                "nestedObjectField": "do not mask"
+              },
+              "otherField": "do not mask"
+            },
+            "otherField": "do not mask",
+            "array": [
+              {
+                "field": "do not mask",
+                "ignore": "do not mask"
+              }
+            ],
+            "anotherField": "do not mask",
+            "objectField": {
+              "nestedField": "do not mask",
+              "ignore": "do not mask"
+            }
+          }
+        }
+      }
+    },
+    "expectedOutput": {
+      "json": {
+        "irrelevant": "***",
+        "path": {
+          "field": "do not mask",
+          "further": {
+            "field": "do not mask",
+            "ignore": {
+              "nested": "do not mask",
+              "nestedObject": {
+                "nestedObjectField": "do not mask"
+              },
+              "otherField": "do not mask"
+            },
+            "otherField": "do not mask",
+            "array": [
+              {
+                "field": "do not mask",
+                "ignore": "do not mask"
+              }
+            ],
+            "anotherField": "do not mask",
+            "objectField": {
+              "nestedField": "do not mask",
+              "ignore": "do not mask"
+            }
+          }
+        }
+      }
     }
   }
 ]

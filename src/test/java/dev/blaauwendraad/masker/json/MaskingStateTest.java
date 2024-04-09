@@ -1,9 +1,11 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 class MaskingStateTest {
     @Test
@@ -40,5 +42,53 @@ class MaskingStateTest {
                 }
                 ><end of json>
                 """.stripTrailing());
+    }
+
+    @Test
+    void jsonPathExceedsCapacity() {
+        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
+        for (int i = 0; i < 101; i++) {
+            maskingState.expandCurrentJsonPath(new KeyMatcher.TrieNode());
+        }
+        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNotNull();
+    }
+
+    @Test
+    void getCurrentJsonPathNodeFromEmptyJsonPath() {
+        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
+        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNull();
+    }
+
+    @Test
+    void shouldThrowErrorWhenGettingStartValueIndexOutsideOfMasking() {
+        MaskingState maskingState = new MaskingState("""
+                {
+                    "maskMe": "some value"
+                }
+                """.getBytes(StandardCharsets.UTF_8), false);
+
+        Assertions.assertThatThrownBy(() -> maskingState.getCurrentValueStartIndex())
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void shouldUseCorrectOffsetWhenThrowingValueMaskerError() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("maskMe"))
+                        .maskStringsWith(context -> {
+                            throw context.invalidJson("Didn't like the value at index 3", 3);
+                        })
+                .build()
+        );
+
+        Assertions.assertThatThrownBy(() ->
+                jsonMasker.mask("""
+                {
+                    "maskMe": "some value"
+                }
+                """
+        ))
+                .isInstanceOf(InvalidJsonException.class)
+                .hasMessage("Didn't like the value at index 3 at index 19");
     }
 }

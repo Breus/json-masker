@@ -51,7 +51,6 @@ public class BaselineBenchmark {
                     // will only match primitive values, not objects or arrays, but it's good to show the difference
                     .map(key -> Pattern.compile("(\"" + key + "\"\\s*:\\s*)(\"?[^\"]*\"?)", Pattern.CASE_INSENSITIVE))
                     .toList();
-            System.out.println(jsonString);
         }
     }
 

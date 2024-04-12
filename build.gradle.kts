@@ -36,7 +36,6 @@ java {
 }
 
 dependencies {
-    "nullabilityAnnotationsImplementation"(libs.findbugs)
     "nullabilityAnnotationsImplementation"(libs.jspecify)
 
     testImplementation(libs.assertj.core)

@@ -165,6 +165,7 @@ tasks {
             disableAllChecks = true
             error("NullAway")
             option("NullAway:AnnotatedPackages", "dev.blaauwendraad.masker")
+            option("NullAway:UnannotatedSubPackages", "dev.blaauwendraad.masker.json.jmh_generated")
         }
         options.encoding = "UTF-8"
     }

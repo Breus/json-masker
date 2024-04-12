@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.path;
 
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Arrays;
 
 /**
@@ -13,7 +14,7 @@ public record JsonPath(String[] segments) {
      * The last segment of the jsonpath key is an actual target key.
      * @return the last segment of the jsonpath key.
      */
-    @CheckForNull
+    @Nullable
     public String getQueryArgument() {
         return segments.length != 0 ? segments[segments.length - 1] : null;
     }

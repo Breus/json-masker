@@ -11,11 +11,9 @@ import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,7 +63,6 @@ final class FuzzingTest {
                 randomTestExecuted, timeLimit);
     }
 
-    @Nonnull
     private static Stream<JsonMaskingConfig> jsonMaskingConfigs() {
         return Stream.of(
                 JsonMaskingConfig.builder().maskKeys(DEFAULT_TARGET_KEYS).build(),

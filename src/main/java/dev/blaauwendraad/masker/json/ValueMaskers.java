@@ -426,7 +426,7 @@ public final class ValueMaskers {
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
                                         } catch (IllegalArgumentException e) {
-                                            throw context.invalidJson(e.getMessage(), valueStartIndex);
+                                            throw context.invalidJson(e.getMessage() != null ? e.getMessage() : "IllegalArgumentException", valueStartIndex);
                                         }
                                     }
                                     default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);

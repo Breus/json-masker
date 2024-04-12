@@ -1,8 +1,8 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.Utf8Util;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ final class MaskingState implements ValueMaskerContext {
      * Current JSONPath is represented by a stack of segment references.
      * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    private KeyMatcher.TrieNode[] currentJsonPath = null;
+    private KeyMatcher.@Nullable TrieNode[] currentJsonPath = null;
     private int currentJsonPathHeadIndex = -1;
     private int currentValueStartIndex = -1;
 
@@ -150,7 +150,7 @@ final class MaskingState implements ValueMaskerContext {
      *
      * @param trieNode a node in the trie where the new segment ends.
      */
-    void expandCurrentJsonPath(@CheckForNull KeyMatcher.TrieNode trieNode) {
+    void expandCurrentJsonPath(KeyMatcher.@Nullable TrieNode trieNode) {
         if (currentJsonPath != null) {
             currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
             if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
@@ -172,7 +172,7 @@ final class MaskingState implements ValueMaskerContext {
     /**
      * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
-    public KeyMatcher.TrieNode getCurrentJsonPathNode() {
+    public KeyMatcher.@Nullable TrieNode getCurrentJsonPathNode() {
         if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
             return currentJsonPath[currentJsonPathHeadIndex];
         } else {

@@ -2,7 +2,6 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
@@ -17,7 +16,6 @@ public interface JsonMasker {
      * @param targetKeys the key(s) to target
      * @return the {@link JsonMasker} instance
      */
-    @Nonnull
     static JsonMasker getMasker(Set<String> targetKeys) {
         return getMasker(JsonMaskingConfig.builder().maskKeys(targetKeys).build());
     }
@@ -28,7 +26,6 @@ public interface JsonMasker {
      * @param maskingConfig the JSON masker configuration
      * @return a new {@link JsonMasker} instance corresponding to the provided {@link JsonMaskingConfig}
      */
-    @Nonnull
     static JsonMasker getMasker(JsonMaskingConfig maskingConfig) {
         return new KeyContainsMasker(maskingConfig);
     }
@@ -49,7 +46,6 @@ public interface JsonMasker {
      * @return the masked JSON output String
      * @throws InvalidJsonException in case invalid JSON input was provided
      */
-    @Nonnull
     default String mask(String input) {
         return new String(mask(input.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
     }

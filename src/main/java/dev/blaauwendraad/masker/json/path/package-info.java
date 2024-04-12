@@ -1,4 +1,7 @@
-@ParametersAreNonnullByDefault
+/**
+ * This package contains internal configuration for the JSONPath support.
+ */
+@NullMarked
 package dev.blaauwendraad.masker.json.path;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

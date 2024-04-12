@@ -11,7 +11,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -112,7 +111,6 @@ final class NoFailingExecutionFuzzingTest {
         }
     }
 
-    @Nonnull
     private static Stream<Arguments> failureFuzzingConfigurations() {
         Set<String> targetKeys = Set.of("targetKey1", "targetKey2");
         return Stream.of(

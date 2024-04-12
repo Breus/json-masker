@@ -4,6 +4,7 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -426,7 +427,7 @@ public final class ValueMaskers {
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
                                         } catch (IllegalArgumentException e) {
-                                            throw context.invalidJson(e.getMessage() != null ? e.getMessage() : "IllegalArgumentException", valueStartIndex);
+                                            throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);
                                         }
                                     }
                                     default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);

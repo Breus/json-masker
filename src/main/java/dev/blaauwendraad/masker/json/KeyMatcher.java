@@ -134,7 +134,7 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
     @Nullable
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
+    KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
         // first search by key
         TrieNode node = currentJsonPathNode;
         if (maskingConfig.isInMaskMode()) {
@@ -199,7 +199,7 @@ final class KeyMatcher {
     }
 
     @Nullable
-    public TrieNode getJsonPathRootNode() {
+    TrieNode getJsonPathRootNode() {
         return root.child((byte) '$');
     }
 
@@ -214,7 +214,7 @@ final class KeyMatcher {
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
      */
     @Nullable
-    public TrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
+    TrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
@@ -257,12 +257,18 @@ final class KeyMatcher {
          */
         boolean negativeMatch = false;
 
+        /**
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
+         */
         @Nullable
-        public TrieNode child(byte b) {
+        TrieNode child(byte b) {
             return children[b + BYTE_OFFSET];
         }
 
-        public void add(byte b, TrieNode child) {
+        /**
+         * Adds a new child to the trie.
+         */
+        void add(byte b, TrieNode child) {
             children[b + BYTE_OFFSET] = child;
         }
     }

@@ -290,7 +290,6 @@ final class KeyContainsMasker implements JsonMasker {
      * value.
      */
     private static void stepOverNumericValue(MaskingState maskingState) {
-        // step over the first numeric character
         do {
             maskingState.next();
         } while (maskingState.currentIndex() < maskingState.getMessage().length && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex()));

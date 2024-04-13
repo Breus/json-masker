@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.test.logger)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
-    alias(libs.plugins.error.prone)
+    alias(libs.plugins.errorprone)
     `maven-publish`
     `java-library`
     signing
@@ -46,8 +46,8 @@ dependencies {
 
     jmh(libs.jmh.core)
     jmhAnnotationProcessor(libs.jmh.generator.annproccesor)
-    errorprone("com.uber.nullaway:nullaway:0.10.24")
-    errorprone("com.google.errorprone:error_prone_core:2.9.0")
+    errorprone(libs.nullaway)
+    errorprone(libs.errorprone.core)
 }
 
 publishing {

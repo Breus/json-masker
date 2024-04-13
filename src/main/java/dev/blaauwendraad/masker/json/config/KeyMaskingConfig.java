@@ -2,7 +2,7 @@ package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskers;
-import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -62,11 +62,10 @@ public final class KeyMaskingConfig {
                 .formatted(maskStringsWith, maskNumbersWith, maskBooleansWith);
     }
 
-    @NullUnmarked
     public static class Builder {
-        private ValueMasker.StringMasker maskStringsWith;
-        private ValueMasker.NumberMasker maskNumbersWith;
-        private ValueMasker.BooleanMasker maskBooleansWith;
+        private ValueMasker.@Nullable StringMasker maskStringsWith;
+        private ValueMasker.@Nullable NumberMasker maskNumbersWith;
+        private ValueMasker.@Nullable BooleanMasker maskBooleansWith;
 
         private Builder() {
         }

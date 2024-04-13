@@ -3,7 +3,6 @@ package dev.blaauwendraad.masker.json.config;
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
-import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -135,13 +134,14 @@ public final class JsonMaskingConfig {
     /**
      * Builder to create {@link JsonMaskingConfig} instances using the builder pattern.
      */
-    @NullUnmarked
     public static class Builder {
         private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
         private final Set<String> targetKeys = new HashSet<>();
         private final Set<JsonPath> targetJsonPaths = new HashSet<>();
+        @Nullable
         private TargetKeyMode targetKeyMode;
+        @Nullable
         private Boolean caseSensitiveTargetKeys;
 
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();

@@ -263,10 +263,6 @@ class ValueMaskersTest {
         }))).isEqualTo("\"/\"");
     }
 
-    @Test
-    void withTextFunctionEscapesControlCharacters() throws JsonProcessingException {
-    }
-
     private static Stream<List<String>> unicodeCharacters() {
         // equivalent pairs of unicode characters: actual character (expected), JSON-escaped, Java-escaped
         return Stream.of(

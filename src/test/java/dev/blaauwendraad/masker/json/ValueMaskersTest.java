@@ -10,7 +10,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -233,14 +232,14 @@ class ValueMaskersTest {
     void withTextFunctionEscapedCharacters() throws JsonProcessingException {
         // Verifying escaping per https://datatracker.ietf.org/doc/html/rfc8259#section-7
         // quotation mark
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\"", ValueMaskers.withTextFunction(value -> {
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\\"", ValueMaskers.withTextFunction(value -> {
             Assertions.assertThat(value).isEqualTo("\"");
             return value;
-        }))).isEqualTo("\"\"\"");
+        }))).isEqualTo("\"\\\"\"");
 
         // reverse solidus
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\\\", ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("\"\\");
+            Assertions.assertThat(value).isEqualTo("\\");
             return value;
         }))).isEqualTo("\"\\\\\"");
 

@@ -39,46 +39,13 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Setup async-profiler
-        run: |
-          mkdir -p $HOME/async-profiler \
-            && curl -s -L "https://github.com/async-profiler/async-profiler/releases/download/v3.0/async-profiler-3.0-linux-x64.tar.gz" \
-            | tar -xz -C $HOME/async-profiler --strip-components=1
-            
-          echo "async-profiler has been installed into $HOME/async-profiler"
-          $HOME/async-profiler/bin/asprof --version
-          
-          echo "Enabling perf events"
-          sudo sysctl kernel.perf_event_paranoid=1
-          sudo sysctl kernel.kptr_restrict=0
-          
-          echo "Done"
-
       - name: Run benchmarks (pull-request)
         working-directory: benchmark-pull-request
-        run: ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
-
-      - name: Upload Artifact (pull-request)
-        id: upload-artifact-pull-request
-        uses: actions/upload-artifact@v4
-        with:
-          name: async-profiler-pull-request-${{ github.event.pull_request.head.sha }}
-          path: benchmark-pull-request/build/results/jmh/async-profiler/
-          retention-days: 7
-          if-no-files-found: error
+        run: ./gradlew jmh -PjmhShort
 
       - name: Run benchmarks (master)
         working-directory: benchmark-master
-        run: ./gradlew jmh -PjmhShort -PjmhAsyncProfilerLibPath=$HOME/async-profiler/lib/libasyncProfiler.so
-
-      - name: Upload Artifact (master)
-        id: upload-artifact-master
-        uses: actions/upload-artifact@v4
-        with:
-          name: async-profiler-${{ github.base_ref }}-${{ steps.get-master-sha.outputs.sha }}
-          path: benchmark-master/build/results/jmh/async-profiler/
-          retention-days: 7
-          if-no-files-found: error
+        run: ./gradlew jmh -PjmhShort
 
       - name: Compose comment content
         run: |
@@ -88,15 +55,13 @@ jobs:
         
           ### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})
           \`\`\`text
-          $(grep -v ':async' benchmark-pull-request/build/results/jmh/results.txt)
+          $(cat benchmark-pull-request/build/results/jmh/results.txt)
           \`\`\`
-          Profile results: [async-profiler (pull-request)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-pull-request.outputs.artifact-id }}) (link expires on $(date --date="7 days" +"%Y-%m-%d %H:%M:%S"))
           
           ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-master-sha.outputs.sha }})
           \`\`\`text
-          $(grep -v ':async' benchmark-master/build/results/jmh/results.txt)
+          $(cat benchmark-master/build/results/jmh/results.txt)
           \`\`\`
-          Profile results: [async-profiler (master)](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload-artifact-master.outputs.artifact-id }}) (link expires on $(date --date="7 days" +"%Y-%m-%d %H:%M:%S"))
           EOF
 
       - name: Find benchmark results comment

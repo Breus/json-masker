@@ -4,8 +4,7 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
-
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of the {@link JsonMasker}.
@@ -65,7 +64,7 @@ final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
      *                         being masked
      */
-    private void visitValue(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
+    private void visitValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
             case '[' -> visitArray(maskingState, keyMaskingConfig);
@@ -111,7 +110,7 @@ final class KeyContainsMasker implements JsonMasker {
      * @param keyMaskingConfig if not null it means that the current value is being masked according to the
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
-    private void visitArray(MaskingState maskingState, @CheckForNull KeyMaskingConfig keyMaskingConfig) {
+    private void visitArray(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
         maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), -1, -1));
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
@@ -144,7 +143,7 @@ final class KeyContainsMasker implements JsonMasker {
      * @param parentKeyMaskingConfig if not null it means that the current value is being masked according to the
      *                               {@link KeyMaskingConfig}. Otherwise, the value is not being masked
      */
-    private void visitObject(MaskingState maskingState, @CheckForNull KeyMaskingConfig parentKeyMaskingConfig) {
+    private void visitObject(MaskingState maskingState, @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty object
@@ -291,11 +290,9 @@ final class KeyContainsMasker implements JsonMasker {
      * value.
      */
     private static void stepOverNumericValue(MaskingState maskingState) {
-        // step over the first numeric character
-        maskingState.next();
-        while (maskingState.currentIndex() < maskingState.getMessage().length && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex())) {
+        do {
             maskingState.next();
-        }
+        } while (maskingState.currentIndex() < maskingState.getMessage().length && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex()));
     }
 
     /**

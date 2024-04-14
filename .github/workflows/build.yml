@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
 
 concurrency:
   # On master, we don't want any jobs cancelled so the sha is used to name the group

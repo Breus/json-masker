@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json.path;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +40,6 @@ public class JsonPathParser {
      * @param literal a jsonpath literal to be parsed.
      * @return {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
      */
-    @Nonnull
     public JsonPath parse(String literal) {
         if (!(literal.equals("$") || literal.startsWith("$.") || literal.startsWith("$["))) {
             throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "JSONPath must start with a root node identifier.");
@@ -62,6 +62,7 @@ public class JsonPathParser {
      * @param literal a jsonpath literal to be parsed.
      * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
      */
+    @Nullable
     public JsonPath tryParse(String literal) {
         try {
             return parse(literal);

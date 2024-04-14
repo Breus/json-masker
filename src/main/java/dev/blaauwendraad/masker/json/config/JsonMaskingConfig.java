@@ -3,8 +3,8 @@ package dev.blaauwendraad.masker.json.config;
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -139,7 +139,9 @@ public final class JsonMaskingConfig {
 
         private final Set<String> targetKeys = new HashSet<>();
         private final Set<JsonPath> targetJsonPaths = new HashSet<>();
+        @Nullable
         private TargetKeyMode targetKeyMode;
+        @Nullable
         private Boolean caseSensitiveTargetKeys;
 
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
@@ -161,7 +163,7 @@ public final class JsonMaskingConfig {
             return maskKeys0(keys, Objects.requireNonNull(config));
         }
 
-        private Builder maskKeys0(Set<String> keys, @CheckForNull KeyMaskingConfig config) {
+        private Builder maskKeys0(Set<String> keys, @Nullable KeyMaskingConfig config) {
             if (keys.isEmpty()) {
                 throw new IllegalArgumentException("At least one key must be provided");
             }
@@ -194,7 +196,7 @@ public final class JsonMaskingConfig {
             return maskJsonPaths0(jsonPaths, Objects.requireNonNull(config));
         }
 
-        private Builder maskJsonPaths0(Set<String> jsonPaths, @CheckForNull KeyMaskingConfig config) {
+        private Builder maskJsonPaths0(Set<String> jsonPaths, @Nullable KeyMaskingConfig config) {
             if (jsonPaths.isEmpty()) {
                 throw new IllegalArgumentException("At least one JSONPath must be provided");
             }

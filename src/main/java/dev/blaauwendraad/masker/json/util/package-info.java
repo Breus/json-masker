@@ -1,7 +1,7 @@
 /**
  * This package contains internal utilities.
  */
-@ParametersAreNonnullByDefault
+@NullMarked
 package dev.blaauwendraad.masker.json.util;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

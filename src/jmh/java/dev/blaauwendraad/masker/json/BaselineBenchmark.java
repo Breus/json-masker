@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 public class BaselineBenchmark {
 
     @org.openjdk.jmh.annotations.State(Scope.Thread)
+    @NullUnmarked
     public static class State {
         @Param({ "1kb", "128kb", "2mb" })
         String jsonSize;

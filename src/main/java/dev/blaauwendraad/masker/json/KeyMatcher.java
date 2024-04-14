@@ -2,9 +2,10 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
@@ -65,7 +66,6 @@ final class KeyMatcher {
      *                      insert a "negative match" node, that would not be treated as a target key, but provide
      *                      a fast lookup for the configuration
      */
-    @SuppressWarnings("java:S2259") // sonar complains that lowerBytes can be null, but it can not
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
@@ -92,11 +92,13 @@ final class KeyMatcher {
         TrieNode node = root;
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
-            TrieNode child = node.children[b + BYTE_OFFSET];
+            TrieNode child = node.child(b);
             if (child == null) {
                 child = new TrieNode();
-                node.children[b + BYTE_OFFSET] = child;
+                node.add(b, child);
                 if (caseInsensitive) {
+                    Objects.requireNonNull(lowerBytes);
+                    Objects.requireNonNull(upperBytes);
                     /*
                       when case-insensitive we need to keep track of siblings to be able to find the correct node
                       so that we have this structure:
@@ -109,8 +111,8 @@ final class KeyMatcher {
                         1. Locale issues (see String#equalsIgnoreCase)
                         2. So we don't have to convert when searching
                      */
-                    node.children[lowerBytes[i] + BYTE_OFFSET] = child;
-                    node.children[upperBytes[i] + BYTE_OFFSET] = child;
+                    node.add(lowerBytes[i], child);
+                    node.add(upperBytes[i], child);
                 }
             }
             node = child;
@@ -131,12 +133,12 @@ final class KeyMatcher {
      *
      * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
      */
-    @CheckForNull
-    public KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @CheckForNull TrieNode currentJsonPathNode) {
+    @Nullable
+    KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
         // first search by key
+        TrieNode node = currentJsonPathNode;
         if (maskingConfig.isInMaskMode()) {
             // check JSONPath first, as it's more specific
-            TrieNode node = currentJsonPathNode;
             // if found - mask with this config
             // if not found - do not mask
             if (node != null && node.endOfWord && !node.negativeMatch) {
@@ -151,7 +153,6 @@ final class KeyMatcher {
             return null;
         } else {
             // check JSONPath first, as it's more specific
-            TrieNode node = currentJsonPathNode;
             // if found and is not negativeMatch - do not mask
             // if found and is negative match - mask, but with a specific config
             // if not found - mask with default config
@@ -174,7 +175,7 @@ final class KeyMatcher {
         }
     }
 
-    @CheckForNull
+    @Nullable
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
         if (!knownByteLengths[length]) {
             return null;
@@ -182,8 +183,8 @@ final class KeyMatcher {
         TrieNode node = root;
 
         for (int i = offset; i < offset + length; i++) {
-            int b = bytes[i];
-            node = node.children[b + BYTE_OFFSET];
+            byte b = bytes[i];
+            node = node.child(b);
 
             if (node == null) {
                 return null;
@@ -197,9 +198,9 @@ final class KeyMatcher {
         return node;
     }
 
-    @CheckForNull
-    public TrieNode getJsonPathRootNode() {
-        return root.children['$' + BYTE_OFFSET];
+    @Nullable
+    TrieNode getJsonPathRootNode() {
+        return root.child((byte) '$');
     }
 
     /**
@@ -212,22 +213,22 @@ final class KeyMatcher {
      * @param keyLength the length of the segment.
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
      */
-    @CheckForNull
-    public TrieNode traverseJsonPathSegment(byte[] bytes, @CheckForNull final TrieNode begin, int keyOffset, int keyLength) {
+    @Nullable
+    TrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
-        TrieNode current = begin.children['.' + BYTE_OFFSET];
+        TrieNode current = begin.child((byte) '.');
         if (current == null) {
             return null;
         }
-        TrieNode wildcardLookAhead = current.children['*' + BYTE_OFFSET];
-        if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.children['.' + BYTE_OFFSET] != null)) {
+        TrieNode wildcardLookAhead = current.child((byte) '*');
+        if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.child((byte) '.') != null)) {
             return wildcardLookAhead;
         }
         for (int i = keyOffset; i < keyOffset + keyLength; i++) {
-            int b = bytes[i];
-            current = current.children[b + BYTE_OFFSET];
+            byte b = bytes[i];
+            current = current.child(b);
             if (current == null) {
                 return null;
             }
@@ -249,11 +250,26 @@ final class KeyMatcher {
         /**
          * Masking configuration for the key that ends at this node.
          */
-        @CheckForNull
+        @Nullable
         KeyMaskingConfig keyMaskingConfig = null;
         /**
          * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
          */
         boolean negativeMatch = false;
+
+        /**
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
+         */
+        @Nullable
+        TrieNode child(byte b) {
+            return children[b + BYTE_OFFSET];
+        }
+
+        /**
+         * Adds a new child to the trie.
+         */
+        void add(byte b, TrieNode child) {
+            children[b + BYTE_OFFSET] = child;
+        }
     }
 }

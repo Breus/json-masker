@@ -3,7 +3,7 @@
  * Additionally, the package contains {@link dev.blaauwendraad.masker.json.ValueMasker} for low-level masking
  * customization and {@link dev.blaauwendraad.masker.json.ValueMaskers} for out-of-the-box maskers.
  */
-@ParametersAreNonnullByDefault
+@NullMarked
 package dev.blaauwendraad.masker.json;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

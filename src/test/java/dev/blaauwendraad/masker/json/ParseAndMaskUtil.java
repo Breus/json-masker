@@ -14,7 +14,6 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 
-import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,12 +26,10 @@ public final class ParseAndMaskUtil {
         // util
     }
 
-    @Nonnull
     static JsonNode mask(String jsonString, JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
         return mask(DEFAULT_OBJECT_MAPPER.readTree(jsonString), jsonMaskingConfig);
     }
 
-    @Nonnull
     static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
         if (jsonMaskingConfig.isInAllowMode() && !jsonNode.isArray() && !jsonNode.isObject()) {
             return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
@@ -63,7 +60,6 @@ public final class ParseAndMaskUtil {
         return mask(jsonNode, jsonMaskingConfig, "$", casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
     }
 
-    @Nonnull
     static JsonNode mask(
             JsonNode jsonNode,
             JsonMaskingConfig jsonMaskingConfig,
@@ -131,7 +127,6 @@ public final class ParseAndMaskUtil {
                 || targetJsonPathKeys.contains(jsonPathKey);
     }
 
-    @Nonnull
     private static JsonNode maskJsonValue(
             JsonNode jsonNode,
             KeyMaskingConfig config,
@@ -153,7 +148,6 @@ public final class ParseAndMaskUtil {
         return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
-    @Nonnull
     private static JsonNode maskTextNode(TextNode textNode, KeyMaskingConfig config) throws JsonProcessingException {
         // can't use testValue due to not preserving
         String stringRepresentation = textNode.toString();
@@ -162,13 +156,11 @@ public final class ParseAndMaskUtil {
         return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
-    @Nonnull
     private static JsonNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) throws JsonProcessingException {
         String maskedValue = ByteValueMaskerContext.maskNumberWith(numericNode.numberValue(), config.getNumberValueMasker());
         return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
     }
 
-    @Nonnull
     private static ArrayNode maskArrayNodeValue(
             ArrayNode arrayNode,
             KeyMaskingConfig config,
@@ -182,7 +174,6 @@ public final class ParseAndMaskUtil {
         return maskedArrayNode;
     }
 
-    @Nonnull
     private static ObjectNode maskObjectNodeValue(
             ObjectNode objectNode,
             KeyMaskingConfig config,

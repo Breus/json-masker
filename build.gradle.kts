@@ -1,3 +1,4 @@
+import net.ltgt.gradle.errorprone.errorprone
 import org.sonarqube.gradle.SonarTask
 
 plugins {
@@ -5,6 +6,7 @@ plugins {
     alias(libs.plugins.test.logger)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
+    alias(libs.plugins.errorprone)
     `maven-publish`
     `java-library`
     signing
@@ -34,7 +36,7 @@ java {
 }
 
 dependencies {
-    "nullabilityAnnotationsImplementation"(libs.findbugs)
+    "nullabilityAnnotationsImplementation"(libs.jspecify)
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.jackson.databind)
@@ -44,6 +46,8 @@ dependencies {
 
     jmh(libs.jmh.core)
     jmhAnnotationProcessor(libs.jmh.generator.annproccesor)
+    errorprone(libs.nullaway)
+    errorprone(libs.errorprone.core)
 }
 
 publishing {
@@ -156,11 +160,13 @@ tasks {
         useJUnitPlatform()
     }
 
-    compileJava {
-        options.encoding = "UTF-8"
-    }
-
-    compileTestJava {
+    withType<JavaCompile>().configureEach {
+        options.errorprone {
+            disableAllChecks = true
+            error("NullAway")
+            option("NullAway:AnnotatedPackages", "dev.blaauwendraad.masker")
+            option("NullAway:UnannotatedSubPackages", "dev.blaauwendraad.masker.json.jmh_generated")
+        }
         options.encoding = "UTF-8"
     }
 

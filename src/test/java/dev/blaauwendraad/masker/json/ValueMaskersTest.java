@@ -1,5 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
@@ -8,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -296,6 +299,20 @@ class ValueMaskersTest {
                 Assertions.assertThat(value).isEqualTo("prefix" + expected + "suffix");
                 return value;
             }))).isEqualTo("\"prefix" + expected + "suffix\"");
+        }
+    }
+
+    @Test
+    void withTextFunctionEscapesControlCharacters() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        for (int i = 0; i < 32; i++) {
+            String controlCharacter = String.valueOf((char) i);
+            String encoded = objectMapper.writeValueAsString(controlCharacter);
+
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(encoded.substring(1, encoded.length() - 1), ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(controlCharacter);
+                return value;
+            }))).isEqualTo(encoded);
         }
     }
 

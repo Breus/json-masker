@@ -458,7 +458,7 @@ public final class ValueMaskers {
                                 case '\u0006' -> encoded.append("\\u0006");
                                 case '\u0007' -> encoded.append("\\u0007");
                                 case /* \\u0008 */ '\b' -> encoded.append("\\b");
-                                case /* \\u0009 */ '\t' -> encoded.append("\\u0009");
+                                case /* \\u0009 */ '\t' -> encoded.append("\\t");
                                 case /* \\u000A */ '\n' -> encoded.append("\\n");
                                 case '\u000B' -> encoded.append("\\u000B");
                                 case /* \\u000C */ '\f' -> encoded.append("\\f");

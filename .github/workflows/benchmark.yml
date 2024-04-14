@@ -30,6 +30,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          ref: ${{ steps.get-sha.outputs.sha }}
           path: benchmark-pull-request
 
       - name: Setup JDK 17

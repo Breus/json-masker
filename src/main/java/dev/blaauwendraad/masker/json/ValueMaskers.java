@@ -456,7 +456,7 @@ public final class ValueMaskers {
                                 case '\r' -> encoded.append("\\r");
                                 case '"', '\\' -> encoded.append('\\').append(character);
                                 default -> {
-                                    if (character < 32) {
+                                    if (character <= '\u001F') {
                                         encoded.append("\\u").append(String.format("%04X", (int) character));
                                     } else {
                                         encoded.append(character);

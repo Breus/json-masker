@@ -227,6 +227,13 @@ final class KeyMatcherTest {
                 .isEqualTo("\"[redacted]\"");
     }
 
+    @Test
+    void shouldAllowVeryLargeKeys() {
+        String key = "k".repeat(10000);
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of(key)).build());
+        assertThatConfig(keyMatcher, key).isNotNull();
+    }
+
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
         return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null));

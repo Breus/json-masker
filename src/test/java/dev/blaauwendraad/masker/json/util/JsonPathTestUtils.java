@@ -76,7 +76,7 @@ public class JsonPathTestUtils {
         }
         List<String> allKeys = disambiguate(new ArrayList<>(transformedTargetKeys));
         Collections.shuffle(allKeys, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
-        return new HashSet<>(allKeys.subList(0, keys.size()));
+        return new HashSet<>(allKeys.subList(0, Math.min(keys.size(), allKeys.size())));
     }
 
     /**

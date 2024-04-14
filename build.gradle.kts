@@ -144,6 +144,8 @@ jmh {
     // the results will be stored in build/results/jmh/async-profiler and can be opened in IDEA or Java Flight Recorder
     if (project.hasProperty("jmhAsyncProfilerLibPath")) {
         profilers = listOfProperty("async:libPath=${project.property("jmhAsyncProfilerLibPath")};output=jfr;dir=build/results/jmh/async-profiler")
+    } else {
+        profilers = listOfProperty("gc")
     }
 }
 

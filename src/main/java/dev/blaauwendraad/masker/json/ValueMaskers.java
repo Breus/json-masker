@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -270,7 +271,7 @@ public final class ValueMaskers {
      *
      * @see ValueMaskers#withTextFunction(Function)
      */
-    public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {
+    public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, @Nullable String> masker) {
         return describe(
                 "withRawValueFunction (%s)".formatted(masker),
                 context -> {
@@ -334,7 +335,7 @@ public final class ValueMaskers {
      * the {@link Function} and then turn it back into a byte array for the replacement, which introduces some
      * performance overhead.
      */
-    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
+    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, @Nullable String> masker) {
         return describe(
                 "withTextFunction (%s)".formatted(masker),
                 context -> {

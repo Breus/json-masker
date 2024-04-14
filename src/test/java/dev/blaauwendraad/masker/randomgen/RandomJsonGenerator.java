@@ -123,7 +123,9 @@ public final class RandomJsonGenerator {
 
     private String randomKey(Context context) {
         double rnd = context.random.nextDouble(0, 1);
-        return rnd <= config.getTargetKeyPercentage() ? getRandomTargetKey(context) : getRandomString(context);
+        return rnd <= config.getTargetKeyPercentage() && !config.getTargetKeys().isEmpty()
+                ? getRandomTargetKey(context)
+                : getRandomString(context);
     }
 
     private String getRandomTargetKey(Context context) {

@@ -142,6 +142,13 @@ final class FuzzingTest {
                         .maskStringsWith("****")
                         .maskNumbersWith(11111111)
                         .build(),
-                JsonMaskingConfig.builder().allowJsonPaths(DEFAULT_JSON_PATH_KEYS).maskStringsWith("****").build());
+                JsonMaskingConfig.builder().allowJsonPaths(DEFAULT_JSON_PATH_KEYS).maskStringsWith("****").build(),
+                JsonMaskingConfig.builder()
+                        .allowKeys(Set.of())
+                        .maskStringsWith(ValueMaskers.withTextFunction(value -> value))
+                        .maskNumbersWith(ValueMaskers.withTextFunction(value -> value))
+                        .maskBooleansWith(ValueMaskers.withTextFunction(value -> value))
+                        .build()
+        );
     }
 }

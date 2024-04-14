@@ -54,9 +54,6 @@ public final class ParseAndMaskUtil {
                     .collect(Collectors.toSet());
 
         }
-        if (casingAppliedTargetKeys.isEmpty() && casingAppliedTargetJsonPathKeys.isEmpty()) {
-            return jsonNode;
-        }
         return mask(jsonNode, jsonMaskingConfig, "$", casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
     }
 

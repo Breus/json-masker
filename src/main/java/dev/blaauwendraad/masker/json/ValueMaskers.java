@@ -449,40 +449,19 @@ public final class ValueMaskers {
                             // quotation mark, reverse solidus, and the control characters (U+0000 through U+001F)
                             // unicode character do not have to be transformed into \\u form
                             switch (character) {
-                                case '\u0000' -> encoded.append("\\u0000");
-                                case '\u0001' -> encoded.append("\\u0001");
-                                case '\u0002' -> encoded.append("\\u0002");
-                                case '\u0003' -> encoded.append("\\u0003");
-                                case '\u0004' -> encoded.append("\\u0004");
-                                case '\u0005' -> encoded.append("\\u0005");
-                                case '\u0006' -> encoded.append("\\u0006");
-                                case '\u0007' -> encoded.append("\\u0007");
-                                case /* \\u0008 */ '\b' -> encoded.append("\\b");
-                                case /* \\u0009 */ '\t' -> encoded.append("\\t");
-                                case /* \\u000A */ '\n' -> encoded.append("\\n");
-                                case '\u000B' -> encoded.append("\\u000B");
-                                case /* \\u000C */ '\f' -> encoded.append("\\f");
-                                case /* \\u000D */ '\r' -> encoded.append("\\r");
-                                case '\u000E' -> encoded.append("\\u000E");
-                                case '\u000F' -> encoded.append("\\u000F");
-                                case '\u0010' -> encoded.append("\\u0010");
-                                case '\u0011' -> encoded.append("\\u0011");
-                                case '\u0012' -> encoded.append("\\u0012");
-                                case '\u0013' -> encoded.append("\\u0013");
-                                case '\u0014' -> encoded.append("\\u0014");
-                                case '\u0015' -> encoded.append("\\u0015");
-                                case '\u0016' -> encoded.append("\\u0016");
-                                case '\u0017' -> encoded.append("\\u0017");
-                                case '\u0018' -> encoded.append("\\u0018");
-                                case '\u0019' -> encoded.append("\\u0019");
-                                case '\u001A' -> encoded.append("\\u001A");
-                                case '\u001B' -> encoded.append("\\u001B");
-                                case '\u001C' -> encoded.append("\\u001C");
-                                case '\u001D' -> encoded.append("\\u001D");
-                                case '\u001E' -> encoded.append("\\u001E");
-                                case '\u001F' -> encoded.append("\\u001F");
+                                case '\b' -> encoded.append("\\b");
+                                case '\t' -> encoded.append("\\t");
+                                case '\n' -> encoded.append("\\n");
+                                case '\f' -> encoded.append("\\f");
+                                case '\r' -> encoded.append("\\r");
                                 case '"', '\\' -> encoded.append('\\').append(character);
-                                default -> encoded.append(character);
+                                default -> {
+                                    if (character < 32) {
+                                        encoded.append("\\u").append(String.format("%04X", (int) character));
+                                    } else {
+                                        encoded.append(character);
+                                    }
+                                }
                             }
                         }
                         encoded.append("\""); // closing quote of the encoded string

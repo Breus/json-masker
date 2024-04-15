@@ -38,6 +38,18 @@ class ValueMaskersTest {
     }
 
     @Test
+    void withStringValueEncoded() {
+        var valueMasker = ValueMaskers.with("\u0000\n");
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret", valueMasker))
+                .isEqualTo("\"\\u0000\\n\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("\"\\u0000\\n\"");
+        Assertions.assertThat(ByteValueMaskerContext.maskBooleanWith(true, valueMasker))
+                .isEqualTo("\"\\u0000\\n\"");
+    }
+
+    @Test
     void withIntegerValue() {
         var valueMasker = ValueMaskers.with(0);
 
@@ -82,6 +94,14 @@ class ValueMaskersTest {
     }
 
     @Test
+    void eachCharacterWithEncoded() {
+        var valueMasker = ValueMaskers.eachCharacterWith("\u0000");
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret", valueMasker))
+                .isEqualTo("\"\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\"");
+    }
+
+    @Test
     void eachDigitWithInteger() {
         var valueMasker = ValueMaskers.eachDigitWith(1);
 
@@ -99,6 +119,13 @@ class ValueMaskersTest {
         var valueMasker = ValueMaskers.eachDigitWith("*");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("\"*****\"");
+    }
+
+    @Test
+    void eachDigitWithSingleCharacterEncoded() {
+        var valueMasker = ValueMaskers.eachDigitWith("\u0000");
+        Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
+                .isEqualTo("\"\\u0000\\u0000\\u0000\\u0000\\u0000\"");
     }
 
     @Test

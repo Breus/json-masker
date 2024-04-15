@@ -34,7 +34,7 @@ public final class ValueMaskers {
      * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
      */
     public static ValueMasker.AnyValueMasker with(String value) {
-        String replacement = "\"" + value + "\"";
+        String replacement = Utf8Util.jsonEncode(value);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
                 replacement,
@@ -87,9 +87,11 @@ public final class ValueMaskers {
      * \}uDCA9'), will only count as a single character in the masked value.
      */
     public static ValueMasker.StringMasker eachCharacterWith(String value) {
-        byte[] replacementBytes = value.getBytes(StandardCharsets.UTF_8);
+        String encoded = Utf8Util.jsonEncode(value);
+        String replacement = encoded.substring(1, encoded.length() - 1); // remove the quotes
+        byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every character as %s".formatted(value),
+                "every character as %s".formatted(replacement),
                 context -> {
                     /*
                     So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
@@ -130,17 +132,18 @@ public final class ValueMaskers {
      * <p> Or, for example {@literal "maskMe": 123 -> "maskMe": "NoNoNo"}.
      */
     public static ValueMasker.NumberMasker eachDigitWith(String value) {
-        byte[] maskValueBytes = value.getBytes(StandardCharsets.UTF_8);
-        int maskValueBytesLength = maskValueBytes.length;
+        String encoded = Utf8Util.jsonEncode(value);
+        String replacement = encoded.substring(1, encoded.length() - 1); // remove the quotes
+        byte[] maskValueBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every digit as string: %s".formatted(value),
+                "every digit as string: %s".formatted(replacement),
                 context -> {
                     int originalValueBytesLength = context.byteLength();
-                    int totalMaskLength = originalValueBytesLength * maskValueBytesLength;
+                    int totalMaskLength = originalValueBytesLength * maskValueBytes.length;
                     byte[] mask = new byte[2 + totalMaskLength]; // 2 for the opening and closing quotes
                     mask[0] = '\"';
-                    for (int i = 0; i < totalMaskLength; i += maskValueBytesLength) {
-                        for (int j = 0; j < maskValueBytesLength; j++) {
+                    for (int i = 0; i < totalMaskLength; i += maskValueBytes.length) {
+                        for (int j = 0; j < maskValueBytes.length; j++) {
                             mask[1 + i + j] = maskValueBytes[j]; // 1 to step over the opening quote of the mask
                         }
                     }

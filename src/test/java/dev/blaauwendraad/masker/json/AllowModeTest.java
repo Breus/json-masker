@@ -32,7 +32,7 @@ final class AllowModeTest {
 
     private static Stream<JsonMaskerTestInstance> targetKeyAllowModeNotPretty() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .allowKeys(Set.of("allowedKey"))
+                .allowKeys("allowedKey")
                 .build());
         return Stream.of(
                 new JsonMaskerTestInstance("""

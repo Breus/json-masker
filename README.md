@@ -599,7 +599,7 @@ certain values are masked.
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
                 .maskKeys(Set.of("email", "age", "visaApproved", "billingAddress"))
-                .maskKeys(Set.of("iban"), KeyMaskingConfig.builder()
+                .maskKeys("iban", KeyMaskingConfig.builder()
                         .maskStringCharactersWith("*")
                         .build()
                 )
@@ -689,9 +689,9 @@ For convenience, a couple out-of-the-box maskers are available in `ValueMaskers`
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
-                .maskKeys(Set.of("values"))
+                .maskKeys("values")
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.startsWith("\"secret:") ? "\"***\"" : value))
-                .maskKeys(Set.of("email"), KeyMaskingConfig.builder()
+                .maskKeys("email", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(/* prefix */ 2, /* suffix */ 2, /* keep domain */ true, "***"))
                         .build()
                 )

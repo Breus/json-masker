@@ -37,7 +37,8 @@ final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
-    private final boolean[] knownByteLengths = new boolean[256]; // byte can be anywhere between 0 and 256 length
+    // used for an optimization to remember all key length and return early if the key length is not known
+    private final boolean[] knownKeyLengthsInBytes = new boolean[256];
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -69,7 +70,7 @@ final class KeyMatcher {
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
-        knownByteLengths[bytes.length] = true;
+        knownKeyLengthsInBytes[Math.min(bytes.length, 255)] = true;
         byte[] lowerBytes = null;
         byte[] upperBytes = null;
         if (caseInsensitive) {
@@ -177,7 +178,7 @@ final class KeyMatcher {
 
     @Nullable
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        if (!knownByteLengths[length]) {
+        if (!knownKeyLengthsInBytes[Math.min(length, 255)]) {
             return null;
         }
         TrieNode node = root;

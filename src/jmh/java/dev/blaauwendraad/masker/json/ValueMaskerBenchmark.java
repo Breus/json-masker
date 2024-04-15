@@ -37,12 +37,12 @@ public class ValueMaskerBenchmark {
         double maskedKeyProbability;
 
         private final JsonMasker nativeMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("targetKey"))
+                .maskKeys("targetKey")
                 .build()
         );
 
         private final JsonMasker rawValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("targetKey"))
+                .maskKeys("targetKey")
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
@@ -50,7 +50,7 @@ public class ValueMaskerBenchmark {
         );
 
         private final JsonMasker textValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("targetKey"))
+                .maskKeys("targetKey")
                 .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
                 .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
                 .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))

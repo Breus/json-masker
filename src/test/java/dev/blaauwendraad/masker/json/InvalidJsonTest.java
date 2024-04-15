@@ -16,7 +16,7 @@ class InvalidJsonTest {
 
     private final JsonMasker jsonMasker = JsonMasker.getMasker(
             JsonMaskingConfig.builder()
-                    .allowKeys(Set.of("allowMe"))
+                    .allowKeys("allowMe")
                     .build()
     );
 

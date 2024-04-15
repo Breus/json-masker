@@ -74,7 +74,7 @@ class MaskingStateTest {
     @Test
     void shouldUseCorrectOffsetWhenThrowingValueMaskerError() {
         var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("maskMe"))
+                .maskKeys("maskMe")
                         .maskStringsWith(context -> {
                             throw context.invalidJson("Didn't like the value at index 3", 3);
                         })

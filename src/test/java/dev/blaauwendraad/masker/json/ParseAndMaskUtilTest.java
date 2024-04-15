@@ -43,7 +43,7 @@ final class ParseAndMaskUtilTest {
                              }
                           }
                         """,
-                JsonMaskingConfig.builder().maskKeys(Set.of("maskMe")).build()
+                JsonMaskingConfig.builder().maskKeys("maskMe").build()
         );
         JsonNode maskedNode = jsonNode.get("maskMe");
         assertThat(maskedNode.get("someOtherKey").textValue()).isEqualTo("***");

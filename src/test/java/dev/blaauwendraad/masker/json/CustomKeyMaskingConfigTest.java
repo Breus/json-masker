@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -133,18 +134,97 @@ class CustomKeyMaskingConfigTest {
     void maskingConfigsForConfigsShouldBeInherited() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean", "a"))
-                .maskKeys(Set.of("b"), KeyMaskingConfig.builder()
-                        .maskStringsWith("(mask_b.string)")
-                        .maskNumbersWith("(mask_b.number)")
-                        .maskBooleansWith("(mask_b.boolean)")
-                        .build()
-                )
-                .maskKeys(Set.of("c"), KeyMaskingConfig.builder()
-                        .maskStringsWith("(mask_c.string)")
-                        .maskNumbersWith("(mask_c.number)")
-                        .maskBooleansWith("(mask_c.boolean)")
-                        .build()
-                )
+                .maskKeys(Map.of(
+                        "b", KeyMaskingConfig.builder()
+                                .maskStringsWith("(mask_b.string)")
+                                .maskNumbersWith("(mask_b.number)")
+                                .maskBooleansWith("(mask_b.boolean)")
+                                .build(),
+                        "c", KeyMaskingConfig.builder()
+                                .maskStringsWith("(mask_c.string)")
+                                .maskNumbersWith("(mask_c.number)")
+                                .maskBooleansWith("(mask_c.boolean)")
+                                .build()
+                ))
+                .build());
+
+        String masked = jsonMasker.mask("""
+                {
+                  "a": {
+                    "string": "maskMe",
+                    "number": 12345,
+                    "boolean": false,
+                    "b": {
+                      "string": "maskMe",
+                      "number": 12345,
+                      "boolean": false,
+                      "c": {
+                        "string": "maskMe",
+                        "number": 12345,
+                        "boolean": false
+                      },
+                      "d": {
+                        "string": "maskMe",
+                        "number": 12345,
+                        "boolean": false
+                      }
+                    },
+                    "e": {
+                      "string": "maskMe",
+                      "number": 12345,
+                      "boolean": false
+                    }
+                  }
+                }
+                """);
+
+        Assertions.assertThat(masked).isEqualTo("""
+                {
+                  "a": {
+                    "string": "***",
+                    "number": "###",
+                    "boolean": "&&&",
+                    "b": {
+                      "string": "(mask_b.string)",
+                      "number": "(mask_b.number)",
+                      "boolean": "(mask_b.boolean)",
+                      "c": {
+                        "string": "(mask_c.string)",
+                        "number": "(mask_c.number)",
+                        "boolean": "(mask_c.boolean)"
+                      },
+                      "d": {
+                        "string": "(mask_b.string)",
+                        "number": "(mask_b.number)",
+                        "boolean": "(mask_b.boolean)"
+                      }
+                    },
+                    "e": {
+                      "string": "***",
+                      "number": "###",
+                      "boolean": "&&&"
+                    }
+                  }
+                }
+                """);
+    }
+
+    @Test
+    void maskingConfigsForConfigsShouldBeInheritedForJsonPaths() {
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskJsonPaths("$.a")
+                .maskJsonPaths(Map.of(
+                        "$.a.b", KeyMaskingConfig.builder()
+                                .maskStringsWith("(mask_b.string)")
+                                .maskNumbersWith("(mask_b.number)")
+                                .maskBooleansWith("(mask_b.boolean)")
+                                .build(),
+                        "$.a.b.c", KeyMaskingConfig.builder()
+                                .maskStringsWith("(mask_c.string)")
+                                .maskNumbersWith("(mask_c.number)")
+                                .maskBooleansWith("(mask_c.boolean)")
+                                .build()
+                ))
                 .build());
 
         String masked = jsonMasker.mask("""
@@ -212,19 +292,19 @@ class CustomKeyMaskingConfigTest {
     void maskEmail() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
-                .maskKeys(Set.of("emailPrefixSuffixDomain"), KeyMaskingConfig.builder()
+                .maskKeys("emailPrefixSuffixDomain", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(2, 2, true, "***"))
                         .build()
                 )
-                .maskKeys(Set.of("emailPrefixOnly"), KeyMaskingConfig.builder()
+                .maskKeys("emailPrefixOnly", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(2, 0, false, "***"))
                         .build()
                 )
-                .maskKeys(Set.of("emailSuffixOnly"), KeyMaskingConfig.builder()
+                .maskKeys("emailSuffixOnly", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(0, 2, false, "***"))
                         .build()
                 )
-                .maskKeys(Set.of("emailDomainOnly"), KeyMaskingConfig.builder()
+                .maskKeys("emailDomainOnly", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.email(0, 0, true, "***"))
                         .build()
                 )
@@ -262,15 +342,15 @@ class CustomKeyMaskingConfigTest {
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
-                .maskKeys(Set.of("function"), KeyMaskingConfig.builder()
+                .maskKeys("function", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.replaceAll("\\[this secret]", "***")))
                         .build()
                 )
-                .maskKeys(Set.of("functionNull"), KeyMaskingConfig.builder()
+                .maskKeys("functionNull", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.withRawValueFunction(value -> null))
                         .build()
                 )
-                .maskKeys(Set.of("functionConditional"), KeyMaskingConfig.builder()
+                .maskKeys("functionConditional", KeyMaskingConfig.builder()
                         .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.startsWith("\"secret:") ? "\"***\"" : value))
                         .build()
                 )
@@ -308,7 +388,7 @@ class CustomKeyMaskingConfigTest {
     @Test
     void shouldNotAllowGettingValuesOutsideOfIndex() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys(Set.of("customValueMasker"), KeyMaskingConfig.builder()
+                .maskKeys("customValueMasker", KeyMaskingConfig.builder()
                         .maskStringsWith(context -> {
                             assertThatThrownBy(() -> context.getByte(-1))
                                     .isInstanceOf(IndexOutOfBoundsException.class);
@@ -344,16 +424,16 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker =
                 JsonMasker.getMasker(
                         JsonMaskingConfig.builder()
-                                .maskKeys(Set.of("customValueMasker"))
+                                .maskKeys("customValueMasker")
                                 .maskNumbersWith(ValueMaskers.eachDigitWith("*"))
                                 .build());
         Assertions.assertThat(
                         jsonMasker.mask(
                                 """
-                                {
-                                  "customValueMasker": 0
-                                }
-                                """))
+                                        {
+                                          "customValueMasker": 0
+                                        }
+                                        """))
                 .isEqualTo(
                         """
                                 {
@@ -363,10 +443,10 @@ class CustomKeyMaskingConfigTest {
         Assertions.assertThat(
                         jsonMasker.mask(
                                 """
-                                {
-                                  "customValueMasker": 123
-                                }
-                                """))
+                                        {
+                                          "customValueMasker": 123
+                                        }
+                                        """))
                 .isEqualTo(
                         """
                                 {
@@ -376,10 +456,10 @@ class CustomKeyMaskingConfigTest {
         Assertions.assertThat(
                         jsonMasker.mask(
                                 """
-                                {
-                                  "customValueMasker": 12345
-                                }
-                                """))
+                                        {
+                                          "customValueMasker": 12345
+                                        }
+                                        """))
                 .isEqualTo(
                         """
                                 {

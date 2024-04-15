@@ -128,7 +128,7 @@ public final class JsonMaskingConfig {
                defaultConfig=%s,
                targetKeyConfigs=%s
                """
-               .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+                .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
     /**
@@ -150,73 +150,182 @@ public final class JsonMaskingConfig {
         private Builder() {
         }
 
+        /**
+         * Masks all JSON values corresponding to the given key with the default masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskKeys(String... keys) {
+            return maskKeys(Set.of(keys));
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given keys with the default masking configuration.
+         *
+         * @return the builder instance
+         */
         public Builder maskKeys(Set<String> keys) {
-            if (targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +
-                                                   " to customize masking for specific keys in ALLOW mode, use" +
-                                                   " maskKeys(String key, KeyMaskingConfig config)");
-            }
-            return maskKeys0(keys, null);
-        }
-
-        public Builder maskKeys(Set<String> keys, KeyMaskingConfig config) {
-            return maskKeys0(keys, Objects.requireNonNull(config));
-        }
-
-        private Builder maskKeys0(Set<String> keys, @Nullable KeyMaskingConfig config) {
             if (keys.isEmpty()) {
                 throw new IllegalArgumentException("At least one key must be provided");
             }
-            for (String key : keys) {
-                if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
-                    throw new IllegalArgumentException("Duplicate key '%s'".formatted(key));
-                }
-                // in ALLOW mode this method can be used to set a specific masking config for a key
-                if (targetKeyMode != TargetKeyMode.ALLOW) {
-                    targetKeyMode = TargetKeyMode.MASK;
-                    targetKeys.add(key);
-                }
-                if (config != null) {
-                    targetKeyConfigs.put(key, config);
-                }
-            }
+            keys.forEach(key -> addMaskKey(key, null));
             return this;
         }
 
-        public Builder maskJsonPaths(Set<String> jsonPaths) {
-            if (targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask JSONPaths when in ALLOW mode, if you want to customize " +
-                                                   "masking for specific JSONPaths in ALLOW mode, use " +
-                                                   "maskJsonPaths(String jsonPath, KeyMaskingConfig config)");
+        /**
+         * Masks all JSON values corresponding to the given key with the provided masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskKeys(String key, KeyMaskingConfig config) {
+            addMaskKey(key, Objects.requireNonNull(config));
+            return this;
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given keys with the provided masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskKeys(Set<String> keys, KeyMaskingConfig config) {
+            if (keys.isEmpty()) {
+                throw new IllegalArgumentException("At least one key must be provided");
             }
-            return maskJsonPaths0(jsonPaths, null);
+            keys.forEach(key -> addMaskKey(key, Objects.requireNonNull(config)));
+            return this;
         }
 
-        public Builder maskJsonPaths(Set<String> jsonPaths, KeyMaskingConfig config) {
-            return maskJsonPaths0(jsonPaths, Objects.requireNonNull(config));
+        /**
+         * Masks all JSON values corresponding to the given keys with the provided masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskKeys(Map<String, KeyMaskingConfig> configs) {
+            if (configs.isEmpty()) {
+                throw new IllegalArgumentException("At least one key must be provided");
+            }
+            configs.forEach(this::addMaskKey);
+            return this;
         }
 
-        private Builder maskJsonPaths0(Set<String> jsonPaths, @Nullable KeyMaskingConfig config) {
+        private void addMaskKey(String key, @Nullable KeyMaskingConfig config) {
+            if (config != null && targetKeyMode == TargetKeyMode.ALLOW) {
+                throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +
+                                                   " to customize masking for specific keys in ALLOW mode, use" +
+                                                   " maskKeys that accepts KeyMaskingConfig");
+            }
+            if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
+                throw new IllegalArgumentException("Duplicate key '%s'".formatted(key));
+            }
+            // in ALLOW mode this method can be used to set a specific masking config for a key
+            if (targetKeyMode != TargetKeyMode.ALLOW) {
+                targetKeyMode = TargetKeyMode.MASK;
+                targetKeys.add(key);
+            }
+            if (config != null) {
+                targetKeyConfigs.put(key, config);
+            }
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given JSONPaths with the default masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskJsonPaths(String... jsonPaths) {
+            return maskJsonPaths(Set.of(jsonPaths));
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given JSONPaths with the default masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskJsonPaths(Set<String> jsonPaths) {
             if (jsonPaths.isEmpty()) {
                 throw new IllegalArgumentException("At least one JSONPath must be provided");
             }
-            for (String jsonPath : jsonPaths) {
-                JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
-                if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
-                    throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
-                }
-                // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
-                if (targetKeyMode != TargetKeyMode.ALLOW) {
-                    targetKeyMode = TargetKeyMode.MASK;
-                    targetJsonPaths.add(parsed);
-                }
-                if (config != null) {
-                    targetKeyConfigs.put(parsed.toString(), config);
-                }
-            }
+            jsonPaths.forEach(jsonPath -> addMaskJsonPath(jsonPath, null));
             return this;
         }
 
+        /**
+         * Masks all JSON values corresponding to the given JSONPath with the given masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskJsonPaths(String jsonPath, KeyMaskingConfig config) {
+            addMaskJsonPath(jsonPath, Objects.requireNonNull(config));
+            return this;
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given JSONPaths with the given masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskJsonPaths(Set<String> jsonPaths, KeyMaskingConfig config) {
+            if (jsonPaths.isEmpty()) {
+                throw new IllegalArgumentException("At least one JSONPath must be provided");
+            }
+            Objects.requireNonNull(config);
+            jsonPaths.forEach(jsonPath -> addMaskJsonPath(jsonPath, config));
+            return this;
+        }
+
+        /**
+         * Masks all JSON values corresponding to the given JSONPaths with the given masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder maskJsonPaths(Map<String, KeyMaskingConfig> configs) {
+            if (configs.isEmpty()) {
+                throw new IllegalArgumentException("At least one JSONPath must be provided");
+            }
+            configs.forEach(this::addMaskJsonPath);
+            return this;
+        }
+
+        private void addMaskJsonPath(String jsonPath, @Nullable KeyMaskingConfig config) {
+            if (config == null && targetKeyMode == TargetKeyMode.ALLOW) {
+                throw new IllegalArgumentException("Cannot mask JSONPaths when in ALLOW mode, if you want to customize" +
+                                                   " masking for specific JSONPaths in ALLOW mode, use" +
+                                                   " maskJsonPaths that accepts KeyMaskingConfig");
+            }
+            JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
+            if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
+                throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
+            }
+            // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
+            if (targetKeyMode != TargetKeyMode.ALLOW) {
+                targetKeyMode = TargetKeyMode.MASK;
+                targetJsonPaths.add(parsed);
+            }
+            if (config != null) {
+                targetKeyConfigs.put(parsed.toString(), config);
+            }
+        }
+
+        /**
+         * Only allow the given key to be unmasked, mask JSON values corresponding to any other key.
+         *
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
+         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder allowKeys(String key) {
+            return allowKeys(Set.of(Objects.requireNonNull(key)));
+        }
+
+        /**
+         * Only allow the given keys to be unmasked, mask JSON values corresponding to any other key.
+         *
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
+         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         *
+         * @return the builder instance
+         */
         public Builder allowKeys(Set<String> keys) {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");
@@ -231,6 +340,26 @@ public final class JsonMaskingConfig {
             return this;
         }
 
+        /**
+         * Only allow the given JSONPath to be unmasked, mask JSON values corresponding to any other key.
+         *
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
+         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         *
+         * @return the builder instance
+         */
+        public Builder allowJsonPaths(String jsonPath) {
+            return allowJsonPaths(Set.of(Objects.requireNonNull(jsonPath)));
+        }
+
+        /**
+         * Only allow the given JSONPaths to be unmasked, mask JSON values corresponding to any other key.
+         *
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
+         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         *
+         * @return the builder instance
+         */
         public Builder allowJsonPaths(Set<String> jsonPaths) {
             if (targetKeyMode == TargetKeyMode.MASK) {
                 throw new IllegalArgumentException("Cannot allow keys when in MASK mode");

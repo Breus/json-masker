@@ -19,7 +19,7 @@ class PrettyPrintTest {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
-        JsonMasker jsonMasker = new KeyContainsMasker(JsonMaskingConfig.builder().maskKeys(Set.of("Test")).build());
+        JsonMasker jsonMasker = new KeyContainsMasker(JsonMaskingConfig.builder().maskKeys("Test").build());
         String mask = jsonMasker.mask(prettyString);
         assertThat(JsonMapper.builder()
                 .build()

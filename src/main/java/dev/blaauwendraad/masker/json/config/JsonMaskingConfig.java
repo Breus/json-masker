@@ -314,8 +314,8 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          */
-        public Builder allowKeys(String key) {
-            return allowKeys(Set.of(Objects.requireNonNull(key)));
+        public Builder allowKeys(String... keys) {
+            return allowKeys(Set.of(keys));
         }
 
         /**
@@ -348,8 +348,8 @@ public final class JsonMaskingConfig {
          *
          * @return the builder instance
          */
-        public Builder allowJsonPaths(String jsonPath) {
-            return allowJsonPaths(Set.of(Objects.requireNonNull(jsonPath)));
+        public Builder allowJsonPaths(String... jsonPath) {
+            return allowJsonPaths(Set.of(jsonPath));
         }
 
         /**

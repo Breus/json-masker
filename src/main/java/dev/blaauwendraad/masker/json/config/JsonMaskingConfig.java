@@ -209,7 +209,7 @@ public final class JsonMaskingConfig {
         }
 
         private void addMaskKey(String key, @Nullable KeyMaskingConfig config) {
-            if (config != null && targetKeyMode == TargetKeyMode.ALLOW) {
+            if (config == null && targetKeyMode == TargetKeyMode.ALLOW) {
                 throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +
                                                    " to customize masking for specific keys in ALLOW mode, use" +
                                                    " maskKeys that accepts KeyMaskingConfig");

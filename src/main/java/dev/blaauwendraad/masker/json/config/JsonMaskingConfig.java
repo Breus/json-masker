@@ -151,7 +151,7 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Masks all JSON values corresponding to the given key with the default masking configuration.
+         * Masks all JSON values corresponding to the given keys with the default masking configuration.
          *
          * @return the builder instance
          */

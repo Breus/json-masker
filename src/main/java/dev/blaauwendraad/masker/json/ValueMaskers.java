@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -270,7 +271,7 @@ public final class ValueMaskers {
      *
      * @see ValueMaskers#withTextFunction(Function)
      */
-    public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, String> masker) {
+    public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, @Nullable String> masker) {
         return describe(
                 "withRawValueFunction (%s)".formatted(masker),
                 context -> {
@@ -292,9 +293,10 @@ public final class ValueMaskers {
      * without the quotes.
      *
      * <p>A non-null return value of the provided function will be encoded into a JSON string regardless of the
-     * JSON type of the original value. Any character that MUST be escaped (as per RFC 8259, section 7) will be escaped.
-     * Characters that MAY be escaped (as per RFC 8259) WILL NOT be escaped.
-     * If the return value is {@code null}, the target value will be replaced with {@code null} JSON literal.
+     * JSON type of the original value. Any character that MUST be escaped (as per <a href="https://datatracker.ietf.org/doc/html/rfc8259#section-7">RFC 8259, section 7</a>)
+     * will be escaped. Characters that MAY be escaped (as per RFC 8259) WILL NOT be escaped.
+     *
+     * <p>If the return value is {@code null}, the target value will be replaced with {@code null} JSON literal.
      *
      * <p>The table below contains a couple examples for the masking
      * <table>
@@ -334,7 +336,7 @@ public final class ValueMaskers {
      * the {@link Function} and then turn it back into a byte array for the replacement, which introduces some
      * performance overhead.
      */
-    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, String> masker) {
+    public static ValueMasker.AnyValueMasker withTextFunction(Function<String, @Nullable String> masker) {
         return describe(
                 "withTextFunction (%s)".formatted(masker),
                 context -> {
@@ -440,24 +442,7 @@ public final class ValueMaskers {
                     if (maskedValue == null) {
                         maskedValue = "null";
                     } else {
-                        StringBuilder encoded = new StringBuilder();
-                        encoded.append("\""); // opening quote of the encoded string
-                        for (int i = 0; i < maskedValue.length(); i++) {
-                            char character = maskedValue.charAt(i);
-                            // escape all characters that need to be escaped, unicode character do not have to be
-                            // transformed into \ u form
-                            switch (character) {
-                                case '\b' -> encoded.append("\\b");
-                                case '\t' -> encoded.append("\\t");
-                                case '\n' -> encoded.append("\\n");
-                                case '\f' -> encoded.append("\\f");
-                                case '\r' -> encoded.append("\\r");
-                                case '"', '\\' -> encoded.append("\\").append(character);
-                                default -> encoded.append(character);
-                            }
-                        }
-                        encoded.append("\""); // closing quote of the encoded string
-                        maskedValue = encoded.toString();
+                        maskedValue = Utf8Util.jsonEncode(maskedValue);
                     }
                     byte[] replacementBytes = maskedValue.getBytes(StandardCharsets.UTF_8);
                     context.replaceBytes(0, context.byteLength(), replacementBytes, 1);

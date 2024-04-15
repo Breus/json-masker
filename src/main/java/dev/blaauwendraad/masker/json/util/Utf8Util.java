@@ -113,4 +113,36 @@ public final class Utf8Util {
         }
         return nonVisibleCharacterCount;
     }
+
+    /**
+     * Encodes a string value into JSON string.
+     * Escapes all necessary characters according to <a href="https://datatracker.ietf.org/doc/html/rfc8259#section-7">RFC 8259, section 7</a>
+     */
+    public static String jsonEncode(String value) {
+        StringBuilder encoded = new StringBuilder();
+        encoded.append("\""); // opening quote of the encoded string
+        for (int i = 0; i < value.length(); i++) {
+            char character = value.charAt(i);
+            // escape all characters that need to be escaped per https://datatracker.ietf.org/doc/html/rfc8259#section-7
+            // quotation mark, reverse solidus, and the control characters (U+0000 through U+001F)
+            // unicode character do not have to be transformed into \\u form
+            switch (character) {
+                case '\b' -> encoded.append("\\b");
+                case '\t' -> encoded.append("\\t");
+                case '\n' -> encoded.append("\\n");
+                case '\f' -> encoded.append("\\f");
+                case '\r' -> encoded.append("\\r");
+                case '"', '\\' -> encoded.append('\\').append(character);
+                default -> {
+                    if (character <= '\u001F') {
+                        encoded.append("\\u%04X".formatted((int) character));
+                    } else {
+                        encoded.append(character);
+                    }
+                }
+            }
+        }
+        encoded.append("\""); // closing quote of the encoded string
+        return encoded.toString();
+    }
 }

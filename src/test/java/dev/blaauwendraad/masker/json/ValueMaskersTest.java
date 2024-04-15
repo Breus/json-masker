@@ -1,5 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
@@ -227,18 +229,37 @@ class ValueMaskersTest {
     }
 
     @Test
-    void withTextFunctionEscapedCharacters() {
-        String jsonEncoded = "\\b\\t\\n\\f\\r\\\"\\\\";
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(jsonEncoded, ValueMaskers.withTextFunction(value -> {
-            Assertions.assertThat(value).isEqualTo("\b\t\n\f\r\"\\");
+    void withTextFunctionEscapedCharacters() throws JsonProcessingException {
+        // Verifying escaping per https://datatracker.ietf.org/doc/html/rfc8259#section-7
+        // quotation mark
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\\"", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("\"");
             return value;
-        }))).isEqualTo("\"" + jsonEncoded + "\""); // needs to be escaped exactly like input
+        }))).isEqualTo("\"\\\"\"");
 
-        String forwardSlash = "\\/";
-        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(forwardSlash, ValueMaskers.withTextFunction(value -> {
+        // reverse solidus
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\\\", ValueMaskers.withTextFunction(value -> {
+            Assertions.assertThat(value).isEqualTo("\\");
+            return value;
+        }))).isEqualTo("\"\\\\\"");
+
+        // the control characters (U+0000 through U+001F)
+        ObjectMapper objectMapper = new ObjectMapper();
+        for (int i = 0; i < 32; i++) {
+            String controlCharacter = String.valueOf((char) i);
+            String encoded = objectMapper.writeValueAsString(controlCharacter);
+
+            Assertions.assertThat(ByteValueMaskerContext.maskStringWith(encoded.substring(1, encoded.length() - 1), ValueMaskers.withTextFunction(value -> {
+                Assertions.assertThat(value).isEqualTo(controlCharacter);
+                return value;
+            }))).isEqualTo(encoded);
+        }
+
+        // forward slash, may be escaped on the input, but does not need to be escaped on the output
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\/", ValueMaskers.withTextFunction(value -> {
             Assertions.assertThat(value).isEqualTo("/");
             return value;
-        }))).isEqualTo("\"/\""); // does not need to be escaped
+        }))).isEqualTo("\"/\"");
     }
 
     private static Stream<List<String>> unicodeCharacters() {

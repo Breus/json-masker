@@ -40,12 +40,12 @@ final class KeyContainsMasker implements JsonMasker {
     @Override
     public byte[] mask(byte[] input) {
         try {
-            MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
+            MaskingState maskingState = new MaskingState(input);
 
             KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
-            if (maskingState.jsonPathEnabled()) {
-                maskingState.expandCurrentJsonPath(keyMatcher.getJsonPathRootNode());
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
+            maskingState.moveCurrentJsonPathHead(keyMatcher.getJsonPathRootNode());
+            if (maskingState.getCurrentJsonPathHead() != null) {
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathHead());
             }
 
             stepOverWhitespaceCharacters(maskingState);
@@ -111,7 +111,7 @@ final class KeyContainsMasker implements JsonMasker {
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
     private void visitArray(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
-        maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), -1, -1));
+        maskingState.moveCurrentJsonPathHead(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathHead(), -1, -1));
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty array
@@ -157,9 +157,9 @@ final class KeyContainsMasker implements JsonMasker {
 
             int afterClosingQuoteIndex = maskingState.currentIndex();
             int keyLength = afterClosingQuoteIndex - openingQuoteIndex - 2; // minus the opening and closing quotes
-            maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), openingQuoteIndex + 1, keyLength));
+            maskingState.moveCurrentJsonPathHead(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathHead(), openingQuoteIndex + 1, keyLength));
             KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), openingQuoteIndex + 1, // plus one for the opening quote
-                    keyLength, maskingState.getCurrentJsonPathNode());
+                    keyLength, maskingState.getCurrentJsonPathHead());
             stepOverWhitespaceCharacters(maskingState);
             // step over the colon ':'
             maskingState.next();

@@ -5,7 +5,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
 class MaskingStateTest {
     @Test
@@ -14,7 +13,7 @@ class MaskingStateTest {
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8), false);
+                """.getBytes(StandardCharsets.UTF_8));
 
         Assertions.assertThat(maskingState).hasToString("""
                 >{<
@@ -45,18 +44,9 @@ class MaskingStateTest {
     }
 
     @Test
-    void jsonPathExceedsCapacity() {
-        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
-        for (int i = 0; i < 101; i++) {
-            maskingState.expandCurrentJsonPath(new KeyMatcher.TrieNode());
-        }
-        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNotNull();
-    }
-
-    @Test
     void getCurrentJsonPathNodeFromEmptyJsonPath() {
-        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
-        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNull();
+        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8));
+        Assertions.assertThat(maskingState.getCurrentJsonPathHead()).isNull();
     }
 
     @Test
@@ -65,7 +55,7 @@ class MaskingStateTest {
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8), false);
+                """.getBytes(StandardCharsets.UTF_8));
 
         Assertions.assertThatThrownBy(() -> maskingState.getCurrentValueStartIndex())
                 .isInstanceOf(IllegalStateException.class);

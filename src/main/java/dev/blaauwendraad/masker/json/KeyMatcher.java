@@ -5,7 +5,11 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
@@ -37,18 +41,24 @@ final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
+    private final TrieNode.JsonPathTrieNode jsonPathRoot;
     // used for an optimization to remember all key length and return early if the key length is not known
     private final boolean[] knownKeyLengthsInBytes = new boolean[256];
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
         this.root = new TrieNode();
+        this.jsonPathRoot = new TrieNode.JsonPathTrieNode();
         maskingConfig.getTargetKeys().forEach(key -> insert(key, false));
-        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(jsonPath.toString(), false));
+        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insertJsonPath(jsonPath.toString(), false));
         if (maskingConfig.isInAllowMode()) {
             // in allow mode we might have a specific configuration for the masking key
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(key, true));
+            maskingConfig.getJsonPathKeyConfigs().keySet().forEach(key -> insertJsonPath(key, true));
+        }
+        if (getJsonPathRootNode() != null) {
+            setSegmentReferences(getJsonPathRootNode(), null);
         }
     }
 
@@ -68,6 +78,43 @@ final class KeyMatcher {
      *                      a fast lookup for the configuration
      */
     private void insert(String word, boolean negativeMatch) {
+        insert(word, negativeMatch, root, TrieNode::new, maskingConfig::getConfig);
+    }
+
+    /**
+     * Inserts a word into the JsonPATH trie.
+     * <p>
+     * See {@code dev.blaauwendraad.masker.json.KeyMatcher#insert(java.lang.String, boolean)} for more details.
+     */
+    private void insertJsonPath(String word, boolean negativeMatch) {
+        insert(word, negativeMatch, jsonPathRoot, TrieNode.JsonPathTrieNode::new, maskingConfig::getConfigByJsonPathKey);
+    }
+
+    /**
+     * Populates {@code dev.blaauwendraad.masker.json.KeyMatcher.TrieNode.JsonPathTrieNode#endOfParentSegment} references recursively in JsonPATH trie
+     *
+     * @param currentNode        the root node from which the references are populated recursively
+     * @param endOfParentSegment the reference to the end of the parent segment for current {@code currentNode}
+     */
+    private void setSegmentReferences(TrieNode.JsonPathTrieNode currentNode, TrieNode.@Nullable JsonPathTrieNode endOfParentSegment) {
+        if (currentNode.isEndOfSegment()) {
+            currentNode.endOfParentSegment = endOfParentSegment;
+        }
+        Arrays.stream(currentNode.children)
+                .filter(Objects::nonNull)
+                .map(child -> (TrieNode.JsonPathTrieNode) child)
+                .collect(Collectors.toSet()) // avoid duplicate nodes for case insensitive keys
+                .forEach(child -> setSegmentReferences(child, currentNode.child((byte) '.') != null ? currentNode : endOfParentSegment));
+    }
+
+    /**
+     * See {@code dev.blaauwendraad.masker.json.KeyMatcher#insert(java.lang.String, boolean)}
+     */
+    private void insert(String word,
+                        boolean negativeMatch,
+                        TrieNode root,
+                        Supplier<TrieNode> trieNodeSupplier,
+                        Function<String, KeyMaskingConfig> keyMaskingConfigMapper) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         knownKeyLengthsInBytes[Math.min(bytes.length, 255)] = true;
@@ -95,7 +142,7 @@ final class KeyMatcher {
             byte b = bytes[i];
             TrieNode child = node.child(b);
             if (child == null) {
-                child = new TrieNode();
+                child = trieNodeSupplier.get();
                 node.add(b, child);
                 if (caseInsensitive) {
                     Objects.requireNonNull(lowerBytes);
@@ -118,7 +165,7 @@ final class KeyMatcher {
             }
             node = child;
         }
-        node.keyMaskingConfig = maskingConfig.getConfig(word);
+        node.keyMaskingConfig = keyMaskingConfigMapper.apply(word);
         node.endOfWord = true;
         node.negativeMatch = negativeMatch;
     }
@@ -199,9 +246,8 @@ final class KeyMatcher {
         return node;
     }
 
-    @Nullable
-    TrieNode getJsonPathRootNode() {
-        return root.child((byte) '$');
+    KeyMatcher.TrieNode.@Nullable JsonPathTrieNode getJsonPathRootNode() {
+        return (TrieNode.JsonPathTrieNode) jsonPathRoot.child((byte) '$');
     }
 
     /**
@@ -214,22 +260,21 @@ final class KeyMatcher {
      * @param keyLength the length of the segment.
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
      */
-    @Nullable
-    TrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
+    KeyMatcher.TrieNode.@Nullable JsonPathTrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
-        TrieNode current = begin.child((byte) '.');
+        TrieNode.JsonPathTrieNode current = (TrieNode.JsonPathTrieNode) begin.child((byte) '.');
         if (current == null) {
             return null;
         }
         TrieNode wildcardLookAhead = current.child((byte) '*');
         if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.child((byte) '.') != null)) {
-            return wildcardLookAhead;
+            return (TrieNode.JsonPathTrieNode) wildcardLookAhead;
         }
         for (int i = keyOffset; i < keyOffset + keyLength; i++) {
             byte b = bytes[i];
-            current = current.child(b);
+            current = (TrieNode.JsonPathTrieNode) current.child(b);
             if (current == null) {
                 return null;
             }
@@ -242,7 +287,7 @@ final class KeyMatcher {
      * A padding of 128 is used to store references to the next positive and negative bytes (which range from -128 to
      * 128, hence the padding).
      */
-    static class TrieNode {
+    static sealed class TrieNode {
         final TrieNode[] children = new TrieNode[256];
         /**
          * A marker that the character indicates that the key ends at this node.
@@ -271,6 +316,24 @@ final class KeyMatcher {
          */
         void add(byte b, TrieNode child) {
             children[b + BYTE_OFFSET] = child;
+        }
+
+        static final class JsonPathTrieNode extends TrieNode {
+
+            /*
+             * References the end node of the parent segment.
+             * If the current node is not the end of the current segment, then the value is null.
+             */
+            @Nullable
+            JsonPathTrieNode endOfParentSegment;
+
+            /**
+             * Indicates if the current node is the end of a JsonPATH segment.
+             */
+            boolean isEndOfSegment() {
+                return this.child((byte) '.') != null || this.endOfWord;
+            }
+
         }
     }
 }

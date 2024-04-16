@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -167,6 +168,39 @@ final class KeyMatcherTest {
         node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
         node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'd'), 1);
         assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
+    }
+
+    @Test
+    void shouldSetSegmentReferences() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b[].c").build());
+
+        KeyMatcher.TrieNode.JsonPathTrieNode jsonPathRoot = Objects.requireNonNull(keyMatcher.getJsonPathRootNode());
+        KeyMatcher.TrieNode.JsonPathTrieNode parentSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(jsonPathRoot.child((byte) '.')).child((byte) 'a'));
+        KeyMatcher.TrieNode.JsonPathTrieNode childSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(parentSegment.child((byte) '.')).child((byte) 'b'));
+        KeyMatcher.TrieNode.JsonPathTrieNode emptyChildSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(childSegment.child((byte) '.'));
+        KeyMatcher.TrieNode.JsonPathTrieNode grandchildSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(emptyChildSegment.child((byte) '.')).child((byte) 'c'));
+        KeyMatcher.TrieNode.JsonPathTrieNode incompleteSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(parentSegment.child((byte) '.'));
+
+        assertThat(parentSegment.endOfParentSegment).isEqualTo(jsonPathRoot);
+        assertThat(childSegment.endOfParentSegment).isEqualTo(parentSegment);
+        assertThat(emptyChildSegment.endOfParentSegment).isEqualTo(childSegment);
+        assertThat(grandchildSegment.endOfParentSegment).isEqualTo(emptyChildSegment);
+        assertThat(incompleteSegment.endOfParentSegment).isNull();
+    }
+
+    @Test
+    void shouldSetSegmentReferencesForOverlapingWords() {
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a", "$.aa", "$.ab").build());
+
+        KeyMatcher.TrieNode.JsonPathTrieNode jsonPathRoot = Objects.requireNonNull(keyMatcher.getJsonPathRootNode());
+        KeyMatcher.TrieNode.JsonPathTrieNode firstSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(jsonPathRoot.child((byte) '.')).child((byte) 'a'));
+        KeyMatcher.TrieNode.JsonPathTrieNode secondSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(jsonPathRoot.child((byte) '.')).child((byte) 'a')).child((byte) 'a'));
+        KeyMatcher.TrieNode.JsonPathTrieNode thirdSegment = (KeyMatcher.TrieNode.JsonPathTrieNode) Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(jsonPathRoot.child((byte) '.')).child((byte) 'a')).child((byte) 'b'));
+
+        assertThat(jsonPathRoot.endOfParentSegment).isNull();
+        assertThat(firstSegment.endOfParentSegment).isEqualTo(jsonPathRoot);
+        assertThat(secondSegment.endOfParentSegment).isEqualTo(jsonPathRoot);
+        assertThat(thirdSegment.endOfParentSegment).isEqualTo(jsonPathRoot);
     }
 
     @Test

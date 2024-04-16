@@ -5,7 +5,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,25 +12,26 @@ import java.util.List;
  * operation.
  */
 final class MaskingState implements ValueMaskerContext {
-    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the jsonpath array
     private final byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
 
     /**
-     * Current JSONPath is represented by a stack of segment references.
-     * A stack is implemented with an array of the trie nodes that reference the end of the segment
+     * A reference to the end of the current JsonPATH segment in the JsonPATH trie.
      */
-    private KeyMatcher.@Nullable TrieNode[] currentJsonPath = null;
-    private int currentJsonPathHeadIndex = -1;
+    private KeyMatcher.TrieNode.@Nullable JsonPathTrieNode currentJsonPathHead = null;
+
+    /**
+     * A "null pit" here is a situation when {@code currentJsonPathNode} reaches NULL because the current segment is not in the trie and keeps expanding.
+     * We need to keep track of how deep we are in the pit so that we know when we are out of it and can continue traversing the trie
+     */
+    private int nullPitDepth = 0;
+
     private int currentValueStartIndex = -1;
 
-    public MaskingState(byte[] message, boolean trackJsonPath) {
+    public MaskingState(byte[] message) {
         this.message = message;
-        if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
-        }
     }
 
     public boolean next() {
@@ -56,6 +56,41 @@ final class MaskingState implements ValueMaskerContext {
 
     public byte[] getMessage() {
         return message;
+    }
+
+    public KeyMatcher.TrieNode.@Nullable JsonPathTrieNode getCurrentJsonPathHead() {
+        if (nullPitDepth > 0) {
+            return null;
+        }
+        return this.currentJsonPathHead;
+    }
+
+    /**
+     * Moves current JsonPATH head to a new node {@code newJsonPathHead}.
+     * If the new head is null or is not a complete segment, then the masker assumes it is in a "NULL pit".
+     * A "NULL pit" here is a situation when the current JsonPATH is not found in the trie, but keeps expanding.
+     *
+     * @param newJsonPathHead a new JsonPATH head.
+     */
+    public void moveCurrentJsonPathHead(KeyMatcher.TrieNode.@Nullable JsonPathTrieNode newJsonPathHead) {
+        if (newJsonPathHead == null || !newJsonPathHead.isEndOfSegment()) {
+            nullPitDepth++;
+        } else {
+            this.currentJsonPathHead = newJsonPathHead;
+        }
+    }
+
+    /**
+     * Backtracks the current JsonPATH head to the end of the parent segment.
+     * In case the masker is in a "NULL pit", then decrease the depth of the pit.
+     * A "NULL pit" here is a situation when the current JsonPATH is not found in the trie, but keeps expanding.
+     */
+    public void backtrackCurrentJsonPath() {
+        if (nullPitDepth > 0) {
+            nullPitDepth--;
+        } else if (currentJsonPathHead != null) {
+            currentJsonPathHead = currentJsonPathHead.endOfParentSegment;
+        }
     }
 
     /**
@@ -135,49 +170,6 @@ final class MaskingState implements ValueMaskerContext {
         this.currentIndex = Integer.MAX_VALUE;
 
         return newMessage;
-    }
-
-    /**
-     * Checks if jsonpath masking is enabled.
-     * @return true if jsonpath masking is enabled, false otherwise
-     */
-    boolean jsonPathEnabled() {
-        return currentJsonPath != null;
-    }
-
-    /**
-     * Expands current jsonpath.
-     *
-     * @param trieNode a node in the trie where the new segment ends.
-     */
-    void expandCurrentJsonPath(KeyMatcher.@Nullable TrieNode trieNode) {
-        if (currentJsonPath != null) {
-            currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
-            if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
-                // resize
-                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
-            }
-        }
-    }
-
-    /**
-     * Backtracks current jsonpath to the previous segment.
-     */
-    void backtrackCurrentJsonPath() {
-        if (currentJsonPath != null) {
-            currentJsonPath[currentJsonPathHeadIndex--] = null;
-        }
-    }
-
-    /**
-     * Returns the TrieNode that references the end of the latest segment in the current jsonpath
-     */
-    public KeyMatcher.@Nullable TrieNode getCurrentJsonPathNode() {
-        if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
-            return currentJsonPath[currentJsonPathHeadIndex];
-        } else {
-            return null;
-        }
     }
 
     public int getCurrentValueStartIndex() {
@@ -277,7 +269,6 @@ final class MaskingState implements ValueMaskerContext {
      * @param length     the length of the target value slice
      * @param mask       byte array mask to use as replacement for the value
      * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
-     *
      * @see #flushReplacementOperations()
      */
     @SuppressWarnings("java:S6218") // never used for comparison

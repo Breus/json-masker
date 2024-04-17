@@ -34,7 +34,7 @@ public final class ValueMaskers {
      * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
      */
     public static ValueMasker.AnyValueMasker with(String value) {
-        String replacement = Utf8Util.jsonEncode(value);
+        String replacement = Utf8Util.jsonEncode(value, true);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
                 replacement,
@@ -83,12 +83,11 @@ public final class ValueMaskers {
      *
      * <p> Note: this implementation only replaces visible characters with a mask, meaning that JSON
      * escape character ('\') will not count towards the length of the masked value and the unicode
-     * characters ('{@code \}u1000'), including 4-byte UTF-8 characters ('{@code \}uD83D{@code
-     * \}uDCA9'), will only count as a single character in the masked value.
+     * characters ('{@code \\u1000}'), including 4-byte UTF-8 characters ('{@code \\uD83D\\uDCA9}'),
+     * will only count as a single character in the masked value.
      */
     public static ValueMasker.StringMasker eachCharacterWith(String value) {
-        String encoded = Utf8Util.jsonEncode(value);
-        String replacement = encoded.substring(1, encoded.length() - 1); // remove the quotes
+        String replacement = Utf8Util.jsonEncode(value, false);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
                 "every character as %s".formatted(replacement),
@@ -132,8 +131,7 @@ public final class ValueMaskers {
      * <p> Or, for example {@literal "maskMe": 123 -> "maskMe": "NoNoNo"}.
      */
     public static ValueMasker.NumberMasker eachDigitWith(String value) {
-        String encoded = Utf8Util.jsonEncode(value);
-        String replacement = encoded.substring(1, encoded.length() - 1); // remove the quotes
+        String replacement = Utf8Util.jsonEncode(value, false);
         byte[] maskValueBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
                 "every digit as string: %s".formatted(replacement),
@@ -208,8 +206,8 @@ public final class ValueMaskers {
      * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
      * a JSON string the value the function will receive a JSON encoded value as it appears in the JSON, including
      * the opening and closing quotes, and the value containing escaped the control characters (e.g. {@code \n},
-     * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ({@code \}), and unicode-encoded
-     * characters ({@code \}{@code uXXXX}).
+     * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ('{@code \}'), and unicode-encoded
+     * characters ('{@code \\u0000}').
      *
      * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any
      * JSON type), otherwise the masking will result in an invalid JSON.
@@ -445,7 +443,7 @@ public final class ValueMaskers {
                     if (maskedValue == null) {
                         maskedValue = "null";
                     } else {
-                        maskedValue = Utf8Util.jsonEncode(maskedValue);
+                        maskedValue = Utf8Util.jsonEncode(maskedValue, true);
                     }
                     byte[] replacementBytes = maskedValue.getBytes(StandardCharsets.UTF_8);
                     context.replaceBytes(0, context.byteLength(), replacementBytes, 1);

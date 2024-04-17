@@ -34,7 +34,7 @@ public final class ValueMaskers {
      * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
      */
     public static ValueMasker.AnyValueMasker with(String value) {
-        String replacement = "\"" + value + "\"";
+        String replacement = Utf8Util.jsonEncode(value, true);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
                 replacement,
@@ -83,13 +83,14 @@ public final class ValueMaskers {
      *
      * <p> Note: this implementation only replaces visible characters with a mask, meaning that JSON
      * escape character ('\') will not count towards the length of the masked value and the unicode
-     * characters ('{@code \}u1000'), including 4-byte UTF-8 characters ('{@code \}uD83D{@code
-     * \}uDCA9'), will only count as a single character in the masked value.
+     * characters ({@code \\u1000}), including 4-byte UTF-8 characters ({@code \\uD83D\\uDCA9}),
+     * will only count as a single character in the masked value.
      */
     public static ValueMasker.StringMasker eachCharacterWith(String value) {
-        byte[] replacementBytes = value.getBytes(StandardCharsets.UTF_8);
+        String replacement = Utf8Util.jsonEncode(value, false);
+        byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every character as %s".formatted(value),
+                "every character as %s".formatted(replacement),
                 context -> {
                     /*
                     So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
@@ -130,17 +131,17 @@ public final class ValueMaskers {
      * <p> Or, for example {@literal "maskMe": 123 -> "maskMe": "NoNoNo"}.
      */
     public static ValueMasker.NumberMasker eachDigitWith(String value) {
-        byte[] maskValueBytes = value.getBytes(StandardCharsets.UTF_8);
-        int maskValueBytesLength = maskValueBytes.length;
+        String replacement = Utf8Util.jsonEncode(value, false);
+        byte[] maskValueBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every digit as string: %s".formatted(value),
+                "every digit as string: %s".formatted(replacement),
                 context -> {
                     int originalValueBytesLength = context.byteLength();
-                    int totalMaskLength = originalValueBytesLength * maskValueBytesLength;
+                    int totalMaskLength = originalValueBytesLength * maskValueBytes.length;
                     byte[] mask = new byte[2 + totalMaskLength]; // 2 for the opening and closing quotes
                     mask[0] = '\"';
-                    for (int i = 0; i < totalMaskLength; i += maskValueBytesLength) {
-                        for (int j = 0; j < maskValueBytesLength; j++) {
+                    for (int i = 0; i < totalMaskLength; i += maskValueBytes.length) {
+                        for (int j = 0; j < maskValueBytes.length; j++) {
                             mask[1 + i + j] = maskValueBytes[j]; // 1 to step over the opening quote of the mask
                         }
                     }
@@ -206,7 +207,7 @@ public final class ValueMaskers {
      * a JSON string the value the function will receive a JSON encoded value as it appears in the JSON, including
      * the opening and closing quotes, and the value containing escaped the control characters (e.g. {@code \n},
      * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ({@code \}), and unicode-encoded
-     * characters ({@code \}{@code uXXXX}).
+     * characters ({@code \\u0000}).
      *
      * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any
      * JSON type), otherwise the masking will result in an invalid JSON.
@@ -442,7 +443,7 @@ public final class ValueMaskers {
                     if (maskedValue == null) {
                         maskedValue = "null";
                     } else {
-                        maskedValue = Utf8Util.jsonEncode(maskedValue);
+                        maskedValue = Utf8Util.jsonEncode(maskedValue, true);
                     }
                     byte[] replacementBytes = maskedValue.getBytes(StandardCharsets.UTF_8);
                     context.replaceBytes(0, context.byteLength(), replacementBytes, 1);

@@ -118,9 +118,11 @@ public final class Utf8Util {
      * Encodes a string value into JSON string.
      * Escapes all necessary characters according to <a href="https://datatracker.ietf.org/doc/html/rfc8259#section-7">RFC 8259, section 7</a>
      */
-    public static String jsonEncode(String value) {
+    public static String jsonEncode(String value, boolean includeQuotes) {
         StringBuilder encoded = new StringBuilder();
-        encoded.append("\""); // opening quote of the encoded string
+        if (includeQuotes) {
+            encoded.append("\""); // opening quote of the encoded string
+        }
         for (int i = 0; i < value.length(); i++) {
             char character = value.charAt(i);
             // escape all characters that need to be escaped per https://datatracker.ietf.org/doc/html/rfc8259#section-7
@@ -142,7 +144,9 @@ public final class Utf8Util {
                 }
             }
         }
-        encoded.append("\""); // closing quote of the encoded string
+        if (includeQuotes) {
+            encoded.append("\""); // closing quote of the encoded string
+        }
         return encoded.toString();
     }
 }

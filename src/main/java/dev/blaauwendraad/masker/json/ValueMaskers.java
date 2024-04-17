@@ -83,7 +83,7 @@ public final class ValueMaskers {
      *
      * <p> Note: this implementation only replaces visible characters with a mask, meaning that JSON
      * escape character ('\') will not count towards the length of the masked value and the unicode
-     * characters ('{@code \\u1000}'), including 4-byte UTF-8 characters ('{@code \\uD83D\\uDCA9}'),
+     * characters ({@code \\u1000}), including 4-byte UTF-8 characters ({@code \\uD83D\\uDCA9}),
      * will only count as a single character in the masked value.
      */
     public static ValueMasker.StringMasker eachCharacterWith(String value) {
@@ -206,8 +206,8 @@ public final class ValueMaskers {
      * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
      * a JSON string the value the function will receive a JSON encoded value as it appears in the JSON, including
      * the opening and closing quotes, and the value containing escaped the control characters (e.g. {@code \n},
-     * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ('{@code \}'), and unicode-encoded
-     * characters ('{@code \\u0000}').
+     * {@code \t}, etc.), quotation marks ({@code "}), escape character itself ({@code \}), and unicode-encoded
+     * characters ({@code \\u0000}).
      *
      * <p>Consequently, the return value of the provided function must be a valid JSON encoded literal (of any
      * JSON type), otherwise the masking will result in an invalid JSON.

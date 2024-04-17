@@ -1626,5 +1626,41 @@
         }
       }
     }
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.aa"
+      ]
+    },
+    "input": {"a":"do not mask","aa": "mask"},
+    "expectedOutput": {"a":"do not mask","aa": "***"}
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.aa"
+      ]
+    },
+    "input": {"a":"mask","aa": "do not mask"},
+    "expectedOutput": {"a":"***","aa": "do not mask"}
+  },
+  {
+    "maskingConfig": {
+      "maskJsonPaths": [
+        "$.a"
+      ]
+    },
+    "input": {"a":"mask","aa": "do not mask"},
+    "expectedOutput": {"a":"***","aa": "do not mask"}
+  },
+  {
+    "maskingConfig": {
+      "allowJsonPaths": [
+        "$.a"
+      ]
+    },
+    "input": {"a":"do not mask","aa": "mask"},
+    "expectedOutput": {"a":"do not mask","aa": "***"}
   }
 ]

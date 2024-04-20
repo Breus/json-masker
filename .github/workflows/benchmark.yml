@@ -57,12 +57,12 @@ jobs:
         
           ### Benchmark results (pull-request, ${{ github.event.pull_request.head.sha }})
           \`\`\`text
-          $(cat benchmark-pull-request/build/results/jmh/results.txt)
+          $(grep -vE ':gc.(alloc.rate|count|time)\s' benchmark-pull-request/build/results/jmh/results.txt)
           \`\`\`
           
           ### Benchmark results (${{ github.base_ref }}, ${{ steps.get-master-sha.outputs.sha }})
           \`\`\`text
-          $(cat benchmark-master/build/results/jmh/results.txt)
+          $(grep -vE ':gc.(alloc.rate|count|time)\s' benchmark-master/build/results/jmh/results.txt)
           \`\`\`
           EOF
 

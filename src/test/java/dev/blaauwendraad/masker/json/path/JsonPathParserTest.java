@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 class JsonPathParserTest {
 
     @ParameterizedTest
@@ -36,10 +38,12 @@ class JsonPathParserTest {
 
     @ParameterizedTest
     @MethodSource("ambiguousJsonPaths")
-    void ambiguousJsonPathKeys(Set<String> jsonPathLiterals) {
+    void ambiguousJsonPathKeys(Set<String> jsonPathLiterals, String expectedExceptionMessage) {
         JsonPathParser parser = new JsonPathParser();
         Set<JsonPath> parsedJsonPaths = jsonPathLiterals.stream().map(parser::parse).collect(Collectors.toSet());
-        Assertions.assertThrows(IllegalArgumentException.class, () -> parser.checkAmbiguity(parsedJsonPaths));
+        assertThatThrownBy(() -> parser.checkAmbiguity(parsedJsonPaths))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(expectedExceptionMessage);
     }
 
     @ParameterizedTest
@@ -88,19 +92,19 @@ class JsonPathParserTest {
         );
     }
 
-    private static Stream<Set<String>> ambiguousJsonPaths() {
+    private static Stream<Arguments> ambiguousJsonPaths() {
         return Stream.of(
-                Set.of("$.a.b.c", "$.a.*.c", "$.i.r.l.v.n.*.t"),
-                Set.of("$.*.b.c", "$.a.b.c"),
-                Set.of("$.a.b.c", "$.*.*.*"),
-                Set.of("$.*.b.c", "$.*.b.*.d"),
-                Set.of("$.a.b.c", "$.a.b.d", "$.a.*.c"),
-                Set.of("$.a.b.c", "$.a.*.c", "$.a.b.s"),
-                Set.of("$.a.*.c", "$.a.b.c", "$.a.b.d"),
-                Set.of("$.a.b.c.f", "$.*.*.*.u"),
-                Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"),
-                Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"),
-                Set.of("$.a.b.*.*.d", "$.a.b.*.c")
+                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.i.r.l.v.n.*.t"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 2"),
+                Arguments.of(Set.of("$.*.b.c", "$.a.b.c"), "'$.*.b.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 1"),
+                Arguments.of(Set.of("$.a.b.c", "$.*.*.*"), "'$.*.*.*' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 1"),
+                Arguments.of(Set.of("$.*.b.c", "$.*.b.*.d"), "'$.*.b.*.d' and '$.*.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 3"),
+                Arguments.of(Set.of("$.a.b.c", "$.a.b.d", "$.a.*.c"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 2"),
+                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.a.b.s"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 2"),
+                Arguments.of(Set.of("$.a.*.c", "$.a.b.c", "$.a.b.d"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguous segment at index 2"),
+                Arguments.of(Set.of("$.a.b.c.f", "$.*.*.*.u"), "'$.*.*.*.u' and '$.a.b.c.f' JsonPATH keys combination is not supported: ambiguous segment at index 1"),
+                Arguments.of(Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"), "'$.*.d.f' and '$.q.w.e' JsonPATH keys combination is not supported: ambiguous segment at index 1"),
+                Arguments.of(Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"), "'$.d.*.*.f' and '$.d.*.v.f' JsonPATH keys combination is not supported: ambiguous segment at index 3"),
+                Arguments.of(Set.of("$.a.b.*.*.d", "$.a.b.*.c"), "'$.a.b.*.*.d' and '$.a.b.*.c' JsonPATH keys combination is not supported: ambiguous segment at index 4")
         );
     }
 

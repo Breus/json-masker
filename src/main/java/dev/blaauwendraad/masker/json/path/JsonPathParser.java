@@ -142,7 +142,7 @@ public class JsonPathParser {
             for (int j = 0; j < current.segments().length; j++) {
                 if (!current.segments()[j].equals(next.segments()[j])) {
                     if (current.segments()[j].equals("*") || next.segments()[j].equals("*")) {
-                        throw new IllegalArgumentException(String.format("Ambiguous jsonpath keys. '%s' and '%s' combination is not supported.", current, next));
+                        throw new IllegalArgumentException(String.format("'%s' and '%s' JsonPATH keys combination is not supported: ambiguous segment at index %d", current, next, j));
                     }
                     break;
                 }

@@ -3,6 +3,7 @@ package dev.blaauwendraad.masker.json.path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -128,7 +129,7 @@ public class JsonPathParser {
     }
 
     /**
-     * Validates if the input set of JSONPath queries is ambiguous. Throws {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it is.
+     * Validates if the input set of JSONPath queries contains ambiguous segments. Throws {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it does.
      * <p>
      * The method does a lexical sort of input jsonpath queries, iterates over sorted values and checks if any local pair is ambiguous.
      *
@@ -142,7 +143,8 @@ public class JsonPathParser {
             for (int j = 0; j < current.segments().length; j++) {
                 if (!current.segments()[j].equals(next.segments()[j])) {
                     if (current.segments()[j].equals("*") || next.segments()[j].equals("*")) {
-                        throw new IllegalArgumentException(String.format("'%s' and '%s' JsonPATH keys combination is not supported: ambiguous segment at index %d", current, next, j));
+                        String commonPath = String.join(".", Arrays.copyOfRange(current.segments(), 0, j));
+                        throw new IllegalArgumentException(String.format("'%s' and '%s' JsonPATH keys combination is not supported: ambiguity at segment %d with shared path %s.", current, next, j, commonPath));
                     }
                     break;
                 }

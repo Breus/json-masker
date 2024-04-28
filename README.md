@@ -349,7 +349,10 @@ The following JSONPath features are not supported:
 The library also imposes a number of additional restrictions:
 
 * Numbers as key names are disallowed.
-* JSONPath keys must not be ambiguous. For example, `$.a.b` and `$.*.b` combination is disallowed.
+* JSONPath keys must not have ambiguous segments that share the same path.  
+For example, `$.payment.iban` and `$.payment.*.address` combination is disallowed because segment 2 is ambiguous and shares the same path (`$.payment.`).  
+On contrary, `$.payment.iban` and `$.customerDetails.*.address` combination is allowed because segment 2 does not share the same path.  
+Also, `$.payment.iban` and `$.payment.customerDetails` combination is allowed because segment 2 is not ambiguous.
 * JSONPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
 
 #### Usage

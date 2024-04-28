@@ -144,7 +144,7 @@ public class JsonPathParser {
                 if (!current.segments()[j].equals(next.segments()[j])) {
                     if (current.segments()[j].equals("*") || next.segments()[j].equals("*")) {
                         String commonPath = String.join(".", Arrays.copyOfRange(current.segments(), 0, j));
-                        throw new IllegalArgumentException(String.format("'%s' and '%s' JsonPATH keys combination is not supported: ambiguity at segment %d with shared path %s.", current, next, j, commonPath));
+                        throw new IllegalArgumentException(String.format("'%s' and '%s' JSONPath keys combination is not supported: ambiguity at segment %d with shared path %s.", current, next, j, commonPath));
                     }
                     break;
                 }

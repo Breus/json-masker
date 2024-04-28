@@ -94,17 +94,17 @@ class JsonPathParserTest {
 
     private static Stream<Arguments> ambiguousJsonPaths() {
         return Stream.of(
-                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.i.r.l.v.n.*.t"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
-                Arguments.of(Set.of("$.*.b.c", "$.a.b.c"), "'$.*.b.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 1 with shared path $."),
-                Arguments.of(Set.of("$.a.b.c", "$.*.*.*"), "'$.*.*.*' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 1 with shared path $."),
-                Arguments.of(Set.of("$.*.b.c", "$.*.b.*.d"), "'$.*.b.*.d' and '$.*.b.c' JsonPATH keys combination is not supported: ambiguity at segment 3 with shared path $.*.b."),
-                Arguments.of(Set.of("$.a.b.c", "$.a.b.d", "$.a.*.c"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
-                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.a.b.s"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
-                Arguments.of(Set.of("$.a.*.c", "$.a.b.c", "$.a.b.d"), "'$.a.*.c' and '$.a.b.c' JsonPATH keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
-                Arguments.of(Set.of("$.a.b.c.f", "$.*.*.*.u"), "'$.*.*.*.u' and '$.a.b.c.f' JsonPATH keys combination is not supported: ambiguity at segment 1 with shared path $."),
-                Arguments.of(Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"), "'$.*.d.f' and '$.q.w.e' JsonPATH keys combination is not supported: ambiguity at segment 1 with shared path $."),
-                Arguments.of(Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"), "'$.d.*.*.f' and '$.d.*.v.f' JsonPATH keys combination is not supported: ambiguity at segment 3 with shared path $.d.*."),
-                Arguments.of(Set.of("$.a.b.*.*.d", "$.a.b.*.c"), "'$.a.b.*.*.d' and '$.a.b.*.c' JsonPATH keys combination is not supported: ambiguity at segment 4 with shared path $.a.b.*.")
+                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.i.r.l.v.n.*.t"), "'$.a.*.c' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
+                Arguments.of(Set.of("$.*.b.c", "$.a.b.c"), "'$.*.b.c' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 1 with shared path $."),
+                Arguments.of(Set.of("$.a.b.c", "$.*.*.*"), "'$.*.*.*' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 1 with shared path $."),
+                Arguments.of(Set.of("$.*.b.c", "$.*.b.*.d"), "'$.*.b.*.d' and '$.*.b.c' JSONPath keys combination is not supported: ambiguity at segment 3 with shared path $.*.b."),
+                Arguments.of(Set.of("$.a.b.c", "$.a.b.d", "$.a.*.c"), "'$.a.*.c' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
+                Arguments.of(Set.of("$.a.b.c", "$.a.*.c", "$.a.b.s"), "'$.a.*.c' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
+                Arguments.of(Set.of("$.a.*.c", "$.a.b.c", "$.a.b.d"), "'$.a.*.c' and '$.a.b.c' JSONPath keys combination is not supported: ambiguity at segment 2 with shared path $.a."),
+                Arguments.of(Set.of("$.a.b.c.f", "$.*.*.*.u"), "'$.*.*.*.u' and '$.a.b.c.f' JSONPath keys combination is not supported: ambiguity at segment 1 with shared path $."),
+                Arguments.of(Set.of("$.*.b.c", "$.q.w.e", "$.*.d.f"), "'$.*.d.f' and '$.q.w.e' JSONPath keys combination is not supported: ambiguity at segment 1 with shared path $."),
+                Arguments.of(Set.of("$.a.b.c", "$.d.*.*.f", "$.d.*.v.f"), "'$.d.*.*.f' and '$.d.*.v.f' JSONPath keys combination is not supported: ambiguity at segment 3 with shared path $.d.*."),
+                Arguments.of(Set.of("$.a.b.*.*.d", "$.a.b.*.c"), "'$.a.b.*.*.d' and '$.a.b.*.c' JSONPath keys combination is not supported: ambiguity at segment 4 with shared path $.a.b.*.")
         );
     }
 

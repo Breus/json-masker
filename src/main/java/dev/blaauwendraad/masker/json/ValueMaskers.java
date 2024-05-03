@@ -81,12 +81,25 @@ public final class ValueMaskers {
      * Masks all characters of a target string value with a static string value.
      * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
      *
+     * @see #eachCharacterWith(String, int)
+     */
+    public static ValueMasker.StringMasker eachCharacterWith(String value) {
+        return eachCharacterWith(value, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Masks all characters of a target string value with a static string value.
+     * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
+     *
      * <p> Note: this implementation only replaces visible characters with a mask, meaning that JSON
      * escape character ('\') will not count towards the length of the masked value and the unicode
      * characters ({@code \\u1000}), including 4-byte UTF-8 characters ({@code \\uD83D\\uDCA9}),
      * will only count as a single character in the masked value.
+     *
+     * @param value             the value to be used for every character
+     * @param maxMaskCharacters the maximum amount of characters to be present in the mask if original value exceeds it
      */
-    public static ValueMasker.StringMasker eachCharacterWith(String value) {
+    public static ValueMasker.StringMasker eachCharacterWith(String value, int maxMaskCharacters) {
         String replacement = Utf8Util.jsonEncode(value, false);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
@@ -103,7 +116,7 @@ public final class ValueMaskers {
                     int stringValueLength = context.byteLength() - 2; // skip both quotes
                     int nonVisibleCharacters = context.countNonVisibleCharacters(stringValueStart, stringValueLength);
                     int maskLength = stringValueLength - nonVisibleCharacters;
-                    context.replaceBytes(stringValueStart, stringValueLength, replacementBytes, maskLength);
+                    context.replaceBytes(stringValueStart, stringValueLength, replacementBytes, Math.min(maskLength, maxMaskCharacters));
                 });
     }
 

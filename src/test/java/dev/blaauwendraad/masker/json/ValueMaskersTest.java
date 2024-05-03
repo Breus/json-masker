@@ -102,6 +102,14 @@ class ValueMaskersTest {
     }
 
     @Test
+    void eachCharacterWithInvisibleCharacters() {
+        var valueMasker = ValueMaskers.eachCharacterWith("*");
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000", valueMasker))
+                .isEqualTo("\"******\"");
+    }
+
+    @Test
     void eachDigitWithInteger() {
         var valueMasker = ValueMaskers.eachDigitWith(1);
 
@@ -126,6 +134,14 @@ class ValueMaskersTest {
         var valueMasker = ValueMaskers.eachDigitWith("\u0000");
         Assertions.assertThat(ByteValueMaskerContext.maskNumberWith(12345, valueMasker))
                 .isEqualTo("\"\\u0000\\u0000\\u0000\\u0000\\u0000\"");
+    }
+
+    @Test
+    void eachCharacterWithMaxLimit() {
+        var valueMasker = ValueMaskers.eachCharacterWith("*", 10);
+
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith("secret".repeat(50000), valueMasker))
+                .isEqualTo("\"" + "*".repeat(10) + "\"");
     }
 
     @Test

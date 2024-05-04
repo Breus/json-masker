@@ -52,7 +52,7 @@ final class KeyContainsMasker implements JsonMasker {
             visitValue(maskingState, keyMaskingConfig);
 
             return maskingState.flushReplacementOperations();
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
             throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
         }
     }
@@ -65,6 +65,9 @@ final class KeyContainsMasker implements JsonMasker {
      *                         being masked
      */
     private void visitValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        if (maskingState.endOfJson()) {
+            return;
+        }
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
             case '[' -> visitArray(maskingState, keyMaskingConfig);
@@ -123,7 +126,7 @@ final class KeyContainsMasker implements JsonMasker {
 
             stepOverWhitespaceCharacters(maskingState);
             // check if we're at the end of a (non-empty) array
-            if (maskingState.byteAtCurrentIndex() == ']') {
+            if (maskingState.endOfJson() || maskingState.byteAtCurrentIndex() == ']') {
                 break;
             }
         }
@@ -185,7 +188,7 @@ final class KeyContainsMasker implements JsonMasker {
 
             stepOverWhitespaceCharacters(maskingState);
             // check if we're at the end of a (non-empty) object
-            if (maskingState.byteAtCurrentIndex() == '}') {
+            if (maskingState.endOfJson() || maskingState.byteAtCurrentIndex() == '}') {
                 break;
             }
         }
@@ -292,7 +295,7 @@ final class KeyContainsMasker implements JsonMasker {
     private static void stepOverNumericValue(MaskingState maskingState) {
         do {
             maskingState.next();
-        } while (maskingState.currentIndex() < maskingState.getMessage().length && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex()));
+        } while (!maskingState.endOfJson() && AsciiJsonUtil.isNumericCharacter(maskingState.byteAtCurrentIndex()));
     }
 
     /**

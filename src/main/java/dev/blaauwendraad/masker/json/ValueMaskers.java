@@ -429,7 +429,7 @@ public final class ValueMaskers {
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
-                                        } catch (IllegalArgumentException e) {
+                                        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                                             throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);
                                         }
                                     }

@@ -23,7 +23,7 @@ final class MaskingState implements ValueMaskerContext {
      * Current JSONPath is represented by a stack of segment references.
      * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    private KeyMatcher.@Nullable TrieNode[] currentJsonPath = null;
+    private KeyMatcher.@Nullable TrieNode @Nullable [] currentJsonPath = null;
     private int currentJsonPathHeadIndex = -1;
     private int currentValueStartIndex = -1;
 
@@ -47,7 +47,7 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     public boolean endOfJson() {
-        return currentIndex == message.length;
+        return currentIndex >= message.length;
     }
 
     public int currentIndex() {
@@ -209,7 +209,7 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public int byteLength() {
-        return currentIndex - getCurrentValueStartIndex();
+        return Math.min(currentIndex, message.length) - getCurrentValueStartIndex();
     }
 
     @Override
@@ -256,7 +256,7 @@ final class MaskingState implements ValueMaskerContext {
         StringBuilder sb = new StringBuilder();
         sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)));
         sb.append(">");
-        if (currentIndex == message.length) {
+        if (endOfJson()) {
             sb.append("<end of json>");
         } else {
             sb.append((char) message[currentIndex]);

@@ -181,7 +181,6 @@ final class KeyMatcher {
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
             if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
-                int valueStartIndex = i;
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {

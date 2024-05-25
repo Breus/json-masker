@@ -394,7 +394,7 @@ public final class ValueMaskers {
                                                 // surrogates which together form one unicode character.
                                                 int codePoint = -1;
                                                 if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                                                        && encodedIndex < context.byteLength() - 6 /* -6 for all bytes of
+                                                        && encodedIndex <= context.byteLength() - 6 /* -6 for all bytes of
                                                        the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
                                                         && context.getByte(encodedIndex) == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
                                                         && context.getByte(encodedIndex + 1) == 'u'

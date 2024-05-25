@@ -183,7 +183,7 @@ final class KeyMatcher {
             if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
                 int valueStartIndex = i;
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
-                i += 5; // -1 to offset loop increment
+                i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
                     // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
                     node = node.child((byte) unicodeHexBytesAsChar);
@@ -240,6 +240,7 @@ final class KeyMatcher {
                     }
                     node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)));
                 }
+                i--; // to offset loop increment
             } else {
                 node = node.child(b);
             }

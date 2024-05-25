@@ -209,11 +209,8 @@ final class KeyMatcher {
                         }
                     }
                     if (codePoint < 0) {
-                        // default String behaviour is to replace invalid surrogate pairs
-                        // with the character '?', but from the JSON perspective,
-                        // it's better to throw an InvalidJsonException
-                        String invalidValue = new String(bytes, valueStartIndex, i - valueStartIndex, StandardCharsets.UTF_8);
-                        throw new InvalidJsonException("Invalid surrogate pair '%s' at index %s".formatted(invalidValue, offset + i));
+                        // the key contains invalid surrogate pair and won't be matched
+                        return null;
                     } else {
                         node = node.child((byte) (0xf0 | (codePoint >> 18)));
                         if (node == null) {

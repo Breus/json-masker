@@ -25,10 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class JSONTestSuiteTest {
 
-    private static final List<String> PARSE_ERROR = List.of(
+    private static final List<String> PRODUCING_STACK_OVER_FLOW = List.of(
             "n_structure_100000_opening_arrays.json",
-            "n_structure_open_array_object.json",
-            "i_object_key_lone_2nd_surrogate.json"
+            "n_structure_open_array_object.json"
     );
 
     private static final List<String> INVALID_UTF_8 = List.of(
@@ -139,7 +138,7 @@ public class JSONTestSuiteTest {
                         .build()
         );
 
-        if (PARSE_ERROR.contains(file.name)) {
+        if (PRODUCING_STACK_OVER_FLOW.contains(file.name)) {
             Assertions.assertThatThrownBy(() -> jsonMasker.mask(file.originalContent))
                     .isInstanceOf(InvalidJsonException.class);
         } else {
@@ -148,7 +147,7 @@ public class JSONTestSuiteTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("allWithoutParseError")
+    @MethodSource("allWithoutStackOverFlow")
     void shouldMaskAllTestCasesPredictably(String testName, JsonTestSuiteFile file) {
         // masks everything
         JsonMasker jsonMasker = JsonMasker.getMasker(
@@ -165,7 +164,7 @@ public class JSONTestSuiteTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("allWithoutParseError")
+    @MethodSource("allWithoutStackOverFlow")
     void mustPassSuiteWithNoopTextFunction(String testName, JsonTestSuiteFile file) {
         // masks everything with withTextFunction, that is equivalent to default masker settings
         JsonMasker jsonMasker = JsonMasker.getMasker(
@@ -196,7 +195,7 @@ public class JSONTestSuiteTest {
     }
 
     private static Stream<Arguments> mayPassSuite() {
-        return loadSuite(name -> name.startsWith("i_") && !PARSE_ERROR.contains(name))
+        return loadSuite(name -> name.startsWith("i_"))
                 .stream()
                 .map(file -> Arguments.of(file.name, file));
     }
@@ -207,8 +206,8 @@ public class JSONTestSuiteTest {
                 .map(file -> Arguments.of(file.name, file));
     }
 
-    private static Stream<Arguments> allWithoutParseError() {
-        return loadSuite(name -> !PARSE_ERROR.contains(name))
+    private static Stream<Arguments> allWithoutStackOverFlow() {
+        return loadSuite(name -> !PRODUCING_STACK_OVER_FLOW.contains(name))
                 .stream()
                 .map(file -> Arguments.of(file.name, file));
     }
@@ -221,7 +220,7 @@ public class JSONTestSuiteTest {
                         try {
                             var fileName = file.getFileName().toString();
                             var content = Files.readAllBytes(file);
-                            if (PARSE_ERROR.contains(fileName)) {
+                            if (PRODUCING_STACK_OVER_FLOW.contains(fileName)) {
                                 return new JsonTestSuiteFile(fileName, content, null);
                             }
                             var maskedContent = Files.readAllBytes(JSON_TEST_SUITE_PATH.resolve("masked/%s".formatted(fileName)));

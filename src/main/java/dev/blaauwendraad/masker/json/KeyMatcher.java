@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -37,8 +38,6 @@ final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
-    // used for an optimization to remember all key length and return early if the key length is not known
-    private final boolean[] knownKeyLengthsInBytes = new boolean[256];
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -70,7 +69,6 @@ final class KeyMatcher {
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
-        knownKeyLengthsInBytes[Math.min(bytes.length, 255)] = true;
         byte[] lowerBytes = null;
         byte[] upperBytes = null;
         if (caseInsensitive) {
@@ -178,14 +176,76 @@ final class KeyMatcher {
 
     @Nullable
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        if (!knownKeyLengthsInBytes[Math.min(length, 255)]) {
-            return null;
-        }
         TrieNode node = root;
 
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
-            node = node.child(b);
+            if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
+                int valueStartIndex = i;
+                char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
+                i += 5; // -1 to offset loop increment
+                if (unicodeHexBytesAsChar < 0x80) {
+                    // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
+                    node = node.child((byte) unicodeHexBytesAsChar);
+                } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
+                    // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
+                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6)));
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)));
+                } else if (Character.isSurrogate(unicodeHexBytesAsChar)) {
+                    // decoding non-BMP characters in UTF-16 using a pair of high and low
+                    // surrogates which together form one unicode character.
+                    int codePoint = -1;
+                    if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
+                        && i <= offset + length - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
+                        && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
+                        && bytes[i + 1] == 'u'
+                    ) {
+                        char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
+                        if (Character.isLowSurrogate(lowSurrogate)) {
+                            codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
+                        }
+                    }
+                    if (codePoint < 0) {
+                        // default String behaviour is to replace invalid surrogate pairs
+                        // with the character '?', but from the JSON perspective,
+                        // it's better to throw an InvalidJsonException
+                        String invalidValue = new String(bytes, valueStartIndex, i - valueStartIndex, StandardCharsets.UTF_8);
+                        throw new InvalidJsonException("Invalid surrogate pair '%s' at index %s".formatted(invalidValue, offset + i));
+                    } else {
+                        node = node.child((byte) (0xf0 | (codePoint >> 18)));
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f)));
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f)));
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | (codePoint & 0x3f)));
+                    }
+                    i += 6;
+                } else {
+                    // dealing with characters with values between 2048 and 65536 which
+                    // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12)));
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f)));
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)));
+                }
+            } else {
+                node = node.child(b);
+            }
 
             if (node == null) {
                 return null;

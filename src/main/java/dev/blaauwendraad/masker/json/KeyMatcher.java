@@ -2,6 +2,7 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
+import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -37,8 +38,6 @@ final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
-    // used for an optimization to remember all key length and return early if the key length is not known
-    private final boolean[] knownKeyLengthsInBytes = new boolean[256];
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -70,7 +69,6 @@ final class KeyMatcher {
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
-        knownKeyLengthsInBytes[Math.min(bytes.length, 255)] = true;
         byte[] lowerBytes = null;
         byte[] upperBytes = null;
         if (caseInsensitive) {
@@ -178,14 +176,79 @@ final class KeyMatcher {
 
     @Nullable
     private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        if (!knownKeyLengthsInBytes[Math.min(length, 255)]) {
-            return null;
-        }
         TrieNode node = root;
 
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
-            node = node.child(b);
+            // every character of the input key can be escaped \\uXXXX, but since the KeyMatcher uses byte
+            // representation of non-escaped characters of the key (e.g. 'key' -> [107, 101, 121]) in UTF-16 format,
+            // we need to make sure to transform individual escaped characters into bytes before matching them against
+            // the trie.
+            // Any escaped character (6 bytes from the input) represents 1 to 4 bytes of unescaped key,
+            // each of the bytes has to be matched against the trie to return a TrieNode
+            if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
+                char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
+                i += 6;
+                if (unicodeHexBytesAsChar < 0x80) {
+                    // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
+                    node = node.child((byte) unicodeHexBytesAsChar); // check 1st byte
+                } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
+                    // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
+                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6))); // check 1st byte
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 2nd byte
+                } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
+                    // dealing with characters with values between 2048 and 65536 which
+                    // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12))); // check 1st byte
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f))); // check 2nd byte
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 3rd byte
+                } else {
+                    // decoding non-BMP characters in UTF-16 using a pair of high and low
+                    // surrogates which together form one unicode character.
+                    int codePoint = -1;
+                    if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
+                        && i <= offset + length - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
+                        && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
+                        && bytes[i + 1] == 'u'
+                    ) {
+                        char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
+                        if (Character.isLowSurrogate(lowSurrogate)) {
+                            codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
+                        }
+                    }
+                    if (codePoint < 0) {
+                        // the key contains invalid surrogate pair and won't be matched
+                        return null;
+                    } else {
+                        node = node.child((byte) (0xf0 | (codePoint >> 18))); // check 1st byte
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f))); // check 2nd byte
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f))); // check 3rd byte
+                        if (node == null) {
+                            return null;
+                        }
+                        node = node.child((byte) (0x80 | (codePoint & 0x3f))); // check 4th byte
+                    }
+                    i += 6;
+                }
+                i--; // to offset loop increment
+            } else {
+                node = node.child(b);
+            }
 
             if (node == null) {
                 return null;

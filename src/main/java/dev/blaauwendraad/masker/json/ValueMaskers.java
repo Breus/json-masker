@@ -389,12 +389,18 @@ public final class ValueMaskers {
                                                 // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
                                                 decodedBytes[decodedIndex++] = (byte) (0xc0 | (unicodeHexBytesAsChar >> 6));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
-                                            } else if (Character.isSurrogate(unicodeHexBytesAsChar)) {
+                                            } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
+                                                // dealing with characters with values between 2048 and 65536 which
+                                                // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeHexBytesAsChar >> 12));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
+                                            } else {
                                                 // decoding non-BMP characters in UTF-16 using a pair of high and low
                                                 // surrogates which together form one unicode character.
                                                 int codePoint = -1;
                                                 if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                                                        && encodedIndex < context.byteLength() - 6 /* -6 for all bytes of
+                                                        && encodedIndex <= context.byteLength() - 6 /* -6 for all bytes of
                                                        the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
                                                         && context.getByte(encodedIndex) == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
                                                         && context.getByte(encodedIndex + 1) == 'u'
@@ -412,7 +418,7 @@ public final class ValueMaskers {
                                                 }
                                                 if (codePoint < 0) {
                                                     // default String behaviour is to replace invalid surrogate pairs
-                                                    // with the character '?', but from the JSON perspective,
+                                                    // with the character '�', but from the JSON perspective,
                                                     // it's better to throw an InvalidJsonException
                                                     throw context.invalidJson("Invalid surrogate pair '%s'"
                                                             .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
@@ -422,12 +428,6 @@ public final class ValueMaskers {
                                                     decodedBytes[decodedIndex++] = (byte) (0x80 | ((codePoint >> 6) & 0x3f));
                                                     decodedBytes[decodedIndex++] = (byte) (0x80 | (codePoint & 0x3f));
                                                 }
-                                            } else {
-                                                // dealing with characters with values between 2048 and 65536 which
-                                                // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
-                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeHexBytesAsChar >> 12));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
                                         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                                             throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);

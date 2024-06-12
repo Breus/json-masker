@@ -180,20 +180,38 @@ final class KeyMatcher {
 
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
+            // every character of the input key can be escaped \\uXXXX, but since the KeyMatcher uses byte
+            // representation of non-escaped characters of the key (e.g. 'key' -> [107, 101, 121]) in UTF-16 format,
+            // we need to make sure to transform individual escaped characters into bytes before matching them against
+            // the trie.
+            // Any escaped character (6 bytes from the input) represents 1 to 4 bytes of unescaped key,
+            // each of the bytes has to be matched against the trie to return a TrieNode
             if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
                     // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
-                    node = node.child((byte) unicodeHexBytesAsChar);
+                    node = node.child((byte) unicodeHexBytesAsChar); // check 1st byte
                 } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
                     // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
-                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6)));
+                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6))); // check 1st byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)));
-                } else if (Character.isSurrogate(unicodeHexBytesAsChar)) {
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 2nd byte
+                } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
+                    // dealing with characters with values between 2048 and 65536 which
+                    // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12))); // check 1st byte
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f))); // check 2nd byte
+                    if (node == null) {
+                        return null;
+                    }
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 3rd byte
+                } else {
                     // decoding non-BMP characters in UTF-16 using a pair of high and low
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
@@ -211,33 +229,21 @@ final class KeyMatcher {
                         // the key contains invalid surrogate pair and won't be matched
                         return null;
                     } else {
-                        node = node.child((byte) (0xf0 | (codePoint >> 18)));
+                        node = node.child((byte) (0xf0 | (codePoint >> 18))); // check 1st byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f)));
+                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f))); // check 2nd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f)));
+                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f))); // check 3rd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | (codePoint & 0x3f)));
+                        node = node.child((byte) (0x80 | (codePoint & 0x3f))); // check 4th byte
                     }
                     i += 6;
-                } else {
-                    // dealing with characters with values between 2048 and 65536 which
-                    // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
-                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12)));
-                    if (node == null) {
-                        return null;
-                    }
-                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f)));
-                    if (node == null) {
-                        return null;
-                    }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)));
                 }
                 i--; // to offset loop increment
             } else {

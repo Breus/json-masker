@@ -389,7 +389,13 @@ public final class ValueMaskers {
                                                 // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
                                                 decodedBytes[decodedIndex++] = (byte) (0xc0 | (unicodeHexBytesAsChar >> 6));
                                                 decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
-                                            } else if (Character.isSurrogate(unicodeHexBytesAsChar)) {
+                                            } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
+                                                // dealing with characters with values between 2048 and 65536 which
+                                                // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
+                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeHexBytesAsChar >> 12));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
+                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
+                                            } else {
                                                 // decoding non-BMP characters in UTF-16 using a pair of high and low
                                                 // surrogates which together form one unicode character.
                                                 int codePoint = -1;
@@ -422,12 +428,6 @@ public final class ValueMaskers {
                                                     decodedBytes[decodedIndex++] = (byte) (0x80 | ((codePoint >> 6) & 0x3f));
                                                     decodedBytes[decodedIndex++] = (byte) (0x80 | (codePoint & 0x3f));
                                                 }
-                                            } else {
-                                                // dealing with characters with values between 2048 and 65536 which
-                                                // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
-                                                decodedBytes[decodedIndex++] = (byte) (0xe0 | (unicodeHexBytesAsChar >> 12));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f));
-                                                decodedBytes[decodedIndex++] = (byte) (0x80 | (unicodeHexBytesAsChar & 0x3f));
                                             }
                                         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                                             throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);

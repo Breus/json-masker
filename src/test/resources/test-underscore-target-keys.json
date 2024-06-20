@@ -1,0 +1,40 @@
+[
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ]
+    },
+    "input": {
+      "someKey": "hello",
+      "some_key": "hello",
+      "some_Key": "hello",
+      "otherKey": null
+    },
+    "expectedOutput": {
+      "someKey": "***",
+      "some_key": "***",
+      "some_Key": "***",
+      "otherKey": null
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ]
+    },
+    "input": {
+      "allowedKey": "hello",
+      "allowed_key": "hello",
+      "allowed_Key": "hello",
+      "otherKey": "masked"
+    },
+    "expectedOutput": {
+      "allowedKey": "hello",
+      "allowed_key": "hello",
+      "allowed_Key": "hello",
+      "otherKey": "***"
+    }
+  }
+]

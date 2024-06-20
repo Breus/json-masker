@@ -69,24 +69,20 @@ final class KeyMatcher {
     private void insert(String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
-        byte[] lowerBytes = null;
-        byte[] upperBytes = null;
-        if (caseInsensitive) {
-            lowerBytes = word.toLowerCase().getBytes(StandardCharsets.UTF_8);
-            upperBytes = word.toUpperCase().getBytes(StandardCharsets.UTF_8);
+        byte[] lowerBytes = word.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        byte[] upperBytes = word.toUpperCase().getBytes(StandardCharsets.UTF_8);
 
-            /*
-             from inspecting the code, it looks like lower casing a character does not change the byte length
-             on the same encoding, however the documentation explicitly mentions that resulting length might be
-             different
-             so better to fail fast if instead of ignoring that.
+        /*
+         from inspecting the code, it looks like lower casing a character does not change the byte length
+         on the same encoding, however the documentation explicitly mentions that resulting length might be
+         different
+         so better to fail fast if instead of ignoring that.
 
-             Given that we're doing that only for target keys, the idea that it's going to have different lengths
-             is quite unlikely
-            */
-            if (bytes.length != lowerBytes.length || bytes.length != upperBytes.length) {
-                throw new IllegalArgumentException("Case insensitive trie does not support all characters in " + word);
-            }
+         Given that we're doing that only for target keys, the idea that it's going to have different lengths
+         is quite unlikely
+        */
+        if (bytes.length != lowerBytes.length || bytes.length != upperBytes.length) {
+            throw new IllegalArgumentException("Case insensitive trie does not support all characters in " + word);
         }
         TrieNode node = root;
         for (int i = 0; i < bytes.length; i++) {
@@ -95,9 +91,17 @@ final class KeyMatcher {
             if (child == null) {
                 child = new TrieNode();
                 node.add(b, child);
+                // allow matching snakeCase by default
+                // maskMe -> mask_me
+                if (b == upperBytes[i]) {
+                    var underscoreNode = new TrieNode();
+                    node.add((byte) '_', underscoreNode);
+                    underscoreNode.add(lowerBytes[i], child);
+                    if (caseInsensitive) {
+                        underscoreNode.add(upperBytes[i], child);
+                    }
+                }
                 if (caseInsensitive) {
-                    Objects.requireNonNull(lowerBytes);
-                    Objects.requireNonNull(upperBytes);
                     /*
                       when case-insensitive we need to keep track of siblings to be able to find the correct node
                       so that we have this structure:

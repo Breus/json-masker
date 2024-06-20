@@ -91,9 +91,9 @@ final class KeyMatcher {
             if (child == null) {
                 child = new TrieNode();
                 node.add(b, child);
-                // allow matching snakeCase by default
+                // allow matching snakeCase by default, but not the first character or after underscore
                 // maskMe -> mask_me
-                if (b == upperBytes[i]) {
+                if (b == upperBytes[i] && i > 0 && bytes[i - 1] != '_') {
                     var underscoreNode = new TrieNode();
                     node.add((byte) '_', underscoreNode);
                     underscoreNode.add(lowerBytes[i], child);

@@ -21,6 +21,38 @@
   {
     "maskingConfig": {
       "maskKeys": [
+        "Key"
+      ]
+    },
+    "input": {
+      "_key": "hello",
+      "otherKey": null
+    },
+    "expectedOutput": {
+      "_key": "hello",
+      "otherKey": null
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
+        "some_Key"
+      ]
+    },
+    "input": {
+      "some_key": "hello",
+      "some_Key": "hello",
+      "some__key": "not this one"
+    },
+    "expectedOutput": {
+      "some_key": "***",
+      "some_Key": "***",
+      "some__key": "not this one"
+    }
+  },
+  {
+    "maskingConfig": {
+      "maskKeys": [
         "someKey"
       ],
       "caseSensitiveTargetKeys": true

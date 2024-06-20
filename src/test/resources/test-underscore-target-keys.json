@@ -91,6 +91,22 @@
   },
   {
     "maskingConfig": {
+      "maskKeys": [
+        "someKey",
+        "someOtherKey"
+      ]
+    },
+    "input": {
+      "some_key": "hello",
+      "some_other_key": "hello"
+    },
+    "expectedOutput": {
+      "some_key": "***",
+      "some_other_key": "***"
+    }
+  },
+  {
+    "maskingConfig": {
       "allowKeys": [
         "allowedKey"
       ],

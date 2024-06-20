@@ -91,16 +91,6 @@ final class KeyMatcher {
             if (child == null) {
                 child = new TrieNode();
                 node.add(b, child);
-                // allow matching snakeCase by default, but not the first character or after underscore
-                // maskMe -> mask_me
-                if (b == upperBytes[i] && i > 0 && bytes[i - 1] != '_') {
-                    var underscoreNode = new TrieNode();
-                    node.add((byte) '_', underscoreNode);
-                    underscoreNode.add(lowerBytes[i], child);
-                    if (caseInsensitive) {
-                        underscoreNode.add(upperBytes[i], child);
-                    }
-                }
                 if (caseInsensitive) {
                     /*
                       when case-insensitive we need to keep track of siblings to be able to find the correct node
@@ -116,6 +106,19 @@ final class KeyMatcher {
                      */
                     node.add(lowerBytes[i], child);
                     node.add(upperBytes[i], child);
+                }
+            }
+            // allow matching snakeCase (maskMe -> mask_me) by default
+            // but not the first character or after an underscore
+            if (i > 0 && bytes[i - 1] != '_' && b == upperBytes[i] && b != lowerBytes[i]) {
+                TrieNode underscoreNode = node.child((byte) '_');
+                if (underscoreNode == null) {
+                    underscoreNode = new TrieNode();
+                }
+                node.add((byte) '_', underscoreNode);
+                underscoreNode.add(lowerBytes[i], child);
+                if (caseInsensitive) {
+                    underscoreNode.add(upperBytes[i], child);
                 }
             }
             node = child;

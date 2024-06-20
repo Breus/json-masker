@@ -20,6 +20,26 @@
   },
   {
     "maskingConfig": {
+      "maskKeys": [
+        "someKey"
+      ],
+      "caseSensitiveTargetKeys": true
+    },
+    "input": {
+      "someKey": "hello",
+      "some_key": "hello",
+      "some_Key": "hello",
+      "otherKey": null
+    },
+    "expectedOutput": {
+      "someKey": "***",
+      "some_key": "***",
+      "some_Key": "hello",
+      "otherKey": null
+    }
+  },
+  {
+    "maskingConfig": {
       "allowKeys": [
         "allowedKey"
       ]
@@ -34,6 +54,26 @@
       "allowedKey": "hello",
       "allowed_key": "hello",
       "allowed_Key": "hello",
+      "otherKey": "***"
+    }
+  },
+  {
+    "maskingConfig": {
+      "allowKeys": [
+        "allowedKey"
+      ],
+      "caseSensitiveTargetKeys": true
+    },
+    "input": {
+      "allowedKey": "hello",
+      "allowed_key": "hello",
+      "allowed_Key": "masked",
+      "otherKey": "masked"
+    },
+    "expectedOutput": {
+      "allowedKey": "hello",
+      "allowed_key": "hello",
+      "allowed_Key": "***",
       "otherKey": "***"
     }
   }

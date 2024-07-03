@@ -1,9 +1,11 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +34,51 @@ final class MaskingState implements ValueMaskerContext {
         if (trackJsonPath) {
             currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
         }
+    }
+
+    public enum Type {
+        NOTHING,
+        OBJECT,
+        ARRAY,
+        STRING,
+        NUMBER,
+        BOOLEAN,
+        NULL,
+    }
+    public static final int TYPE_NOTHING = -1;
+    public static final int TYPE_OBJECT = 0;
+    public static final int TYPE_ARRAY = 1;
+    public static final int TYPE_STRING = 2;
+    public static final int TYPE_NUMBER = 3;
+    public static final int TYPE_BOOLEAN = 4;
+    public static final int TYPE_NULL = 5;
+    private static final KeyMaskingConfig NULL_CONFIG = KeyMaskingConfig.builder().build();
+
+    private ArrayDeque<Type> currentType = new ArrayDeque<>();
+    private ArrayDeque<KeyMaskingConfig> currentMaskingConfig = new ArrayDeque<>();
+
+    public void pushType(Type type, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        if (currentType.size() >= 50_000) {
+            throw new InvalidJsonException("JSON nesting depth exceeds the maximum allowed (50000)");
+        }
+        currentType.push(type);
+        currentMaskingConfig.push(keyMaskingConfig != null ? keyMaskingConfig : NULL_CONFIG);
+    }
+
+    public Type currentType() {
+        Type peek = currentType.peek();
+        return peek != null ? peek : Type.NOTHING;
+    }
+
+    @Nullable
+    public KeyMaskingConfig currentMaskingConfig() {
+        KeyMaskingConfig peek = currentMaskingConfig.peek();
+        return peek != NULL_CONFIG ? peek : null;
+    }
+
+    public void popType() {
+        currentType.pop();
+        currentMaskingConfig.pop();
     }
 
     public boolean next() {

@@ -48,12 +48,69 @@ final class KeyContainsMasker implements JsonMasker {
                 keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
             }
 
-            stepOverWhitespaceCharacters(maskingState);
-            visitValue(maskingState, keyMaskingConfig);
+            // stepOverWhitespaceCharacters(maskingState);
+            // visitValue(maskingState, keyMaskingConfig);
+
+            mainLoop(maskingState, keyMaskingConfig);
 
             return maskingState.flushReplacementOperations();
         } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
             throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
+        }
+    }
+
+    private void mainLoop(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        nextValue(maskingState, keyMaskingConfig);
+        while (!maskingState.endOfJson() && maskingState.currentType() != MaskingState.Type.NOTHING) {
+            switch (maskingState.currentType()) {
+                case ARRAY: {
+                    nextArrayElement(maskingState, maskingState.currentMaskingConfig());
+                    break;
+                }
+                case OBJECT: {
+                    nextObjectValue(maskingState, maskingState.currentMaskingConfig());
+                    break;
+                }
+                case NUMBER: {
+                    keyMaskingConfig = maskingState.currentMaskingConfig();
+                    if (keyMaskingConfig != null) {
+                        maskNumber(maskingState, keyMaskingConfig);
+                    } else {
+                        stepOverNumericValue(maskingState);
+                    }
+                    maskingState.popType();
+                    maskingState.backtrackCurrentJsonPath();
+                    break;
+                }
+                case STRING: {
+                    keyMaskingConfig = maskingState.currentMaskingConfig();
+                    if (keyMaskingConfig != null) {
+                        maskString(maskingState, keyMaskingConfig);
+                    } else {
+                        stepOverStringValue(maskingState);
+                    }
+                    maskingState.popType();
+                    maskingState.backtrackCurrentJsonPath();
+                    break;
+                }
+                case BOOLEAN: {
+                    keyMaskingConfig = maskingState.currentMaskingConfig();
+                    if (keyMaskingConfig != null) {
+                        maskBoolean(maskingState, keyMaskingConfig);
+                    } else {
+                        maskingState.incrementIndex(AsciiCharacter.isLowercaseT(maskingState.byteAtCurrentIndex()) ? 4 : 5);
+                    }
+                    maskingState.popType();
+                    maskingState.backtrackCurrentJsonPath();
+                    break;
+                }
+                case NULL: {
+                    maskingState.incrementIndex(4);
+                    maskingState.popType();
+                    maskingState.backtrackCurrentJsonPath();
+                    break;
+                }
+            }
         }
     }
 
@@ -105,6 +162,23 @@ final class KeyContainsMasker implements JsonMasker {
         }
     }
 
+    private void nextValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        stepOverWhitespaceCharacters(maskingState);
+        if (maskingState.endOfJson()) {
+            return;
+        }
+        // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
+        switch (maskingState.byteAtCurrentIndex()) {
+            case '[' -> maskingState.pushType(MaskingState.Type.ARRAY, keyMaskingConfig);
+            case '{' -> maskingState.pushType(MaskingState.Type.OBJECT, keyMaskingConfig);
+            case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> maskingState.pushType(MaskingState.Type.NUMBER, keyMaskingConfig);
+            case '"' -> maskingState.pushType(MaskingState.Type.STRING, keyMaskingConfig);
+            case 't', 'f' -> maskingState.pushType(MaskingState.Type.BOOLEAN, keyMaskingConfig);
+            case 'n' -> maskingState.pushType(MaskingState.Type.NULL, keyMaskingConfig);
+            default -> { /* return */ }
+        }
+    }
+
     /**
      * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} on
      * each element while propagating the {@link KeyMaskingConfig}.
@@ -132,6 +206,27 @@ final class KeyContainsMasker implements JsonMasker {
         }
         maskingState.next(); // step over array closing square bracket
         maskingState.backtrackCurrentJsonPath();
+    }
+
+    private void nextArrayElement(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        stepOverWhitespaceCharacters(maskingState);
+        if (maskingState.byteAtCurrentIndex() == ']') {
+            maskingState.popType();
+            maskingState.backtrackCurrentJsonPath();
+            maskingState.next(); // step over array closing square bracket
+            return;
+        }
+        maskingState.next(); // step over array start or comma
+        stepOverWhitespaceCharacters(maskingState);
+        if (maskingState.endOfJson() || maskingState.byteAtCurrentIndex() == ']') {
+            maskingState.popType();
+            maskingState.backtrackCurrentJsonPath();
+            maskingState.next(); // step over array closing square bracket
+            return;
+        }
+
+        maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), -1, -1));
+        nextValue(maskingState, keyMaskingConfig);
     }
 
     /**
@@ -194,6 +289,59 @@ final class KeyContainsMasker implements JsonMasker {
         }
         // step over closing curly bracket ending the object
         maskingState.next();
+    }
+
+    private void nextObjectValue(MaskingState maskingState, @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
+        stepOverWhitespaceCharacters(maskingState);
+        if (maskingState.byteAtCurrentIndex() == '}') {
+            // step over closing curly bracket ending the object
+            maskingState.next();
+            maskingState.popType();
+            maskingState.backtrackCurrentJsonPath();
+            return;
+        }
+        maskingState.next(); // step over object start or comma
+        stepOverWhitespaceCharacters(maskingState);
+        // check if we're in an empty object
+        if (maskingState.endOfJson() || maskingState.byteAtCurrentIndex() == '}') {
+            // step over closing curly bracket ending the object
+            maskingState.next();
+            maskingState.popType();
+            maskingState.backtrackCurrentJsonPath();
+            return;
+        }
+        // In case target keys should be considered as allow list, we need to NOT mask certain keys
+        int openingQuoteIndex = maskingState.currentIndex();
+
+        stepOverStringValue(maskingState);
+
+        int afterClosingQuoteIndex = maskingState.currentIndex();
+        int keyLength = afterClosingQuoteIndex - openingQuoteIndex - 2; // minus the opening and closing quotes
+        maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), openingQuoteIndex + 1, keyLength));
+        KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), openingQuoteIndex + 1, // plus one for the opening quote
+                                                                              keyLength, maskingState.getCurrentJsonPathNode());
+        stepOverWhitespaceCharacters(maskingState);
+        // step over the colon ':'
+        maskingState.next();
+        stepOverWhitespaceCharacters(maskingState);
+
+        // if we're in the allow mode, then getting a null as config, means that the key has been explicitly
+        // allowed and must not be masked, even if enclosing object is being masked
+        boolean valueAllowed = maskingConfig.isInAllowMode() && keyMaskingConfig == null;
+        if (valueAllowed) {
+            stepOverValue(maskingState);
+            maskingState.backtrackCurrentJsonPath();
+        } else {
+            // this is where it might get confusing - this method is called when the whole object is being masked
+            // if we got a maskingConfig for the key - we need to mask this key with that config. However, if the config
+            // we got was the default config, then it means that the key doesn't have a specific configuration and
+            // we should fall back to key specific config that the object is being masked with.
+            // E.g.: '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
+            if (parentKeyMaskingConfig != null && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
+                keyMaskingConfig = parentKeyMaskingConfig;
+            }
+            nextValue(maskingState, keyMaskingConfig);
+        }
     }
 
     /**

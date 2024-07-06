@@ -1,5 +1,5 @@
 [versions]
-junit = "5.10.2"
+junit = "5.10.3"
 jmh = "1.37"
 
 [libraries]
@@ -19,4 +19,4 @@ jmh = { id = "me.champeau.jmh", version = "0.7.2" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
 sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
-errorprone = { id = "net.ltgt.errorprone", version = "3.1.0" }
+errorprone = { id = "net.ltgt.errorprone", version = "4.0.1" }

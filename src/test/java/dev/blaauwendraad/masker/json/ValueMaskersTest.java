@@ -191,6 +191,88 @@ class ValueMaskersTest {
                 .isEqualTo("\"no***il\"");
     }
 
+    // Example IBANs from: https://www.iban.com/structure
+    @Test
+    void iban() {
+        // Albania
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "AL35202111090000000001234567",
+                        ValueMaskers.iban("**", 3)
+                ))
+                .isEqualTo("\"AL**2021**567\"");
+
+        // Austria
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "AT483200000012345864",
+                        ValueMaskers.iban("xx", 3)
+                ))
+                .isEqualTo("\"ATxx3200xx864\"");
+
+        // Belgium
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "BE71096123456769",
+                        ValueMaskers.iban("***", 4)
+                ))
+                .isEqualTo("\"BE***0961***6769\"");
+
+        // Brazil
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "BR1500000000000010932840814P2",
+                        ValueMaskers.iban("**", 2)
+                ))
+                .isEqualTo("\"BR**0000**P2\"");
+
+        // Finland
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "FI2112349876543210",
+                        ValueMaskers.iban("*", 4)
+                ))
+                .isEqualTo("\"FI*1234*3210\"");
+
+        // France
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "FR7630006000011234567890189",
+                        ValueMaskers.iban("**", 4)
+                ))
+                .isEqualTo("\"FR**3000**0189\"");
+
+        // Germany
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "DE75512108001245126199",
+                        ValueMaskers.iban("**", 4)
+                ))
+                .isEqualTo("\"DE**5121**6199\"");
+
+        // Netherlands
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                    "NL91ABNA0417164300",
+                    ValueMaskers.iban("***", 4)
+                ))
+                .isEqualTo("\"NL***ABNA***4300\"");
+
+        // Norway
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "NO8330001234567",
+                        ValueMaskers.iban("***", 4)
+                ))
+                .isEqualTo("\"NO***3000***4567\"");
+
+        // Portugal
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "PT50002700000001234567833",
+                        ValueMaskers.iban("!!", 1)
+                ))
+                .isEqualTo("\"PT!!0027!!3\"");
+
+
+        // Luxembourg
+        Assertions.assertThat(ByteValueMaskerContext.maskStringWith(
+                        "LU120010001234567891",
+                        ValueMaskers.iban("*", 0)
+                ))
+                .isEqualTo("\"LU*0010*\"");
+    }
+
     @Test
     void withRawValueFunction() {
         var valueMasker = ValueMaskers.withRawValueFunction(value -> {

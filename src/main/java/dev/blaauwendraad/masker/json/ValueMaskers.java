@@ -202,6 +202,42 @@ public final class ValueMaskers {
     }
 
     /**
+     * Masks a target string that contains an IBAN while keeping the country code, the bank identification code, and
+     * some number of suffix characters
+     * <p> For example:
+     * <ul>
+     *     <li>{@literal "bankAccount": "NL01ADYB0123456789" -> "bankAccount": "NL**ADYB******6789"}</li>
+     *     <li>{@literal "bankAccount": "FI2112349876543210" -> "bankAccount": "FI**1234******3210"}</li>
+     * </ul>
+     *
+     * @param mask the static mask applied to the rest of the value
+     */
+    public static ValueMasker.StringMasker iban(String mask, int suffixLength) {
+        byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
+        return describe(
+                "IBAN, keep country code, bank code, and suffix %s".formatted(suffixLength),
+                context -> {
+                    int countryCode = 2;
+                    int checkDigits = 2;
+                    int bankIdentificationCode = 4;
+
+                    int prefixLength = countryCode + 1; // Add one for opening quote
+                    context.replaceBytes(prefixLength, checkDigits, replacementBytes, 1);
+
+                    // Our second iteration over the context, we want our prefix to be something like: "NL***ABNA
+                    prefixLength = countryCode + mask.length() + bankIdentificationCode + 1; // Add one for the opening quote
+                    // The second iteration, we're going over the masked value. If the length of the mask is different
+                    // from the length of the checkDigits, the byteLength of the context will have changed.
+                    // (i.e. NL01ABNA -> NL***ABNA added 1 byte to the length)
+                    int byteLengthDiff = mask.length() - checkDigits;
+                    int byteLength = context.byteLength() + byteLengthDiff;
+                    int keepSuffixLength = suffixLength + 1; // Keep closing quote
+                    int maskLength = byteLength - prefixLength - keepSuffixLength;
+                    context.replaceBytes(prefixLength, maskLength, replacementBytes, 1);
+                });
+    }
+
+    /**
      * Masks a target value with the provided {@link Function}. The target value (as raw JSON literal) is passed into
      * the function as a string regardless of the JSON type (string, numeric or a boolean). In case the target value is
      * a JSON string the value the function will receive a JSON encoded value as it appears in the JSON, including
@@ -433,7 +469,8 @@ public final class ValueMaskers {
                                             throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);
                                         }
                                     }
-                                    default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
+                                    default ->
+                                            throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
                                 }
                             }
                         }

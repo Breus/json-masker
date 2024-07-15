@@ -6,32 +6,39 @@ import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.util.*;
 
 /**
- * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in the target key set.
- * <p>
- * The main idea is that we need to know whether a JSON key is in the target key set. One could do a contains on
- * the hash set, which would compute a hashcode for the whole key before doing a "fast" lookup. Another option would be
- * to iterate over target keys and compare characters one by one for each key, given that in reality most keys would
- * fail fast (assuming nobody asks us to mask keys {@code 'a[...]b'} in JSONs with keys {@code 'aa[...]b'})
+ * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in
+ * the target key set.
  *
- * <p>
- * Both options are not ideal because
- * we:
+ * <p>The main idea is that we need to know whether a JSON key is in the target key set. One could
+ * do a contains on the hash set, which would compute a hashcode for the whole key before doing a
+ * "fast" lookup. Another option would be to iterate over target keys and compare characters one by
+ * one for each key, given that in reality most keys would fail fast (assuming nobody asks us to
+ * mask keys {@code 'a[...]b'} in JSONs with keys {@code 'aa[...]b'})
+ *
+ * <p>Both options are not ideal because we:
+ *
  * <ul>
- *   <li>we expect set of target keys to be relatively small (<100 keys)</li>
- *   <li>we expect target keys themselves to also be relatively small (<100 characters)</li>
- *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every incoming key</li>
+ *   <li>we expect set of target keys to be relatively small (<100 keys)
+ *   <li>we expect target keys themselves to also be relatively small (<100 characters)
+ *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every
+ *       incoming key
  * </ul>
  *
- * <p> For masking, we only care whether the key matched or not, so we can use a Trie to optimize the look-ups.
- * <p> Further, at initialization time we can construct a Trie that is case-insensitive, so that for we can avoid any
- * transformations on the incoming keys during the search.
- * <p> We can also make a Trie that looks at bytes instead of characters, so that we can use the bytes and offsets
- * directly in the incoming JSON for comparison and make sure there are no allocations at all.
- * <p> And lastly, we can make a small optimization to remember all the distinct lengths of the target keys, so that
- * we can fail fast if the incoming key is not of the same length.
+ * <p>For masking, we only care whether the key matched or not, so we can use a Trie to optimize the
+ * look-ups.
+ *
+ * <p>Further, at initialization time we can construct a Trie that is case-insensitive, so that for
+ * we can avoid any transformations on the incoming keys during the search.
+ *
+ * <p>We can also make a Trie that looks at bytes instead of characters, so that we can use the
+ * bytes and offsets directly in the incoming JSON for comparison and make sure there are no
+ * allocations at all.
+ *
+ * <p>And lastly, we can make a small optimization to remember all the distinct lengths of the
+ * target keys, so that we can fail fast if the incoming key is not of the same length.
  */
 final class KeyMatcher {
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
@@ -41,32 +48,78 @@ final class KeyMatcher {
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
-        this.root = new TrieNode();
-        maskingConfig.getTargetKeys().forEach(key -> insert(key, false));
-        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(jsonPath.toString(), false));
+        PreInitTrieNode preInit = new PreInitTrieNode();
+        maskingConfig.getTargetKeys().forEach(key -> insert(preInit, key, false));
+        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(preInit, jsonPath.toString(), false));
         if (maskingConfig.isInAllowMode()) {
             // in allow mode we might have a specific configuration for the masking key
             // see ByteTrie#insert documentation for more details
-            maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(key, true));
+            maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInit, key, true));
         }
+        this.root = transform(preInit);
+    }
+
+    private static TrieNode transform(PreInitTrieNode preInitNode) {
+        // Using a stack to simulate the recursion
+        Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
+        Deque<PreInitTrieNode> stack = new ArrayDeque<>();
+        stack.push(preInitNode);
+
+        while (!stack.isEmpty()) {
+            PreInitTrieNode currentPreInitNode = stack.pop();
+            if (transformedNodes.containsKey(currentPreInitNode)) {
+                continue;
+            }
+            TrieNode currentNode = new TrieNode();
+            currentNode.keyMaskingConfig = currentPreInitNode.keyMaskingConfig;
+            currentNode.endOfWord = currentPreInitNode.endOfWord;
+            currentNode.negativeMatch = currentPreInitNode.negativeMatch;
+
+            if (!currentPreInitNode.children.isEmpty()) {
+                currentNode.childrenArrayOffset = currentPreInitNode.children.firstKey();
+                currentNode.children = new TrieNode[currentPreInitNode.children.lastKey() - currentNode.childrenArrayOffset + 1];
+
+                if (!currentPreInitNode.childrenUpper.isEmpty()) {
+                    currentNode.childrenUpperArrayOffset = currentPreInitNode.childrenUpper.firstKey();
+                    currentNode.childrenUpper = new TrieNode[currentPreInitNode.childrenUpper.lastKey() - currentNode.childrenUpperArrayOffset + 1];
+                }
+            }
+            transformedNodes.put(currentPreInitNode, currentNode);
+            stack.addAll((currentPreInitNode.children.values()));
+            stack.addAll((currentPreInitNode.childrenUpper.values()));
+        }
+
+        for (Map.Entry<PreInitTrieNode, TrieNode> entry : transformedNodes.entrySet()) {
+            PreInitTrieNode currentPreInitNode = entry.getKey();
+            TrieNode currentNode = entry.getValue();
+
+            currentPreInitNode.children.forEach(
+                    (b, child) -> {
+                        currentNode.children[b - currentNode.childrenArrayOffset] = transformedNodes.get(child);
+                    });
+            currentPreInitNode.childrenUpper.forEach(
+                    (b, child) -> {
+                        currentNode.childrenUpper[b - currentNode.childrenUpperArrayOffset] = transformedNodes.get(child);
+                    });
+        }
+
+        return Objects.requireNonNull(transformedNodes.get(preInitNode));
     }
 
     /**
-     * Inserts a word into the trie.
+     * Inserts a word into the pre-initialization trie.
      *
-     * @param word          the word to insert.
+     * @param node the pre-initizalization trie node
+     * @param word the word to insert.
      * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode.
-     *                      for example config
-     *                      {@code
-     *                      builder.allow("name", "age").mask("ssn", KeyMaskingConfig.builder().maskStringsWith("[redacted]"))
-     *                      }
-     *                      would only allow {@code name} and {@code age} to be present in the JSON, it would use
-     *                      default configuration to mask any other key, but would specifically mask {@code ssn} with
-     *                      a string "[redacted]". To make it possible to store just the masking configuration we
-     *                      insert a "negative match" node, that would not be treated as a target key, but provide
-     *                      a fast lookup for the configuration
+     *                      For example, config {@code builder.allow("name", "age").mask("ssn",
+     *                      KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
+     *                      and {@code age} to be present in the JSON, it would use default configuration to mask any
+     *                      other key, but would specifically mask {@code ssn} with a string "[redacted]". To make it
+     *                      possible to store just the masking configuration we insert a "negative match" node, that
+     *                      would not be treated as a target key, but provide a fast lookup for the configuration
      */
-    private void insert(String word, boolean negativeMatch) {
+    private void insert(PreInitTrieNode node, String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         byte[] lowerBytes = null;
@@ -88,13 +141,11 @@ final class KeyMatcher {
                 throw new IllegalArgumentException("Case insensitive trie does not support all characters in " + word);
             }
         }
-        TrieNode node = root;
         for (int i = 0; i < bytes.length; i++) {
             byte b = bytes[i];
-            TrieNode child = node.child(b);
+            PreInitTrieNode child = node.child(b);
             if (child == null) {
-                child = new TrieNode();
-                node.add(b, child);
+                child = new PreInitTrieNode();
                 if (caseInsensitive) {
                     Objects.requireNonNull(lowerBytes);
                     Objects.requireNonNull(upperBytes);
@@ -111,7 +162,11 @@ final class KeyMatcher {
                         2. So we don't have to convert when searching
                      */
                     node.add(lowerBytes[i], child);
-                    node.add(upperBytes[i], child);
+                    if (lowerBytes[i] != upperBytes[i]) {
+                        node.addUpper(upperBytes[i], child);
+                    }
+                } else {
+                    node.add(b, child);
                 }
             }
             node = child;
@@ -122,15 +177,23 @@ final class KeyMatcher {
     }
 
     /**
-     * Returns a masking configuration if the key must be masked.
-     * Handles both allow and mask mode:
-     * - in allow mode: if the key was explicitly allowed returns null, otherwise returns a config to mask the key with.
-     * - in mask mode: if the key was explicitly masked returns a config to mask the key with, otherwise returns null.
-     * <p>
-     * When key is to be masked (return value != null) and the key had specific masking config returns that, if not -
-     * returns default masking config.
+     * Returns a masking configuration if the key must be masked. Handles both allow and mask mode:
      *
-     * @return the config if the key needs to be masked, {@code null} if key does not need to be masked
+     * <ul>
+     *   <li>in allow mode: if the key was explicitly allowed returns null, otherwise returns a
+     *       config to mask the key with.
+     *   <li>in mask mode: if the key was explicitly masked returns a config to mask the key with,
+     *       otherwise returns null.
+     * </ul>
+     *
+     * <p>When key is to be masked (return value != null) and the key had specific masking config
+     * returns that, if not - returns default masking config.
+     *
+     * <p>When key is to be masked (return value != null) and the key had specific masking config
+     * returns that, if not - returns default masking config.
+     *
+     * @return the config if the key needs to be masked, {@code null} if key does not need to be
+     *     masked
      */
     @Nullable
     KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
@@ -268,17 +331,19 @@ final class KeyMatcher {
     }
 
     /**
-     * Traverses the trie along the passed JSONPath segment starting from {@code begin} node.
-     * The passed segment is represented as a key {@code (keyOffset, keyLength)} reference in {@code bytes} array.
+     * Traverses the trie along the passed JSONPath segment starting from {@code begin} node. The
+     * passed segment is represented as a key {@code (keyOffset, keyLength)} reference in {@code
+     * bytes} array.
      *
-     * @param bytes     the message bytes.
-     * @param begin     a TrieNode from which the traversal begins.
+     * @param bytes the message bytes.
+     * @param begin a TrieNode from which the traversal begins.
      * @param keyOffset the offset in {@code bytes} of the segment.
      * @param keyLength the length of the segment.
-     * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in the trie.
+     * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in
+     *     the trie.
      */
-    @Nullable
-    TrieNode traverseJsonPathSegment(byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
+    @Nullable TrieNode traverseJsonPathSegment(
+            byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
@@ -301,39 +366,90 @@ final class KeyMatcher {
     }
 
     /**
-     * A node in the Trie, represents part of the character (if character is ASCII, then represents a single character).
-     * A padding of 128 is used to store references to the next positive and negative bytes (which range from -128 to
-     * 128, hence the padding).
+     * A node in the Trie, represents part of the character (if character is ASCII, then represents
+     * a single character). A padding of 128 is used to store references to the next positive and
+     * negative bytes (which range from -128 to 128, hence the padding).
      */
     static class TrieNode {
-        final TrieNode[] children = new TrieNode[256];
+        public static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
         /**
-         * A marker that the character indicates that the key ends at this node.
+         * Indicates the indexing offset of the children array. So let's say this value is 10, then
+         * the 20th index in the array actually represent the byte value '30'. This is essentially a
+         * memory optimization to not store 256 references for the children, but much less in most
+         * practical cases.
          */
+        int childrenArrayOffset;
+        int childrenUpperArrayOffset;
+
+        TrieNode[] children = EMPTY_CHILDREN;
+        TrieNode[] childrenUpper = EMPTY_CHILDREN;
+
+        /** A marker that the character indicates that the key ends at this node. */
         boolean endOfWord = false;
+
+        /** Masking configuration for the key that ends at this node. */
+        @Nullable KeyMaskingConfig keyMaskingConfig = null;
+
         /**
-         * Masking configuration for the key that ends at this node.
-         */
-        @Nullable
-        KeyMaskingConfig keyMaskingConfig = null;
-        /**
-         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
+         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the
+         * key is not allowed.
          */
         boolean negativeMatch = false;
 
         /**
-         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no
+         * matches.
          */
-        @Nullable
-        TrieNode child(byte b) {
-            return children[b + BYTE_OFFSET];
+        @Nullable TrieNode child(byte b) {
+            int offsetIndex = b - childrenArrayOffset;
+            TrieNode child = null;
+            if (offsetIndex >= 0 && offsetIndex < children.length && children[offsetIndex] != null) {
+                return children[offsetIndex];
+            }
+            int offsetUpperIndex = b - childrenUpperArrayOffset;
+            if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUpper.length) {
+                return childrenUpper[offsetUpperIndex];
+            }
+            return null;
         }
+    }
+
+    static class PreInitTrieNode {
+        TreeMap<Integer, PreInitTrieNode> children = new TreeMap<>();
+        TreeMap<Integer, PreInitTrieNode> childrenUpper = new TreeMap<>();
+
+        /** A marker that the character indicates that the key ends at this node. */
+        boolean endOfWord = false;
+
+        /** Masking configuration for the key that ends at this node. */
+        @Nullable KeyMaskingConfig keyMaskingConfig = null;
 
         /**
-         * Adds a new child to the trie.
+         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the
+         * key is not allowed.
          */
-        void add(byte b, TrieNode child) {
-            children[b + BYTE_OFFSET] = child;
+        boolean negativeMatch = false;
+
+        /**
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no
+         * matches.
+         */
+        @Nullable PreInitTrieNode child(byte b) {
+            PreInitTrieNode child = children.get((int) b);
+            if (child != null) {
+                return child;
+            }
+            return childrenUpper.get((int) b);
+        }
+
+        /** Adds a new child to the trie. */
+        void add(Byte b, PreInitTrieNode child) {
+            children.put((int) b, child);
+        }
+
+        /** Adds a new child to the trie. */
+        void addUpper(Byte b, PreInitTrieNode child) {
+            childrenUpper.put((int) b, child);
         }
     }
 }

@@ -378,10 +378,10 @@ final class KeyMatcher {
     static class TrieNode {
         public static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
         /**
-         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII 'A'), then
-         * the 20th index in the array actually represent the byte value 85 (ASCII 'U'). This is essentially a
-         * memory optimization to not store 256 references for the children, but much less in most
-         * practical cases at the cost of storing the offset itself (4 bytes).
+         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII 'A'), then 0th
+         * index represents this byte and the 20th index in the array would represent the byte value 85 (ASCII 'U').
+         * This is essentially a memory optimization to not store 256 references for the children, but much less in
+         * most practical cases at the cost of storing the offset itself (4 bytes).
          */
         int childrenArrayOffset;
         int childrenUpperArrayOffset;

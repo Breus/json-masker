@@ -136,6 +136,7 @@ jmh {
             "jsonPath" to listOfProperty("false", "true"),
             "characters" to listOfProperty("unicode"),
             "numberOfTargetKeys" to listOfProperty("1000"),
+            "keyLength" to listOfProperty("100"),
         )
 
         iterations = 4

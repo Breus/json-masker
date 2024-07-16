@@ -3,10 +3,16 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
+
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 /**
  * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in
@@ -18,22 +24,22 @@ import java.util.*;
  * one for each key, given that in reality most keys would fail fast (assuming nobody asks us to
  * mask keys {@code 'a[...]b'} in JSONs with keys {@code 'aa[...]b'})
  *
- * <p>Both options are not ideal because we:
+ * <p>Both options are not ideal, because:
  *
  * <ul>
  *   <li>we expect set of target keys to be relatively small (<100 keys)
- *   <li>we expect target keys themselves to also be relatively small (<100 characters)
+ *   <li>we expect target keys themselves to be relatively small (<100 characters)
  *   <li>keys are case-insensitive by default, meaning that we have to do toLowerCase for every
  *       incoming key
  * </ul>
  *
- * <p>For masking, we only care whether the key matched or not, so we can use a Trie to optimize the
+ * <p>For masking, we only care whether the key matched or not, so we can use a trie to optimize the
  * look-ups.
  *
- * <p>Further, at initialization time we can construct a Trie that is case-insensitive, so that for
- * we can avoid any transformations on the incoming keys during the search.
+ * <p>Further, at initialization time, a case-insensitive trie is created such that any casing
+ * transformations on the looked-up keys during search are avoided.
  *
- * <p>We can also make a Trie that looks at bytes instead of characters, so that we can use the
+ * <p>We can also make a trie that looks at bytes instead of characters, so that we can use the
  * bytes and offsets directly in the incoming JSON for comparison and make sure there are no
  * allocations at all.
  */
@@ -44,23 +50,29 @@ final class KeyMatcher {
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
-        PreInitTrieNode preInit = new PreInitTrieNode();
-        maskingConfig.getTargetKeys().forEach(key -> insert(preInit, key, false));
-        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(preInit, jsonPath.toString(), false));
+        PreInitTrieNode preInitRootNode = new PreInitTrieNode();
+        maskingConfig.getTargetKeys().forEach(key -> insert(preInitRootNode, key, false));
+        maskingConfig.getTargetJsonPaths().forEach(jsonPath -> insert(preInitRootNode, jsonPath.toString(), false));
         if (maskingConfig.isInAllowMode()) {
             // in allow mode we might have a specific configuration for the masking key
             // see ByteTrie#insert documentation for more details
-            maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInit, key, true));
+            maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
-        this.root = transform(preInit);
+        this.root = transform(preInitRootNode);
     }
 
+    /**
+     * Transforms a (temporary) pre-initialization node into a permanent {@link KeyMatcher} look-up
+     * trie node. This is done by applying transformations of each (child) node starting from the
+     * root pre-init node and following a BFS order subsequently.
+     *
+     * @param preInitNode the node which will be transformed by having all its children transformed
+     * @return the transformed pre-initialization trie into a post-initialization trie
+     */
     static TrieNode transform(PreInitTrieNode preInitNode) {
-        // Using a stack to simulate the recursion
         Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
         Deque<PreInitTrieNode> stack = new ArrayDeque<>();
         stack.push(preInitNode);
-
         while (!stack.isEmpty()) {
             PreInitTrieNode currentPreInitNode = stack.pop();
             if (transformedNodes.containsKey(currentPreInitNode)) {
@@ -68,31 +80,29 @@ final class KeyMatcher {
                 // avoid transforming the children that were already transformed
                 continue;
             }
-
             int childrenArrayOffset = -1;
             int childrenArraySize = 0;
-
             int childrenUpperArrayOffset = -1;
             int childrenUpperArraySize = 0;
             if (!currentPreInitNode.children.isEmpty()) {
                 childrenArrayOffset = currentPreInitNode.children.firstKey();
                 childrenArraySize = currentPreInitNode.children.lastKey() - childrenArrayOffset + 1;
-
                 if (!currentPreInitNode.childrenUpper.isEmpty()) {
                     childrenUpperArrayOffset = currentPreInitNode.childrenUpper.firstKey();
                     childrenUpperArraySize = currentPreInitNode.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
                 }
             }
-
-            TrieNode currentNode = new TrieNode(
-                    childrenArrayOffset,
-                    childrenUpperArrayOffset,
-                    childrenArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenArraySize],
-                    childrenUpperArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenUpperArraySize],
-                    currentPreInitNode.keyMaskingConfig,
-                    currentPreInitNode.endOfWord,
-                    currentPreInitNode.negativeMatch
-            );
+            TrieNode currentNode =
+                    new TrieNode(
+                            childrenArrayOffset,
+                            childrenUpperArrayOffset,
+                            childrenArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenArraySize],
+                            childrenUpperArraySize == 0
+                                    ? TrieNode.EMPTY_CHILDREN
+                                    : new TrieNode[childrenUpperArraySize],
+                            currentPreInitNode.keyMaskingConfig,
+                            currentPreInitNode.endOfWord,
+                            currentPreInitNode.negativeMatch);
             transformedNodes.put(currentPreInitNode, currentNode);
             stack.addAll((currentPreInitNode.children.values()));
             stack.addAll((currentPreInitNode.childrenUpper.values()));
@@ -102,27 +112,31 @@ final class KeyMatcher {
             PreInitTrieNode currentPreInitNode = entry.getKey();
             TrieNode currentNode = entry.getValue();
 
-            currentPreInitNode.children.forEach((b, child) ->
-                    currentNode.children[b - currentNode.childrenArrayOffset] = transformedNodes.get(child));
-            currentPreInitNode.childrenUpper.forEach((b, child) ->
-                    currentNode.childrenUpper[b - currentNode.childrenUpperArrayOffset] = transformedNodes.get(child));
+            currentPreInitNode.children.forEach(
+                    (byteValue, childNode) ->
+                            currentNode.children[byteValue - currentNode.childrenArrayOffset] =
+                                    transformedNodes.get(childNode));
+            currentPreInitNode.childrenUpper.forEach(
+                    (byteValue, childNode) ->
+                            currentNode.childrenUpper[byteValue - currentNode.childrenUpperArrayOffset] =
+                                    transformedNodes.get(childNode));
         }
 
         return Objects.requireNonNull(transformedNodes.get(preInitNode));
     }
 
     /**
-     * Inserts a word into the pre-initialization trie.
+     * Inserts a word into the pre-initialization trie (represented by the root node).
      *
-     * @param node the pre-initizalization trie node
-     * @param word the word to insert.
-     * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode.
-     *                      For example, config {@code builder.allow("name", "age").mask("ssn",
-     *                      KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
-     *                      and {@code age} to be present in the JSON, it would use default configuration to mask any
-     *                      other key, but would specifically mask {@code ssn} with a string "[redacted]". To make it
-     *                      possible to store just the masking configuration we insert a "negative match" node, that
-     *                      would not be treated as a target key, but provide a fast lookup for the configuration
+     * @param node the pre-initialization trie (root) node
+     * @param word the word to insert
+     * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode. For
+     *     example, config {@code builder.allow("name", "age").mask("ssn",
+     *     KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
+     *     and {@code age} to be present in the JSON, it would use default configuration to mask any
+     *     other key, but would specifically mask {@code ssn} with a string "[redacted]". To make it
+     *     possible to store just the masking configuration we insert a "negative match" node, that
+     *     would not be treated as a target key, but provide a fast lookup for the configuration
      */
     private void insert(PreInitTrieNode node, String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
@@ -132,15 +146,11 @@ final class KeyMatcher {
         if (caseInsensitive) {
             lowerBytes = word.toLowerCase().getBytes(StandardCharsets.UTF_8);
             upperBytes = word.toUpperCase().getBytes(StandardCharsets.UTF_8);
-
             /*
              from inspecting the code, it looks like lower casing a character does not change the byte length
              on the same encoding, however the documentation explicitly mentions that resulting length might be
-             different
-             so better to fail fast if instead of ignoring that.
-
-             Given that we're doing that only for target keys, the idea that it's going to have different lengths
-             is quite unlikely
+             different so better to fail fast if instead of ignoring that. Given that we're doing that only for
+             target keys, the idea that it's going to have different lengths is quite unlikely.
             */
             if (bytes.length != lowerBytes.length || bytes.length != upperBytes.length) {
                 throw new IllegalArgumentException("Case insensitive trie does not support all characters in " + word);
@@ -155,17 +165,17 @@ final class KeyMatcher {
                     Objects.requireNonNull(lowerBytes);
                     Objects.requireNonNull(upperBytes);
                     /*
-                      when case-insensitive we need to keep track of siblings to be able to find the correct node
-                      so that we have this structure:
-                      <p>
-                      (h | H) -> (e | E) -> (l | L) -> (l | L) -> (o | O)
-                      <p>
-                      and we can travel the tree forward and kinda sideways
+                     when case-insensitive we need to keep track of siblings to be able to find the correct node
+                     so that we have this structure:
+                     <p>
+                     (h | H) -> (e | E) -> (l | L) -> (l | L) -> (o | O)
+                     <p>
+                     and we can travel the tree forward and kinda sideways
 
-                      Also using both toLowerCase and toUpperCase due to
-                        1. Locale issues (see String#equalsIgnoreCase)
-                        2. So we don't have to convert when searching
-                     */
+                     Also using both toLowerCase and toUpperCase due to
+                       1. Locale issues (see String#equalsIgnoreCase)
+                       2. So we don't have to convert when searching
+                    */
                     node.add(lowerBytes[i], child);
                     if (lowerBytes[i] != upperBytes[i]) {
                         node.addUpper(upperBytes[i], child);
@@ -200,8 +210,8 @@ final class KeyMatcher {
      * @return the config if the key needs to be masked, {@code null} if key does not need to be
      *     masked
      */
-    @Nullable
-    KeyMaskingConfig getMaskConfigIfMatched(byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
+    @Nullable KeyMaskingConfig getMaskConfigIfMatched(
+            byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
         // first search by key
         TrieNode node = currentJsonPathNode;
         if (maskingConfig.isInMaskMode()) {
@@ -284,10 +294,13 @@ final class KeyMatcher {
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                        && i <= offset + length - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
-                        && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
-                        && bytes[i + 1] == 'u'
-                    ) {
+                            && i
+                                    <= offset
+                                            + length
+                                            - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
+                            && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with
+                            // \\u)
+                            && bytes[i + 1] == 'u') {
                         char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {
                             codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
@@ -330,8 +343,7 @@ final class KeyMatcher {
         return node;
     }
 
-    @Nullable
-    TrieNode getJsonPathRootNode() {
+    @Nullable TrieNode getJsonPathRootNode() {
         return root.child((byte) '$');
     }
 
@@ -371,27 +383,31 @@ final class KeyMatcher {
     }
 
     /**
-     * A node in the Trie, represents a single byte of the character (if character is ASCII, then represents
-     * a single character). An array is used instead of a Map for instant access without type casts.
+     * A node in the trie, represents a single byte of the character (if character is ASCII, then
+     * represents a single character). An array is used instead of a Map for instant access without
+     * type casts.
      *
-     * <p>The array starts from a non-null child which represents the byte with value
-     * {@link TrieNode#childrenArrayOffset} and every subsequent byte is offset by that value.
+     * <p>The array starts from a non-null child which represents the byte with value {@link
+     * TrieNode#childrenArrayOffset} and every subsequent byte is offset by that value.
      *
-     * <p>To accommodate the case-insensitivity upper-case characters are stored separately in an additional array
-     * {@link TrieNode#childrenUpper} with its own offset. The reason for splitting the array into two, allows for a
-     * more compact memory layout compared to using a single array. In the most common case (single child of
-     * upper/lower case character), both arrays are of size 1, while storing them in the same array would result in
-     * a gap of 32 {@code null}-elements.
+     * <p>To accommodate the case-insensitivity upper-case characters are stored separately in an
+     * additional array {@link TrieNode#childrenUpper} with its own offset. The reason for splitting
+     * the array into two, allows for a more compact memory layout compared to using a single array.
+     * In the most common case (single child of upper/lower case character), both arrays are of size
+     * 1, while storing them in the same array would result in a gap of 32 {@code null}-elements.
      */
     static class TrieNode {
         private static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
+
         /**
-         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII 'A'), then 0th
-         * index represents this byte and the 20th index in the array would represent the byte value 85 (ASCII 'U').
-         * This is essentially a memory optimization to not store 256 references for the children, but much less in
-         * most practical cases at the cost of storing the offset itself (4 bytes).
+         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII
+         * 'A'), then 0th index represents this byte and the 20th index in the array would represent
+         * the byte value 85 (ASCII 'U'). This is essentially a memory optimization to not store 256
+         * references for the children, but much less in most practical cases at the cost of storing
+         * the offset itself (4 bytes).
          */
         private final int childrenArrayOffset;
+
         private final int childrenUpperArrayOffset;
 
         /*@Nullable (NullAway bug)*/ TrieNode[] children;
@@ -416,8 +432,7 @@ final class KeyMatcher {
                 TrieNode[] childrenUpper,
                 @Nullable KeyMaskingConfig keyMaskingConfig,
                 boolean endOfWord,
-                boolean negativeMatch
-        ) {
+                boolean negativeMatch) {
             this.childrenArrayOffset = childrenArrayOffset;
             this.childrenUpperArrayOffset = childrenUpperArrayOffset;
             this.children = children;
@@ -433,6 +448,7 @@ final class KeyMatcher {
          */
         @Nullable TrieNode child(byte b) {
             int offsetIndex = b - childrenArrayOffset;
+            // This Sonar/IntelliJ warning on the next line is incorrect because the NullAway bug
             if (offsetIndex >= 0 && offsetIndex < children.length && children[offsetIndex] != null) {
                 return children[offsetIndex];
             }
@@ -445,25 +461,38 @@ final class KeyMatcher {
     }
 
     /**
-     * This TrieNode represents a temporary Trie that is being built. After all keys are inserted, this node is
-     * compressed into a {@link TrieNode} for more efficient memory layout.
+     * This TrieNode represents a temporary trie that is being built. After all keys are inserted,
+     * this node is compressed into a {@link TrieNode} for more efficient memory layout.
      */
     static class PreInitTrieNode {
-        /** @see TrieNode#children */
+        /**
+         * @see TrieNode#children
+         */
         TreeMap<Byte, PreInitTrieNode> children = new TreeMap<>();
-        /** @see TrieNode#childrenUpper */
+
+        /**
+         * @see TrieNode#childrenUpper
+         */
         TreeMap<Byte, PreInitTrieNode> childrenUpper = new TreeMap<>();
 
-        /** @see TrieNode#keyMaskingConfig */
+        /**
+         * @see TrieNode#keyMaskingConfig
+         */
         @Nullable KeyMaskingConfig keyMaskingConfig = null;
 
-        /** @see TrieNode#endOfWord */
+        /**
+         * @see TrieNode#endOfWord
+         */
         boolean endOfWord = false;
 
-        /** @see TrieNode#negativeMatch */
+        /**
+         * @see TrieNode#negativeMatch
+         */
         boolean negativeMatch = false;
 
-        /** @see TrieNode#child(byte)  */
+        /**
+         * @see TrieNode#child(byte)
+         */
         @Nullable PreInitTrieNode child(byte b) {
             PreInitTrieNode child = children.get(b);
             if (child != null) {
@@ -473,18 +502,18 @@ final class KeyMatcher {
         }
 
         /**
-         * Adds a new child to the trie.
-         * When case-insensitivity is enabled this must represent the lower-case byte, otherwise is just a byte
-         * in original case.
-         * */
+         * Adds a new child to the trie. When case-insensitivity is enabled this must represent the
+         * lower-case byte, otherwise is just a byte in original case.
+         */
         void add(Byte b, PreInitTrieNode child) {
             children.put(b, child);
         }
 
         /**
-         * Adds a child using an equivalent upper-case byte of the child already inserted.
-         * When case-insensitivity is enabled this must represent the upper-case byte, otherwise must not be called.
-         * */
+         * Adds a child using an equivalent upper-case byte of the child already inserted. When
+         * case-insensitivity is enabled this must represent the upper-case byte, otherwise must not
+         * be called.
+         */
         void addUpper(Byte b, PreInitTrieNode child) {
             childrenUpper.put(b, child);
         }

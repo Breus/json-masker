@@ -56,7 +56,7 @@ final class KeyMatcher {
         this.root = transform(preInit);
     }
 
-    private static TrieNode transform(PreInitTrieNode preInitNode) {
+    static TrieNode transform(PreInitTrieNode preInitNode) {
         // Using a stack to simulate the recursion
         Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
         Deque<PreInitTrieNode> stack = new ArrayDeque<>();
@@ -65,22 +65,35 @@ final class KeyMatcher {
         while (!stack.isEmpty()) {
             PreInitTrieNode currentPreInitNode = stack.pop();
             if (transformedNodes.containsKey(currentPreInitNode)) {
+                // lower-case and upper-case children represented by the same exact node under a different index
+                // avoid transforming the children that were already transformed
                 continue;
             }
-            TrieNode currentNode = new TrieNode();
-            currentNode.keyMaskingConfig = currentPreInitNode.keyMaskingConfig;
-            currentNode.endOfWord = currentPreInitNode.endOfWord;
-            currentNode.negativeMatch = currentPreInitNode.negativeMatch;
 
+            int childrenArrayOffset = -1;
+            int childrenArraySize = 0;
+
+            int childrenUpperArrayOffset = -1;
+            int childrenUpperArraySize = 0;
             if (!currentPreInitNode.children.isEmpty()) {
-                currentNode.childrenArrayOffset = currentPreInitNode.children.firstKey();
-                currentNode.children = new TrieNode[currentPreInitNode.children.lastKey() - currentNode.childrenArrayOffset + 1];
+                childrenArrayOffset = currentPreInitNode.children.firstKey();
+                childrenArraySize = currentPreInitNode.children.lastKey() - childrenArrayOffset + 1;
 
                 if (!currentPreInitNode.childrenUpper.isEmpty()) {
-                    currentNode.childrenUpperArrayOffset = currentPreInitNode.childrenUpper.firstKey();
-                    currentNode.childrenUpper = new TrieNode[currentPreInitNode.childrenUpper.lastKey() - currentNode.childrenUpperArrayOffset + 1];
+                    childrenUpperArrayOffset = currentPreInitNode.childrenUpper.firstKey();
+                    childrenUpperArraySize = currentPreInitNode.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
                 }
             }
+
+            TrieNode currentNode = new TrieNode(
+                    childrenArrayOffset,
+                    childrenUpperArrayOffset,
+                    childrenArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenArraySize],
+                    childrenUpperArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenUpperArraySize],
+                    currentPreInitNode.keyMaskingConfig,
+                    currentPreInitNode.endOfWord,
+                    currentPreInitNode.negativeMatch
+            );
             transformedNodes.put(currentPreInitNode, currentNode);
             stack.addAll((currentPreInitNode.children.values()));
             stack.addAll((currentPreInitNode.childrenUpper.values()));
@@ -376,30 +389,40 @@ final class KeyMatcher {
      * a gap of 32 {@code null}-elements.
      */
     static class TrieNode {
-        public static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
+        private static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
         /**
          * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII 'A'), then 0th
          * index represents this byte and the 20th index in the array would represent the byte value 85 (ASCII 'U').
          * This is essentially a memory optimization to not store 256 references for the children, but much less in
          * most practical cases at the cost of storing the offset itself (4 bytes).
          */
-        int childrenArrayOffset;
-        int childrenUpperArrayOffset;
+        private final int childrenArrayOffset;
+        private final int childrenUpperArrayOffset;
 
-        /*@Nullable (NullAway bug)*/ TrieNode[] children = EMPTY_CHILDREN;
-        /*@Nullable (NullAway bug)*/ TrieNode[] childrenUpper = EMPTY_CHILDREN;
-
-        /** A marker that the character indicates that the key ends at this node. */
-        boolean endOfWord = false;
+        /*@Nullable (NullAway bug)*/ TrieNode[] children;
+        /*@Nullable (NullAway bug)*/ TrieNode[] childrenUpper;
 
         /** Masking configuration for the key that ends at this node. */
-        @Nullable KeyMaskingConfig keyMaskingConfig = null;
+        private final @Nullable KeyMaskingConfig keyMaskingConfig;
+
+        /** A marker that the character indicates that the key ends at this node. */
+        private final boolean endOfWord;
 
         /**
          * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the
          * key is not allowed.
          */
-        boolean negativeMatch = false;
+        private final boolean negativeMatch;
+
+        public TrieNode(int childrenArrayOffset, int childrenUpperArrayOffset, TrieNode[] children, TrieNode[] childrenUpper, @Nullable KeyMaskingConfig keyMaskingConfig, boolean endOfWord, boolean negativeMatch) {
+            this.childrenArrayOffset = childrenArrayOffset;
+            this.childrenUpperArrayOffset = childrenUpperArrayOffset;
+            this.children = children;
+            this.childrenUpper = childrenUpper;
+            this.keyMaskingConfig = keyMaskingConfig;
+            this.endOfWord = endOfWord;
+            this.negativeMatch = negativeMatch;
+        }
 
         /**
          * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no
@@ -428,11 +451,11 @@ final class KeyMatcher {
         /** @see TrieNode#childrenUpper */
         TreeMap<Byte, PreInitTrieNode> childrenUpper = new TreeMap<>();
 
-        /** @see TrieNode#endOfWord */
-        boolean endOfWord = false;
-
         /** @see TrieNode#keyMaskingConfig */
         @Nullable KeyMaskingConfig keyMaskingConfig = null;
+
+        /** @see TrieNode#endOfWord */
+        boolean endOfWord = false;
 
         /** @see TrieNode#negativeMatch */
         boolean negativeMatch = false;

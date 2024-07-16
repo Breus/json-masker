@@ -8,8 +8,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -46,7 +48,7 @@ import java.util.TreeMap;
 final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
-    private final TrieNode root;
+    private final RadixTrieNode root;
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -58,7 +60,7 @@ final class KeyMatcher {
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
-        this.root = transform(preInitRootNode);
+        this.root = compress(preInitRootNode);
     }
 
     /**
@@ -123,6 +125,67 @@ final class KeyMatcher {
         }
 
         return Objects.requireNonNull(transformedNodes.get(preInitNode));
+    }
+
+    private RadixTrieNode compress(PreInitTrieNode node) {
+        List<byte[]> commonPrefix = new ArrayList<>();
+        while (true) {
+            if (node.endOfWord || node.children.size() != 1) {
+                return convertToRadixNode(node, commonPrefix);
+            }
+            var childBytes = new byte[2];
+            commonPrefix.add(childBytes);
+            childBytes[0] = node.children.firstKey();
+            if (!node.childrenUpper.isEmpty()) {
+                childBytes[1] = node.childrenUpper.firstKey();
+            }
+
+            node = node.children.firstEntry().getValue();
+        }
+    }
+
+    private RadixTrieNode convertToRadixNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
+        // reached the end of prefix, create a new node
+        byte[] prefix = new byte[commonPrefix.size()];
+        byte[] prefixUpper = new byte[commonPrefix.size()];
+        for (int i = 0; i < commonPrefix.size(); i++) {
+            byte[] prefixes = commonPrefix.get(i);
+            prefix[i] = prefixes[0];
+            prefixUpper[i] = prefixes[1];
+        }
+
+        RadixTrieNode radixNode = new RadixTrieNode(prefix, prefixUpper);
+        radixNode.endOfWord = node.endOfWord;
+        radixNode.negativeMatch = node.negativeMatch;
+        radixNode.keyMaskingConfig = node.keyMaskingConfig;
+        if (!node.children.isEmpty()) {
+            Map<PreInitTrieNode, RadixTrieNode> compressedNodes = new HashMap<>();
+            int childrenArrayOffset = node.children.firstKey();
+            int childrenArraySize = node.children.lastKey() - childrenArrayOffset + 1;
+            int childrenUpperArrayOffset = -1;
+            int childrenUpperArraySize = 0;
+            if (!node.childrenUpper.isEmpty()) {
+                childrenUpperArrayOffset = node.childrenUpper.firstKey();
+                childrenUpperArraySize = node.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
+            }
+            radixNode.childrenArrayOffset = childrenArrayOffset;
+            radixNode.children = new RadixTrieNode[childrenArraySize];
+            radixNode.childrenUpperArrayOffset = childrenUpperArrayOffset;
+            radixNode.childrenUpper = new RadixTrieNode[childrenUpperArraySize];
+
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.children.entrySet()) {
+                byte b = e.getKey();
+                var child = e.getValue();
+                radixNode.children[b - radixNode.childrenArrayOffset] = compressedNodes.computeIfAbsent(child, this::compress);
+            }
+
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.childrenUpper.entrySet()) {
+                byte b = e.getKey();
+                var child = e.getValue();
+                radixNode.childrenUpper[b - radixNode.childrenUpperArrayOffset] = compressedNodes.computeIfAbsent(child, this::compress);
+            }
+        }
+        return radixNode;
     }
 
     /**
@@ -213,7 +276,8 @@ final class KeyMatcher {
     @Nullable KeyMaskingConfig getMaskConfigIfMatched(
             byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
         // first search by key
-        TrieNode node = currentJsonPathNode;
+        RadixTrieNode node = null; // TODO: JSONPath
+        var sequence = 0;
         if (maskingConfig.isInMaskMode()) {
             // check JSONPath first, as it's more specific
             // if found - mask with this config
@@ -253,8 +317,9 @@ final class KeyMatcher {
     }
 
     @Nullable
-    private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        TrieNode node = root;
+    private RadixTrieNode searchNode(byte[] bytes, int offset, int length) {
+        var node = root;
+        int sequence = 0;
 
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
@@ -269,26 +334,26 @@ final class KeyMatcher {
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
                     // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
-                    node = node.child((byte) unicodeHexBytesAsChar); // check 1st byte
+                    node = node.child((byte) unicodeHexBytesAsChar, sequence++); // check 1st byte
                 } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
                     // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
-                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6))); // check 1st byte
+                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6)), sequence++); // check 1st byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 2nd byte
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)), sequence++); // check 2nd byte
                 } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
                     // dealing with characters with values between 2048 and 65536 which
                     // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
-                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12))); // check 1st byte
+                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12)), sequence++); // check 1st byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f))); // check 2nd byte
+                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f)), sequence++); // check 2nd byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 3rd byte
+                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)), sequence++); // check 3rd byte
                 } else {
                     // decoding non-BMP characters in UTF-16 using a pair of high and low
                     // surrogates which together form one unicode character.
@@ -310,25 +375,29 @@ final class KeyMatcher {
                         // the key contains invalid surrogate pair and won't be matched
                         return null;
                     } else {
-                        node = node.child((byte) (0xf0 | (codePoint >> 18))); // check 1st byte
+                        node = node.child((byte) (0xf0 | (codePoint >> 18)), sequence++); // check 1st byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f))); // check 2nd byte
+                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f)), sequence++); // check 2nd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f))); // check 3rd byte
+                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f)), sequence++); // check 3rd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | (codePoint & 0x3f))); // check 4th byte
+                        node = node.child((byte) (0x80 | (codePoint & 0x3f)), sequence++); // check 4th byte
                     }
                     i += 6;
                 }
                 i--; // to offset loop increment
             } else {
-                node = node.child(b);
+                var child = node.child(b, sequence++);
+                if (child != node) {
+                    node = child;
+                    sequence = 0;
+                }
             }
 
             if (node == null) {
@@ -336,7 +405,7 @@ final class KeyMatcher {
             }
         }
 
-        if (!node.endOfWord) {
+        if (!node.endOfWord(sequence)) {
             return null;
         }
 
@@ -344,7 +413,7 @@ final class KeyMatcher {
     }
 
     @Nullable TrieNode getJsonPathRootNode() {
-        return root.child((byte) '$');
+        return null;// root.child((byte) '$', 0);
     }
 
     /**
@@ -457,6 +526,92 @@ final class KeyMatcher {
                 return childrenUpper[offsetUpperIndex];
             }
             return null;
+        }
+    }
+
+    /**
+     * A node in the Trie, represents part of the character (if character is ASCII, then represents a single character).
+     * A padding of 128 is used to store references to the next positive and negative bytes (which range from -128 to
+     * 128, hence the padding).
+     */
+    static class RadixTrieNode {
+        public static final RadixTrieNode[] EMPTY = new RadixTrieNode[0];
+        final byte[] prefix;
+        final byte[] prefixUpper;
+        /*@Nullable (nullaway bug)*/ RadixTrieNode[] children = EMPTY;
+        /*@Nullable (nullaway bug)*/ RadixTrieNode[] childrenUpper = EMPTY;
+        int childrenArrayOffset = -1;
+        int childrenUpperArrayOffset = -1;
+        /**
+         * Masking configuration for the key that ends at this node.
+         */
+        @Nullable
+        KeyMaskingConfig keyMaskingConfig = null;
+        /**
+         * A marker that the character indicates that the key ends at this node.
+         */
+        boolean endOfWord = false;
+        /**
+         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
+         */
+        boolean negativeMatch = false;
+
+        RadixTrieNode(byte[] prefix, byte[] prefixUpper) {
+            this.prefix = prefix;
+            this.prefixUpper = prefixUpper;
+        }
+
+        /**
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
+         */
+        @Nullable
+        RadixTrieNode child(byte b, int sequence) {
+            if (sequence == prefix.length) {
+                int offsetIndex = b - childrenArrayOffset;
+                RadixTrieNode child = null;
+                if (offsetIndex >= 0 && offsetIndex < children.length) {
+                    child = children[offsetIndex];
+                }
+                int offsetUpperIndex = b - childrenUpperArrayOffset;
+                if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUpper.length) {
+                    child = childrenUpper[offsetUpperIndex];
+                }
+                return child;
+            } else if (prefix[sequence] == b || prefixUpper[sequence] == b) {
+                return this;
+            } else {
+                return null;
+            }
+        }
+
+        boolean endOfWord(int sequence) {
+            return sequence == prefix.length && endOfWord;
+        }
+
+        @Override
+        public String toString() {
+            return toString(0);
+        }
+
+        public String toString(int indent) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(new String(prefix));
+            indent += prefix.length;
+            boolean first = true;
+            for (int i = 0; i < children.length; i++) {
+                RadixTrieNode child = children[i];
+                if (child != null) {
+                    if (!first) {
+                        sb.append("\n");
+                        sb.append(" ".repeat(indent));
+                    }
+                    sb.append(" -> ");
+                    sb.append((char) (i + childrenArrayOffset));
+                    sb.append(child.toString(indent + 5));
+                    first = false;
+                }
+            }
+            return sb.toString();
         }
     }
 

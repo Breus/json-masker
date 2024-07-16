@@ -36,9 +36,6 @@ import java.util.*;
  * <p>We can also make a Trie that looks at bytes instead of characters, so that we can use the
  * bytes and offsets directly in the incoming JSON for comparison and make sure there are no
  * allocations at all.
- *
- * <p>And lastly, we can make a small optimization to remember all the distinct lengths of the
- * target keys, so that we can fail fast if the incoming key is not of the same length.
  */
 final class KeyMatcher {
     private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
@@ -366,23 +363,31 @@ final class KeyMatcher {
     }
 
     /**
-     * A node in the Trie, represents part of the character (if character is ASCII, then represents
-     * a single character). A padding of 128 is used to store references to the next positive and
-     * negative bytes (which range from -128 to 128, hence the padding).
+     * A node in the Trie, represents a single byte of the character (if character is ASCII, then represents
+     * a single character). An array is used instead of a Map for instant access without type casts.
+     *
+     * <p>The array starts from a non-null child which represents the byte with value
+     * {@link TrieNode#childrenArrayOffset} and every subsequent byte is offset by that value.
+     *
+     * <p>To accommodate the case-insensitivity upper-case characters are stored separately in an additional array
+     * {@link TrieNode#childrenUpper} with its own offset. The reason for splitting the array into two, allows for a
+     * more compact memory layout compared to using a single array. In the most common case (single child of
+     * upper/lower case character), both arrays are of size 1, while storing them in the same array would result in
+     * a gap of 32 {@code null}-elements.
      */
     static class TrieNode {
         public static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
         /**
-         * Indicates the indexing offset of the children array. So let's say this value is 10, then
-         * the 20th index in the array actually represent the byte value '30'. This is essentially a
+         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII 'A'), then
+         * the 20th index in the array actually represent the byte value 85 (ASCII 'U'). This is essentially a
          * memory optimization to not store 256 references for the children, but much less in most
-         * practical cases.
+         * practical cases at the cost of storing the offset itself (4 bytes).
          */
         int childrenArrayOffset;
         int childrenUpperArrayOffset;
 
-        TrieNode[] children = EMPTY_CHILDREN;
-        TrieNode[] childrenUpper = EMPTY_CHILDREN;
+        /*@Nullable (NullAway bug)*/ TrieNode[] children = EMPTY_CHILDREN;
+        /*@Nullable (NullAway bug)*/ TrieNode[] childrenUpper = EMPTY_CHILDREN;
 
         /** A marker that the character indicates that the key ends at this node. */
         boolean endOfWord = false;
@@ -402,7 +407,6 @@ final class KeyMatcher {
          */
         @Nullable TrieNode child(byte b) {
             int offsetIndex = b - childrenArrayOffset;
-            TrieNode child = null;
             if (offsetIndex >= 0 && offsetIndex < children.length && children[offsetIndex] != null) {
                 return children[offsetIndex];
             }
@@ -414,42 +418,49 @@ final class KeyMatcher {
         }
     }
 
+    /**
+     * This TrieNode represents a temporary Trie that is being built. After all keys are inserted, this node is
+     * compressed into a {@link TrieNode} for more efficient memory layout.
+     */
     static class PreInitTrieNode {
-        TreeMap<Integer, PreInitTrieNode> children = new TreeMap<>();
-        TreeMap<Integer, PreInitTrieNode> childrenUpper = new TreeMap<>();
+        /** @see TrieNode#children */
+        TreeMap<Byte, PreInitTrieNode> children = new TreeMap<>();
+        /** @see TrieNode#childrenUpper */
+        TreeMap<Byte, PreInitTrieNode> childrenUpper = new TreeMap<>();
 
-        /** A marker that the character indicates that the key ends at this node. */
+        /** @see TrieNode#endOfWord */
         boolean endOfWord = false;
 
-        /** Masking configuration for the key that ends at this node. */
+        /** @see TrieNode#keyMaskingConfig */
         @Nullable KeyMaskingConfig keyMaskingConfig = null;
 
-        /**
-         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the
-         * key is not allowed.
-         */
+        /** @see TrieNode#negativeMatch */
         boolean negativeMatch = false;
 
-        /**
-         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no
-         * matches.
-         */
+        /** @see TrieNode#child(byte)  */
         @Nullable PreInitTrieNode child(byte b) {
-            PreInitTrieNode child = children.get((int) b);
+            PreInitTrieNode child = children.get(b);
             if (child != null) {
                 return child;
             }
-            return childrenUpper.get((int) b);
+            return childrenUpper.get(b);
         }
 
-        /** Adds a new child to the trie. */
+        /**
+         * Adds a new child to the trie.
+         * When case-insensitivity is enabled this must represent the lower-case byte, otherwise is just a byte
+         * in original case.
+         * */
         void add(Byte b, PreInitTrieNode child) {
-            children.put((int) b, child);
+            children.put(b, child);
         }
 
-        /** Adds a new child to the trie. */
+        /**
+         * Adds a child using an equivalent upper-case byte of the child already inserted.
+         * When case-insensitivity is enabled this must represent the upper-case byte, otherwise must not be called.
+         * */
         void addUpper(Byte b, PreInitTrieNode child) {
-            childrenUpper.put((int) b, child);
+            childrenUpper.put(b, child);
         }
     }
 }

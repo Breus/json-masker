@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+ @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class LargeKeySetInstanceCreationBenchmark {
 

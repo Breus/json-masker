@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.Throughput)
 public class InstanceCreationBenchmark {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.Throughput)
 public class LargeKeySetInstanceCreationBenchmark {
 
     @org.openjdk.jmh.annotations.State(Scope.Thread)

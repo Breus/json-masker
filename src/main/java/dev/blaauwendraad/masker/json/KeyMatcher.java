@@ -102,14 +102,10 @@ final class KeyMatcher {
             PreInitTrieNode currentPreInitNode = entry.getKey();
             TrieNode currentNode = entry.getValue();
 
-            currentPreInitNode.children.forEach(
-                    (b, child) -> {
-                        currentNode.children[b - currentNode.childrenArrayOffset] = transformedNodes.get(child);
-                    });
-            currentPreInitNode.childrenUpper.forEach(
-                    (b, child) -> {
-                        currentNode.childrenUpper[b - currentNode.childrenUpperArrayOffset] = transformedNodes.get(child);
-                    });
+            currentPreInitNode.children.forEach((b, child) ->
+                    currentNode.children[b - currentNode.childrenArrayOffset] = transformedNodes.get(child));
+            currentPreInitNode.childrenUpper.forEach((b, child) ->
+                    currentNode.childrenUpper[b - currentNode.childrenUpperArrayOffset] = transformedNodes.get(child));
         }
 
         return Objects.requireNonNull(transformedNodes.get(preInitNode));
@@ -413,7 +409,15 @@ final class KeyMatcher {
          */
         private final boolean negativeMatch;
 
-        public TrieNode(int childrenArrayOffset, int childrenUpperArrayOffset, TrieNode[] children, TrieNode[] childrenUpper, @Nullable KeyMaskingConfig keyMaskingConfig, boolean endOfWord, boolean negativeMatch) {
+        TrieNode(
+                int childrenArrayOffset,
+                int childrenUpperArrayOffset,
+                TrieNode[] children,
+                TrieNode[] childrenUpper,
+                @Nullable KeyMaskingConfig keyMaskingConfig,
+                boolean endOfWord,
+                boolean negativeMatch
+        ) {
             this.childrenArrayOffset = childrenArrayOffset;
             this.childrenUpperArrayOffset = childrenUpperArrayOffset;
             this.children = children;

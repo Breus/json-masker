@@ -28,12 +28,12 @@ public class InstanceCreationMemoryUsageTest {
 
         long memoryAfterInstanceCreation = getCurrentRetainedMemory();
 
-        long memoryLimit = 10_000;
-        long memoryConsumed = bytesToKb(memoryAfterInstanceCreation - memoryBeforeInstanceCreation);
+        long memoryLimitKb = 800;
+        long memoryConsumedKb = bytesToKb(memoryAfterInstanceCreation - memoryBeforeInstanceCreation);
 
-        Assertions.assertThat(memoryConsumed)
-                .withFailMessage("Expected to use less than %sKB of memory, got %sKB", memoryLimit, memoryConsumed)
-                .isLessThan(memoryLimit);
+        Assertions.assertThat(memoryConsumedKb)
+                .withFailMessage("Expected to use less than %sKB of memory, got %sKB", memoryLimitKb, memoryConsumedKb)
+                .isLessThan(memoryLimitKb);
     }
 
     private long getCurrentRetainedMemory() {

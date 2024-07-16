@@ -38,7 +38,6 @@ import java.util.*;
  * allocations at all.
  */
 final class KeyMatcher {
-    private static final int BYTE_OFFSET = -1 * Byte.MIN_VALUE;
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;

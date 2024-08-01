@@ -18,5 +18,5 @@ errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", 
 jmh = { id = "me.champeau.jmh", version = "0.7.2" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
-sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
+sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 errorprone = { id = "net.ltgt.errorprone", version = "4.0.1" }

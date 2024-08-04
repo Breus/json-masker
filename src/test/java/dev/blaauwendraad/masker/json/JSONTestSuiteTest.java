@@ -2,13 +2,18 @@ package dev.blaauwendraad.masker.json;
 
 import com.fasterxml.jackson.core.JacksonException;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.util.AssertionsUtil;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -81,6 +86,7 @@ public class JSONTestSuiteTest {
         );
 
         byte[] actual = jsonMasker.mask(file.originalContent);
+        AssertionsUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         // must be equivalent to being parsed by jackson
         try {
@@ -106,6 +112,7 @@ public class JSONTestSuiteTest {
         );
 
         byte[] actual = jsonMasker.mask(file.originalContent);
+        AssertionsUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         if (JACKSON_IS_DIFFERENT_FROM_TO_STRING.contains(file.name)) {
             // for these jackson behavior is different from java.lang.String parsing of UTF-8 characters
@@ -139,6 +146,10 @@ public class JSONTestSuiteTest {
         );
 
         if (PRODUCING_STACK_OVER_FLOW.contains(file.name)) {
+            InputStream inputStream = new ByteArrayInputStream(file.originalContent);
+            OutputStream outputStream = new ByteArrayOutputStream();
+            Assertions.assertThatThrownBy(() -> jsonMasker.mask(inputStream, outputStream))
+                    .isInstanceOf(InvalidJsonException.class);
             Assertions.assertThatThrownBy(() -> jsonMasker.mask(file.originalContent))
                     .isInstanceOf(InvalidJsonException.class);
         } else {
@@ -157,6 +168,7 @@ public class JSONTestSuiteTest {
         );
 
         byte[] actual = jsonMasker.mask(file.originalContent);
+        AssertionsUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         Assertions.assertThat(file.maskedContent).isNotNull();
         Assertions.assertThat(new String(actual, StandardCharsets.UTF_8))
@@ -177,6 +189,10 @@ public class JSONTestSuiteTest {
         );
 
         if (INVALID_UTF_8.contains(file.name)) {
+            InputStream inputStream = new ByteArrayInputStream(file.originalContent);
+            OutputStream outputStream = new ByteArrayOutputStream();
+            Assertions.assertThatThrownBy(() -> jsonMasker.mask(inputStream, outputStream))
+                    .isInstanceOf(InvalidJsonException.class);
             Assertions.assertThatThrownBy(() -> jsonMasker.mask(file.originalContent))
                     .isInstanceOf(InvalidJsonException.class);
         } else {

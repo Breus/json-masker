@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
+import dev.blaauwendraad.masker.json.util.AssertionsUtil;
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
 import dev.blaauwendraad.masker.json.util.JsonFormatter;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
@@ -52,6 +53,7 @@ final class FuzzingTest {
                     assertThat(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(keyContainsOutput))
                             .as("Failed for input: " + randomJsonString)
                             .isEqualTo(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(jacksonMaskingOutput));
+                    AssertionsUtil.assertJsonMaskerApiEquivalence(masker, randomJsonString);
                 } catch (Exception e) {
                     throw new IllegalStateException("Failed for input: " + randomJsonString, e);
                 }

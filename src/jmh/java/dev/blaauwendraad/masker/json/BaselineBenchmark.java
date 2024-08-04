@@ -11,10 +11,14 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +58,11 @@ public class BaselineBenchmark {
                     .map(key -> Pattern.compile("(\"" + key + "\"\\s*:\\s*)(\"?[^\"]*\"?)", Pattern.CASE_INSENSITIVE))
                     .toList();
         }
+
+        @TearDown
+        public synchronized void tearDown() throws IOException {
+            Files.deleteIfExists(Path.of("file.json"));
+        }
     }
 
     @Benchmark
@@ -63,6 +72,13 @@ public class BaselineBenchmark {
             sum += state.jsonBytes[i];
         }
         return sum;
+    }
+
+    @Benchmark
+    public void writeFile(State state) throws IOException {
+        try (FileWriter fileWriter = new FileWriter("file.json")) {
+            fileWriter.write(state.jsonString);
+        }
     }
 
     @Benchmark

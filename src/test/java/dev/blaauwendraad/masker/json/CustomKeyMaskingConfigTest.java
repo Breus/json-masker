@@ -2,9 +2,11 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +21,7 @@ class CustomKeyMaskingConfigTest {
                 .maskJsonPaths(Set.of("$.stringPath", "$.numberPath", "$.booleanPath"))
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "string": "maskMe",
                   "stringPath": "maskMe",
@@ -28,8 +30,7 @@ class CustomKeyMaskingConfigTest {
                   "boolean": false,
                   "booleanPath": false
                 }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "string": "***",
                   "stringPath": "***",
@@ -38,8 +39,7 @@ class CustomKeyMaskingConfigTest {
                   "boolean": "&&&",
                   "booleanPath": "&&&"
                 }
-                """
-        );
+                """);
     }
 
     @Test
@@ -52,7 +52,7 @@ class CustomKeyMaskingConfigTest {
                 .maskBooleansWith("(boolean)")
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "string": "maskMe",
                   "stringPath": "maskMe",
@@ -61,8 +61,7 @@ class CustomKeyMaskingConfigTest {
                   "boolean": false,
                   "booleanPath": false
                 }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "string": "(string)",
                   "stringPath": "(string)",
@@ -71,8 +70,7 @@ class CustomKeyMaskingConfigTest {
                   "boolean": "(boolean)",
                   "booleanPath": "(boolean)"
                 }
-                """
-        );
+                """);
     }
 
     @Test
@@ -94,7 +92,7 @@ class CustomKeyMaskingConfigTest {
                 )
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "string": "maskMe",
                   "stringPath": "maskMe",
@@ -109,8 +107,7 @@ class CustomKeyMaskingConfigTest {
                   "booleanCustom": false,
                   "booleanPathCustom": false
                 }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "string": "***",
                   "stringPath": "***",
@@ -125,8 +122,7 @@ class CustomKeyMaskingConfigTest {
                   "booleanCustom": "(boolean)",
                   "booleanPathCustom": "(boolean)"
                 }
-                """
-        );
+                """);
     }
 
     @Test
@@ -147,7 +143,7 @@ class CustomKeyMaskingConfigTest {
                 ))
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "a": {
                     "string": "maskMe",
@@ -175,9 +171,7 @@ class CustomKeyMaskingConfigTest {
                     }
                   }
                 }
-                """);
-
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "a": {
                     "string": "***",
@@ -226,7 +220,7 @@ class CustomKeyMaskingConfigTest {
                 ))
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "a": {
                     "string": "maskMe",
@@ -254,9 +248,7 @@ class CustomKeyMaskingConfigTest {
                     }
                   }
                 }
-                """);
-
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "a": {
                     "string": "***",
@@ -309,7 +301,7 @@ class CustomKeyMaskingConfigTest {
                 )
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "string": "maskMe",
                   "number": 12345,
@@ -319,8 +311,7 @@ class CustomKeyMaskingConfigTest {
                   "emailSuffixOnly": "agavlyukovskiy@gmail.com",
                   "emailDomainOnly": "agavlyukovskiy@gmail.com"
                 }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "string": "***",
                   "number": "###",
@@ -330,8 +321,7 @@ class CustomKeyMaskingConfigTest {
                   "emailSuffixOnly": "***om",
                   "emailDomainOnly": "***@gmail.com"
                 }
-                """
-        );
+                """);
     }
 
     @Test
@@ -356,7 +346,7 @@ class CustomKeyMaskingConfigTest {
                 )
                 .build());
 
-        String masked = jsonMasker.mask("""
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                 {
                   "string": "maskMe",
                   "number": 12345,
@@ -368,8 +358,7 @@ class CustomKeyMaskingConfigTest {
                     "value2": "secret: very much"
                   }
                 }
-                """);
-        Assertions.assertThat(masked).isEqualTo("""
+                """, """
                 {
                   "string": "***",
                   "number": "###",
@@ -381,8 +370,7 @@ class CustomKeyMaskingConfigTest {
                     "value2": "***"
                   }
                 }
-                """
-        );
+                """);
     }
 
     @Test
@@ -417,6 +405,11 @@ class CustomKeyMaskingConfigTest {
                   "customValueMasker": "maskMe"
                 }
                 """);
+        jsonMasker.mask(new ByteArrayInputStream("""
+                {
+                  "customValueMasker": "maskMe"
+                }
+                """.getBytes(StandardCharsets.UTF_8)), new ByteArrayOutputStream());
     }
 
     @Test
@@ -427,44 +420,38 @@ class CustomKeyMaskingConfigTest {
                                 .maskKeys("customValueMasker")
                                 .maskNumbersWith(ValueMaskers.eachDigitWith("*"))
                                 .build());
-        Assertions.assertThat(
-                        jsonMasker.mask(
-                                """
-                                        {
-                                          "customValueMasker": 0
-                                        }
-                                        """))
-                .isEqualTo(
-                        """
-                                {
-                                  "customValueMasker": "*"
-                                }
-                                """);
-        Assertions.assertThat(
-                        jsonMasker.mask(
-                                """
-                                        {
-                                          "customValueMasker": 123
-                                        }
-                                        """))
-                .isEqualTo(
-                        """
-                                {
-                                  "customValueMasker": "***"
-                                }
-                                """);
-        Assertions.assertThat(
-                        jsonMasker.mask(
-                                """
-                                        {
-                                          "customValueMasker": 12345
-                                        }
-                                        """))
-                .isEqualTo(
-                        """
-                                {
-                                  "customValueMasker": "*****"
-                                }
-                                """);
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
+                """
+                        {
+                          "customValueMasker": 0
+                        }
+                        """,
+                """
+                        {
+                          "customValueMasker": "*"
+                        }
+                        """);
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
+                """
+                        {
+                          "customValueMasker": 123
+                        }
+                        """,
+                """
+                        {
+                          "customValueMasker": "***"
+                        }
+                        """);
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
+                """
+                        {
+                          "customValueMasker": 12345
+                        }
+                        """,
+                """
+                        {
+                          "customValueMasker": "*****"
+                        }
+                        """);
     }
 }

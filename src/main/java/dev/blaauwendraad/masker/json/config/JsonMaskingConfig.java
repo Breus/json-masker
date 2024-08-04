@@ -33,6 +33,10 @@ public final class JsonMaskingConfig {
      * @see JsonMaskingConfig.Builder#caseSensitiveTargetKeys
      */
     private final boolean caseSensitiveTargetKeys;
+    /**
+     * Not configurable. Specifies the initial size of the byte array buffer in streaming mode
+     */
+    int bufferSize = 8192;
 
     private final KeyMaskingConfig defaultConfig;
     private final Map<String, KeyMaskingConfig> targetKeyConfigs;
@@ -93,6 +97,10 @@ public final class JsonMaskingConfig {
      */
     public boolean caseSensitiveTargetKeys() {
         return caseSensitiveTargetKeys;
+    }
+
+    public int bufferSize() {
+        return bufferSize;
     }
 
     /**

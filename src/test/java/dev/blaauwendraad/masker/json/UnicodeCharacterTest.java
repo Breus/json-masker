@@ -6,14 +6,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 class UnicodeCharacterTest {
 
     @ParameterizedTest
     @MethodSource("unicodeCharacters")
     void unicodeCharacter(JsonMaskerTestInstance testInstance) {
-        assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input(),
+                testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> unicodeCharacters() {

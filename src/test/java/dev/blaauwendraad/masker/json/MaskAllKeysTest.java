@@ -10,13 +10,13 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 final class MaskAllKeysTest {
     @ParameterizedTest
     @MethodSource("testMaskAllKeys")
     void maskAllKeysFromFile(JsonMaskerTestInstance testInstance) {
-        assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input(),
+                testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> testMaskAllKeys() throws IOException {

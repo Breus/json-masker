@@ -11,6 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
@@ -99,6 +102,13 @@ final class NoFailingExecutionFuzzingTest {
                         () -> keyContainsMasker.mask(mutatedJsonNodeString),
                         String.format(
                                 "Failed for the following JSON:\n%s",
+                                mutatedJsonNodeString));
+                Assertions.assertDoesNotThrow(
+                        () -> keyContainsMasker.mask(
+                                new ByteArrayInputStream(mutatedJsonNodeString.getBytes(StandardCharsets.UTF_8)),
+                                new ByteArrayOutputStream()),
+                        String.format(
+                                "Streaming mode failed for the following JSON:\n%s",
                                 mutatedJsonNodeString));
             } else {
                 try {

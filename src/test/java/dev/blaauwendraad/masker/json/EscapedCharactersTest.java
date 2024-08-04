@@ -6,13 +6,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 final class EscapedCharactersTest {
     @ParameterizedTest
     @MethodSource("escapedCharactersFile")
     void escapedCharacters(JsonMaskerTestInstance testInstance) {
-        assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input(),
+                testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> escapedCharactersFile() throws IOException {

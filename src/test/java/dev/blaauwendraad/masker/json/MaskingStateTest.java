@@ -4,12 +4,14 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
-class ByteArrayMaskingStateTest {
+class MaskingStateTest {
     @Test
     void shouldReturnStringRepresentationForDebugging() {
-        ByteArrayMaskingState maskingState = new ByteArrayMaskingState("""
+        MaskingState maskingState = new MaskingState("""
                 {
                     "maskMe": "some value"
                 }
@@ -45,7 +47,7 @@ class ByteArrayMaskingStateTest {
 
     @Test
     void jsonPathExceedsCapacity() {
-        ByteArrayMaskingState maskingState = new ByteArrayMaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
+        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
         for (int i = 0; i < 101; i++) {
             maskingState.expandCurrentJsonPath(KeyMatcher.transform(new KeyMatcher.PreInitTrieNode()));
         }
@@ -54,13 +56,13 @@ class ByteArrayMaskingStateTest {
 
     @Test
     void getCurrentJsonPathNodeFromEmptyJsonPath() {
-        ByteArrayMaskingState maskingState = new ByteArrayMaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
+        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
         Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNull();
     }
 
     @Test
     void shouldThrowErrorWhenGettingStartValueIndexOutsideOfMasking() {
-        ByteArrayMaskingState maskingState = new ByteArrayMaskingState("""
+        MaskingState maskingState = new MaskingState("""
                 {
                     "maskMe": "some value"
                 }
@@ -89,5 +91,44 @@ class ByteArrayMaskingStateTest {
         ))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessage("Didn't like the value at index 3 at index 19");
+    }
+
+    @Test
+    void shouldReadInitialBuffer() {
+        String json = "{" + "{\"maskMe\":\"val\"}".repeat(516) + "}";
+
+        MaskingState maskingState = new MaskingState(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayOutputStream(), false);
+
+        Assertions.assertThat(maskingState.getMessage()).hasSize(8192);
+    }
+
+    @Test
+    void shouldExtendCurrentBuffer() {
+        String json = "{" + "{\"maskMe\":\"val\"}".repeat(516) + "}";
+        MaskingState maskingState = new MaskingState(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayOutputStream(), false);
+
+        for (int i = 0; i < 700; i++) {
+            maskingState.next();
+        }
+
+        maskingState.registerValueStartIndex();
+        maskingState.readNextBuffer();
+
+        Assertions.assertThat(maskingState.getMessage()).hasSize(7558);
+    }
+
+    @Test
+    void shouldReadNextBuffer() {
+        String json = "{" + "{\"maskMe\":\"val\"}".repeat(516) + "}";
+        MaskingState maskingState = new MaskingState(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayOutputStream(), false);
+
+        for (int i = 0; i < 700; i++) {
+            maskingState.next();
+        }
+
+        Assertions.assertThat(maskingState.getMessage()).hasSize(8192);
     }
 }

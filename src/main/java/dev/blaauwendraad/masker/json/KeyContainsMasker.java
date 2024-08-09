@@ -42,35 +42,38 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public byte[] mask(byte[] input) {
+        MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
+        return mask(maskingState);
+    }
+
+    /**
+     * Runs masker in a streaming mode.
+     * The masker buffers data from provided input stream in chunks of size 8192 bytes and processes each chunk
+     * sequentially. The output is written into provided output stream after processing each chunk.
+     *
+     * @param inputStream the JSON input stream
+     * @param outputStream masked JSON output stream
+     */
+    @Override
+    public void mask(InputStream inputStream, OutputStream outputStream) {
+        MaskingState maskingState = new MaskingState(inputStream, outputStream, !maskingConfig.getTargetJsonPaths().isEmpty());
+        mask(maskingState);
+    }
+
+    private byte[] mask(MaskingState maskingState) {
         try {
-            MaskingState maskingState = new ByteArrayMaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
-            mask(maskingState);
+            KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
+            if (maskingState.jsonPathEnabled()) {
+                maskingState.expandCurrentJsonPath(keyMatcher.getJsonPathRootNode());
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
+            }
+
+            stepOverWhitespaceCharacters(maskingState);
+            visitValue(maskingState, keyMaskingConfig);
             return maskingState.flushReplacementOperations();
         } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
             throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
         }
-    }
-
-    @Override
-    public void mask(InputStream inputStream, OutputStream outputStream) {
-        try {
-            MaskingState maskingState = new BufferedMaskingState(inputStream, outputStream, !maskingConfig.getTargetJsonPaths().isEmpty());
-            mask(maskingState);
-            maskingState.flushReplacementOperations();
-        } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
-            throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
-        }
-    }
-
-    private void mask(MaskingState maskingState) {
-        KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
-        if (maskingState.jsonPathEnabled()) {
-            maskingState.expandCurrentJsonPath(keyMatcher.getJsonPathRootNode());
-            keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
-        }
-
-        stepOverWhitespaceCharacters(maskingState);
-        visitValue(maskingState, keyMaskingConfig);
     }
 
     /**

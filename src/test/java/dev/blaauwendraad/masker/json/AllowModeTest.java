@@ -186,8 +186,7 @@ final class AllowModeTest {
                                                 
                                          "allowedKey":  "This is allowed" }    ] }     }  ] \s
                         """, jsonMasker
-                )
-                ,
+                ),
                 new JsonMaskerTestInstance("""
                         {
                                    "|":    true,   ")+*":   {

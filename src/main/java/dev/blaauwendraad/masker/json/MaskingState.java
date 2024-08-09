@@ -22,10 +22,10 @@ final class MaskingState implements ValueMaskerContext {
     private static final String STREAM_READ_ERROR_MESSAGE = "Failed to read input stream";
     private static final String STREAM_WRITE_ERROR_MESSAGE = "Failed to write to output stream";
 
-    byte[] message;
-    int currentIndex = 0;
-    final List<ReplacementOperation> replacementOperations = new ArrayList<>();
-    int replacementOperationsTotalDifference = 0;
+    private byte[] message;
+    private int currentIndex = 0;
+    private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
+    private int replacementOperationsTotalDifference = 0;
     @Nullable private final InputStream inputStream;
     @Nullable private final OutputStream outputStream;
 
@@ -35,7 +35,7 @@ final class MaskingState implements ValueMaskerContext {
      */
     private KeyMatcher.@Nullable TrieNode @Nullable [] currentJsonPath = null;
     private int currentJsonPathHeadIndex = -1;
-    int currentValueStartIndex = -1;
+    private int currentValueStartIndex = -1;
 
     public MaskingState(byte[] message, boolean trackJsonPath) {
         this.message = message;
@@ -191,7 +191,7 @@ final class MaskingState implements ValueMaskerContext {
      * Checks if jsonpath masking is enabled.
      * @return true if jsonpath masking is enabled, false otherwise
      */
-    public boolean jsonPathEnabled() {
+    boolean jsonPathEnabled() {
         return currentJsonPath != null;
     }
 
@@ -200,7 +200,7 @@ final class MaskingState implements ValueMaskerContext {
      *
      * @param trieNode a node in the trie where the new segment ends.
      */
-    public void expandCurrentJsonPath(KeyMatcher.@Nullable TrieNode trieNode) {
+    void expandCurrentJsonPath(KeyMatcher.@Nullable TrieNode trieNode) {
         if (currentJsonPath != null) {
             currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
             if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
@@ -213,7 +213,7 @@ final class MaskingState implements ValueMaskerContext {
     /**
      * Backtracks current jsonpath to the previous segment.
      */
-    public void backtrackCurrentJsonPath() {
+    void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
             currentJsonPath[currentJsonPathHeadIndex--] = null;
         }
@@ -394,7 +394,7 @@ final class MaskingState implements ValueMaskerContext {
      * @see #flushReplacementOperations()
      */
     @SuppressWarnings("java:S6218") // never used for comparison
-    record ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
+    private record ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
 
         /**
          * The difference between the mask length and the length of the target value to replace.

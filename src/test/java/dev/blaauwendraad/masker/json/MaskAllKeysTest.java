@@ -1,6 +1,7 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.util.AssertionsUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,6 +18,7 @@ final class MaskAllKeysTest {
     @MethodSource("testMaskAllKeys")
     void maskAllKeysFromFile(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
+        AssertionsUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input());
     }
 
     private static Stream<JsonMaskerTestInstance> testMaskAllKeys() throws IOException {

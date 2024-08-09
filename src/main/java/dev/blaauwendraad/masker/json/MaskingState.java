@@ -3,6 +3,10 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,10 +18,16 @@ import java.util.List;
  */
 final class MaskingState implements ValueMaskerContext {
     private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the jsonpath array
-    private final byte[] message;
+    private static final int BUFFER_SIZE = 8192; // size of byte array buffers to be read from the input stream
+    private static final String STREAM_READ_ERROR_MESSAGE = "Failed to read input stream";
+    private static final String STREAM_WRITE_ERROR_MESSAGE = "Failed to write to output stream";
+
+    private byte[] message;
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
     private int replacementOperationsTotalDifference = 0;
+    @Nullable private final InputStream inputStream;
+    @Nullable private final OutputStream outputStream;
 
     /**
      * Current JSONPath is represented by a stack of segment references.
@@ -32,10 +42,22 @@ final class MaskingState implements ValueMaskerContext {
         if (trackJsonPath) {
             currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
         }
+        this.inputStream = null;
+        this.outputStream = null;
+    }
+
+    public MaskingState(InputStream inputStream, OutputStream outputStream, boolean trackJsonPath) {
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
+        this.message = new byte[0];
+        if (trackJsonPath) {
+            currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
+        }
+        readNextBuffer();
     }
 
     public boolean next() {
-        return ++currentIndex < message.length;
+        return ++currentIndex < message.length || readNextBuffer();
     }
 
     public void incrementIndex(int length) {
@@ -47,6 +69,9 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     public boolean endOfJson() {
+        if (currentIndex >= message.length) {
+            readNextBuffer();
+        }
         return currentIndex >= message.length;
     }
 
@@ -83,6 +108,34 @@ final class MaskingState implements ValueMaskerContext {
      * @return the message array with all replacement operations performed.
      */
     public byte[] flushReplacementOperations() {
+        byte[] replacement = createReplacementMessage();
+
+        // flush replacement array into the output stream
+        if (outputStream != null) {
+            // in case the current buffer has ended before the masker has finished processing the current value,
+            // determine the length of the current value
+            int currentValueLength = 0;
+            if (currentValueStartIndex != -1) {
+                currentValueLength = message.length - currentValueStartIndex;
+            }
+
+            // write everything to the output stream up to beginning of current in-process value
+            try {
+                outputStream.write(replacement, 0, replacement.length - currentValueLength);
+                outputStream.flush();
+            } catch (IOException e) {
+                throw new UncheckedIOException(STREAM_WRITE_ERROR_MESSAGE, e);
+            }
+
+            // reset replacement operations state
+            replacementOperations.clear();
+            replacementOperationsTotalDifference = 0;
+        }
+
+        return replacement;
+    }
+
+    private byte[] createReplacementMessage() {
         if (replacementOperations.isEmpty()) {
             return message;
         }
@@ -130,9 +183,6 @@ final class MaskingState implements ValueMaskerContext {
                 index + offset,
                 message.length - index
         );
-
-        // make sure no operations are performed after this
-        this.currentIndex = Integer.MAX_VALUE;
 
         return newMessage;
     }
@@ -209,6 +259,9 @@ final class MaskingState implements ValueMaskerContext {
 
     @Override
     public int byteLength() {
+        if (endOfJson()) {
+            readNextBuffer();
+        }
         return Math.min(currentIndex, message.length) - getCurrentValueStartIndex();
     }
 
@@ -249,6 +302,66 @@ final class MaskingState implements ValueMaskerContext {
             throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + byteLength());
         }
     }
+
+    /**
+     * Reads next buffer from provided InputStream or extends the current buffer in case it finished while processing
+     * a JSON value.
+     *
+     * @return true if more data is available in the input stream, false if the end of the stream is reached.
+     */
+    boolean readNextBuffer() {
+        if (inputStream == null) {
+            return false;
+        }
+
+        // check if it is the end of stream
+        try {
+            if (inputStream.available() == 0) {
+                return false;
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(STREAM_READ_ERROR_MESSAGE, e);
+        }
+
+        // flush output of the current buffer
+        flushReplacementOperations();
+
+        if (currentValueStartIndex == -1) {
+            // the pointer is not at a json value, so we are safe to read the next buffer
+            currentIndex -= message.length;
+            try {
+                message = this.inputStream.readNBytes(BUFFER_SIZE);
+            } catch (IOException e) {
+                throw new UncheckedIOException(STREAM_READ_ERROR_MESSAGE, e);
+            }
+        } else {
+            // the current buffer has ended before the masker finished processing the current value.
+            // cut everything before currentValueStartIndex and extend the current buffer instead of reading the next one.
+
+            // read an extension to the current buffer
+            byte[] extension;
+            try {
+                extension = this.inputStream.readNBytes(BUFFER_SIZE);
+            } catch (IOException e) {
+                throw new UncheckedIOException(STREAM_READ_ERROR_MESSAGE, e);
+            }
+
+            // cut everything before the start index of the current in-process value in the current buffer
+            int cutLength = message.length - currentValueStartIndex;
+
+            // copy the cut current buffer and extension into a single byte array
+            byte[] extendedBuffer = new byte[cutLength + extension.length];
+            System.arraycopy(message, currentValueStartIndex, extendedBuffer, 0, cutLength);
+            System.arraycopy(extension, 0, extendedBuffer, cutLength, extension.length);
+            message = extendedBuffer;
+
+            // reset pointers
+            currentIndex -= currentValueStartIndex;
+            currentValueStartIndex = 0;
+        }
+        return true;
+    }
+
 
     // for debugging purposes, shows the current state of message traversal
     @Override

@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.util.AssertionsUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -14,6 +15,7 @@ class UnicodeCharacterTest {
     @MethodSource("unicodeCharacters")
     void unicodeCharacter(JsonMaskerTestInstance testInstance) {
         assertThat(testInstance.jsonMasker().mask(testInstance.input())).isEqualTo(testInstance.expectedOutput());
+        AssertionsUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input());
     }
 
     private static Stream<JsonMaskerTestInstance> unicodeCharacters() {

@@ -104,8 +104,8 @@ publishing {
     }
 }
 
-val sonatypeUser = System.getenv("SONATYPE_USER")
-val sonatypePassword = System.getenv("SONATYPE_PASSWORD")
+val sonatypeUsername = System.getenv("SONATYPE_TOKEN_USERNAME")
+val sonatypePassword = System.getenv("SONATYPE_TOKEN_PASSWORD")
 val gpgKey = System.getenv("GPG_PRIV_KEY")
 val gpgPassphrase = System.getenv("GPG_PASS_PHRASE")
 
@@ -114,7 +114,7 @@ nexusPublishing {
         sonatype {
             nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
             snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            username = sonatypeUser
+            username = sonatypeUsername
             password = sonatypePassword
         }
     }
@@ -134,7 +134,9 @@ jmh {
             "jsonSize" to listOfProperty("1kb"),
             "maskedKeyProbability" to listOfProperty("0.1"),
             "jsonPath" to listOfProperty("false", "true"),
-            "characters" to listOfProperty("unicode")
+            "characters" to listOfProperty("unicode"),
+            "numberOfTargetKeys" to listOfProperty("1000"),
+            "keyLength" to listOfProperty("100"),
         )
 
         iterations = 4

@@ -36,8 +36,8 @@ jobs:
 
       - name: Upload release artifacts to Sonatype
         env:
-          SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_TOKEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          SONATYPE_TOKEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
           GPG_PRIV_KEY: ${{ secrets.GPG_PRIV_KEY }}
           GPG_PASS_PHRASE: ${{ secrets.GPG_PASS_PHRASE }}
         run: ./gradlew -Pversion=${{ steps.get-version.outputs.version }} publishAllPublicationsToSonatypeRepository closeAndReleaseSonatypeStagingRepository

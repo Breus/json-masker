@@ -50,6 +50,10 @@ public final class Utf8Util {
         return (char) value;
     }
 
+    public static char unicodeHexToChar(byte[] array, int offset) {
+        return unicodeHexToChar(array[offset], array[offset + 1], array[offset + 2], array[offset + 3]);
+    }
+
     private static byte validateHex(byte hexByte) {
         if (hexByte >= 48 && hexByte <= 57) {
             return hexByte; // a digit from 0 to 9

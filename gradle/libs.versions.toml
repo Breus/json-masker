@@ -5,13 +5,13 @@ jmh = "1.37"
 [libraries]
 assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.26.3" }
 jspecify = { group = "org.jspecify", name = "jspecify", version = "1.0.0" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.17.1" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.17.2" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
 jmh-generator-annproccesor = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
-nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.11.1" }
+nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.11.2" }
 errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.30.0" }
 
 [plugins]

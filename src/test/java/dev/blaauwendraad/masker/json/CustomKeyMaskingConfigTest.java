@@ -5,7 +5,6 @@ import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
@@ -336,6 +335,7 @@ class CustomKeyMaskingConfigTest {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // https://github.com/uber/NullAway/issues/1011
     void maskWithStringFunction() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))

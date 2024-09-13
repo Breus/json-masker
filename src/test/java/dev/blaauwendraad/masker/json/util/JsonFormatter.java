@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.randomgen.InvalidJsonPrettyPrinter;
 import dev.blaauwendraad.masker.randomgen.RandomWhiteSpacePrettyPrinter;
 
-import java.util.List;
-
 public enum JsonFormatter {
     PRETTY,
     COMPACT,
@@ -17,6 +15,7 @@ public enum JsonFormatter {
 
     private final static int MAX_NUMBER_OF_SPACES_TO_INJECT = 50;
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String format(JsonNode jsonNode) {

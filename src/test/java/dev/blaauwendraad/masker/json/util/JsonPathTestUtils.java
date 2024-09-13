@@ -40,7 +40,7 @@ public class JsonPathTestUtils {
         try {
             root = new ObjectMapper().readTree(json.toLowerCase());
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Illegal input json.");
+            throw new IllegalArgumentException("Illegal input json.", e);
         }
         JsonPathParser jsonPathParser = new JsonPathParser();
         Set<String> transformedTargetKeys = new HashSet<>();

@@ -192,6 +192,7 @@ class ValueMaskersTest {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // https://github.com/uber/NullAway/issues/1011
     void withRawValueFunction() {
         var valueMasker = ValueMaskers.withRawValueFunction(value -> {
             if (value.startsWith("\"secret:")) {
@@ -223,6 +224,7 @@ class ValueMaskersTest {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // https://github.com/uber/NullAway/issues/1011
     void withTextFunction() {
         var valueMasker = ValueMaskers.withTextFunction(value -> {
             if (value.startsWith("secret:")) {
@@ -289,6 +291,7 @@ class ValueMaskersTest {
         }))).isEqualTo("\"/\"");
     }
 
+    @SuppressWarnings("UnicodeEscape") // on purpose
     private static Stream<List<String>> unicodeCharacters() {
         // equivalent pairs of unicode characters: actual character (expected), JSON-escaped, Java-escaped
         return Stream.of(

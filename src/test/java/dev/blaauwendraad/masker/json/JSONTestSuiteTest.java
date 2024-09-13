@@ -33,9 +33,9 @@ public class JSONTestSuiteTest {
     private static final List<String> INVALID_UTF_8 = List.of(
             "i_string_1st_surrogate_but_2nd_missing.json",
             "i_string_1st_valid_surrogate_2nd_invalid.json",
-            "i_string_incomplete_surrogates_escape_valid.json",
             "i_string_incomplete_surrogate_and_escape_valid.json",
             "i_string_incomplete_surrogate_pair.json",
+            "i_string_incomplete_surrogates_escape_valid.json",
             "i_string_invalid_lonely_surrogate.json",
             "i_string_invalid_surrogate.json",
             "i_string_inverted_surrogates_U+1D11E.json",
@@ -45,9 +45,9 @@ public class JSONTestSuiteTest {
             "n_string_1_surrogate_then_escape_u1.json",
             "n_string_1_surrogate_then_escape_u1x.json",
             "n_string_backslash_00.json",
+            "n_string_escape_x.json",
             "n_string_escaped_ctrl_char_tab.json",
             "n_string_escaped_emoji.json",
-            "n_string_escape_x.json",
             "n_string_incomplete_escaped_character.json",
             "n_string_incomplete_surrogate.json",
             "n_string_incomplete_surrogate_escape_invalid.json",
@@ -59,11 +59,13 @@ public class JSONTestSuiteTest {
             "n_structure_open_open.json"
     );
 
-    private static final List<String> JACKSON_IS_DIFFERENT_FROM_TO_STRING = List.of(
+    private static final List<String> INVALID_JSON_JACKSON_DIFFERENT_BEHAVIOR = List.of(
+            "i_string_UTF-16LE_with_BOM.json",
+            "i_string_UTF8_surrogate_U+D800.json",
             "i_string_not_in_unicode_range.json",
             "i_string_overlong_sequence_2_bytes.json",
-            "i_string_utf16LE_no_BOM.json",
-            "i_string_UTF8_surrogate_U+D800.json"
+            "i_string_utf16BE_no_BOM.json",
+            "i_string_utf16LE_no_BOM.json"
     );
     public static final Path JSON_TEST_SUITE_PATH = Path.of("src/test/JSONTestSuite/");
 
@@ -107,7 +109,7 @@ public class JSONTestSuiteTest {
 
         byte[] actual = jsonMasker.mask(file.originalContent);
 
-        if (JACKSON_IS_DIFFERENT_FROM_TO_STRING.contains(file.name)) {
+        if (INVALID_JSON_JACKSON_DIFFERENT_BEHAVIOR.contains(file.name)) {
             // for these jackson behavior is different from java.lang.String parsing of UTF-8 characters
             return;
         }

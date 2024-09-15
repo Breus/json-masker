@@ -48,8 +48,12 @@ final class KeyContainsMasker implements JsonMasker {
                 keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
             }
 
-            stepOverWhitespaceCharacters(maskingState);
-            visitValue(maskingState, keyMaskingConfig);
+            while (!maskingState.endOfJson()) {
+                stepOverWhitespaceCharacters(maskingState);
+                if (!visitValue(maskingState, keyMaskingConfig)) {
+                    maskingState.next();
+                }
+            }
 
             return maskingState.flushReplacementOperations();
         } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
@@ -63,10 +67,12 @@ final class KeyContainsMasker implements JsonMasker {
      * @param maskingState     the current masking state
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
      *                         being masked
+     *
+     * @return whether a value was found, if returned false the calling code must advance to avoid infinite loops
      */
-    private void visitValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+    private boolean visitValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
         if (maskingState.endOfJson()) {
-            return;
+            return true;
         }
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
@@ -101,8 +107,11 @@ final class KeyContainsMasker implements JsonMasker {
                 }
             }
             case 'n' -> maskingState.incrementIndex(4);
-            default -> { /* return */ }
+            default -> {
+                return false;
+            }
         }
+        return true;
     }
 
     /**

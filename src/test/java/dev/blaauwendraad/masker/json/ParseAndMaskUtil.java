@@ -71,10 +71,10 @@ public final class ParseAndMaskUtil {
                 String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
                         ? jsonPathKey
                         : jsonPathKey.toLowerCase();
-                if (jsonMaskingConfig.isInMaskMode()
-                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
-                    || jsonMaskingConfig.isInAllowMode()
-                       && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
+                if ((jsonMaskingConfig.isInMaskMode()
+                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys))
+                    || (jsonMaskingConfig.isInAllowMode()
+                       && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys))) {
                     objectNode.replace(
                             fieldName,
                             maskJsonValue(
@@ -94,10 +94,10 @@ public final class ParseAndMaskUtil {
             String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
                     ? jsonPathKey
                     : jsonPathKey.toLowerCase();
-            boolean mask = jsonMaskingConfig.isInMaskMode()
-                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)
-                    || jsonMaskingConfig.isInAllowMode()
-                    && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+            boolean mask = (jsonMaskingConfig.isInMaskMode()
+                    && isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys))
+                    || (jsonMaskingConfig.isInAllowMode()
+                    && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys));
             boolean visit = !jsonMaskingConfig.isInAllowMode()
                     || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
             for (int i = 0; i < arrayNode.size(); i++) {

@@ -7,7 +7,10 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static dev.blaauwendraad.masker.json.util.AsciiCharacter.*;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
+import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
 
 /**
  * This class is DefaultPrettyPrinter with additional logic to add white spaces to JSON

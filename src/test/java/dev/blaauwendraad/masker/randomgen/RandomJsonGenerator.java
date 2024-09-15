@@ -75,6 +75,7 @@ public final class RandomJsonGenerator {
     }
 
     private NodeType getRandomNodeType(Context context, boolean primitiveOnly) {
+        @SuppressWarnings("EnumOrdinal") // on purpose
         int offset = primitiveOnly ? NodeType.objectNode.ordinal() + 1 : 0;
         int rnd = context.random.nextInt(offset, NodeType.values().length);
         return NodeType.values()[rnd];
@@ -136,8 +137,9 @@ public final class RandomJsonGenerator {
     private String randomizeCase(Context context, String input) {
         StringBuilder resultBuilder = new StringBuilder();
 
-        for (char c : input.toCharArray()) {
+        for (int i = 0; i < input.length(); i++) {
             // Generate a random boolean to decide whether to convert to uppercase or lowercase
+            char c = input.charAt(i);
             boolean toUpperCase = context.random.nextBoolean();
 
             // Convert the character to uppercase or lowercase based on the random boolean

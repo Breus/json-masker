@@ -166,10 +166,29 @@ tasks {
 
     withType<JavaCompile>().configureEach {
         options.errorprone {
-            disableAllChecks = true
-            error("NullAway")
+            error(
+                "CheckedExceptionNotThrown",
+                "FunctionalInterfaceClash",
+                "NonFinalStaticField",
+                "NullAway",
+                "RedundantOverride",
+                "RedundantThrows",
+                "RemoveUnusedImports",
+                "UnnecessarilyFullyQualified",
+                "UnnecessarilyUsedValue",
+                "UnnecessaryBoxedAssignment",
+                "UnnecessaryBoxedVariable",
+                "UnnecessaryFinal",
+                "UnusedException",
+                "WildcardImport",
+            )
+            disable(
+                "StringCaseLocaleUsage",
+                "MissingSummary",
+            )
+            option("NullAway:JSpecifyMode")
             option("NullAway:AnnotatedPackages", "dev.blaauwendraad.masker")
-            option("NullAway:UnannotatedSubPackages", "dev.blaauwendraad.masker.json.jmh_generated")
+            excludedPaths = ".*/build/generated/.*"
         }
         options.encoding = "UTF-8"
     }

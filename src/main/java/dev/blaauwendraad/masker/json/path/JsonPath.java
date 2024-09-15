@@ -29,10 +29,9 @@ public record JsonPath(String[] segments) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof JsonPath jsonPath)) {
             return false;
         }
-        JsonPath jsonPath = (JsonPath) o;
         return Arrays.equals(segments, jsonPath.segments);
     }
 

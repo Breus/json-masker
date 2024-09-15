@@ -4,7 +4,6 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -3,7 +3,6 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.Utf8Util;
-
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -104,8 +103,8 @@ final class KeyMatcher {
                             currentPreInitNode.endOfWord,
                             currentPreInitNode.negativeMatch);
             transformedNodes.put(currentPreInitNode, currentNode);
-            stack.addAll((currentPreInitNode.children.values()));
-            stack.addAll((currentPreInitNode.childrenUpper.values()));
+            stack.addAll(currentPreInitNode.children.values());
+            stack.addAll(currentPreInitNode.childrenUpper.values());
         }
 
         for (Map.Entry<PreInitTrieNode, TrieNode> entry : transformedNodes.entrySet()) {
@@ -360,7 +359,7 @@ final class KeyMatcher {
      *     the trie.
      */
     @Nullable TrieNode traverseJsonPathSegment(
-            byte[] bytes, @Nullable final TrieNode begin, int keyOffset, int keyLength) {
+            byte[] bytes, @Nullable TrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
@@ -410,8 +409,8 @@ final class KeyMatcher {
 
         private final int childrenUpperArrayOffset;
 
-        /*@Nullable (NullAway bug)*/ TrieNode[] children;
-        /*@Nullable (NullAway bug)*/ TrieNode[] childrenUpper;
+        @Nullable TrieNode[] children;
+        @Nullable TrieNode[] childrenUpper;
 
         /** Masking configuration for the key that ends at this node. */
         private final @Nullable KeyMaskingConfig keyMaskingConfig;

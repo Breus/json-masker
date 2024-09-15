@@ -254,7 +254,7 @@ final class MaskingState implements ValueMaskerContext {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex)));
+        sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex), StandardCharsets.UTF_8));
         sb.append(">");
         if (endOfJson()) {
             sb.append("<end of json>");
@@ -262,7 +262,7 @@ final class MaskingState implements ValueMaskerContext {
             sb.append((char) message[currentIndex]);
             if (currentIndex + 1 < message.length) {
                 sb.append("<");
-                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex - 1)));
+                sb.append(new String(message, currentIndex + 1, Math.min(10, message.length - currentIndex - 1), StandardCharsets.UTF_8));
             }
         }
         return sb.toString();

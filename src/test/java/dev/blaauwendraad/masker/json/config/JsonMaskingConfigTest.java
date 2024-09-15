@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json.config;
 
-import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

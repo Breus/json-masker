@@ -38,7 +38,7 @@ class MaskingState implements ValueMaskerContext {
      * Current JSONPath is represented by a stack of segment references.
      * A stack is implemented with an array of the trie nodes that reference the end of the segment
      */
-    protected KeyMatcher.@Nullable TrieNode @Nullable [] currentJsonPath = null;
+    protected KeyMatcher.@Nullable StatefulRadixTrieNode @Nullable [] currentJsonPath = null;
     protected int currentJsonPathHeadIndex = -1;
     protected int currentTokenStartIndex = -1;
 
@@ -46,7 +46,7 @@ class MaskingState implements ValueMaskerContext {
         this.message = message;
         this.messageLength = message.length;
         if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.TrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
+            currentJsonPath = new KeyMatcher.StatefulRadixTrieNode[INITIAL_JSONPATH_STACK_CAPACITY];
         }
     }
 
@@ -174,7 +174,7 @@ class MaskingState implements ValueMaskerContext {
      *
      * @param trieNode a node in the trie where the new segment ends.
      */
-    void expandCurrentJsonPath(KeyMatcher.@Nullable TrieNode trieNode) {
+    void expandCurrentJsonPath(KeyMatcher.@Nullable StatefulRadixTrieNode trieNode) {
         if (currentJsonPath != null) {
             currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
             if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
@@ -196,7 +196,7 @@ class MaskingState implements ValueMaskerContext {
     /**
      * Returns the TrieNode that references the end of the latest segment in the current jsonpath
      */
-    public KeyMatcher.@Nullable TrieNode getCurrentJsonPathNode() {
+    public KeyMatcher.@Nullable StatefulRadixTrieNode getCurrentJsonPathNode() {
         if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
             return currentJsonPath[currentJsonPathHeadIndex];
         } else {

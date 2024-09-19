@@ -174,12 +174,17 @@ tasks {
                 "RedundantOverride",
                 "RedundantThrows",
                 "RemoveUnusedImports",
+                "DefaultCharset",
                 "UnnecessarilyFullyQualified",
                 "UnnecessarilyUsedValue",
                 "UnnecessaryBoxedAssignment",
                 "UnnecessaryBoxedVariable",
                 "UnnecessaryFinal",
                 "UnusedException",
+                "UnusedLabel",
+                "UnusedMethod",
+                "UnusedNestedClass",
+                "UnusedVariable",
                 "WildcardImport",
             )
             disable(

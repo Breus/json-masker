@@ -6,9 +6,9 @@ import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -46,6 +46,7 @@ final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
     private final TrieNode root;
+    private final StatefulRadixTrieNode statefulRoot;
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -57,71 +58,78 @@ final class KeyMatcher {
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
-        this.root = transform(preInitRootNode);
+        this.root = compress(preInitRootNode);
+        this.statefulRoot = new StatefulRadixTrieNode(root);
     }
 
     /**
-     * Transforms a (temporary) pre-initialization node into a permanent {@link KeyMatcher} look-up
-     * trie node. This is done by applying transformations of each (child) node starting from the
-     * root pre-init node and following a BFS order subsequently.
+     * Compresses a pre-initialization trie node into a permanent {@link KeyMatcher} radix trie
+     * node. Compression occurs only when a node has multiple children sharing a longest common
+     * prefix. In such cases, the common prefix is merged into a continuous prefix to reduce memory
+     * usage and optimize the lookups.
      *
-     * @param preInitNode the node which will be transformed by having all its children transformed
-     * @return the transformed pre-initialization trie into a post-initialization trie
+     * @param node the node to be compressed
+     * @return the compressed pre-initialization trie into a post-initialization trie
      */
-    static TrieNode transform(PreInitTrieNode preInitNode) {
-        Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
-        Deque<PreInitTrieNode> stack = new ArrayDeque<>();
-        stack.push(preInitNode);
-        while (!stack.isEmpty()) {
-            PreInitTrieNode currentPreInitNode = stack.pop();
-            if (transformedNodes.containsKey(currentPreInitNode)) {
-                // lower-case and upper-case children represented by the same exact node under a different index
-                // avoid transforming the children that were already transformed
-                continue;
+    static TrieNode compress(PreInitTrieNode node) {
+        List<byte[]> commonPrefix = new ArrayList<>();
+        while (true) {
+            if (node.endOfWord || node.children.size() != 1) {
+                return convertToRadixNode(node, commonPrefix);
             }
-            int childrenArrayOffset = -1;
-            int childrenArraySize = 0;
+            var childBytes = new byte[2];
+            commonPrefix.add(childBytes);
+            childBytes[0] = node.children.firstKey();
+            if (!node.childrenUpper.isEmpty()) {
+                childBytes[1] = node.childrenUpper.firstKey();
+            }
+
+            node = node.children.firstEntry().getValue();
+        }
+    }
+
+    private static TrieNode convertToRadixNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
+        // reached the end of prefix, create a new node
+        byte[] prefix = new byte[commonPrefix.size()];
+        byte[] prefixUpper = new byte[commonPrefix.size()];
+        for (int i = 0; i < commonPrefix.size(); i++) {
+            byte[] prefixes = commonPrefix.get(i);
+            prefix[i] = prefixes[0];
+            prefixUpper[i] = prefixes[1];
+        }
+
+        TrieNode radixNode = new TrieNode(prefix, prefixUpper);
+        radixNode.endOfWord = node.endOfWord;
+        radixNode.negativeMatch = node.negativeMatch;
+        radixNode.keyMaskingConfig = node.keyMaskingConfig;
+        if (!node.children.isEmpty()) {
+            Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
+            int childrenArrayOffset = node.children.firstKey();
+            int childrenArraySize = node.children.lastKey() - childrenArrayOffset + 1;
             int childrenUpperArrayOffset = -1;
             int childrenUpperArraySize = 0;
-            if (!currentPreInitNode.children.isEmpty()) {
-                childrenArrayOffset = currentPreInitNode.children.firstKey();
-                childrenArraySize = currentPreInitNode.children.lastKey() - childrenArrayOffset + 1;
-                if (!currentPreInitNode.childrenUpper.isEmpty()) {
-                    childrenUpperArrayOffset = currentPreInitNode.childrenUpper.firstKey();
-                    childrenUpperArraySize = currentPreInitNode.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
-                }
+            if (!node.childrenUpper.isEmpty()) {
+                childrenUpperArrayOffset = node.childrenUpper.firstKey();
+                childrenUpperArraySize = node.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
             }
-            TrieNode currentNode =
-                    new TrieNode(
-                            childrenArrayOffset,
-                            childrenUpperArrayOffset,
-                            childrenArraySize == 0 ? TrieNode.EMPTY_CHILDREN : new TrieNode[childrenArraySize],
-                            childrenUpperArraySize == 0
-                                    ? TrieNode.EMPTY_CHILDREN
-                                    : new TrieNode[childrenUpperArraySize],
-                            currentPreInitNode.keyMaskingConfig,
-                            currentPreInitNode.endOfWord,
-                            currentPreInitNode.negativeMatch);
-            transformedNodes.put(currentPreInitNode, currentNode);
-            stack.addAll(currentPreInitNode.children.values());
-            stack.addAll(currentPreInitNode.childrenUpper.values());
+            radixNode.childrenArrayOffset = childrenArrayOffset;
+            radixNode.children = new TrieNode[childrenArraySize];
+            radixNode.childrenUpperArrayOffset = childrenUpperArrayOffset;
+            radixNode.childrenUpper = new TrieNode[childrenUpperArraySize];
+
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.children.entrySet()) {
+                byte b = e.getKey();
+                var child = e.getValue();
+                radixNode.children[b - radixNode.childrenArrayOffset] = transformedNodes.computeIfAbsent(child, KeyMatcher::compress);
+            }
+
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.childrenUpper.entrySet()) {
+                byte b = e.getKey();
+                var child = e.getValue();
+                radixNode.childrenUpper[b - radixNode.childrenUpperArrayOffset] = transformedNodes.computeIfAbsent(child, KeyMatcher::compress);
+            }
         }
-
-        for (Map.Entry<PreInitTrieNode, TrieNode> entry : transformedNodes.entrySet()) {
-            PreInitTrieNode currentPreInitNode = entry.getKey();
-            TrieNode currentNode = entry.getValue();
-
-            currentPreInitNode.children.forEach(
-                    (byteValue, childNode) ->
-                            currentNode.children[byteValue - currentNode.childrenArrayOffset] =
-                                    transformedNodes.get(childNode));
-            currentPreInitNode.childrenUpper.forEach(
-                    (byteValue, childNode) ->
-                            currentNode.childrenUpper[byteValue - currentNode.childrenUpperArrayOffset] =
-                                    transformedNodes.get(childNode));
-        }
-
-        return Objects.requireNonNull(transformedNodes.get(preInitNode));
+        return radixNode;
     }
 
     /**
@@ -210,44 +218,53 @@ final class KeyMatcher {
      *     masked
      */
     @Nullable KeyMaskingConfig getMaskConfigIfMatched(
-            byte[] bytes, int keyOffset, int keyLength, @Nullable TrieNode currentJsonPathNode) {
-        // first search by key
-        TrieNode node = currentJsonPathNode;
-        if (maskingConfig.isInMaskMode()) {
-            // check JSONPath first, as it's more specific
-            // if found - mask with this config
-            // if not found - do not mask
-            if (node != null && node.endOfWord) {
-                return node.keyMaskingConfig;
-            } else if (keyLength != SKIP_KEY_LOOKUP) {
-                // also check regular key
-                node = searchNode(root, bytes, keyOffset, keyLength);
-                if (node != null && node.endOfWord) {
-                    return node.keyMaskingConfig;
-                }
+            byte[] bytes, int keyOffset, int keyLength, @Nullable StatefulRadixTrieNode currentJsonPathNode) {
+        try {
+            if (currentJsonPathNode != null) {
+                currentJsonPathNode.checkpoint();
             }
-            return null;
-        } else {
-            // check JSONPath first, as it's more specific
-            // if found and is not negativeMatch - do not mask
-            // if found and is negative match - mask, but with a specific config
-            // if not found - mask with default config
-            if (node != null && node.endOfWord) {
-                if (node.negativeMatch) {
-                    return node.keyMaskingConfig;
+            StatefulRadixTrieNode node = currentJsonPathNode;
+            if (maskingConfig.isInMaskMode()) {
+                // check JSONPath first, as it's more specific
+                // if found - mask with this config
+                // if not found - do not mask
+                if (node != null && node.endOfWord()) {
+                    return node.keyMaskingConfig();
+                } else if (keyLength != SKIP_KEY_LOOKUP) {
+                    // also check regular key
+                    node = searchNode(statefulRoot, bytes, keyOffset, keyLength);
+                    if (node != null && node.endOfWord()) {
+                        return node.keyMaskingConfig();
+                    }
                 }
                 return null;
-            } else if (keyLength != SKIP_KEY_LOOKUP) {
-                // also check regular key
-                node = searchNode(root, bytes, keyOffset, keyLength);
-                if (node != null && node.endOfWord) {
-                    if (node.negativeMatch) {
-                        return node.keyMaskingConfig;
+            } else {
+                // check JSONPath first, as it's more specific
+                // if found and is not negativeMatch - do not mask
+                // if found and is negative match - mask, but with a specific config
+                // if not found - mask with default config
+                if (node != null && node.endOfWord()) {
+                    if (node.negativeMatch()) {
+                        return node.keyMaskingConfig();
                     }
                     return null;
+                } else if (keyLength != SKIP_KEY_LOOKUP) {
+                    // also check regular key
+                    node = searchNode(statefulRoot, bytes, keyOffset, keyLength);
+                    if (node != null && node.endOfWord()) {
+                        if (node.negativeMatch()) {
+                            return node.keyMaskingConfig();
+                        }
+                        return null;
+                    }
                 }
+                return maskingConfig.getDefaultConfig();
             }
-            return maskingConfig.getDefaultConfig();
+        } finally {
+            if (currentJsonPathNode != null) {
+                currentJsonPathNode.restore();
+            }
+            statefulRoot.restore();
         }
     }
 
@@ -262,8 +279,8 @@ final class KeyMatcher {
      * @return the node if found, {@code null} otherwise.
      */
     @Nullable
-    private TrieNode searchNode(TrieNode from, byte[] bytes, int offset, int length) {
-        TrieNode node = from;
+    private StatefulRadixTrieNode searchNode(StatefulRadixTrieNode from, byte[] bytes, int offset, int length) {
+        var node = from;
 
         int endIndex = offset + length;
         for (int i = offset; i < endIndex; i++) {
@@ -352,8 +369,8 @@ final class KeyMatcher {
         return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
-    @Nullable TrieNode getJsonPathRootNode() {
-        return root.child((byte) '$');
+    @Nullable StatefulRadixTrieNode getJsonPathRootNode() {
+        return new StatefulRadixTrieNode(root).child((byte) '$');
     }
 
     /**
@@ -368,26 +385,45 @@ final class KeyMatcher {
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in
      *     the trie.
      */
-    @Nullable TrieNode traverseJsonPathSegment(
-            byte[] bytes, @Nullable TrieNode begin, int keyOffset, int keyLength) {
+    @Nullable StatefulRadixTrieNode traverseJsonPathSegment(
+            byte[] bytes, @Nullable StatefulRadixTrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
-        TrieNode current = begin.child((byte) '.');
-        if (current == null) {
+        try {
+            var current = begin.child((byte) '.');
+            if (current == null) {
+                return null;
+            }
+            if (current.isJsonPathWildcard()) {
+                current.child((byte) '*');
+                return new StatefulRadixTrieNode(current);
+            }
+
+            current = searchNode(current, bytes, keyOffset, keyLength);
+            if (current != null) {
+                return new StatefulRadixTrieNode(current);
+            }
             return null;
+        } finally {
+            begin.restore();
         }
-        TrieNode wildcardLookAhead = current.child((byte) '*');
-        if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.child((byte) '.') != null)) {
-            return wildcardLookAhead;
-        }
-        return searchNode(current, bytes, keyOffset, keyLength);
+    }
+
+    public String printTree() {
+        return root.toString();
     }
 
     /**
      * A node in the trie, represents a single byte of the character (if character is ASCII, then
      * represents a single character). An array is used instead of a Map for instant access without
      * type casts.
+     *
+     * <p>Unlike a regular trie, a radix trie is compressed by merging all nodes that share a common
+     * prefix, reducing both memory usage and access time. As a result, each match becomes a stateful
+     * operation that requires not only identifying the next child node but also tracking the sequence
+     * (i.e., the number of children already matched). Naturally, after each match, the sequence must
+     * be incremented, or if a different node is encountered, it should be reset.
      *
      * <p>The array starts from a non-null child which represents the byte with value {@link
      * TrieNode#childrenArrayOffset} and every subsequent byte is offset by that value.
@@ -399,66 +435,88 @@ final class KeyMatcher {
      * 1, while storing them in the same array would result in a gap of 32 {@code null}-elements.
      */
     static class TrieNode {
-        private static final TrieNode[] EMPTY_CHILDREN = new TrieNode[0];
-
+        public static final TrieNode[] EMPTY = new TrieNode[0];
+        final byte[] prefix;
+        final byte[] prefixUpper;
+        @Nullable
+        TrieNode[] children = EMPTY;
+        @Nullable
+        TrieNode[] childrenUpper = EMPTY;
+        int childrenArrayOffset = -1;
+        int childrenUpperArrayOffset = -1;
         /**
-         * Indicates the indexing offset of the children array. So let's say this value is 65 (ASCII
-         * 'A'), then 0th index represents this byte and the 20th index in the array would represent
-         * the byte value 85 (ASCII 'U'). This is essentially a memory optimization to not store 256
-         * references for the children, but much less in most practical cases at the cost of storing
-         * the offset itself (4 bytes).
+         * Masking configuration for the key that ends at this node.
          */
-        private final int childrenArrayOffset;
-
-        private final int childrenUpperArrayOffset;
-
-        @Nullable TrieNode[] children;
-        @Nullable TrieNode[] childrenUpper;
-
-        /** Masking configuration for the key that ends at this node. */
-        private final @Nullable KeyMaskingConfig keyMaskingConfig;
-
-        /** A marker that the character indicates that the key ends at this node. */
-        private final boolean endOfWord;
-
+        @Nullable
+        KeyMaskingConfig keyMaskingConfig = null;
         /**
-         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the
-         * key is not allowed.
+         * A marker that the character indicates that the key ends at this node.
          */
-        private final boolean negativeMatch;
+        boolean endOfWord = false;
+        /**
+         * Used to store the configuration, but indicate that json-masker is in ALLOW mode and the key is not allowed.
+         */
+        boolean negativeMatch = false;
 
-        TrieNode(
-                int childrenArrayOffset,
-                int childrenUpperArrayOffset,
-                TrieNode[] children,
-                TrieNode[] childrenUpper,
-                @Nullable KeyMaskingConfig keyMaskingConfig,
-                boolean endOfWord,
-                boolean negativeMatch) {
-            this.childrenArrayOffset = childrenArrayOffset;
-            this.childrenUpperArrayOffset = childrenUpperArrayOffset;
-            this.children = children;
-            this.childrenUpper = childrenUpper;
-            this.keyMaskingConfig = keyMaskingConfig;
-            this.endOfWord = endOfWord;
-            this.negativeMatch = negativeMatch;
+        TrieNode(byte[] prefix, byte[] prefixUpper) {
+            this.prefix = prefix;
+            this.prefixUpper = prefixUpper;
         }
 
         /**
-         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no
-         * matches.
+         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
          */
-        @Nullable TrieNode child(byte b) {
-            int offsetIndex = b - childrenArrayOffset;
-            // This Sonar/IntelliJ warning on the next line is incorrect because the NullAway bug
-            if (offsetIndex >= 0 && offsetIndex < children.length && children[offsetIndex] != null) {
-                return children[offsetIndex];
+        @Nullable TrieNode child(byte b, int sequence) {
+            if (sequence == prefix.length) {
+                int offsetIndex = b - childrenArrayOffset;
+                TrieNode child = null;
+                if (offsetIndex >= 0 && offsetIndex < children.length) {
+                    child = children[offsetIndex];
+                }
+                int offsetUpperIndex = b - childrenUpperArrayOffset;
+                if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUpper.length) {
+                    child = childrenUpper[offsetUpperIndex];
+                }
+                return child;
+            } else if (prefix[sequence] == b || prefixUpper[sequence] == b) {
+                return this;
+            } else {
+                return null;
             }
-            int offsetUpperIndex = b - childrenUpperArrayOffset;
-            if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUpper.length) {
-                return childrenUpper[offsetUpperIndex];
+        }
+
+        boolean endOfWord(int sequence) {
+            return sequence == prefix.length && endOfWord;
+        }
+
+        @Override
+        public String toString() {
+            return toString(0);
+        }
+
+        public String toString(int indent) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(new String(prefix, StandardCharsets.UTF_8));
+            int childrenIndent = indent + prefix.length;
+            boolean first = true;
+            for (int i = 0; i < children.length; i++) {
+                TrieNode child = children[i];
+                if (child != null) {
+                    if (!first) {
+                        sb.append("\n");
+                        sb.append(" ".repeat(childrenIndent));
+                    }
+                    String prefix = " -> " + (char) (i + childrenArrayOffset);
+                    sb.append(prefix);
+                    sb.append(child.toString(childrenIndent + prefix.length()));
+                    first = false;
+                }
             }
-            return null;
+            // only for root
+            if (indent == 0) {
+                sb.append("\n");
+            }
+            return sb.toString();
         }
     }
 
@@ -493,7 +551,7 @@ final class KeyMatcher {
         boolean negativeMatch = false;
 
         /**
-         * @see TrieNode#child(byte)
+         * @see TrieNode#child(byte, int)
          */
         @Nullable PreInitTrieNode child(byte b) {
             PreInitTrieNode child = children.get(b);
@@ -518,6 +576,75 @@ final class KeyMatcher {
          */
         void addUpper(Byte b, PreInitTrieNode child) {
             childrenUpper.put(b, child);
+        }
+    }
+
+    /**
+     * A helper class for managing (radix) trie node and the sequence. On top of regular methods
+     * used for matching, also contains {@link #checkpoint()} and {@link #restore()} to allow
+     * repeated matching that would otherwise pollute the sequence.
+     */
+    static class StatefulRadixTrieNode {
+        private TrieNode node;
+        private int sequence;
+
+        private TrieNode checkPointNode;
+        private int checkPointSequence;
+
+        StatefulRadixTrieNode(TrieNode node) {
+            this.node = this.checkPointNode = node;
+            this.sequence = this.checkPointSequence = 0;
+        }
+
+        StatefulRadixTrieNode(StatefulRadixTrieNode node) {
+            this.node = this.checkPointNode = node.node;
+            this.sequence = this.checkPointSequence = node.sequence;
+        }
+
+        @Nullable
+        StatefulRadixTrieNode child(byte b) {
+            var child = node.child(b, sequence++);
+            if (child == null) {
+                return null;
+            } else if (child != node) {
+                node = child;
+                sequence = 0;
+            }
+            return this;
+        }
+
+        boolean isJsonPathWildcard() {
+            return node.child((byte) '*', sequence) != null
+                   && (node.endOfWord(sequence + 1)
+                       || node.child((byte) '.', sequence + 1) != null);
+        }
+
+        boolean endOfWord() {
+            return node.endOfWord(sequence);
+        }
+
+        boolean negativeMatch() {
+            return node.negativeMatch;
+        }
+
+        @Nullable
+        KeyMaskingConfig keyMaskingConfig() {
+            return node.keyMaskingConfig;
+        }
+
+        void checkpoint() {
+            checkPointNode = node;
+            checkPointSequence = sequence;
+        }
+
+        void restore() {
+            node = checkPointNode;
+            sequence = checkPointSequence;
+        }
+
+        @Override
+        public String toString() {
+            return "[sequence: %s] %s".formatted(sequence, node);
         }
     }
 }

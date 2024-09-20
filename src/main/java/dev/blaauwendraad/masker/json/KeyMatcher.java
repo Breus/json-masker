@@ -217,12 +217,12 @@ final class KeyMatcher {
             // check JSONPath first, as it's more specific
             // if found - mask with this config
             // if not found - do not mask
-            if (node != null && node.endOfWord && !node.negativeMatch) {
+            if (node != null && node.endOfWord) {
                 return node.keyMaskingConfig;
             } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
-                node = searchNode(bytes, keyOffset, keyLength);
-                if (node != null && !node.negativeMatch) {
+                node = searchNode(root, bytes, keyOffset, keyLength);
+                if (node != null && node.endOfWord) {
                     return node.keyMaskingConfig;
                 }
             }
@@ -239,8 +239,8 @@ final class KeyMatcher {
                 return null;
             } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
-                node = searchNode(bytes, keyOffset, keyLength);
-                if (node != null) {
+                node = searchNode(root, bytes, keyOffset, keyLength);
+                if (node != null && node.endOfWord) {
                     if (node.negativeMatch) {
                         return node.keyMaskingConfig;
                     }
@@ -252,8 +252,8 @@ final class KeyMatcher {
     }
 
     @Nullable
-    private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        TrieNode node = root;
+    private TrieNode searchNode(TrieNode from, byte[] bytes, int offset, int length) {
+        TrieNode node = from;
 
         for (int i = offset; i < offset + length; i++) {
             byte b = bytes[i];
@@ -335,10 +335,6 @@ final class KeyMatcher {
             }
         }
 
-        if (!node.endOfWord) {
-            return null;
-        }
-
         return node;
     }
 
@@ -371,14 +367,7 @@ final class KeyMatcher {
         if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.child((byte) '.') != null)) {
             return wildcardLookAhead;
         }
-        for (int i = keyOffset; i < keyOffset + keyLength; i++) {
-            byte b = bytes[i];
-            current = current.child(b);
-            if (current == null) {
-                return null;
-            }
-        }
-        return current;
+        return searchNode(current, bytes, keyOffset, keyLength);
     }
 
     /**

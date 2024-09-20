@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -18,7 +19,8 @@ class UnicodeCharacterTest {
 
     private static Stream<JsonMaskerTestInstance> unicodeCharacters() {
         return Stream.of(
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "targetKey2": {
                            "targetKey3": {}
@@ -47,7 +49,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("targetKey1", "targetKey2"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "\\u2020",
                          "otherKey": null
@@ -60,7 +63,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "a\\u2020b",
                          "otherKey": null
@@ -73,7 +77,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "a\\\\\\u2020b"
                        }
@@ -84,7 +89,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": [
                            {
@@ -105,7 +111,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "\\u0014"
                        }
@@ -116,7 +123,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "\\u0014\\u0085"
                        }
@@ -127,7 +135,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                        {
                          "someKey": "\\u0085"
                        }
@@ -138,7 +147,8 @@ class UnicodeCharacterTest {
                        }
                        """,
                         JsonMasker.getMasker(Set.of("someKey"))),
-                new JsonMaskerTestInstance("""
+                new JsonMaskerTestInstance(
+                        """
                         {
                           "maskMe": "secret",
                           "̀": "secret",
@@ -157,7 +167,8 @@ class UnicodeCharacterTest {
                             "\\uD83D\\uDCA9": "secret"
                           }
                         }
-                        """, """
+                        """,
+                        """
                         {
                           "maskMe": "***",
                           "̀": "***",
@@ -177,8 +188,68 @@ class UnicodeCharacterTest {
                           }
                         }
                         """,
-                        JsonMasker.getMasker(Set.of("maskMe", "̀", "�", "€", "†", "䀀", "𐍈", "💩"))
-                )
-        );
+                        JsonMasker.getMasker(Set.of("maskMe", "̀", "�", "€", "†", "䀀", "𐍈", "💩"))),
+                new JsonMaskerTestInstance(
+                        """
+                        {
+                          "maskMe": "secret",
+                          "̀": "secret",
+                          "€": "secret",
+                          "†": "secret",
+                          "䀀": "secret",
+                          "𐍈": "secret",
+                          "💩": "secret",
+                          "\\u0065\\u006e\\u0063\\u006f\\u0064\\u0065\\u0064": {
+                            "\\u006D\\u0061\\u0073\\u006B\\u004D\\u0065": "secret",
+                            "\\u0300": "secret",
+                            "\\u20AC": "secret",
+                            "\\u2020": "secret",
+                            "\\u4000": "secret",
+                            "\\uD800\\uDF48": "secret",
+                            "\\uD83D\\uDCA9": "secret"
+                          }
+                        }
+                        """,
+                        """
+                        {
+                          "maskMe": "***",
+                          "̀": "***",
+                          "€": "***",
+                          "†": "***",
+                          "䀀": "***",
+                          "𐍈": "***",
+                          "💩": "***",
+                          "\\u0065\\u006e\\u0063\\u006f\\u0064\\u0065\\u0064": {
+                            "\\u006D\\u0061\\u0073\\u006B\\u004D\\u0065": "***",
+                            "\\u0300": "***",
+                            "\\u20AC": "***",
+                            "\\u2020": "***",
+                            "\\u4000": "***",
+                            "\\uD800\\uDF48": "***",
+                            "\\uD83D\\uDCA9": "***"
+                          }
+                        }
+                        """,
+                        JsonMasker.getMasker(
+                                JsonMaskingConfig.builder()
+                                        .maskJsonPaths(
+                                                "$.maskMe",
+                                                "$.encoded.maskMe",
+                                                "$.̀",
+                                                "$.encoded.̀",
+                                                "$.�",
+                                                "$.encoded.�",
+                                                "$.€",
+                                                "$.encoded.€",
+                                                "$.†",
+                                                "$.encoded.†",
+                                                "$.䀀",
+                                                "$.encoded.䀀",
+                                                "$.𐍈",
+                                                "$.encoded.𐍈",
+                                                "$.💩",
+                                                "$.encoded.💩"
+                                        )
+                                        .build())));
     }
 }

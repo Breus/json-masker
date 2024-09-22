@@ -35,6 +35,7 @@ public final class JsonMaskingConfig {
     private final boolean caseSensitiveTargetKeys;
     /**
      * Not configurable. Specifies the initial size of the byte array buffer in streaming mode
+     * Package private for unit tests
      */
     int bufferSize = 8192;
 
@@ -66,7 +67,7 @@ public final class JsonMaskingConfig {
      * Checks if the target key mode is set to "ALLOW". If the mode is set to "ALLOW", it means that the target keys are
      * interpreted as the only JSON keys for which the corresponding property is allowed (should not be masked).
      *
-     * @return true if the target key mode is set to "ALLOW", false otherwise
+     * @return {@code true} if the target key mode is set to "ALLOW", {@code false} otherwise
      */
     public boolean isInAllowMode() {
         return targetKeyMode == TargetKeyMode.ALLOW;
@@ -76,7 +77,7 @@ public final class JsonMaskingConfig {
      * Checks if the target key mode is set to "MASK". If the mode is set to "MASK", it means that the properties
      * corresponding to the target keys should be masked.
      *
-     * @return true if the current target key mode is in "MASK" mode, false otherwise
+     * @return {@code true} if the current target key mode is in "MASK" mode, {@code false} otherwise
      */
     public boolean isInMaskMode() {
         return targetKeyMode == TargetKeyMode.MASK;
@@ -93,7 +94,7 @@ public final class JsonMaskingConfig {
     /**
      * Tests if target keys should be considered case-sensitive.
      *
-     * @return true if target keys are considered case-sensitive and false otherwise.
+     * @return {@code true} if target keys are considered case-sensitive, {@code false} otherwise.
      */
     public boolean caseSensitiveTargetKeys() {
         return caseSensitiveTargetKeys;

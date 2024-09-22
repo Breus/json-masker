@@ -19,6 +19,7 @@ final class KeyContainsMasker implements JsonMasker {
     private final KeyMatcher keyMatcher;
     /**
      * The masking configuration for the JSON masking process.
+     * Package private for unit tests.
      */
     final JsonMaskingConfig maskingConfig;
 

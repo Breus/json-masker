@@ -37,16 +37,31 @@ class StreamingModeTest {
     }
 
     @Test
-    void shouldAbortExecutionOnTooLongToken() {
+    void shouldAbortExecutionOnTooValueLongToken() {
         JsonMaskingConfig config = JsonMaskingConfig.builder().maskKeys("mask").build();
         JsonMasker jsonMasker = JsonMasker.getMasker(config);
-        String json = "{\"mask\":%s}".formatted("a".repeat(100_000));
-
+        // maximum guaranteed JSON token size to work correctly is roughly 4 million characters, but can be up to
+        // 16 million depending on where this token is located and the tokens before and after it
+        String json = "{\"mask\":\"%s\"}".formatted("a".repeat(17_000_000));
 
         Assertions.assertThatThrownBy(() -> jsonMasker.mask(
                 new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
                 new ByteArrayOutputStream())
-        ).isInstanceOf(IllegalStateException.class);
+        ).isInstanceOf(InvalidJsonException.class);
+    }
+
+    @Test
+    void shouldAbortExecutionOnTooLongKeyToken() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder().maskKeys("mask").build();
+        JsonMasker jsonMasker = JsonMasker.getMasker(config);
+        // maximum guaranteed JSON token size to work correctly is roughly 4 million characters, but can be up to
+        // 16 million depending on where this token is located and the tokens before and after it
+        String json = "{\"%s\":\"hello\"}".formatted("a".repeat(17_000_000));
+
+        Assertions.assertThatThrownBy(() -> jsonMasker.mask(
+                new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayOutputStream())
+        ).isInstanceOf(InvalidJsonException.class);
     }
 
     private static Stream<Arguments> getBufferingSituations() {

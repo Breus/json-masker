@@ -51,7 +51,7 @@ public enum AsciiCharacter {
      * Tests if the given byte corresponds to a double quote '{@literal "}' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to a double quote in ASCII encoding and false otherwise.
+     * @return {@code true} if the byte corresponds to a double quote in ASCII encoding, {@code false} otherwise
      */
     public static boolean isDoubleQuote(byte inputByte) {
         return DOUBLE_QUOTE.getAsciiByteValue() == inputByte;
@@ -61,8 +61,8 @@ public enum AsciiCharacter {
      * Tests if the given byte corresponds to an escape character (backslash) '\' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to an escape character (backslash) in ASCII encoding and
-     *     false otherwise.
+     * @return {@code true} if the byte corresponds to an escape character (backslash) in ASCII encoding, {@code false}
+     * otherwise
      */
     public static boolean isEscapeCharacter(byte inputByte) {
         return BACK_SLASH.getAsciiByteValue() == inputByte;
@@ -72,8 +72,7 @@ public enum AsciiCharacter {
      * Tests if the given byte corresponds to a lowercase 'u' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to a lowercase 'u' in ASCII encoding and false
-     *     otherwise.
+     * @return {@code true} if the byte corresponds to a lowercase 'u' in ASCII encoding, {@code false} otherwise
      */
     public static boolean isLowercaseU(byte inputByte) {
         return LOWERCASE_U.getAsciiByteValue() == inputByte;
@@ -83,20 +82,19 @@ public enum AsciiCharacter {
      * Tests if the given byte corresponds to an opening square bracket '[' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to an opening square bracket '[' in ASCII encoding and
-     *     false otherwise.
+     * @return {@code true} if the byte corresponds to an opening square bracket '[' in ASCII encoding, {@code false}
+     * otherwise
      */
     public static boolean isSquareBracketOpen(byte inputByte) {
         return SQUARE_BRACKET_OPEN.getAsciiByteValue() == inputByte;
     }
 
     /**
-     * Tests if the given byte corresponds to a closing square bracket '{@literal ]}' in ASCII
-     * encoding.
+     * Tests if the given byte corresponds to a closing square bracket '{@literal ]}' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to a closing square bracket '{@literal ]}' in ASCII
-     *     encoding and false otherwise.
+     * @return {@code true} if the byte corresponds to a closing square bracket '{@literal ]}' in ASCII encoding,
+     * {@code false} otherwise
      */
     public static boolean isSquareBracketClose(byte inputByte) {
         return SQUARE_BRACKET_CLOSE.getAsciiByteValue() == inputByte;
@@ -107,8 +105,8 @@ public enum AsciiCharacter {
      * encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to an opening curly bracket '{@literal {}}' in ASCII
-     *     encoding and false otherwise.i
+     * @return {@code true} if the byte corresponds to an opening curly bracket '{@literal {}}' in ASCII
+     *     encoding, {@code false} otherwise
      */
     public static boolean isCurlyBracketOpen(byte inputByte) {
         return CURLY_BRACKET_OPEN.getAsciiByteValue() == inputByte;
@@ -119,8 +117,8 @@ public enum AsciiCharacter {
      * encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to a closing curly bracket '{@literal }}' in ASCII
-     *     encoding and false otherwise.
+     * @return {@code true} if the byte corresponds to a closing curly bracket '{@literal }}' in ASCII
+     *     encoding, {@code false} otherwise
      */
     public static boolean isCurlyBracketClose(byte inputByte) {
         return CURLY_BRACKET_CLOSE.getAsciiByteValue() == inputByte;
@@ -130,8 +128,8 @@ public enum AsciiCharacter {
      * Tests if the given byte corresponds to a lower case t 't' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return true if the byte corresponds to a lower case t 't' in ASCII encoding and false
-     *     otherwise.
+     * @return {@code true} if the byte corresponds to a lower case t 't' in ASCII encoding, {@code false}
+     *     otherwise
      */
     public static boolean isLowercaseT(byte inputByte) {
         return LOWERCASE_T.getAsciiByteValue() == inputByte;

@@ -3,7 +3,6 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,7 +17,6 @@ import java.nio.file.Path;
  * Tests that the masker is able to process streams of any size in buffering mode.
  * The test creates ~1GB input file and the expected result file. Then it runs the masker in buffering mode and checks
  * that the actual result matches the expected result.
- * Keeping this test disabled because I am not sure if running it on CI is a good idea
  */
 final class LargeStreamTest {
     Path inputFilePath;
@@ -39,7 +37,6 @@ final class LargeStreamTest {
     }
 
     @Test
-    @Disabled("Run it manually")
     void shouldProcessLargeJson() throws IOException {
         // process the input file and write the result into actual_result.json file
         try (InputStream inputStream = Files.newInputStream(inputFilePath);

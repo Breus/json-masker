@@ -15,7 +15,18 @@ import java.util.List;
  * operation.
  */
 final class MaskingState implements ValueMaskerContext {
-    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the jsonpath array
+    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the JsonPath array
+    /**
+     * Defines the maximum size for the buffer used by the streaming API:
+     * {@link JsonMasker#mask(InputStream, OutputStream)}.
+     * <p>
+     * This is a security measure to prevent too much memory being allocated for maliciously crafted JSONs with huge
+     * tokens (keys or values) to consume too much memory.
+     * <p>
+     * The maximum allowed buffer size corresponds to 16MB, which corresponds to a maximum token length of 4 million
+     * characters.
+     */
+    private static final int MAX_BUFFER_SIZE = 16777216;
     private static final String STREAM_READ_ERROR_MESSAGE = "Failed to read from input stream";
     private static final String STREAM_WRITE_ERROR_MESSAGE = "Failed to write to output stream";
 
@@ -24,7 +35,19 @@ final class MaskingState implements ValueMaskerContext {
     private int bufferSize; // size of byte array buffers to be read from the input stream
     private int currentIndex = 0;
     private final List<ReplacementOperation> replacementOperations = new ArrayList<>();
+    /**
+     * The index marking the end of the last replacement operation. Used to determine the start point for the next
+     * replacement operation to ensure they don't overlap.
+     */
     private int lastReplacementEndIndex = 0;
+    /**
+     * The total difference in the replacement operations related to the byte masking process.
+     * This counter aggregates the difference in lengths between the original byte sequences and
+     * their corresponding replacement masks over multiple replacement operations.
+     * <p>
+     * It is used to keep track of the cumulative change in byte count which informs buffer adjustments
+     * during the masking process in order to accommodate the length variations due to replacements.
+     */
     private int replacementOperationsTotalDifference = 0;
     @Nullable private final InputStream inputStream;
     @Nullable private final OutputStream outputStream;
@@ -50,15 +73,14 @@ final class MaskingState implements ValueMaskerContext {
     public MaskingState(InputStream inputStream, OutputStream outputStream, boolean trackJsonPath, int bufferSize) {
         /*
          There is a special optimization for "true", "false" and "null" values. We identify such values by their first
-         character ("t", "f" and "n" respectively) and assume the identified value length. When masker is in allow mode,
-         we may step over these values. In case the buffer size is less than the maximum possible length of such
+         character ("t", "f" and "n" respectively) and assume the identified value length. When the masker is in allow
+         mode, we may step over these values. In case the buffer size is less than the maximum possible length of such a
          "special" value, we end up stepping over the entire buffer. To mitigate that, we force the minimum buffer size
-         to be the maximum possible length, which is 5 (in "false").
+         to be the maximum possible length of such "special" values, which is 5 (in "false").
         */
         if (bufferSize < 5) {
             throw new IllegalArgumentException("Buffer size must be at least 5 bytes");
         }
-
         this.inputStream = inputStream;
         this.outputStream = outputStream;
         this.bufferSize = bufferSize;
@@ -70,6 +92,12 @@ final class MaskingState implements ValueMaskerContext {
         readNextBuffer();
     }
 
+    /**
+     * Advances to the next byte in the message or (Streaming API) buffer, expanding the buffer if necessary.
+     *
+     * @return {@code true} if the current index is within the bounds of the message or if the (Streaming API) buffer
+     * was successfully reloaded and more data is available in the stream, {@code false} otherwise
+     */
     public boolean next() {
         return ++currentIndex < messageLength || reloadBuffer();
     }
@@ -99,6 +127,11 @@ final class MaskingState implements ValueMaskerContext {
      * replacement is done in-place, otherwise a replacement operation is recorded to be performed as a batch using
      * {@link #flushReplacementOperations}.
      *
+     * @param startIndex the start index of the target value in the byte array
+     * @param length     the length of the target value to be replaced
+     * @param mask       the byte array representing the mask
+     * @param maskRepeat the number of times the mask should be repeated
+     * @throws UncheckedIOException if an I/O error occurs while writing to the output stream
      * @see ReplacementOperation
      */
     public void replaceTargetValueWith(int startIndex, int length, byte[] mask, int maskRepeat) {
@@ -188,7 +221,7 @@ final class MaskingState implements ValueMaskerContext {
 
     /**
      * Checks if jsonpath masking is enabled.
-     * @return true if jsonpath masking is enabled, false otherwise
+     * @return {@code true} if JSONPath masking is enabled, {@code false} otherwise
      */
     boolean jsonPathEnabled() {
         return currentJsonPath != null;
@@ -210,7 +243,7 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Backtracks current jsonpath to the previous segment.
+     * Backtracks current JSONPath to the previous segment.
      */
     void backtrackCurrentJsonPath() {
         if (currentJsonPath != null) {
@@ -229,10 +262,21 @@ final class MaskingState implements ValueMaskerContext {
         }
     }
 
+    /**
+     * Checks if the current token is registered within the masking state.
+     *
+     * @return {@code true} if the current token start index is registered (not -1), {@code false} otherwise
+     */
     boolean isCurrentTokenRegistered() {
         return currentTokenStartIndex != -1;
     }
 
+    /**
+     * Returns the start index of the current token in the masking state.
+     *
+     * @return the start index of the current token
+     * @throws IllegalStateException if no current token is registered
+     */
     public int getCurrentTokenStartIndex() {
         if (!isCurrentTokenRegistered()) {
             throw new IllegalStateException("No current value index set to mask");
@@ -241,8 +285,8 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Register the current index as the start index of the token. The token could be either a key or a value of type
-     * "string", "number", "boolean" or null.
+     * Register the current index as the start index of the token. The token could be either a JSON key or a value of
+     * type "string", "number", "boolean" or null.
      */
     public void registerTokenStartIndex() {
         this.currentTokenStartIndex = currentIndex;
@@ -308,12 +352,13 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Flushes the current buffer into provided OutputStream, then moves the current token to the beginning of the buffer
-     * and fills up the buffer from provided InputStream.
-     * In case the current token is too long (the start index is not in the last quarter of the buffer),
-     * extends the current buffer by 2.
+     * Flushes the current buffer into the output stream, moves the current token to the beginning of the
+     * buffer, and fills up the buffer from the input stream.
+     * In case the current token is too long (i.e. the start index is not in the last quarter of the buffer),
+     * double the current buffer size.
      *
-     * @return true if more data is available in the input stream, false if the end of the stream is reached.
+     * @return {@code true} if more data is available in the input stream, {@code false} if the end of the
+     * stream is reached.
      */
     boolean reloadBuffer() {
         flushCurrentBuffer();
@@ -321,7 +366,9 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Flushes the remaining of the current buffer up to the current token start index into output stream
+     * Flushes the remaining of the current buffer up to the current token start index into the output stream
+     *
+     * @throws UncheckedIOException if an I/O error occurs while writing to the output stream
      */
     void flushCurrentBuffer() {
         if (outputStream == null) {
@@ -342,7 +389,8 @@ final class MaskingState implements ValueMaskerContext {
     /**
      * Reads the next buffer and extends the buffer size if necessary.
      *
-     * @return true if more data is available in the stream, false otherwise
+     * @throws UncheckedIOException if an I/O error occurs while reading from the input stream
+     * @return {@code true} if more data is available in the stream, {@code false} otherwise
      */
     private boolean readNextBuffer() {
         if (inputStream == null) {
@@ -376,28 +424,30 @@ final class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Moves the current token to the beginning of buffer. If current token size is larger than a quarter of the buffer size,
-     * extends the buffer size by 2
+     * Moves the current JSON token to the beginning of buffer.
+     * <p>
+     * If the current JSON token size is larger than a quarter of the buffer size, double the buffer size.
+     *
+     * @param currentTokenLength the length of the current JSON token, in bytes
      */
     private void moveCurrentTokenToBeginningOfBuffer(int currentTokenLength) {
-        if (currentTokenLength < bufferSize >> 2) {
-            // in case the current value is shorter than a quarter of the buffer,
-            // fill up the buffer without extending its length
-
-            // move the current value to the beginning of the buffer
+        if (currentTokenLength < bufferSize >> 2) { // note: >> 2 is equal to dividing by 4
+            // in case the current value is shorter than a quarter of the buffer fill up the buffer without extending its
+            // length by moving the current value to the beginning of the buffer
             System.arraycopy(message, currentTokenStartIndex, message, 0, currentTokenLength);
         } else {
-            // in case the current value is longer than a quarter of the buffer,
-            // extend the buffer length by a quarter
-            bufferSize <<= 1;
-            if (bufferSize >= 65536) {
-                throw new IllegalStateException("Buffer overflow");
+            // in case the current value is longer than a quarter of the buffer, double the buffer size
+            bufferSize <<= 1; // note: <<= 1 is equal to doubling the bufferSize
+            if (bufferSize > MAX_BUFFER_SIZE) {
+                throw new InvalidJsonException(
+                        "Invalid JSON input provided: it contains a single JSON token (key or value) with %s characters".formatted(
+                                currentTokenLength));
             }
-            byte[] extension = new byte[bufferSize];
+            byte[] extendedBuffer = new byte[bufferSize];
 
-            // move the current value to the beginning of the extension
-            System.arraycopy(message, currentTokenStartIndex, extension, 0, currentTokenLength);
-            message = extension;
+            // move the current value to the beginning of the extended buffer
+            System.arraycopy(message, currentTokenStartIndex, extendedBuffer, 0, currentTokenLength);
+            message = extendedBuffer;
         }
     }
 

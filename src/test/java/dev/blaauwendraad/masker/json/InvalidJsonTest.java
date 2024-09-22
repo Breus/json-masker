@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,7 +59,10 @@ class InvalidJsonTest {
 
     private void maskStreamsWithinTimeLimit(String json) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(() -> jsonMasker.mask(new ByteArrayInputStream(json.getBytes()), new ByteArrayOutputStream()));
+        Future<?> future = executor.submit(() -> jsonMasker.mask(
+                new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayOutputStream()
+        ));
         try {
             future.get(50, TimeUnit.MILLISECONDS);
         } catch (ExecutionException e) {

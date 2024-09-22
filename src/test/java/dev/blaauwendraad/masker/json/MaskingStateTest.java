@@ -39,7 +39,7 @@ class MaskingStateTest {
         Assertions.assertThat(maskingState).hasToString("""
                  value"
                 }
-                ><end of json>
+                ><end of buffer>
                 """.stripTrailing());
     }
 
@@ -66,7 +66,7 @@ class MaskingStateTest {
                 }
                 """.getBytes(StandardCharsets.UTF_8), false);
 
-        Assertions.assertThatThrownBy(() -> maskingState.getCurrentValueStartIndex())
+        Assertions.assertThatThrownBy(maskingState::getCurrentTokenStartIndex)
                 .isInstanceOf(IllegalStateException.class);
     }
 
@@ -90,4 +90,5 @@ class MaskingStateTest {
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessage("Didn't like the value at index 3 at index 19");
     }
+
 }

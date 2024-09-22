@@ -2,6 +2,9 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
@@ -38,6 +41,17 @@ public interface JsonMasker {
      * @throws InvalidJsonException in case invalid JSON input was provided
      */
     byte[] mask(byte[] input);
+
+    /**
+     * Masks the given JSON input stream and writes the result into the output stream.
+     *
+     * @param inputStream  the JSON input stream
+     * @param outputStream masked JSON output stream
+     * @throws InvalidJsonException in case invalid JSON input was provided
+     * @throws UncheckedIOException if an I/O error occurs while reading from the input stream or writing to the output
+     *                              stream
+     */
+    void mask(InputStream inputStream, OutputStream outputStream);
 
     /**
      * Masks the given JSON input and returns the masked output.

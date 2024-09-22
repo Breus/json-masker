@@ -7,18 +7,22 @@
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON masker library which can be used to mask (sensitive) values inside JSON corresponding to a set of keys (**block-mode**)
-or, alternatively, allow only specific values to be unmasked corresponding to a set of keys while all others are
-masked (**allow-mode**).
+JSON Masker library allows for highly flexible masking of sensitive data in JSON, supporting two modes:
 
-The library provides modern and convenient Java APIs which offers a wide range of masking customizations.
-Furthermore, the implementation is focused on maximizing the throughput and minimizing heap memory allocations to minimize
-GC pressure.
+* Block Mode: Mask values corresponding to a specified set of keys.
+* Allow Mode: Unmask only the values corresponding to specified keys, while masking all others.
 
-Finally, no additional third-party runtime dependencies are required to use this library.
+The library provides modern and convenient Java APIs, offering extensive masking customizations. It includes both 
+streaming and in-memory APIs to cater to various use cases.
+
+The library is designed for high throughput and efficient memory usage, it minimizes heap allocations to reduce GC 
+pressure.
+
+Finally, no additional third-party runtime dependencies  are required to use this library.
 
 ## Features
 
+* Mask a user-provided stream of JSON and write it to a user-provided output stream 
 * Mask all primitive values by specifying the keys to mask, by default any `string` is masked as `"***"`, any `number`
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
@@ -330,6 +334,23 @@ String maskedJson = jsonMasker.mask(json);
   }
 }
 ```
+
+### Masking with the streaming API
+To mask (potentially) large JSON input, the streaming API can be used. 
+
+All features of the JsonMasker work exactly the same for the streaming API and the (default) in-memory API. 
+
+#### Usage
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .maskKeys(Set.of("email", "iban"))
+                .build()
+);
+
+jsonMasker.mask(jsonInputStream, jsonOutputStream);
+```
+
 
 ### Masking with JSONPath
 
@@ -730,9 +751,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ## Dependencies
 
-* **The library has no third-party runtime dependencies**
-* The library only has a single JSR-305 compilation dependency for nullability annotations
-* The test/benchmark dependencies for this library are listed in the `build.gradle`
+**The library has no third-party runtime dependencies**
 
 ## Performance
 

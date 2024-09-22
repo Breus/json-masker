@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 final class FuzzingTest {
     private static final Set<String> DEFAULT_TARGET_KEYS = Set.of("targetKey1", "targetKey2", "targetKey3");
@@ -47,11 +46,7 @@ final class FuzzingTest {
                 String randomJsonString = formatter.format(randomJsonNode);
                 String jacksonMaskingOutput = ParseAndMaskUtil.mask(randomJsonString, jsonMaskingConfig).toString();
                 try {
-                    String keyContainsOutput = masker.mask(randomJsonString);
-                    // parsing again by jackson to get canonical representation
-                    assertThat(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(keyContainsOutput))
-                            .as("Failed for input: " + randomJsonString)
-                            .isEqualTo(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(jacksonMaskingOutput));
+                    JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(masker, randomJsonString, jacksonMaskingOutput, true);
                 } catch (Exception e) {
                     throw new IllegalStateException("Failed for input: " + randomJsonString, e);
                 }

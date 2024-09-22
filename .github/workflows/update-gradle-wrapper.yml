@@ -21,6 +21,7 @@ jobs:
 
       - uses: gradle-update/update-gradle-wrapper-action@v1
         with:
+          repo-token: ${{ secrets.UPDATE_GRADLE_WRAPPER_PAT }}
           labels: dependencies
 
       - uses: gradle/actions/wrapper-validation@v4

@@ -42,7 +42,7 @@ jobs:
           output-file-path: jmh-result.json
           benchmark-data-dir-path: data
           github-token: ${{ env.GITHUB_PAT_1 }}${{ env.GITHUB_PAT_2 }}
-          gh-repository: gavlyukovskiy/json-masker-benchmarks
+          gh-repository: github.com/gavlyukovskiy/json-masker-benchmarks
           alert-threshold: '120%'
           comment-on-alert: true
           comment-always: true

@@ -1,9 +1,16 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -14,6 +21,24 @@ import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.getUnicode
 import static dev.blaauwendraad.masker.json.util.JsonStringCharacters.mergeCharSets;
 
 public class BenchmarkUtils {
+
+    public static final int TARGET_KEYS_SIZE = 2385;
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    public static List<String> loadSampleTargetKeys() {
+        try {
+            URL targetKeyFileUrl = RandomJsonGenerator.class.getResource("/target_keys.json");
+            List<String> targetKeyList = new ArrayList<>();
+            BenchmarkUtils.OBJECT_MAPPER.readValue(targetKeyFileUrl, ArrayNode.class).forEach(t -> targetKeyList.add(t.textValue()));
+
+            if (targetKeyList.size() != BenchmarkUtils.TARGET_KEYS_SIZE) {
+                throw new IllegalArgumentException("Number of keys does not match, please adjust the constant");
+            }
+            return targetKeyList;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     public static int parseSize(String size) {
         // use regex to parse the jsonSize param

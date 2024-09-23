@@ -32,7 +32,7 @@ public class LargeKeySetInstanceCreationBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({"1", "100", "1000", "10000"})
+        @Param({"100", "1000", "10000"})
         int numberOfTargetKeys;
 
         @Param({"10", "100", "1000"})

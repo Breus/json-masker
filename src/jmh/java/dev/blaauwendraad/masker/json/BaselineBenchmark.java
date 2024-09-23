@@ -35,11 +35,11 @@ public class BaselineBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({ "1kb", "128kb", "2mb" })
+        @Param({ "1kb", "32kb", "1mb" })
         String jsonSize;
-        @Param({ "ascii", "unicode" })
+        @Param({ "unicode" })
         String characters;
-        @Param({ "0.01" })
+        @Param({ "0.1" })
         double maskedKeyProbability;
 
         private Set<String> targetKeys;

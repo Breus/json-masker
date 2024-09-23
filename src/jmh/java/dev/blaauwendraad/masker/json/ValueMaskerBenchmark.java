@@ -28,8 +28,7 @@ public class ValueMaskerBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-
-        @Param({ "1kb", "128kb" })
+        @Param({ "1kb", "32kb", "1mb" })
         String jsonSize;
         @Param({ "unicode" })
         String characters;

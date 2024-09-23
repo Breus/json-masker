@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew jmhJar
 
       - name: Run JMH benchmark
-        run: java -jar build/libs/json-masker-*-jmh.jar -wi 1 -i 3 -f 1 -rf json
+        run: java -jar build/libs/json-masker-*-jmh.jar -wi 1 -i 3 -f 1 -rf json "KeyMatcherBenchmark.*"
 
       - name: Update benchmark results
         uses: benchmark-action/github-action-benchmark@v1
@@ -47,7 +47,4 @@ jobs:
           comment-on-alert: true
           comment-always: true
           fail-on-alert: true
-
-      - name: Push benchmark result
-        if: github.event_name != 'pull_request'
-        run: git push 'https://git:${{ env.GITHUB_PAT_1 }}${{ env.GITHUB_PAT_2 }}@github.com/gavlyukovskiy/json-masker-benchmarks.git' gh-pages:gh-pages
+          auto-push: ${{ github.event_name != 'pull_request' }}

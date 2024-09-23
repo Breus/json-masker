@@ -303,12 +303,8 @@ final class KeyMatcher {
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                            && i
-                                    <= offset
-                                            + length
-                                            - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
-                            && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with
-                            // \\u)
+                            && i <= offset + length - 6 // -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions
+                            && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
                             && bytes[i + 1] == 'u') {
                         char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {

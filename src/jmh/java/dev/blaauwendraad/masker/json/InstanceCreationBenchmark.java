@@ -1,6 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -40,7 +39,7 @@ public class InstanceCreationBenchmark {
         public synchronized void setup() {
             List<String> targetKeyList = BenchmarkUtils.loadSampleTargetKeys();
             if (numberOfTargetKeys <= targetKeyList.size()) {
-                Collections.shuffle(targetKeyList, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
+                Collections.shuffle(targetKeyList, new Random(1285756302517652226L));
                 targetKeys = targetKeyList.stream().limit(numberOfTargetKeys).collect(Collectors.toSet());
             } else {
                 targetKeys = new HashSet<>(targetKeyList);

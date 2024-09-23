@@ -42,7 +42,7 @@ public class LargeKeySetInstanceCreationBenchmark {
 
         @Setup
         public synchronized void setup() throws IOException {
-            Random random = new Random(RandomJsonGenerator.STATIC_RANDOM_SEED);
+            Random random = new Random(1285756302517652226L);
             List<Character> characters =
                     JsonStringCharacters.mergeCharSets(
                                     JsonStringCharacters.getPrintableAsciiCharacters(),

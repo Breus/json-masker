@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import dev.blaauwendraad.masker.json.util.JsonPathTestUtils;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -67,7 +66,7 @@ public class StreamTypeBenchmark {
 
             // create a masker
             JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
-            builder.maskJsonPaths(JsonPathTestUtils.transformToJsonPathKeys(targetKeys, new String(json, StandardCharsets.UTF_8)));
+            builder.maskJsonPaths(BenchmarkUtils.transformToJsonPathKeys(targetKeys, new String(json, StandardCharsets.UTF_8)));
 
             jsonMasker = JsonMasker.getMasker(builder.build());
         }

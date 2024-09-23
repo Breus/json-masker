@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - uses: gradle-update/update-gradle-wrapper-action@v1
+      - uses: gradle-update/update-gradle-wrapper-action@v2
         with:
           repo-token: ${{ secrets.UPDATE_GRADLE_WRAPPER_PAT }}
           labels: dependencies

@@ -251,6 +251,16 @@ final class KeyMatcher {
         }
     }
 
+    /**
+     * Searches the trie node by the key offset in the byte array. The node returned might be a prefix,
+     * so {@link TrieNode#endOfWord} needs to be checked additionally for full key matching.
+     *
+     * @param from from which node to do the search, either root node or existing json path node
+     * @param bytes the byte array containing the key to be matched
+     * @param offset offset of the key in the bytes array
+     * @param length length of the key in the bytes array
+     * @return the node if found, {@code null} otherwise.
+     */
     @Nullable
     private TrieNode searchNode(TrieNode from, byte[] bytes, int offset, int length) {
         TrieNode node = from;

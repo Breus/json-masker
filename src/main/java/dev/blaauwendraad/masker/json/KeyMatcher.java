@@ -217,12 +217,12 @@ final class KeyMatcher {
             // check JSONPath first, as it's more specific
             // if found - mask with this config
             // if not found - do not mask
-            if (node != null && node.endOfWord && !node.negativeMatch) {
+            if (node != null && node.endOfWord) {
                 return node.keyMaskingConfig;
             } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
-                node = searchNode(bytes, keyOffset, keyLength);
-                if (node != null && !node.negativeMatch) {
+                node = searchNode(root, bytes, keyOffset, keyLength);
+                if (node != null && node.endOfWord) {
                     return node.keyMaskingConfig;
                 }
             }
@@ -239,8 +239,8 @@ final class KeyMatcher {
                 return null;
             } else if (keyLength != SKIP_KEY_LOOKUP) {
                 // also check regular key
-                node = searchNode(bytes, keyOffset, keyLength);
-                if (node != null) {
+                node = searchNode(root, bytes, keyOffset, keyLength);
+                if (node != null && node.endOfWord) {
                     if (node.negativeMatch) {
                         return node.keyMaskingConfig;
                     }
@@ -251,19 +251,29 @@ final class KeyMatcher {
         }
     }
 
+    /**
+     * Searches the trie node by the key offset in the byte array. The node returned might be a prefix,
+     * so {@link TrieNode#endOfWord} needs to be checked additionally for full key matching.
+     *
+     * @param from from which node to do the search, either root node or existing json path node
+     * @param bytes the byte array containing the key to be matched
+     * @param offset offset of the key in the bytes array
+     * @param length length of the key in the bytes array
+     * @return the node if found, {@code null} otherwise.
+     */
     @Nullable
-    private TrieNode searchNode(byte[] bytes, int offset, int length) {
-        TrieNode node = root;
+    private TrieNode searchNode(TrieNode from, byte[] bytes, int offset, int length) {
+        TrieNode node = from;
 
-        for (int i = offset; i < offset + length; i++) {
-            byte b = bytes[i];
+        int endIndex = offset + length;
+        for (int i = offset; i < endIndex; i++) {
             // every character of the input key can be escaped \\uXXXX, but since the KeyMatcher uses byte
             // representation of non-escaped characters of the key (e.g. 'key' -> [107, 101, 121]) in UTF-16 format,
             // we need to make sure to transform individual escaped characters into bytes before matching them against
             // the trie.
             // Any escaped character (6 bytes from the input) represents 1 to 4 bytes of unescaped key,
             // each of the bytes has to be matched against the trie to return a TrieNode
-            if (b == '\\' && bytes[i + 1] == 'u' && i <= offset + length - 6) {
+            if (isEncodedCharacter(bytes, i, endIndex)) {
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
@@ -293,13 +303,7 @@ final class KeyMatcher {
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                            && i
-                                    <= offset
-                                            + length
-                                            - 6 /* -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
-                            && bytes[i] == '\\' // the high surrogate must be followed by a low surrogate (starting with
-                            // \\u)
-                            && bytes[i + 1] == 'u') {
+                        && isEncodedCharacter(bytes, i, endIndex)) {
                         char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {
                             codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
@@ -327,6 +331,7 @@ final class KeyMatcher {
                 }
                 i--; // to offset loop increment
             } else {
+                byte b = bytes[i];
                 node = node.child(b);
             }
 
@@ -335,11 +340,16 @@ final class KeyMatcher {
             }
         }
 
-        if (!node.endOfWord) {
-            return null;
-        }
-
         return node;
+    }
+
+    /**
+     * Returns whether the current index contains encoded character, e.g. '\\u0000'
+     */
+    private static boolean isEncodedCharacter(byte[] bytes, int fromIndex, int toIndex) {
+        // -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes)
+        // to prevent possible ArrayIndexOutOfBoundsExceptions
+        return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
     @Nullable TrieNode getJsonPathRootNode() {
@@ -371,14 +381,7 @@ final class KeyMatcher {
         if (wildcardLookAhead != null && (wildcardLookAhead.endOfWord || wildcardLookAhead.child((byte) '.') != null)) {
             return wildcardLookAhead;
         }
-        for (int i = keyOffset; i < keyOffset + keyLength; i++) {
-            byte b = bytes[i];
-            current = current.child(b);
-            if (current == null) {
-                return null;
-            }
-        }
-        return current;
+        return searchNode(current, bytes, keyOffset, keyLength);
     }
 
     /**

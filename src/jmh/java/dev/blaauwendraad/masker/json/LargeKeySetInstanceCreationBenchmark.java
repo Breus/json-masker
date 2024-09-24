@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
- @OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class LargeKeySetInstanceCreationBenchmark {
 
@@ -42,7 +42,7 @@ public class LargeKeySetInstanceCreationBenchmark {
 
         @Setup
         public synchronized void setup() throws IOException {
-            Random random = new Random(1285756302517652226L);
+            Random random = new Random(BenchmarkUtils.STATIC_RANDOM_SEED);
             List<Character> characters =
                     JsonStringCharacters.mergeCharSets(
                                     JsonStringCharacters.getPrintableAsciiCharacters(),

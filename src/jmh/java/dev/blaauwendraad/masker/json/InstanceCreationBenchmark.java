@@ -39,7 +39,7 @@ public class InstanceCreationBenchmark {
         public synchronized void setup() {
             List<String> targetKeyList = BenchmarkUtils.loadSampleTargetKeys();
             if (numberOfTargetKeys <= targetKeyList.size()) {
-                Collections.shuffle(targetKeyList, new Random(1285756302517652226L));
+                Collections.shuffle(targetKeyList, new Random(BenchmarkUtils.STATIC_RANDOM_SEED));
                 targetKeys = targetKeyList.stream().limit(numberOfTargetKeys).collect(Collectors.toSet());
             } else {
                 targetKeys = new HashSet<>(targetKeyList);

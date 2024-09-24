@@ -50,7 +50,7 @@ public class BaselineBenchmark {
         @Setup
         public synchronized void setup() {
             targetKeys = BenchmarkUtils.getTargetKeys(20);
-            jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
+            jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability).toString();
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 
             regexList = targetKeys.stream()

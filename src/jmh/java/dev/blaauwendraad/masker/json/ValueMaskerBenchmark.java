@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -60,8 +61,8 @@ public class ValueMaskerBenchmark {
 
         @Setup
         public synchronized void setup() {
-            String jsonString = BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
-            jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+            JsonNode jsonNode = BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
+            jsonBytes = jsonNode.toString().getBytes(StandardCharsets.UTF_8);
         }
     }
 

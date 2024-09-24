@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -56,7 +57,8 @@ public class StreamTypeBenchmark {
         public synchronized void setup() throws IOException {
             // prepare a json
             Set<String> targetKeys = BenchmarkUtils.getTargetKeys(20);
-            json = BenchmarkUtils.randomJson(targetKeys, jsonSize, "unicode", 0.1).getBytes(StandardCharsets.UTF_8);
+            JsonNode jsonNode = BenchmarkUtils.randomJson(targetKeys, jsonSize, "unicode", 0.1);
+            json = jsonNode.toString().getBytes(StandardCharsets.UTF_8);
 
             // prepare an input file for FileStreams
             try (FileWriter inputFileWriter = new FileWriter(INPUT_FILE_STREAM_NAME)) {
@@ -66,7 +68,7 @@ public class StreamTypeBenchmark {
 
             // create a masker
             JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
-            builder.maskJsonPaths(BenchmarkUtils.transformToJsonPathKeys(targetKeys, new String(json, StandardCharsets.UTF_8)));
+            builder.maskJsonPaths(BenchmarkUtils.collectJsonPaths(jsonNode, targetKeys));
 
             jsonMasker = JsonMasker.getMasker(builder.build());
         }

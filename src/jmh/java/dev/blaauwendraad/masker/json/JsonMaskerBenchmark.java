@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -45,12 +46,13 @@ public class JsonMaskerBenchmark {
         @Setup
         public synchronized void setup() {
             Set<String> targetKeys = BenchmarkUtils.getTargetKeys(20);
-            jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
+            JsonNode randomJson = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
+            jsonString = randomJson.toString();
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 
             JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
             if (jsonPath) {
-                builder.maskJsonPaths(BenchmarkUtils.transformToJsonPathKeys(targetKeys, jsonString));
+                builder.maskJsonPaths(BenchmarkUtils.collectJsonPaths(randomJson, targetKeys));
             } else {
                 builder.maskKeys(targetKeys);
             }

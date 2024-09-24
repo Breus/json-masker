@@ -273,7 +273,7 @@ final class KeyMatcher {
             // the trie.
             // Any escaped character (6 bytes from the input) represents 1 to 4 bytes of unescaped key,
             // each of the bytes has to be matched against the trie to return a TrieNode
-            if (isEncodedCharacter(i, bytes, endIndex)) {
+            if (isEncodedCharacter(bytes, i, endIndex)) {
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
@@ -303,7 +303,7 @@ final class KeyMatcher {
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                        && isEncodedCharacter(i, bytes, endIndex)) {
+                        && isEncodedCharacter(bytes, i, endIndex)) {
                         char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {
                             codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
@@ -346,10 +346,10 @@ final class KeyMatcher {
     /**
      * Returns whether the current index contains encoded character, e.g. '\\u0000'
      */
-    private static boolean isEncodedCharacter(int i, byte[] bytes, int endIndex) {
+    private static boolean isEncodedCharacter(byte[] bytes, int fromIndex, int toIndex) {
         // -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes)
         // to prevent possible ArrayIndexOutOfBoundsExceptions
-        return i <= endIndex - 6 && bytes[i] == '\\' && bytes[i + 1] == 'u';
+        return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
     @Nullable TrieNode getJsonPathRootNode() {

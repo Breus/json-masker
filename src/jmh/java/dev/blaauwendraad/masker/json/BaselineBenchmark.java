@@ -76,7 +76,7 @@ public class BaselineBenchmark {
 
     @Benchmark
     public void writeFile(State state) throws IOException {
-        try (FileWriter fileWriter = new FileWriter("file.json")) {
+        try (FileWriter fileWriter = new FileWriter("file.json", StandardCharsets.UTF_8)) {
             fileWriter.write(state.jsonString);
         }
     }

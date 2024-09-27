@@ -18,9 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 3)
+@Measurement(iterations = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class ValueMaskerBenchmark {

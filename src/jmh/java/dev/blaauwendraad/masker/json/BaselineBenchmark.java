@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 3)
+@Measurement(iterations = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class BaselineBenchmark {

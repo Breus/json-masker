@@ -59,7 +59,7 @@ jobs:
             core.setOutput('sleep', commitIndex * 10)
             
             // checking ValueMaskers availability
-            if (allCommits.indexOf(currentCommit) < allCommits.indexOf('7bc09acfdf5f331ba6baa56bdb866987aeb6f90e')) {
+            if (allCommits.indexOf(currentCommit) < allCommits.indexOf('c0e63df3c186be9a7fa4c11ed385d8cbedfd4e8f')) {
               fs.unlinkSync('src/jmh/java/dev/blaauwendraad/masker/json/ValueMaskerBenchmark.java')
             }
             // checking streaming availability
@@ -91,7 +91,7 @@ jobs:
         run: ./gradlew jmhJar
 
       - name: Run JMH benchmark
-        run: java -jar build/libs/json-masker-*-jmh.jar -wi 1 -i 3 -f 1 -rf json
+        run: java -jar build/libs/json-masker-*-jmh.jar -wi 1 -i 4 -f 1 -rf json
 
       - name: Update benchmark results
         uses: benchmark-action/github-action-benchmark@v1

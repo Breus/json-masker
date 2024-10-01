@@ -47,7 +47,7 @@ class MaskingStateTest {
     void jsonPathExceedsCapacity() {
         MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
         for (int i = 0; i < 101; i++) {
-            maskingState.expandCurrentJsonPath(KeyMatcher.transform(new KeyMatcher.PreInitTrieNode()));
+            maskingState.expandCurrentJsonPath(new KeyMatcher.StatefulRadixTrieNode(KeyMatcher.compress(new KeyMatcher.PreInitTrieNode())));
         }
         Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNotNull();
     }

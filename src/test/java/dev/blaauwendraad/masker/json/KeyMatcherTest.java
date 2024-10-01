@@ -111,7 +111,7 @@ final class KeyMatcherTest {
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
+        var node = keyMatcher.getJsonPathRootNode();
         node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
         node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
         assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNotNull();
@@ -150,7 +150,7 @@ final class KeyMatcherTest {
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
+        var node = keyMatcher.getJsonPathRootNode();
         node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
         node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
         node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
@@ -184,7 +184,7 @@ final class KeyMatcherTest {
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
+        var node = keyMatcher.getJsonPathRootNode();
         node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 4);
         assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
 
@@ -206,7 +206,7 @@ final class KeyMatcherTest {
                 """;
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
+        var node = keyMatcher.getJsonPathRootNode();
         node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 7);
         assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
 
@@ -254,5 +254,31 @@ final class KeyMatcherTest {
             throw new IllegalStateException("Byte array must contain the char");
         }
         return found;
+    }
+
+    @Test
+    void printsNicely() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowKeys("romane", "romanus", "romulus", "rubens", "ruber", "rubicon", "rubicondus")
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+        assertThat(keyMatcher.printTree())
+                .isEqualTo("""
+                           r -> om -> an -> e
+                                         -> us
+                                   -> ulus
+                             -> ub -> e -> ns
+                                        -> r
+                                   -> icon -> dus
+                           """);
+    }
+
+    @Test
+    void printsEmpty() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowKeys()
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+        assertThat(keyMatcher.printTree()).isEqualTo("\n");
     }
 }

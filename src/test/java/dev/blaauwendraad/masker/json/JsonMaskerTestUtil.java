@@ -39,8 +39,8 @@ public final class JsonMaskerTestUtil {
                 applyConfig(jsonMaskingConfig, builder);
             }
             JsonMaskingConfig maskingConfig = builder.build();
-            var input = jsonNode.get("input").toString();
-            var expectedOutput = jsonNode.get("expectedOutput").toString();
+            var input = jsonNode.get("input").toPrettyString();
+            var expectedOutput = jsonNode.get("expectedOutput").toPrettyString();
             testInstances.add(new JsonMaskerTestInstance(input, expectedOutput, new KeyContainsMasker(maskingConfig)));
         }
         return testInstances;

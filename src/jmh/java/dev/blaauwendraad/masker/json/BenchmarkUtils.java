@@ -137,9 +137,7 @@ public class BenchmarkUtils {
      * @param jsonPaths the input list of jsonpath keys
      * @return disambiguated set of jsonpath keys
      */
-public static Set<String> disambiguate(Set<String> jsonPaths) {
-    while (true) {
-        Set<String> disambiguated = new HashSet<>(jsonPaths);
+    public static Set<String> disambiguate(Set<String> jsonPaths) {
         List<String> jsonPathKeys = new ArrayList<>(jsonPaths);
         Collections.sort(jsonPathKeys);
         JsonPathParser jsonPathParser = new JsonPathParser();
@@ -149,13 +147,10 @@ public static Set<String> disambiguate(Set<String> jsonPaths) {
             try {
                 jsonPathParser.checkAmbiguity(Set.of(jsonPathParser.parse(current), jsonPathParser.parse(next)));
             } catch (IllegalArgumentException ignore) {
-                disambiguated.remove(current);
+                jsonPathKeys.remove(next);
+                i--;
             }
         }
-        if (disambiguated.size() == jsonPaths.size()) {
-            return disambiguated;
-        }
-        jsonPaths = disambiguated;
+        return new HashSet<>(jsonPathKeys);
     }
-}
 }

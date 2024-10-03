@@ -44,7 +44,8 @@ final class KeyContainsMasker implements JsonMasker {
     @Override
     public byte[] mask(byte[] input) {
         MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
-        return mask(maskingState);
+        mask(maskingState);
+        return maskingState.flushReplacementOperations();
     }
 
     /**
@@ -57,11 +58,12 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public void mask(InputStream inputStream, OutputStream outputStream) {
-        MaskingState maskingState = new MaskingState(inputStream, outputStream, !maskingConfig.getTargetJsonPaths().isEmpty(), maskingConfig.bufferSize());
+        var maskingState = new BufferedMaskingState(inputStream, outputStream, !maskingConfig.getTargetJsonPaths().isEmpty(), maskingConfig.bufferSize());
         mask(maskingState);
+        maskingState.flushCurrentBuffer();
     }
 
-    private byte[] mask(MaskingState maskingState) {
+    private void mask(MaskingState maskingState) {
         try {
             KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
             if (maskingState.jsonPathEnabled()) {
@@ -75,9 +77,6 @@ final class KeyContainsMasker implements JsonMasker {
                     maskingState.next();
                 }
             }
-            maskingState.flushCurrentBuffer();
-
-            return maskingState.flushReplacementOperations();
         } catch (ArrayIndexOutOfBoundsException | StackOverflowError e) {
             throw new InvalidJsonException("Invalid JSON input provided: %s".formatted(e.getMessage()), e);
         }

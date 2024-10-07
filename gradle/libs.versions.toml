@@ -1,5 +1,5 @@
 [versions]
-junit = "5.11.1"
+junit = "5.11.2"
 jmh = "1.37"
 
 [libraries]

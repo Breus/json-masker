@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 3)
+@Measurement(iterations = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class BaselineBenchmark {
@@ -35,11 +35,11 @@ public class BaselineBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({ "1kb", "128kb", "2mb" })
+        @Param({ "1kb", "32kb", "1mb" })
         String jsonSize;
-        @Param({ "ascii", "unicode" })
+        @Param({ "unicode" })
         String characters;
-        @Param({ "0.01" })
+        @Param({ "0.1" })
         double maskedKeyProbability;
 
         private Set<String> targetKeys;
@@ -50,7 +50,7 @@ public class BaselineBenchmark {
         @Setup
         public synchronized void setup() {
             targetKeys = BenchmarkUtils.getTargetKeys(20);
-            jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability);
+            jsonString = BenchmarkUtils.randomJson(targetKeys, jsonSize, characters, maskedKeyProbability).toString();
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 
             regexList = targetKeys.stream()

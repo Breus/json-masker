@@ -22,17 +22,17 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 3)
- @OutputTimeUnit(TimeUnit.SECONDS)
+@Measurement(iterations = 1)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class LargeKeySetInstanceCreationBenchmark {
 
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({"1", "100", "1000", "10000"})
+        @Param({"100", "1000", "10000"})
         int numberOfTargetKeys;
 
         @Param({"10", "100", "1000"})
@@ -42,7 +42,7 @@ public class LargeKeySetInstanceCreationBenchmark {
 
         @Setup
         public synchronized void setup() throws IOException {
-            Random random = new Random(RandomJsonGenerator.STATIC_RANDOM_SEED);
+            Random random = new Random(BenchmarkUtils.STATIC_RANDOM_SEED);
             List<Character> characters =
                     JsonStringCharacters.mergeCharSets(
                                     JsonStringCharacters.getPrintableAsciiCharacters(),

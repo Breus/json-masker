@@ -264,13 +264,13 @@ final class KeyMatcherTest {
         KeyMatcher keyMatcher = new KeyMatcher(config);
         assertThat(keyMatcher.printTree())
                 .isEqualTo("""
-                           r -> om -> an -> e
-                                         -> us
-                                   -> ulus
-                             -> ub -> e -> ns
-                                        -> r
-                                   -> icon -> dus
-                           """);
+                        r -> om -> an -> e
+                                      -> us
+                                -> ulus
+                          -> ub -> e -> ns
+                                     -> r
+                                -> icon -> dus
+                        """);
     }
 
     @Test
@@ -280,5 +280,26 @@ final class KeyMatcherTest {
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
         assertThat(keyMatcher.printTree()).isEqualTo("\n");
+    }
+
+    @Test
+    void compressPreInitTrie() {
+        // Given, the target keys "breus" and "bruce"
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("breus", "bruce").build());
+
+        KeyMatcher.PreInitTrieNode preInitTrieNode = new KeyMatcher.PreInitTrieNode();
+        keyMatcher.insert(preInitTrieNode, "breus", false);
+        keyMatcher.insert(preInitTrieNode, "bruce", false);
+
+        // When
+        KeyMatcher.RadixTrieNode trieNode = KeyMatcher.compress(preInitTrieNode);
+
+        // Then, should become the following compressed radix Trie:
+        // br -> eus
+        //    -> uce
+        assertThat(trieNode.prefixLowercase).isEqualTo("br".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.prefixUppercase).isEqualTo("BR".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.child((byte) 'e', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("us".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.child((byte) 'u', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("ce+".getBytes(StandardCharsets.UTF_8));
     }
 }

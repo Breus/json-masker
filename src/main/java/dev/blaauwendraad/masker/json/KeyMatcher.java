@@ -14,8 +14,8 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 /**
- * This key matcher is build using a byte trie structure to optimize the look-ups for JSON keys in
- * the target key set.
+ * This key matcher is build using a byte radix trie structure to optimize the look-ups for JSON keys
+ * in the target key set.
  *
  * <p>The main idea is that we need to know whether a JSON key is in the target key set. One could
  * do a contains on the hash set, which would compute a hashcode for the whole key before doing a
@@ -32,20 +32,26 @@ import java.util.TreeMap;
  *       incoming key
  * </ul>
  *
- * <p>For masking, we only care whether the key matched or not, so we can use a trie to optimize the
- * look-ups.
+ * <p>For masking, we only care whether the key matched or not, so we can use a radix trie to
+ * optimize the look-ups.
  *
- * <p>Further, at initialization time, a case-insensitive trie is created such that any casing
+ * <p>Further, at initialization time, a case-insensitive radix trie is created such that any casing
  * transformations on the looked-up keys during search are avoided.
  *
- * <p>We can also make a trie that looks at bytes instead of characters, so that we can use the
- * bytes and offsets directly in the incoming JSON for comparison and make sure there are no
+ * <p>We can also make a radix trie that looks at bytes instead of characters, so that we can use
+ * the bytes and offsets directly in the incoming JSON for comparison and make sure there are no
  * allocations at all.
  */
 final class KeyMatcher {
     private static final int SKIP_KEY_LOOKUP = -1;
     private final JsonMaskingConfig maskingConfig;
-    private final TrieNode root;
+    /**
+     * Used for look-ups without JSONPaths being used
+     */
+    private final RadixTrieNode root;
+    /**
+     * Used for look-ups in combination with JSONPaths
+     */
     private final StatefulRadixTrieNode statefulRoot;
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
@@ -64,69 +70,78 @@ final class KeyMatcher {
 
     /**
      * Compresses a pre-initialization trie node into a permanent {@link KeyMatcher} radix trie
-     * node. Compression occurs only when a node has multiple children sharing a longest common
+     * node. Compression occurs only when a node has multiple children sharing the longest common
      * prefix. In such cases, the common prefix is merged into a continuous prefix to reduce memory
      * usage and optimize the lookups.
      *
-     * @param node the node to be compressed
-     * @return the compressed pre-initialization trie into a post-initialization trie
+     * @param node the pre-initialization trie node to be compressed
+     * @return the compressed pre-initialization trie into a post-initialization radix trie node
      */
-    static TrieNode compress(PreInitTrieNode node) {
+    static RadixTrieNode compress(PreInitTrieNode node) {
         List<byte[]> commonPrefix = new ArrayList<>();
         while (true) {
-            if (node.endOfWord || node.children.size() != 1) {
-                return convertToRadixNode(node, commonPrefix);
+            if (node.endOfWord || node.childrenLowercase.size() != 1) {
+                // If there is more than one child node, the prefix is no longer common and can be converted to a radix trie node
+                // Alternatively, if the end of the node is reached, it can also be converted to a radix trie node
+                return convertToRadixTrieNode(node, commonPrefix);
             }
             var childBytes = new byte[2];
             commonPrefix.add(childBytes);
-            childBytes[0] = node.children.firstKey();
-            if (!node.childrenUpper.isEmpty()) {
-                childBytes[1] = node.childrenUpper.firstKey();
+            childBytes[0] = node.childrenLowercase.firstKey();
+            if (!node.childrenUppercase.isEmpty()) {
+                childBytes[1] = node.childrenUppercase.firstKey();
             }
 
-            node = node.children.firstEntry().getValue();
+            node = node.childrenLowercase.firstEntry().getValue();
         }
     }
 
-    private static TrieNode convertToRadixNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
+    /**
+     * This method is used to convert the common prefix and the pre-initialization into a compresed radix trie node
+     *
+     * @param node         the pre-initialization node
+     * @param commonPrefix the common prefix in 2-length byte array for lower and upper case, e.g.: {[b,B], [r,R], [e,E]}
+     * @return the resulting radix trie node
+     */
+    private static RadixTrieNode convertToRadixTrieNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
         // reached the end of prefix, create a new node
-        byte[] prefix = new byte[commonPrefix.size()];
-        byte[] prefixUpper = new byte[commonPrefix.size()];
+        byte[] prefixLowercase = new byte[commonPrefix.size()];
+        byte[] prefixUppercase = new byte[commonPrefix.size()];
         for (int i = 0; i < commonPrefix.size(); i++) {
             byte[] prefixes = commonPrefix.get(i);
-            prefix[i] = prefixes[0];
-            prefixUpper[i] = prefixes[1];
+            prefixLowercase[i] = prefixes[0];
+            prefixUppercase[i] = prefixes[1];
         }
 
-        TrieNode radixNode = new TrieNode(prefix, prefixUpper);
+        RadixTrieNode radixNode = new RadixTrieNode(prefixLowercase, prefixUppercase);
         radixNode.endOfWord = node.endOfWord;
         radixNode.negativeMatch = node.negativeMatch;
         radixNode.keyMaskingConfig = node.keyMaskingConfig;
-        if (!node.children.isEmpty()) {
-            Map<PreInitTrieNode, TrieNode> transformedNodes = new HashMap<>();
-            int childrenArrayOffset = node.children.firstKey();
-            int childrenArraySize = node.children.lastKey() - childrenArrayOffset + 1;
-            int childrenUpperArrayOffset = -1;
-            int childrenUpperArraySize = 0;
-            if (!node.childrenUpper.isEmpty()) {
-                childrenUpperArrayOffset = node.childrenUpper.firstKey();
-                childrenUpperArraySize = node.childrenUpper.lastKey() - childrenUpperArrayOffset + 1;
+        if (!node.childrenLowercase.isEmpty()) {
+            Map<PreInitTrieNode, RadixTrieNode> transformedNodes = new HashMap<>();
+            int childrenLowercaseArrayOffset = node.childrenLowercase.firstKey();
+            int childrenLowercaseArraySize = node.childrenLowercase.lastKey() - childrenLowercaseArrayOffset + 1;
+            int childrenUppercaseArrayOffset = -1;
+            int childrenUppercaseArraySize = 0;
+            if (!node.childrenUppercase.isEmpty()) {
+                childrenUppercaseArrayOffset = node.childrenUppercase.firstKey();
+                childrenUppercaseArraySize = node.childrenUppercase.lastKey() - childrenUppercaseArrayOffset + 1;
             }
-            radixNode.childrenArrayOffset = childrenArrayOffset;
-            radixNode.children = new TrieNode[childrenArraySize];
-            radixNode.childrenUpperArrayOffset = childrenUpperArrayOffset;
-            radixNode.childrenUpper = new TrieNode[childrenUpperArraySize];
+            radixNode.childrenLowercaseArrayOffset = childrenLowercaseArrayOffset;
+            radixNode.childrenLowercase = new RadixTrieNode[childrenLowercaseArraySize];
+            radixNode.childrenUppercaseArrayOffset = childrenUppercaseArrayOffset;
+            radixNode.childrenUppercase = new RadixTrieNode[childrenUppercaseArraySize];
 
-            for (Map.Entry<Byte, PreInitTrieNode> e : node.children.entrySet()) {
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.childrenLowercase.entrySet()) {
                 byte b = e.getKey();
-                var child = e.getValue();
-                radixNode.children[b - radixNode.childrenArrayOffset] = transformedNodes.computeIfAbsent(child, KeyMatcher::compress);
+                PreInitTrieNode childNode = e.getValue();
+                radixNode.childrenLowercase[b - radixNode.childrenLowercaseArrayOffset] = transformedNodes.computeIfAbsent(childNode, KeyMatcher::compress);
             }
 
-            for (Map.Entry<Byte, PreInitTrieNode> e : node.childrenUpper.entrySet()) {
+            for (Map.Entry<Byte, PreInitTrieNode> e : node.childrenUppercase.entrySet()) {
                 byte b = e.getKey();
-                var child = e.getValue();
-                radixNode.childrenUpper[b - radixNode.childrenUpperArrayOffset] = transformedNodes.computeIfAbsent(child, KeyMatcher::compress);
+                PreInitTrieNode childNode = e.getValue();
+                radixNode.childrenUppercase[b - radixNode.childrenUppercaseArrayOffset] = transformedNodes.computeIfAbsent(childNode, KeyMatcher::compress);
             }
         }
         return radixNode;
@@ -135,17 +150,17 @@ final class KeyMatcher {
     /**
      * Inserts a word into the pre-initialization trie (represented by the root node).
      *
-     * @param node the pre-initialization trie (root) node
-     * @param word the word to insert
+     * @param node          the pre-initialization trie (root) node
+     * @param word          the word to insert
      * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode. For
-     *     example, config {@code builder.allow("name", "age").mask("ssn",
-     *     KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
-     *     and {@code age} to be present in the JSON, it would use default configuration to mask any
-     *     other key, but would specifically mask {@code ssn} with a string "[redacted]". To make it
-     *     possible to store just the masking configuration we insert a "negative match" node, that
-     *     would not be treated as a target key, but provide a fast lookup for the configuration
+     *                      example, config {@code builder.allow("name", "age").mask("ssn",
+     *                      KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
+     *                      and {@code age} to be present in the JSON, it would use default configuration to mask any
+     *                      other key, but would specifically mask {@code ssn} with a string "[redacted]". To make it
+     *                      possible to store just the masking configuration we insert a "negative match" node, that
+     *                      would not be treated as a target key, but provide a fast lookup for the configuration
      */
-    private void insert(PreInitTrieNode node, String word, boolean negativeMatch) {
+    void insert(PreInitTrieNode node, String word, boolean negativeMatch) {
         boolean caseInsensitive = !maskingConfig.caseSensitiveTargetKeys();
         byte[] bytes = word.getBytes(StandardCharsets.UTF_8);
         byte[] lowerBytes = null;
@@ -183,12 +198,12 @@ final class KeyMatcher {
                        1. Locale issues (see String#equalsIgnoreCase)
                        2. So we don't have to convert when searching
                     */
-                    node.add(lowerBytes[i], child);
+                    node.addLowercase(lowerBytes[i], child);
                     if (lowerBytes[i] != upperBytes[i]) {
-                        node.addUpper(upperBytes[i], child);
+                        node.addUppercase(upperBytes[i], child);
                     }
                 } else {
-                    node.add(b, child);
+                    node.addLowercase(b, child);
                 }
             }
             node = child;
@@ -215,9 +230,10 @@ final class KeyMatcher {
      * returns that, if not - returns default masking config.
      *
      * @return the config if the key needs to be masked, {@code null} if key does not need to be
-     *     masked
+     * masked
      */
-    @Nullable KeyMaskingConfig getMaskConfigIfMatched(
+    @Nullable
+    KeyMaskingConfig getMaskConfigIfMatched(
             byte[] bytes, int keyOffset, int keyLength, @Nullable StatefulRadixTrieNode currentJsonPathNode) {
         try {
             if (currentJsonPathNode != null) {
@@ -270,18 +286,17 @@ final class KeyMatcher {
 
     /**
      * Searches the trie node by the key offset in the byte array. The node returned might be a prefix,
-     * so {@link TrieNode#endOfWord} needs to be checked additionally for full key matching.
+     * so {@link RadixTrieNode#endOfWord} needs to be checked additionally for full key matching.
      *
-     * @param from from which node to do the search, either root node or existing json path node
-     * @param bytes the byte array containing the key to be matched
+     * @param from   from which node to do the search, either root node or existing json path node
+     * @param bytes  the byte array containing the key to be matched
      * @param offset offset of the key in the bytes array
      * @param length length of the key in the bytes array
      * @return the node if found, {@code null} otherwise.
      */
     @Nullable
     private StatefulRadixTrieNode searchNode(StatefulRadixTrieNode from, byte[] bytes, int offset, int length) {
-        var node = from;
-
+        StatefulRadixTrieNode node = from;
         int endIndex = offset + length;
         for (int i = offset; i < endIndex; i++) {
             // every character of the input key can be escaped \\uXXXX, but since the KeyMatcher uses byte
@@ -290,37 +305,37 @@ final class KeyMatcher {
             // the trie.
             // Any escaped character (6 bytes from the input) represents 1 to 4 bytes of unescaped key,
             // each of the bytes has to be matched against the trie to return a TrieNode
-            if (isEncodedCharacter(bytes, i, endIndex)) {
+            if (isUnicodeEncodedCharacter(bytes, i, endIndex)) {
                 char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(bytes, i + 2);
                 i += 6;
                 if (unicodeHexBytesAsChar < 0x80) {
                     // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
-                    node = node.child((byte) unicodeHexBytesAsChar); // check 1st byte
+                    node = node.findMatchingTrieNode((byte) unicodeHexBytesAsChar); // check 1st byte
                 } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
                     // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
-                    node = node.child((byte) (0xc0 | (unicodeHexBytesAsChar >> 6))); // check 1st byte
+                    node = node.findMatchingTrieNode((byte) (0xc0 | (unicodeHexBytesAsChar >> 6))); // check 1st byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 2nd byte
+                    node = node.findMatchingTrieNode((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 2nd byte
                 } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
                     // dealing with characters with values between 2048 and 65536 which
                     // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
-                    node = node.child((byte) (0xe0 | (unicodeHexBytesAsChar >> 12))); // check 1st byte
+                    node = node.findMatchingTrieNode((byte) (0xe0 | (unicodeHexBytesAsChar >> 12))); // check 1st byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f))); // check 2nd byte
+                    node = node.findMatchingTrieNode((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f))); // check 2nd byte
                     if (node == null) {
                         return null;
                     }
-                    node = node.child((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 3rd byte
+                    node = node.findMatchingTrieNode((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f))); // check 3rd byte
                 } else {
                     // decoding non-BMP characters in UTF-16 using a pair of high and low
                     // surrogates which together form one unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                        && isEncodedCharacter(bytes, i, endIndex)) {
+                            && isUnicodeEncodedCharacter(bytes, i, endIndex)) {
                         char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {
                             codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
@@ -330,26 +345,26 @@ final class KeyMatcher {
                         // the key contains invalid surrogate pair and won't be matched
                         return null;
                     } else {
-                        node = node.child((byte) (0xf0 | (codePoint >> 18))); // check 1st byte
+                        node = node.findMatchingTrieNode((byte) (0xf0 | (codePoint >> 18))); // check 1st byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 12) & 0x3f))); // check 2nd byte
+                        node = node.findMatchingTrieNode((byte) (0x80 | ((codePoint >> 12) & 0x3f))); // check 2nd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | ((codePoint >> 6) & 0x3f))); // check 3rd byte
+                        node = node.findMatchingTrieNode((byte) (0x80 | ((codePoint >> 6) & 0x3f))); // check 3rd byte
                         if (node == null) {
                             return null;
                         }
-                        node = node.child((byte) (0x80 | (codePoint & 0x3f))); // check 4th byte
+                        node = node.findMatchingTrieNode((byte) (0x80 | (codePoint & 0x3f))); // check 4th byte
                     }
                     i += 6;
                 }
                 i--; // to offset loop increment
             } else {
                 byte b = bytes[i];
-                node = node.child(b);
+                node = node.findMatchingTrieNode(b);
             }
 
             if (node == null) {
@@ -361,16 +376,22 @@ final class KeyMatcher {
     }
 
     /**
-     * Returns whether the current index contains encoded character, e.g. '\\u0000'
+     * Returns whether the byte sequence between the fromIndex and toIndex represents a unicode encoded character,
+     * e.g. '\\u0000', so the length must be 6 and starting with '\\u'.
+     *
+     * @param bytes     the byte sequence representing some character
+     * @param fromIndex start index of the character, inclusive
+     * @param toIndex   end index of the character, exclusive
      */
-    private static boolean isEncodedCharacter(byte[] bytes, int fromIndex, int toIndex) {
+    static boolean isUnicodeEncodedCharacter(byte[] bytes, int fromIndex, int toIndex) {
         // -6 for all bytes of the byte encoded unicode character (\\u + 4 hex bytes)
         // to prevent possible ArrayIndexOutOfBoundsExceptions
         return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
-    @Nullable StatefulRadixTrieNode getJsonPathRootNode() {
-        return new StatefulRadixTrieNode(root).child((byte) '$');
+    @Nullable
+    StatefulRadixTrieNode getJsonPathRootNode() {
+        return new StatefulRadixTrieNode(root).findMatchingTrieNode((byte) '$');
     }
 
     /**
@@ -378,25 +399,26 @@ final class KeyMatcher {
      * passed segment is represented as a key {@code (keyOffset, keyLength)} reference in {@code
      * bytes} array.
      *
-     * @param bytes the message bytes.
-     * @param begin a TrieNode from which the traversal begins.
+     * @param bytes     the message bytes.
+     * @param begin     a TrieNode from which the traversal begins.
      * @param keyOffset the offset in {@code bytes} of the segment.
      * @param keyLength the length of the segment.
      * @return a TrieNode of the last symbol of the segment. {@code null} if the segment is not in
-     *     the trie.
+     * the trie.
      */
-    @Nullable StatefulRadixTrieNode traverseJsonPathSegment(
+    @Nullable
+    StatefulRadixTrieNode traverseJsonPathSegment(
             byte[] bytes, @Nullable StatefulRadixTrieNode begin, int keyOffset, int keyLength) {
         if (begin == null) {
             return null;
         }
         try {
-            var current = begin.child((byte) '.');
+            var current = begin.findMatchingTrieNode((byte) '.');
             if (current == null) {
                 return null;
             }
             if (current.isJsonPathWildcard()) {
-                current.child((byte) '*');
+                current.findMatchingTrieNode((byte) '*');
                 return new StatefulRadixTrieNode(current);
             }
 
@@ -415,35 +437,35 @@ final class KeyMatcher {
     }
 
     /**
-     * A node in the trie, represents a single byte of the character (if character is ASCII, then
-     * represents a single character). An array is used instead of a Map for instant access without
-     * type casts.
+     * A node in the radix trie. Represents a single "prefix" of bytes (which can be one or multiple bytes) of a target
+     * key or multiple target keys (if the prefix is shared). An array is used instead of a Map for instant access
+     * without type casts.
      *
      * <p>Unlike a regular trie, a radix trie is compressed by merging all nodes that share a common
      * prefix, reducing both memory usage and access time. As a result, each match becomes a stateful
-     * operation that requires not only identifying the next child node but also tracking the sequence
-     * (i.e., the number of children already matched). Naturally, after each match, the sequence must
+     * operation that requires not only identifying the next child node but also tracking the index in the prefix
+     * ,i.e., the number of bytes of the prefix already matched. Naturally, after each match, the prefix index must
      * be incremented, or if a different node is encountered, it should be reset.
      *
      * <p>The array starts from a non-null child which represents the byte with value {@link
-     * TrieNode#childrenArrayOffset} and every subsequent byte is offset by that value.
+     * RadixTrieNode#childrenLowercaseArrayOffset} and every subsequent byte is offset by that value.
      *
      * <p>To accommodate the case-insensitivity upper-case characters are stored separately in an
-     * additional array {@link TrieNode#childrenUpper} with its own offset. The reason for splitting
+     * additional array {@link RadixTrieNode#childrenUppercase} with its own offset. The reason for splitting
      * the array into two, allows for a more compact memory layout compared to using a single array.
      * In the most common case (single child of upper/lower case character), both arrays are of size
      * 1, while storing them in the same array would result in a gap of 32 {@code null}-elements.
      */
-    static class TrieNode {
-        public static final TrieNode[] EMPTY = new TrieNode[0];
-        final byte[] prefix;
-        final byte[] prefixUpper;
+    static class RadixTrieNode {
+        public static final RadixTrieNode[] EMPTY = new RadixTrieNode[0];
+        final byte[] prefixLowercase;
+        final byte[] prefixUppercase;
         @Nullable
-        TrieNode[] children = EMPTY;
+        RadixTrieNode[] childrenLowercase = EMPTY;
         @Nullable
-        TrieNode[] childrenUpper = EMPTY;
-        int childrenArrayOffset = -1;
-        int childrenUpperArrayOffset = -1;
+        RadixTrieNode[] childrenUppercase = EMPTY;
+        int childrenLowercaseArrayOffset = -1;
+        int childrenUppercaseArrayOffset = -1;
         /**
          * Masking configuration for the key that ends at this node.
          */
@@ -458,27 +480,33 @@ final class KeyMatcher {
          */
         boolean negativeMatch = false;
 
-        TrieNode(byte[] prefix, byte[] prefixUpper) {
-            this.prefix = prefix;
-            this.prefixUpper = prefixUpper;
+        RadixTrieNode(byte[] prefixLowercase, byte[] prefixUppercase) {
+            this.prefixLowercase = prefixLowercase;
+            this.prefixUppercase = prefixUppercase;
         }
 
         /**
-         * Retrieves a child node by the byte value. Returns {@code null}, if the trie has no matches.
+         * Retrieves a child node by the byte value if it exists. This can be the same node again if the next
+         * value of the prefix matches the byte value, hence the prefixIndex (to look at) is also passed as parameter.s
+         *
+         * @param prefixIndex the current index in the prefix were we should be looking for the value. If the
+         *                    prefixIndex is the same length as the current prefix, we will be looking for a child node
+         * @param byteValue   the byte value to look for
+         * @return a child node that matches the byte value or {@code null} if there are no matching child nodes
          */
-        @Nullable TrieNode child(byte b, int sequence) {
-            if (sequence == prefix.length) {
-                int offsetIndex = b - childrenArrayOffset;
-                TrieNode child = null;
-                if (offsetIndex >= 0 && offsetIndex < children.length) {
-                    child = children[offsetIndex];
+        KeyMatcher.@Nullable RadixTrieNode child(byte byteValue, int prefixIndex) {
+            if (prefixIndex == prefixLowercase.length) {
+                int offsetIndex = byteValue - childrenLowercaseArrayOffset;
+                RadixTrieNode child = null;
+                if (offsetIndex >= 0 && offsetIndex < childrenLowercase.length) {
+                    child = childrenLowercase[offsetIndex];
                 }
-                int offsetUpperIndex = b - childrenUpperArrayOffset;
-                if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUpper.length) {
-                    child = childrenUpper[offsetUpperIndex];
+                int offsetUpperIndex = byteValue - childrenUppercaseArrayOffset;
+                if (offsetUpperIndex >= 0 && offsetUpperIndex < childrenUppercase.length) {
+                    child = childrenUppercase[offsetUpperIndex];
                 }
                 return child;
-            } else if (prefix[sequence] == b || prefixUpper[sequence] == b) {
+            } else if (prefixLowercase[prefixIndex] == byteValue || prefixUppercase[prefixIndex] == byteValue) {
                 return this;
             } else {
                 return null;
@@ -486,7 +514,7 @@ final class KeyMatcher {
         }
 
         boolean endOfWord(int sequence) {
-            return sequence == prefix.length && endOfWord;
+            return sequence == prefixLowercase.length && endOfWord;
         }
 
         @Override
@@ -496,17 +524,17 @@ final class KeyMatcher {
 
         public String toString(int indent) {
             StringBuilder sb = new StringBuilder();
-            sb.append(new String(prefix, StandardCharsets.UTF_8));
-            int childrenIndent = indent + prefix.length;
+            sb.append(new String(prefixLowercase, StandardCharsets.UTF_8));
+            int childrenIndent = indent + prefixLowercase.length;
             boolean first = true;
-            for (int i = 0; i < children.length; i++) {
-                TrieNode child = children[i];
+            for (int i = 0; i < childrenLowercase.length; i++) {
+                RadixTrieNode child = childrenLowercase[i];
                 if (child != null) {
                     if (!first) {
                         sb.append("\n");
                         sb.append(" ".repeat(childrenIndent));
                     }
-                    String prefix = " -> " + (char) (i + childrenArrayOffset);
+                    String prefix = " -> " + (char) (i + childrenLowercaseArrayOffset);
                     sb.append(prefix);
                     sb.append(child.toString(childrenIndent + prefix.length()));
                     first = false;
@@ -522,51 +550,53 @@ final class KeyMatcher {
 
     /**
      * This TrieNode represents a temporary trie that is being built. After all keys are inserted,
-     * this node is compressed into a {@link TrieNode} for more efficient memory layout.
+     * this node is compressed into a {@link RadixTrieNode} for more efficient memory layout.
      */
     static class PreInitTrieNode {
         /**
-         * @see TrieNode#children
+         * @see RadixTrieNode#childrenLowercase
          */
-        TreeMap<Byte, PreInitTrieNode> children = new TreeMap<>();
+        TreeMap<Byte, PreInitTrieNode> childrenLowercase = new TreeMap<>();
 
         /**
-         * @see TrieNode#childrenUpper
+         * @see RadixTrieNode#childrenUppercase
          */
-        TreeMap<Byte, PreInitTrieNode> childrenUpper = new TreeMap<>();
+        TreeMap<Byte, PreInitTrieNode> childrenUppercase = new TreeMap<>();
 
         /**
-         * @see TrieNode#keyMaskingConfig
+         * @see RadixTrieNode#keyMaskingConfig
          */
-        @Nullable KeyMaskingConfig keyMaskingConfig = null;
+        @Nullable
+        KeyMaskingConfig keyMaskingConfig = null;
 
         /**
-         * @see TrieNode#endOfWord
+         * @see RadixTrieNode#endOfWord
          */
         boolean endOfWord = false;
 
         /**
-         * @see TrieNode#negativeMatch
+         * @see RadixTrieNode#negativeMatch
          */
         boolean negativeMatch = false;
 
         /**
-         * @see TrieNode#child(byte, int)
+         * @see RadixTrieNode#child(byte, int)
          */
-        @Nullable PreInitTrieNode child(byte b) {
-            PreInitTrieNode child = children.get(b);
+        @Nullable
+        PreInitTrieNode child(byte b) {
+            PreInitTrieNode child = childrenLowercase.get(b);
             if (child != null) {
                 return child;
             }
-            return childrenUpper.get(b);
+            return childrenUppercase.get(b);
         }
 
         /**
          * Adds a new child to the trie. When case-insensitivity is enabled this must represent the
          * lower-case byte, otherwise is just a byte in original case.
          */
-        void add(Byte b, PreInitTrieNode child) {
-            children.put(b, child);
+        void addLowercase(Byte b, PreInitTrieNode child) {
+            childrenLowercase.put(b, child);
         }
 
         /**
@@ -574,9 +604,11 @@ final class KeyMatcher {
          * case-insensitivity is enabled this must represent the upper-case byte, otherwise must not
          * be called.
          */
-        void addUpper(Byte b, PreInitTrieNode child) {
-            childrenUpper.put(b, child);
+        void addUppercase(Byte b, PreInitTrieNode child) {
+            childrenUppercase.put(b, child);
         }
+
+
     }
 
     /**
@@ -585,42 +617,51 @@ final class KeyMatcher {
      * repeated matching that would otherwise pollute the sequence.
      */
     static class StatefulRadixTrieNode {
-        private TrieNode node;
-        private int sequence;
+        private RadixTrieNode node;
+        private int prefixIndex;
 
-        private TrieNode checkPointNode;
-        private int checkPointSequence;
+        private RadixTrieNode checkPointNode;
+        private int checkPointPrefixIndex;
 
-        StatefulRadixTrieNode(TrieNode node) {
+        StatefulRadixTrieNode(RadixTrieNode node) {
             this.node = this.checkPointNode = node;
-            this.sequence = this.checkPointSequence = 0;
+            this.prefixIndex = this.checkPointPrefixIndex = 0;
         }
 
         StatefulRadixTrieNode(StatefulRadixTrieNode node) {
             this.node = this.checkPointNode = node.node;
-            this.sequence = this.checkPointSequence = node.sequence;
+            this.prefixIndex = this.checkPointPrefixIndex = node.prefixIndex;
         }
 
+        /**
+         * Finds the matching trie node for the provided byte value. If the next byte in the current radix trie node
+         * prefix matches the byte value, return the existing radix trie node with increased prefix index. Otherwise,
+         * looks if a child node matches the byte value. If neither match, returns {@code null}.
+         *
+         * @param byteValue the "next" byte value to find the matching radix trie node for
+         * @return the current radix trie node or a child of it, if either of them match. Otherwise, returns
+         * {@code null}
+         */
         @Nullable
-        StatefulRadixTrieNode child(byte b) {
-            var child = node.child(b, sequence++);
+        StatefulRadixTrieNode findMatchingTrieNode(byte byteValue) {
+            var child = node.child(byteValue, prefixIndex++);
             if (child == null) {
                 return null;
             } else if (child != node) {
                 node = child;
-                sequence = 0;
+                prefixIndex = 0;
             }
             return this;
         }
 
         boolean isJsonPathWildcard() {
-            return node.child((byte) '*', sequence) != null
-                   && (node.endOfWord(sequence + 1)
-                       || node.child((byte) '.', sequence + 1) != null);
+            return node.child((byte) '*', prefixIndex) != null
+                    && (node.endOfWord(prefixIndex + 1)
+                    || node.child((byte) '.', prefixIndex + 1) != null);
         }
 
         boolean endOfWord() {
-            return node.endOfWord(sequence);
+            return node.endOfWord(prefixIndex);
         }
 
         boolean negativeMatch() {
@@ -634,17 +675,17 @@ final class KeyMatcher {
 
         void checkpoint() {
             checkPointNode = node;
-            checkPointSequence = sequence;
+            checkPointPrefixIndex = prefixIndex;
         }
 
         void restore() {
             node = checkPointNode;
-            sequence = checkPointSequence;
+            prefixIndex = checkPointPrefixIndex;
         }
 
         @Override
         public String toString() {
-            return "[sequence: %s] %s".formatted(sequence, node);
+            return "[sequence: %s] %s".formatted(prefixIndex, node);
         }
     }
 }

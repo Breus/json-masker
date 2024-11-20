@@ -6,10 +6,14 @@ import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -264,13 +268,13 @@ final class KeyMatcherTest {
         KeyMatcher keyMatcher = new KeyMatcher(config);
         assertThat(keyMatcher.printTree())
                 .isEqualTo("""
-                           r -> om -> an -> e
-                                         -> us
-                                   -> ulus
-                             -> ub -> e -> ns
-                                        -> r
-                                   -> icon -> dus
-                           """);
+                        r -> om -> an -> e
+                                      -> us
+                                -> ulus
+                          -> ub -> e -> ns
+                                     -> r
+                                -> icon -> dus
+                        """);
     }
 
     @Test
@@ -280,5 +284,43 @@ final class KeyMatcherTest {
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
         assertThat(keyMatcher.printTree()).isEqualTo("\n");
+    }
+
+    @Test
+    void compressPreInitTrie() {
+        // Given, the target keys "breus" and "bruce"
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("breus", "bruce").build());
+
+        KeyMatcher.PreInitTrieNode preInitTrieNode = new KeyMatcher.PreInitTrieNode();
+        keyMatcher.insert(preInitTrieNode, "breus", false);
+        keyMatcher.insert(preInitTrieNode, "bruce", false);
+
+        // When
+        KeyMatcher.RadixTrieNode trieNode = KeyMatcher.compress(preInitTrieNode);
+
+        // Then, should become the following compressed radix Trie:
+        // br -> eus
+        //    -> uce
+        assertThat(trieNode.prefixLowercase).isEqualTo("br".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.prefixUppercase).isEqualTo("BR".getBytes(StandardCharsets.UTF_8));
+        // Prefix index = 2, because b = 0, r = 1, and 2 would be 'e', but it will be looked-up in the next node because prefixIndex == currentRadixNode.length (2)
+        assertThat(trieNode.child((byte) 'e', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("us".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.child((byte) 'u', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("ce".getBytes(StandardCharsets.UTF_8));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("encodedCharacterInputs")
+    void isUnicodeEncodedCharacter(byte[] bytes, int fromIndex, int toIndex, boolean isEncodedCharacter) {
+        assertThat(KeyMatcher.isUnicodeEncodedCharacter(bytes, fromIndex, toIndex)).isEqualTo(isEncodedCharacter);
+    }
+
+    private static Stream<Arguments> encodedCharacterInputs() {
+        return Stream.of(
+                Arguments.of(new byte[]{}, 0, 0, false),
+                Arguments.of("hello\\u1234there".getBytes(StandardCharsets.UTF_8), 5, 11, true),
+                Arguments.of("ሴ".getBytes(StandardCharsets.UTF_8), 0, 3, false),
+                Arguments.of("\\u1234".getBytes(StandardCharsets.UTF_8), 0, 6, true)
+        );
     }
 }

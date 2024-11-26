@@ -12,11 +12,11 @@ junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", ver
 jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
 jmh-generator-annproccesor = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
 nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.1" }
-errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.35.1" }
+errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.36.0" }
 
 [plugins]
 jmh = { id = "me.champeau.jmh", version = "0.7.2" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
-sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
+sonarqube = { id = "org.sonarqube", version = "6.0.0.5145" }
 errorprone = { id = "net.ltgt.errorprone", version = "4.1.0" }

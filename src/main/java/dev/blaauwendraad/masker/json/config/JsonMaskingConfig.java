@@ -105,13 +105,23 @@ public final class JsonMaskingConfig {
     }
 
     /**
-     * Returns the config for the given key. If no specific config is available for the given key, the default config.
+     * Returns the config for the given key. If no specific config is available for the given key, returns the default config.
+     *
+     * @param key key to be masked
+     * @return the config for the given key or the default config
+     */
+    public KeyMaskingConfig getConfig(String key) {
+        return targetKeyConfigs.getOrDefault(key, defaultConfig);
+    }
+
+    /**
+     * Returns the config for the given key. If no specific config is available for the given key, returns {@code null}.
      *
      * @param key key to be masked
      * @return the config for the given key
      */
-    public KeyMaskingConfig getConfig(String key) {
-        return targetKeyConfigs.getOrDefault(key, defaultConfig);
+    public @Nullable KeyMaskingConfig getKeyConfig(String key) {
+        return targetKeyConfigs.get(key);
     }
 
     public KeyMaskingConfig getDefaultConfig() {

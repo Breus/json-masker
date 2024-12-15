@@ -1602,7 +1602,7 @@ public class InstanceCreationMemoryUsageTest {
 
         long memoryAfterInstanceCreation = getCurrentRetainedMemory();
 
-        long memoryLimitKb = 800;
+        long memoryLimitKb = 400;
         long memoryConsumedKb = bytesToKb(memoryAfterInstanceCreation - memoryBeforeInstanceCreationKb);
 
         Assertions.assertThat(memoryConsumedKb)

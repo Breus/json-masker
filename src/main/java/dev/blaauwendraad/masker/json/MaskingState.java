@@ -1,4 +1,5 @@
 package dev.blaauwendraad.masker.json;
+
 import dev.blaauwendraad.masker.json.util.Utf8Util;
 import org.jspecify.annotations.Nullable;
 
@@ -162,14 +163,6 @@ class MaskingState implements ValueMaskerContext {
     }
 
     /**
-     * Checks if jsonpath masking is enabled.
-     * @return {@code true} if JSONPath masking is enabled, {@code false} otherwise
-     */
-    boolean jsonPathEnabled() {
-        return currentJsonPath != null;
-    }
-
-    /**
      * Expands current jsonpath.
      *
      * @param trieNode a node in the trie where the new segment ends.
@@ -181,15 +174,6 @@ class MaskingState implements ValueMaskerContext {
                 // resize
                 currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
             }
-        }
-    }
-
-    /**
-     * Backtracks current JSONPath to the previous segment.
-     */
-    void backtrackCurrentJsonPath() {
-        if (currentJsonPath != null) {
-            currentJsonPath[currentJsonPathHeadIndex--] = null;
         }
     }
 
@@ -320,7 +304,7 @@ class MaskingState implements ValueMaskerContext {
      *
      * @see #flushReplacementOperations()
      */
-    @SuppressWarnings("java:S6218") // never used for comparison
+    @SuppressWarnings("ArrayRecordComponent") // never used for comparison
     private record ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
 
         /**

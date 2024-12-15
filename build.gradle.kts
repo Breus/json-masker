@@ -1,4 +1,5 @@
 import net.ltgt.gradle.errorprone.errorprone
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.sonarqube.gradle.SonarTask
 
 plugins {
@@ -187,6 +188,9 @@ tasks {
                 "UnusedVariable",
                 "WildcardImport",
             )
+            if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
+                disable("MisleadingEscapedSpace") // good stuff
+            }
             disable(
                 "StringCaseLocaleUsage",
                 "MissingSummary",

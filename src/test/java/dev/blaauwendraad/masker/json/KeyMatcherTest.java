@@ -108,127 +108,10 @@ final class KeyMatcherTest {
     }
 
     @Test
-    void shouldMatchJsonPaths() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
-        String json = """
-                {"a":{"b":1,"c":2}}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        var node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNull();
-    }
-
-    @Test
-    void shouldMatchJsonPathArrays() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a[*].b", "$.a[*].c")).build());
-        String json = """
-                {
-                  "a": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    {
-                      "b": 1
-                    },
-                    10,
-                    {
-                      "c": 1,
-                      "d": 1
-                    }
-                  ]
-                }
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        var node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'd'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-    }
-
-    @Test
     void shouldNotMatchPrefix() {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe", "test")).build());
         assertThatConfig(keyMatcher, "mask").isNull();
         assertThatConfig(keyMatcher, "maskMe").isNotNull();
-    }
-
-    @Test
-    void shouldNotMatchJsonPathPrefix() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.maskMe").build());
-        String json = """
-                {"maskMe":"secret"}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        var node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 4);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-    }
-
-    @Test
-    void shouldReturnMaskingConfigForJsonPathInAllowMode() {
-        JsonMaskingConfig config = JsonMaskingConfig.builder()
-                .allowJsonPaths("$.allowMe")
-                .maskJsonPaths("$.maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
-                .build();
-        KeyMatcher keyMatcher = new KeyMatcher(config);
-
-        var json = """
-                {"allowMe":"value","maskMe":"secret","maskMeLikeCIA":"secret"}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        var node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 7);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 20, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
-                .isNotNull()
-                .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
-                .isEqualTo("\"***\"");
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 38, 13);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
-                .isNotNull()
-                .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
-                .isEqualTo("\"[redacted]\"");
     }
 
     @Test
@@ -241,23 +124,6 @@ final class KeyMatcherTest {
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
         return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null));
-    }
-
-    // utility to find specific char in the array, must not be duplicated
-    private int indexOf(byte[] bytes, char c) {
-        int found = -1;
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] == (byte) c) {
-                if (found != -1) {
-                    throw new IllegalStateException("Char must not be duplicated, got on index %s and %s".formatted(found, i));
-                }
-                found = i;
-            }
-        }
-        if (found == -1) {
-            throw new IllegalStateException("Byte array must contain the char");
-        }
-        return found;
     }
 
     @Test

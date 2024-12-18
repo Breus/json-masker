@@ -113,75 +113,75 @@ final class AllowModeTest {
                 ),
                 new JsonMaskerTestInstance("""
                         [ {     "_@":  [   [  "This is a random value",{    "allowedKey": "This is allowed" }  ]  ,    [   "This is a random value",  {
-                                    
+                                               \s
                                       "allowedKey":   "This is allowed" }    ] ,     {   "allowedKey":    "This is allowed" }]  },   [   {
                                      "allowedKey":  "This is allowed" }    ,  {
                                          "_+<#?[&":  [ "This is a random value",  {
-                                    
+                                               \s
                                      "allowedKey":  "This is allowed" }    ]   ,"<%*^&()?":   {
-                                    
+                                               \s
                                        "allowedKey":   "This is allowed" }    ,   "%-%[ ;=!}    )(":  {
-                                    
+                                               \s
                                      "allowedKey":    "This is allowed" }  , "?":    {
                                      "allowedKey": "This is allowed" }     }   ,     {   "allowedKey":    "This is allowed" }],  {
-                                    
+                                               \s
                                      "allowedKey":    "This is allowed" }  ,{
-                                    
+                                               \s
                                      "*()_$-?(": [   {
-                                    
+                                               \s
                                         "allowedKey":   "This is allowed" } ] ,  "%=>@^}   [  -&": {
                                      ";=":   {
                                        "allowedKey": "This is allowed" }    , "[ ^,  ^[  .*":  {
                                       "allowedKey":  "This is allowed" }    ,   "$]  {  (?%<":    {
                                        "allowedKey":    "This is allowed" } ,    "allowedKey":   "This is allowed" }  }    , {
                                       "}    =!.^$: ]":    {
-                                    
+                                               \s
                                          "allowedKey":  "This is allowed", "-:   ?|_!&;@": {
-                                    
+                                               \s
                                      "allowedKey":  "This is allowed" }     },  "allowedKey":  "This is allowed",    "+,   )>[ [ =;":  {
                                        "^@.$,  *": {   "allowedKey":  "This is allowed" }  ,     "_[  [  =": [  "This is a random value",     {
                                      "allowedKey": "This is allowed" } ],   "+>":  [   "This is a random value", {
                                         "allowedKey": "This is allowed" }    ]   }  ,   "} >+]    |_(^":   {
                                         "?}-}    -*+!":    {
                                       "allowedKey":    "This is allowed" } , "*.:   }<^{    *&%":   [   "This is a random value",   {
-                                    
+                                               \s
                                          "allowedKey":  "This is allowed" }    ] }     }  ] \s
-                        """, """
+                       \s""", """
                         [ {     "_@":  [   [  "***",{    "allowedKey": "This is allowed" }  ]  ,    [   "***",  {
-                                                
+                                               \s
                                       "allowedKey":   "This is allowed" }    ] ,     {   "allowedKey":    "This is allowed" }]  },   [   {
                                      "allowedKey":  "This is allowed" }    ,  {
                                          "_+<#?[&":  [ "***",  {
-                                                
+                                               \s
                                      "allowedKey":  "This is allowed" }    ]   ,"<%*^&()?":   {
-                                                
+                                               \s
                                        "allowedKey":   "This is allowed" }    ,   "%-%[ ;=!}    )(":  {
-                                                
+                                               \s
                                      "allowedKey":    "This is allowed" }  , "?":    {
                                      "allowedKey": "This is allowed" }     }   ,     {   "allowedKey":    "This is allowed" }],  {
-                                                
+                                               \s
                                      "allowedKey":    "This is allowed" }  ,{
-                                                
+                                               \s
                                      "*()_$-?(": [   {
-                                                
+                                               \s
                                         "allowedKey":   "This is allowed" } ] ,  "%=>@^}   [  -&": {
                                      ";=":   {
                                        "allowedKey": "This is allowed" }    , "[ ^,  ^[  .*":  {
                                       "allowedKey":  "This is allowed" }    ,   "$]  {  (?%<":    {
                                        "allowedKey":    "This is allowed" } ,    "allowedKey":   "This is allowed" }  }    , {
                                       "}    =!.^$: ]":    {
-                                                
+                                               \s
                                          "allowedKey":  "This is allowed", "-:   ?|_!&;@": {
-                                                
+                                               \s
                                      "allowedKey":  "This is allowed" }     },  "allowedKey":  "This is allowed",    "+,   )>[ [ =;":  {
                                        "^@.$,  *": {   "allowedKey":  "This is allowed" }  ,     "_[  [  =": [  "***",     {
                                      "allowedKey": "This is allowed" } ],   "+>":  [   "***", {
                                         "allowedKey": "This is allowed" }    ]   }  ,   "} >+]    |_(^":   {
                                         "?}-}    -*+!":    {
                                       "allowedKey":    "This is allowed" } , "*.:   }<^{    *&%":   [   "***",   {
-                                                
+                                               \s
                                          "allowedKey":  "This is allowed" }    ] }     }  ] \s
-                        """, jsonMasker
+                       \s""", jsonMasker
                 ),
                 new JsonMaskerTestInstance("""
                         {

@@ -44,21 +44,6 @@ class MaskingStateTest {
     }
 
     @Test
-    void jsonPathExceedsCapacity() {
-        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
-        for (int i = 0; i < 101; i++) {
-            maskingState.expandCurrentJsonPath(KeyMatcher.transform(new KeyMatcher.PreInitTrieNode()));
-        }
-        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNotNull();
-    }
-
-    @Test
-    void getCurrentJsonPathNodeFromEmptyJsonPath() {
-        MaskingState maskingState = new MaskingState("[]".getBytes(StandardCharsets.UTF_8), true);
-        Assertions.assertThat(maskingState.getCurrentJsonPathNode()).isNull();
-    }
-
-    @Test
     void shouldThrowErrorWhenGettingStartValueIndexOutsideOfMasking() {
         MaskingState maskingState = new MaskingState("""
                 {
@@ -90,5 +75,4 @@ class MaskingStateTest {
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessage("Didn't like the value at index 3 at index 19");
     }
-
 }

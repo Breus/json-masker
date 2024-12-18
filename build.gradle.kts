@@ -1,4 +1,3 @@
-import net.ltgt.gradle.errorprone.errorprone
 import org.sonarqube.gradle.SonarTask
 
 plugins {
@@ -6,7 +5,6 @@ plugins {
     alias(libs.plugins.test.logger)
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
-    alias(libs.plugins.errorprone)
     `maven-publish`
     `java-library`
     signing
@@ -37,6 +35,7 @@ java {
 
 dependencies {
     "nullabilityAnnotationsImplementation"(libs.jspecify)
+    "nullabilityAnnotationsImplementation"("com.google.code.findbugs:jsr305:3.0.2")
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.jackson.databind)
@@ -46,8 +45,6 @@ dependencies {
 
     jmh(libs.jmh.core)
     jmhAnnotationProcessor(libs.jmh.generator.annproccesor)
-    errorprone(libs.nullaway)
-    errorprone(libs.errorprone.core)
 }
 
 publishing {
@@ -165,31 +162,6 @@ tasks {
     }
 
     withType<JavaCompile>().configureEach {
-        options.errorprone {
-            error(
-                "CheckedExceptionNotThrown",
-                "FunctionalInterfaceClash",
-                "NonFinalStaticField",
-                "NullAway",
-                "RedundantOverride",
-                "RedundantThrows",
-                "RemoveUnusedImports",
-                "UnnecessarilyFullyQualified",
-                "UnnecessarilyUsedValue",
-                "UnnecessaryBoxedAssignment",
-                "UnnecessaryBoxedVariable",
-                "UnnecessaryFinal",
-                "UnusedException",
-                "WildcardImport",
-            )
-            disable(
-                "StringCaseLocaleUsage",
-                "MissingSummary",
-            )
-            option("NullAway:JSpecifyMode")
-            option("NullAway:AnnotatedPackages", "dev.blaauwendraad.masker")
-            excludedPaths = ".*/build/generated/.*"
-        }
         options.encoding = "UTF-8"
     }
 

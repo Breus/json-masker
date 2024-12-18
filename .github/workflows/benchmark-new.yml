@@ -1,0 +1,110 @@
+name: Benchmarks (new)
+on:
+  workflow_dispatch:
+
+jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+
+    outputs:
+      commits: ${{ steps.commits.outputs.commits }}
+
+    steps:
+      - id: commits
+        run: |
+          # Notable commits
+          # 5932607c19c2dfa2fb617844c7a4c67cc825af32 JSONPath ambiguity changes
+          # 5b137816d80105124ba93d7a6143bc5a75c1c22b v1.0.0-rc2
+          # 5bad2969f1126fc499af42691bcbbfdbe4048bb8 v1.0.0-rc3
+          # c0e63df3c186be9a7fa4c11ed385d8cbedfd4e8f v1.0.0, ValueMaskers added
+          # 7bc09acfdf5f331ba6baa56bdb866987aeb6f90e v1.0.1
+          # ba6154a80531757249916d533ef6f5bdd6bb42c8 Streaming added
+          echo 'commits=["5932607c19c2dfa2fb617844c7a4c67cc825af32","9246c24ef85349fdfecc77775e59f28b962faced","6dd707f57e215d843177e58430e36f9040ea44fa","da82ad7933cfb53d012a31ea2408af3fd646e700","5b137816d80105124ba93d7a6143bc5a75c1c22b","09e7d152fd1930a3d79475ad3b6e56ca0be25fbd","564c268f2e97aa6587ee4a107dbfe1dc146bda1f","84d1e903202c32fd1d913c6562f72a5a412c4a4e","d8627a4b121f4997214c1c8aa5cf0b7e69665588","ba76534ba5d8c5f7ec6c7932b62202d670370fd3","13589a195329ce613bbcf7015e58d74b25c32d5a","775265e68b464f09d3487dbe80c27a28b901b815","49698e8f1f8219699e846f51519271ad50d40a9c","831df5a15dfa0e4df8dd80b3534450f829e61093","d7a7d5635093e35b0b6631383b48fe59bf6b9a8f","5bad2969f1126fc499af42691bcbbfdbe4048bb8","0fdaf7d9f98ca36a1f321362687b463fab007905","3f618fde3a1ab52c1b39cbaee4c3505f52ee383f","be13b37bb16c89c64a4effea7464ef4e1504b006","da987bf26e58c8f30dcd0c96c53824bca000065e","b4a0cc1838c9dc3572b8081a97b2ee79754f1aa9","518a78b113fb1eb3692c80398a5780a13818fa54","556fdf98d69938023e28eac7435cf85ec9b62178","98db254e96d194722950b4c13f8a41df653b08ac","97cae59fa76229f87a40ea72f729c3f4a0ae87b3","03d5744c3429a3822677db7e63149e64e4434f3a","82c901bdc42074c3abfa27166e6edd607c61ef59","12324ffb915b9333b8b52d10e2ee7c629040fb72","c0e63df3c186be9a7fa4c11ed385d8cbedfd4e8f","bc96c81d7d3a0a7d1e18220e4d87718317f8e2e0","a2d753db1948713da7395a1e59179cd9575eec97","c5ec892454ecc797406525600343e47e718eeecc","84cb657b6a8540f178bc0d1e8847525569c6711e","96d0afc5de28256c1b27860255ee08603bc84d1a","04140866d42b3ec1f5639225f3faa0a00897920b","63056ff8be941ef8a0cc1dec09d6f273e17a44d6","7eadb0c71ad61fdc331d3bec078e69bf03a1d31d","b5740af7656fea664647c0a42c4fef36524cc964","a918150d8f7efb5372d63c0d5d6e0a9107f7f444","0273c3c8f36d80c3c59d8d495ca6f715713da668","eb487d5db59671cf92f3d34dacbb9ae439a22490","6afab482d9a65b8d0fc53b938d86d1a5e1af0ecd","5ed1e110f48dedaaab35615f03c2f2f5a4c2271b","c0d0067a1494c29644577fc6e337bc06a65ecfe4","aab32f5c5c0770d355b6db87f04b7e3bd4702895","0fa83bf3ba2817e890db2f996a934d87a5bff034","7bc09acfdf5f331ba6baa56bdb866987aeb6f90e","ec96ef1ca1d6bb8f01250e78d3ed3797a0a7e94b","0ffdf387de52d06ff784c27886a9127e40dc2888","72cafa7b9b1e75765d16882256aa9149ce043a20","bc9002b2d0ec2b08f408cb460ad9822d8ff624e3","d3422b092acfd5d843a4dc01283ccc3ec4804de3","899bacd419db3aa138476b68b612d3c07f53057b","a7ce47364b96f350282a34613072009fc960e21a","2e81c1990dc219b07cdd7bab085621c1c055838e","76c4f517a84fec15b10649378e0470123385772c","06991511583a8b5010cfc1386037d1705a973bab","4890345f43909d4e32ad8a545ec88574357bb15b","341ff88579891e4045c31552cfeb505d162b1644","00bf0bb53a6a2ddb174146f4f4bbd72bed9b988f","50f5f1175e32e209db269f92e603639a47e1bfd8","f1cbd27c378499fcf63c267ac30505833540aa28","0d5af5437b2b64ab353f159780a88640b4cb1a5f","56d1c2f59c4f48b8a2dc1103d76dab8a12c361d6","fa66f6862fce74a4834ad6fb9014957250d92fef","f8aeda7492b95b44b4097c588c1d56c5d0739776","a55717ddea3e0b01998a7a5ddd3e84a49fe515a1","5bf2e9c3fc7a14e29c1f59a4357c8be69dbd503f","4da8dfa40e2992e542c56a46b84091e611f6b053","4a47d413817dc76942fb94b9bf9b2c12ba2dd773","af769ef4ddf015bb1ac00fc1fdb6b55dd99a1f1e","e8d990e11db351c9bc114b7e247030c3efeb27cb","4c98d6e25a642e6af68835718b5ce67aea110539","9568ca4ed5bb4eedb020b2ee9a21097f599c3aa0","2458b81a40ff94aeb469a23b8fb5f4fefbfeaf2b","ba6154a80531757249916d533ef6f5bdd6bb42c8","3a0643bc5090428b7a2a60d36effa617e9b9d1a6","070553b21d5e1354c10f67d14114a841c8d54052","226a0d5a7d6d1059dc7aa068274af5c7290c8c02","0b6ea3d4a93d6f3d3b034d5c218680941f543ea5","a0811f05576700a7af7a5739662bb9b8052d41d0","1a06bda8ffa66744505286dff148842822782a26","9f0690f5b4aa76839854ee9d1bc2674dc479cbfa","72d1f4bb38510947feb53931d4f29c076496e168"]' >> "$GITHUB_OUTPUT"
+
+  benchmarks:
+    if: ${{ github.repository == 'Breus/json-masker' }}
+    needs:
+      - define-matrix
+    permissions:
+      contents: read
+      pull-requests: write # for benchmark comment
+    env:
+      GITHUB_PAT_1: github_p
+      GITHUB_PAT_2: at_11ADUR3ZY0rtQnrriME4t4_eKeXZAaMj7h0cdaZ6CFkARS9m3Vac85DFgXiglr2Lrx44XN7CE63jmftTra
+    strategy:
+      matrix:
+        commit: ${{ fromJSON(needs.define-matrix.outputs.commits) }}
+      max-parallel: 8
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # checkout latest in this branch
+
+      - uses: actions/checkout@v4 # checkout older commit to run benchmarks against
+        with:
+          ref: ${{ matrix.commit }}
+          path: json-masker-ref
+
+      - id: frankenstein-the-benchmarks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+
+            let currentCommit = '${{ matrix.commit }}'
+            let allCommits = JSON.parse('${{ needs.define-matrix.outputs.commits }}')
+            
+            let commitIndex = allCommits.indexOf(currentCommit) % 8;
+            
+            core.setOutput('sleep', commitIndex * 10)
+            
+            // checking ValueMaskers availability
+            if (allCommits.indexOf(currentCommit) < allCommits.indexOf('c0e63df3c186be9a7fa4c11ed385d8cbedfd4e8f')) {
+              fs.unlinkSync('src/jmh/java/dev/blaauwendraad/masker/json/ValueMaskerBenchmark.java')
+            }
+            // checking streaming availability
+            if (allCommits.indexOf(currentCommit) < allCommits.indexOf('ba6154a80531757249916d533ef6f5bdd6bb42c8')) {
+              fs.unlinkSync('src/jmh/java/dev/blaauwendraad/masker/json/StreamTypeBenchmark.java')
+              fs.unlinkSync('src/jmh/java/dev/blaauwendraad/masker/json/JsonMaskerBenchmark.java')
+              fs.renameSync('src/jmh/java/dev/blaauwendraad/masker/json/JsonMaskerBenchmark_no_streaming.java', 'src/jmh/java/dev/blaauwendraad/masker/json/JsonMaskerBenchmark.java')
+            } else {
+              fs.unlinkSync('src/jmh/java/dev/blaauwendraad/masker/json/JsonMaskerBenchmark_no_streaming.java')
+            }
+            
+            // Remove the code from existing branch
+            fs.rmdirSync('src/main', { recursive: true, force: true })
+            fs.rmdirSync('src/test', { recursive: true, force: true })
+            // Copy the code from the ref branch
+            fs.cpSync('json-masker-ref/src/main', 'src/main', { recursive: true })
+            fs.cpSync('json-masker-ref/src/test', 'src/test', { recursive: true })
+
+      - run: sleep ${{ steps.frankenstein-the-benchmarks.outputs.sleep }}
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Prepare JMH
+        run: ./gradlew jmhJar
+
+      - name: Run JMH benchmark
+        run: java -jar build/libs/json-masker-*-jmh.jar -wi 1 -i 4 -f 1 -rf json
+
+      - name: Update benchmark results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: JMH Benchmark
+          tool: 'jmh'
+          output-file-path: jmh-result.json
+          benchmark-data-dir-path: .
+          github-token: ${{ env.GITHUB_PAT_1 }}${{ env.GITHUB_PAT_2 }}
+          gh-repository: github.com/gavlyukovskiy/json-masker-benchmarks
+          alert-threshold: '120%'
+          comment-on-alert: false
+          comment-always: false
+          fail-on-alert: false
+          auto-push: ${{ github.event_name != 'pull_request' }}
+          ref: ${{ matrix.commit }}

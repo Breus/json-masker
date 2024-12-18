@@ -1,5 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -17,9 +18,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1, time = 3)
+@Warmup(iterations = 1)
 @Fork(value = 1)
-@Measurement(iterations = 1, time = 3)
+@Measurement(iterations = 1)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class ValueMaskerBenchmark {
@@ -28,8 +29,7 @@ public class ValueMaskerBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-
-        @Param({ "1kb", "128kb" })
+        @Param({ "1kb", "32kb", "1mb" })
         String jsonSize;
         @Param({ "unicode" })
         String characters;
@@ -37,12 +37,12 @@ public class ValueMaskerBenchmark {
         double maskedKeyProbability;
 
         private final JsonMasker nativeMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys("targetKey")
+                .maskKeys(Set.of("targetKey"))
                 .build()
         );
 
         private final JsonMasker rawValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys("targetKey")
+                .maskKeys(Set.of("targetKey"))
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
@@ -50,7 +50,7 @@ public class ValueMaskerBenchmark {
         );
 
         private final JsonMasker textValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys("targetKey")
+                .maskKeys(Set.of("targetKey"))
                 .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
                 .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
                 .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
@@ -61,8 +61,8 @@ public class ValueMaskerBenchmark {
 
         @Setup
         public synchronized void setup() {
-            String jsonString = BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
-            jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+            JsonNode jsonNode = BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
+            jsonBytes = jsonNode.toString().getBytes(StandardCharsets.UTF_8);
         }
     }
 

@@ -48,7 +48,7 @@ final class KeyMatcher {
     /**
      * Used for look-ups in combination with JSONPaths
      */
-    private final StatefulRadixTrieNode root;
+    private final RadixTriePointer root;
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -61,7 +61,7 @@ final class KeyMatcher {
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
         RadixTrieNode root = compress(preInitRootNode);
-        this.root = new StatefulRadixTrieNode(root, 0);
+        this.root = new RadixTriePointer(root, 0);
     }
 
     /**
@@ -232,7 +232,7 @@ final class KeyMatcher {
      */
     @Nullable
     KeyMaskingConfig getMaskConfigIfMatched(
-            byte[] bytes, int keyOffset, int keyLength, @Nullable StatefulRadixTrieNode currentJsonPathNode) {
+            byte[] bytes, int keyOffset, int keyLength, @Nullable RadixTriePointer currentJsonPathNode) {
         if (maskingConfig.isInMaskMode()) {
              // The matching in mask mode has two states
              //  1. the key did not match: not in mask list, do not mask (returns {@code null})
@@ -293,7 +293,7 @@ final class KeyMatcher {
      * @return the node if found, {@code null} otherwise.
      */
     @Nullable
-    StatefulRadixTrieNode traverseFrom(StatefulRadixTrieNode node, byte[] bytes, int offset, int length) {
+    RadixTriePointer traverseFrom(RadixTriePointer node, byte[] bytes, int offset, int length) {
         int endIndex = offset + length;
         for (int i = offset; i < endIndex; i++) {
             // every character of the input key can be escaped \\uXXXX, but since the KeyMatcher uses byte
@@ -308,32 +308,32 @@ final class KeyMatcher {
                 if (unicodeHexBytesAsChar < 0x80) {
                     // < 128 (in decimal) fits in 7 bits which is 1 byte of data in UTF-8
                     // check 1st byte
-                    if (!node.performChildLookup((byte) unicodeHexBytesAsChar)) {
+                    if (!node.descent((byte) unicodeHexBytesAsChar)) {
                         return null;
                     }
                 } else if (unicodeHexBytesAsChar < 0x800) { // 2048 in decimal,
                     // < 2048 (in decimal) fits in 11 bits which is 2 bytes of data in UTF-8
                     // check 1st byte
-                    if (!node.performChildLookup((byte) (0xc0 | (unicodeHexBytesAsChar >> 6)))) {
+                    if (!node.descent((byte) (0xc0 | (unicodeHexBytesAsChar >> 6)))) {
                         return null;
                     }
                     // check 2nd byte
-                    if (!node.performChildLookup((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)))) {
+                    if (!node.descent((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)))) {
                         return null;
                     }
                 } else if (!Character.isSurrogate(unicodeHexBytesAsChar)) {
                     // dealing with characters with values between 2048 and 65536 which
                     // equals to 2^16 or 16 bits, which is 3 bytes of data in UTF-8 encoding
                     // check 1st byte
-                    if (!node.performChildLookup((byte) (0xe0 | (unicodeHexBytesAsChar >> 12)))) {
+                    if (!node.descent((byte) (0xe0 | (unicodeHexBytesAsChar >> 12)))) {
                         return null;
                     }
                     // check 2nd byte
-                    if (!node.performChildLookup((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f)))) {
+                    if (!node.descent((byte) (0x80 | ((unicodeHexBytesAsChar >> 6) & 0x3f)))) {
                         return null;
                     }
                     // check 3rd byte
-                    if (!node.performChildLookup((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)))) {
+                    if (!node.descent((byte) (0x80 | (unicodeHexBytesAsChar & 0x3f)))) {
                         return null;
                     }
                 } else {
@@ -352,19 +352,19 @@ final class KeyMatcher {
                         return null;
                     } else {
                         // check 1st byte
-                        if (!node.performChildLookup((byte) (0xf0 | (codePoint >> 18)))) {
+                        if (!node.descent((byte) (0xf0 | (codePoint >> 18)))) {
                             return null;
                         }
                         // check 2nd byte
-                        if (!node.performChildLookup((byte) (0x80 | ((codePoint >> 12) & 0x3f)))) {
+                        if (!node.descent((byte) (0x80 | ((codePoint >> 12) & 0x3f)))) {
                             return null;
                         }
                         // check 3rd byte
-                        if (!node.performChildLookup((byte) (0x80 | ((codePoint >> 6) & 0x3f)))) {
+                        if (!node.descent((byte) (0x80 | ((codePoint >> 6) & 0x3f)))) {
                             return null;
                         }
                         // check 4th byte
-                        if (!node.performChildLookup((byte) (0x80 | (codePoint & 0x3f)))) {
+                        if (!node.descent((byte) (0x80 | (codePoint & 0x3f)))) {
                             return null;
                         }
                     }
@@ -373,7 +373,7 @@ final class KeyMatcher {
                 i--; // to offset loop increment
             } else {
                 byte b = bytes[i];
-                if (!node.performChildLookup(b)) {
+                if (!node.descent(b)) {
                     return null;
                 }
             }
@@ -396,7 +396,7 @@ final class KeyMatcher {
         return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
-    StatefulRadixTrieNode getRootNode() {
+    RadixTriePointer getRootNode() {
         return root;
     }
 
@@ -585,19 +585,19 @@ final class KeyMatcher {
      *
      * <p> After the matching, the node can be reset to the initial state using {@link #reset()}.
      */
-    static class StatefulRadixTrieNode {
+    static class RadixTriePointer {
         private final RadixTrieNode node;
         private final int prefixIndex;
 
         private RadixTrieNode tempNode;
         private int tempPrefixIndex;
 
-        StatefulRadixTrieNode(RadixTrieNode node, int prefixIndex) {
+        RadixTriePointer(RadixTrieNode node, int prefixIndex) {
             this.node = this.tempNode = node;
             this.prefixIndex = this.tempPrefixIndex = prefixIndex;
         }
 
-        StatefulRadixTrieNode(StatefulRadixTrieNode node) {
+        RadixTriePointer(RadixTriePointer node) {
             this(node.tempNode, node.tempPrefixIndex);
         }
 
@@ -612,7 +612,7 @@ final class KeyMatcher {
          * @return the current radix trie node or a child of it, if either of them match. Otherwise, returns
          * {@code null}
          */
-        boolean performChildLookup(byte byteValue) {
+        boolean descent(byte byteValue) {
             var child = tempNode.child(byteValue, tempPrefixIndex++);
             if (child == null) {
                 return false;

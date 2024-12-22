@@ -11,7 +11,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -188,5 +190,39 @@ final class KeyMatcherTest {
                 Arguments.of("ሴ".getBytes(StandardCharsets.UTF_8), 0, 3, false),
                 Arguments.of("\\u1234".getBytes(StandardCharsets.UTF_8), 0, 6, true)
         );
+    }
+
+    @Test
+    void convertToRadixTrieNode() {
+        // Given, the target keys "breus" and "bruce"
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("breus", "bruce").build());
+        KeyMatcher.PreInitTrieNode preInitTrieNode = new KeyMatcher.PreInitTrieNode();
+        keyMatcher.insert(preInitTrieNode, "breus", false);
+        keyMatcher.insert(preInitTrieNode, "bruce", false);
+
+        KeyMatcher.RadixTrieNode radixTrieNode = KeyMatcher.convertToRadixTrieNode(preInitTrieNode, List.of());
+        // There is just one lower and uppercase child, representing 'br' and 'BR'
+        assertThat(radixTrieNode.childrenLowercase.length).isEqualTo(1);
+        assertThat(radixTrieNode.childrenUppercase.length).isEqualTo(1);
+        KeyMatcher.RadixTrieNode childrenLowercase = radixTrieNode.childrenLowercase[0];
+        Objects.requireNonNull(childrenLowercase);
+        assertThat(childrenLowercase.prefixLowercase).isEqualTo("r".getBytes(StandardCharsets.UTF_8));
+
+        // The offset of the children array is 101, because the first child is 'e' (101 in ASCII)
+        assertThat(childrenLowercase.childrenLowercaseArrayOffset).isEqualTo(101);
+
+        // The difference between 'e' (101 in ASCII) and 'u' (117 in ASCII) is 16, so 'e' is at index 0 and 'u' at index
+        // 16 in the children array
+        assertThat(childrenLowercase.childrenLowercase.length).isEqualTo(17);
+
+        // This is the 'e' in 'breus' with as prefix 'us'
+        KeyMatcher.RadixTrieNode childrenLowerCaseIndex0 = childrenLowercase.childrenLowercase[0];
+        Objects.requireNonNull(childrenLowerCaseIndex0);
+        assertThat(childrenLowerCaseIndex0.prefixLowercase).isEqualTo("us".getBytes(StandardCharsets.UTF_8));
+
+        // This is the 'u' in 'bruce' with as prefix 'ce'
+        KeyMatcher.RadixTrieNode childrenLowerCaseIndex16 = childrenLowercase.childrenLowercase[16];
+        Objects.requireNonNull(childrenLowerCaseIndex16);
+        assertThat(childrenLowerCaseIndex16.prefixLowercase).isEqualTo("ce".getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -38,7 +38,7 @@ import java.util.TreeMap;
  * <p>Further, at initialization time, a case-insensitive radix trie is created such that any casing
  * transformations on the looked-up keys during search are avoided.
  *
- * <p>We can also make a radix trie that looks at bytes instead of characters, so that we can use
+ * <p>We create a radix trie that looks at bytes instead of characters, so that we can use
  * the bytes and offsets directly in the incoming JSON for comparison and make sure there are no
  * allocations at all.
  */
@@ -101,7 +101,7 @@ final class KeyMatcher {
      * @param commonPrefix the common prefix in 2-length byte array for lower and upper case, e.g.: {[b,B], [r,R], [e,E]}
      * @return the resulting radix trie node
      */
-    private static RadixTrieNode convertToRadixTrieNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
+    static RadixTrieNode convertToRadixTrieNode(PreInitTrieNode node, List<byte[]> commonPrefix) {
         // reached the end of prefix, create a new node
         byte[] prefixLowercase = new byte[commonPrefix.size()];
         byte[] prefixUppercase = new byte[commonPrefix.size()];

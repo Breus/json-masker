@@ -14,15 +14,13 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1)
+@Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
-@Measurement(iterations = 1)
+@Measurement(iterations = 1, time = 3)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class JsonMaskerBenchmark {
@@ -68,10 +66,5 @@ public class JsonMaskerBenchmark {
     @Benchmark
     public byte[] jsonMaskerBytes(State state) {
         return state.jsonMasker.mask(state.jsonBytes);
-    }
-
-    @Benchmark
-    public void jsonMaskerByteArrayStreams(State state) {
-        state.jsonMasker.mask(new ByteArrayInputStream(state.jsonBytes), new ByteArrayOutputStream());
     }
 }

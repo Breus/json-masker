@@ -4,6 +4,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 
+/**
+ * Tracks the current JSONPath segments in the trie.
+ */
 class JsonPathTracker {
     private static final KeyMatcher.RadixTriePointer NULL_NODE = new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
 
@@ -21,21 +24,21 @@ class JsonPathTracker {
     }
 
     /**
-     * Expands current JSONPath with an array segment.
+     * Expands the current tracked JSONPath with an array segment.
      */
     void pushArraySegment() {
         jsonPathSegments.push(getWildcardNodeOrNullNode());
     }
 
     /**
-     * Expands current JSONPath with a value segment.
+     * Expands the current tracked JSONPath with a value segment.
      */
     void pushKeyValueSegment(byte[] bytes, int keyOffset, int keyLength) {
         jsonPathSegments.push(getKeyValueNodeOrNullNode(bytes, keyOffset, keyLength));
     }
 
     /**
-     * Backtracks current JSONPath to the previous segment.
+     * Backtracks the current tracked JSONPath to the previous segment.
      */
     void backtrack() {
         jsonPathSegments.pop();

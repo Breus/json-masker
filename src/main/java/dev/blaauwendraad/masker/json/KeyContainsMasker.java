@@ -140,12 +140,12 @@ final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)} on
-     * each element while propagating the {@link KeyMaskingConfig}.
+     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)}
+     * on each element while propagating the {@link KeyMaskingConfig}.
      *
      * @param maskingState     the current {@link MaskingState}
-     * @param jsonPathTracker    the current {@link JsonPathTracker}
-     * @param keyMaskingConfig if not null it means that the current value is being masked according to the
+     * @param jsonPathTracker  the current {@link JsonPathTracker}
+     * @param keyMaskingConfig if not {@code null}, it means that the current value is being masked according to the
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
     private void visitArray(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig keyMaskingConfig) {
@@ -223,7 +223,7 @@ final class KeyContainsMasker implements JsonMasker {
             } else {
                 // this is where it might get confusing - this method is called when the whole object is being masked
                 // if we got a maskingConfig for the key - we need to mask this key with that config. However, if the config
-                // we got was the default config, then it means that the key doesn't have a specific configuration and
+                // we got was the default config, then it means that the key doesn't have a specific configuration, and
                 // we should fall back to key specific config that the object is being masked with.
                 // E.g.: '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
                 if (parentKeyMaskingConfig != null && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {

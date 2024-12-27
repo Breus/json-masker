@@ -95,9 +95,9 @@ final class KeyMatcher {
     }
 
     /**
-     * This method is used to convert the common prefix and the pre-initialization into a compresed radix trie node
+     * Converts the common prefix and the pre-initialization trie node into a compressed radix trie node
      *
-     * @param node         the pre-initialization node
+     * @param node         the pre-initialization trie node
      * @param commonPrefix the common prefix in 2-length byte array for lower and upper case, e.g.: {[b,B], [r,R], [e,E]}
      * @return the resulting radix trie node
      */
@@ -146,11 +146,11 @@ final class KeyMatcher {
     }
 
     /**
-     * Inserts a key into the pre-initialization trie (represented by the root node).
+     * Inserts a key into the pre-initialization trie, which is passed as parameter to the method.
      *
      * @param node          the pre-initialization trie (root) node
      * @param key           the key to insert
-     * @param negativeMatch if true, the key is not allowed and the trie is in ALLOW mode. For
+     * @param negativeMatch if {@code true}, the key is not allowed and the trie is in ALLOW mode. For
      *                      example, config {@code builder.allow("name", "age").mask("ssn",
      *                      KeyMaskingConfig.builder().maskStringsWith("[redacted]")) } would only allow {@code name}
      *                      and {@code age} to be present in the JSON, it would use default configuration to mask any
@@ -215,16 +215,16 @@ final class KeyMatcher {
      * Returns a masking configuration if the key must be masked. Handles both allow and mask mode:
      *
      * <ul>
-     *   <li>in allow mode: if the key was explicitly allowed returns null, otherwise returns a
+     *   <li>in allow mode: if the key was explicitly allowed returns {@code null}, otherwise returns a
      *       config to mask the key with.
      *   <li>in mask mode: if the key was explicitly masked returns a config to mask the key with,
-     *       otherwise returns null.
+     *       otherwise returns  {@code null}.
      * </ul>
      *
-     * <p>When key is to be masked (return value != null) and the key had specific masking config
+     * <p>When key is to be masked (return value != {@code null}) and the key had specific masking config
      * returns that, if not - returns default masking config.
      *
-     * <p>When key is to be masked (return value != null) and the key had specific masking config
+     * <p>When key is to be masked (return value != {@code null}) and the key had specific masking config
      * returns that, if not - returns default masking config.
      *
      * @return the config if the key needs to be masked, {@code null} if key does not need to be
@@ -286,11 +286,11 @@ final class KeyMatcher {
      * so {@link RadixTrieNode#terminalNode} needs to be checked additionally to determine whether a full key was 
      * matched or only the prefix.
      *
-     * @param node   from which node to do the search, either root node or existing json path node
+     * @param node   from which node to do the search, either the root node or the existing JSONPath node
      * @param bytes  the byte array containing the key to be matched
      * @param offset offset of the key in the bytes array
      * @param length length of the key in the bytes array
-     * @return the node if found, {@code null} otherwise.
+     * @return the node if found, or {@code null} otherwise.
      */
     @Nullable
     RadixTriePointer traverseFrom(RadixTriePointer node, byte[] bytes, int offset, int length) {
@@ -338,7 +338,7 @@ final class KeyMatcher {
                     }
                 } else {
                     // decoding non-BMP characters in UTF-16 using a pair of high and low
-                    // surrogates which together form one unicode character.
+                    // surrogates which together form one Unicode character.
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
                             && isUnicodeEncodedCharacter(bytes, i, endIndex)) {
@@ -383,7 +383,7 @@ final class KeyMatcher {
     }
 
     /**
-     * Returns whether the byte sequence between the fromIndex and toIndex represents a unicode encoded character,
+     * Returns whether the byte sequence between the fromIndex and toIndex represents a Unicode encoded character,
      * e.g. '\\u0000', so the length must be 6 and starting with '\\u'.
      *
      * @param bytes     the byte sequence representing some character
@@ -454,8 +454,8 @@ final class KeyMatcher {
         }
 
         /**
-         * Retrieves a child node by the byte value if it exists. This can be the same node again if the next
-         * value of the prefix matches the byte value, hence the prefixIndex (to look at) is also passed as parameter.s
+         * Retrieves a child node by the byte value if it exists. This can be the current node again if the next
+         * value of the prefix matches the byte value, hence the prefixIndex (to look at) is also passed as parameter.
          *
          * @param prefixIndex the current index in the prefix were we should be looking for the value. If the
          *                    prefixIndex is the same length as the current prefix, we will be looking for a child node
@@ -602,22 +602,24 @@ final class KeyMatcher {
         }
 
         /**
-         * Returns a child of this node representing the provided byte value or {@code null} if such child does not exist.
+         * Returns the current node with increased prefix index or a child of this node representing the provided byte
+         * value, or {@code null} if such child does not exist and the byte value does not match the current prefix.
          *
-         * <p>This mutates the current state
-         * prefix matches the byte value, return the existing radix trie node with increased prefix index. Otherwise,
-         * looks if a child node matches the byte value. If neither match, returns {@code null}.
+         * <p>This mutates the current state of the {@link RadixTriePointer}.
+         * If the current prefix matches the byte value, this method returns the existing radix trie node with increased
+         * prefix index. Otherwise, it looks if a child node matches the byte value. If neither match, returns
+         * {@code null}.
          *
          * @param byteValue the "next" byte value to find the matching radix trie node for
          * @return the current radix trie node or a child of it, if either of them match. Otherwise, returns
          * {@code null}
          */
         boolean descent(byte byteValue) {
-            var child = tempNode.child(byteValue, tempPrefixIndex++);
-            if (child == null) {
+            RadixTrieNode childNode = tempNode.child(byteValue, tempPrefixIndex++);
+            if (childNode == null) {
                 return false;
-            } else if (child != tempNode) {
-                tempNode = child;
+            } else if (childNode != tempNode) {
+                tempNode = childNode;
                 tempPrefixIndex = 0;
             }
             return true;

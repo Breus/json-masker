@@ -6,10 +6,16 @@ import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -104,127 +110,10 @@ final class KeyMatcherTest {
     }
 
     @Test
-    void shouldMatchJsonPaths() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
-        String json = """
-                {"a":{"b":1,"c":2}}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, node)).isNull();
-    }
-
-    @Test
-    void shouldMatchJsonPathArrays() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a[*].b", "$.a[*].c")).build());
-        String json = """
-                {
-                  "a": [
-                    0,
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    {
-                      "b": 1
-                    },
-                    10,
-                    {
-                      "c": 1,
-                      "d": 1
-                    }
-                  ]
-                }
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'a'), 1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, -1, -1);
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, indexOf(bytes, 'd'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-    }
-
-    @Test
     void shouldNotMatchPrefix() {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys(Set.of("maskMe", "test")).build());
         assertThatConfig(keyMatcher, "mask").isNull();
         assertThatConfig(keyMatcher, "maskMe").isNotNull();
-    }
-
-    @Test
-    void shouldNotMatchJsonPathPrefix() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.maskMe").build());
-        String json = """
-                {"maskMe":"secret"}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 4);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNotNull();
-    }
-
-    @Test
-    void shouldReturnMaskingConfigForJsonPathInAllowMode() {
-        JsonMaskingConfig config = JsonMaskingConfig.builder()
-                .allowJsonPaths("$.allowMe")
-                .maskJsonPaths("$.maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
-                .build();
-        KeyMatcher keyMatcher = new KeyMatcher(config);
-
-        var json = """
-                {"allowMe":"value","maskMe":"secret","maskMeLikeCIA":"secret"}
-                """;
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        KeyMatcher.TrieNode node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 2, 7);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node)).isNull();
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 20, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
-                .isNotNull()
-                .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
-                .isEqualTo("\"***\"");
-
-        node = keyMatcher.getJsonPathRootNode();
-        node = keyMatcher.traverseJsonPathSegment(bytes, node, 38, 13);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, node))
-                .isNotNull()
-                .extracting(KeyMaskingConfig::getStringValueMasker)
-                .extracting(masker -> ByteValueMaskerContext.maskStringWith("value", masker))
-                .isEqualTo("\"[redacted]\"");
     }
 
     @Test
@@ -239,20 +128,101 @@ final class KeyMatcherTest {
         return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null));
     }
 
-    // utility to find specific char in the array, must not be duplicated
-    private int indexOf(byte[] bytes, char c) {
-        int found = -1;
-        for (int i = 0; i < bytes.length; i++) {
-            if (bytes[i] == (byte) c) {
-                if (found != -1) {
-                    throw new IllegalStateException("Char must not be duplicated, got on index %s and %s".formatted(found, i));
-                }
-                found = i;
-            }
-        }
-        if (found == -1) {
-            throw new IllegalStateException("Byte array must contain the char");
-        }
-        return found;
+    @Test
+    void printsNicely() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowKeys("romane", "romanus", "romulus", "rubens", "ruber", "rubicon", "rubicondus")
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+        assertThat(keyMatcher.printTree())
+                .isEqualTo("""
+                        r -> om -> an -> e
+                                      -> us
+                                -> ulus
+                          -> ub -> e -> ns
+                                     -> r
+                                -> icon -> dus
+                        """);
+    }
+
+    @Test
+    void printsEmpty() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder()
+                .allowKeys()
+                .build();
+        KeyMatcher keyMatcher = new KeyMatcher(config);
+        assertThat(keyMatcher.printTree()).isEqualTo("\n");
+    }
+
+    @Test
+    void compressPreInitTrie() {
+        // Given, the target keys "breus" and "bruce"
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("breus", "bruce").build());
+
+        KeyMatcher.PreInitTrieNode preInitTrieNode = new KeyMatcher.PreInitTrieNode();
+        keyMatcher.insert(preInitTrieNode, "breus", false);
+        keyMatcher.insert(preInitTrieNode, "bruce", false);
+
+        // When
+        KeyMatcher.RadixTrieNode trieNode = KeyMatcher.compress(preInitTrieNode);
+
+        // Then, should become the following compressed radix Trie:
+        // br -> eus
+        //    -> uce
+        assertThat(trieNode.prefixLowercase).isEqualTo("br".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.prefixUppercase).isEqualTo("BR".getBytes(StandardCharsets.UTF_8));
+        // Prefix index = 2, because b = 0, r = 1, and 2 would be 'e', but it will be looked-up in the next node because prefixIndex == currentRadixNode.length (2)
+        assertThat(trieNode.child((byte) 'e', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("us".getBytes(StandardCharsets.UTF_8));
+        assertThat(trieNode.child((byte) 'u', 2)).isNotNull().extracting("prefixLowercase").isEqualTo("ce".getBytes(StandardCharsets.UTF_8));
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("encodedCharacterInputs")
+    void isUnicodeEncodedCharacter(byte[] bytes, int fromIndex, int toIndex, boolean isEncodedCharacter) {
+        assertThat(KeyMatcher.isUnicodeEncodedCharacter(bytes, fromIndex, toIndex)).isEqualTo(isEncodedCharacter);
+    }
+
+    private static Stream<Arguments> encodedCharacterInputs() {
+        return Stream.of(
+                Arguments.of(new byte[]{}, 0, 0, false),
+                Arguments.of("hello\\u1234there".getBytes(StandardCharsets.UTF_8), 5, 11, true),
+                Arguments.of("ሴ".getBytes(StandardCharsets.UTF_8), 0, 3, false),
+                Arguments.of("\\u1234".getBytes(StandardCharsets.UTF_8), 0, 6, true)
+        );
+    }
+
+    @Test
+    void convertToRadixTrieNode() {
+        // Given, the target keys "breus" and "bruce"
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("breus", "bruce").build());
+        KeyMatcher.PreInitTrieNode preInitTrieNode = new KeyMatcher.PreInitTrieNode();
+        keyMatcher.insert(preInitTrieNode, "breus", false);
+        keyMatcher.insert(preInitTrieNode, "bruce", false);
+
+        KeyMatcher.RadixTrieNode radixTrieNode = KeyMatcher.convertToRadixTrieNode(preInitTrieNode, List.of());
+        // There is just one lower and uppercase child, representing 'br' and 'BR'
+        assertThat(radixTrieNode.childrenLowercase.length).isEqualTo(1);
+        assertThat(radixTrieNode.childrenUppercase.length).isEqualTo(1);
+        KeyMatcher.RadixTrieNode childrenLowercase = radixTrieNode.childrenLowercase[0];
+        Objects.requireNonNull(childrenLowercase);
+        assertThat(childrenLowercase.prefixLowercase).isEqualTo("r".getBytes(StandardCharsets.UTF_8));
+
+        // The offset of the children array is 101, because the first child is 'e' (101 in ASCII)
+        assertThat(childrenLowercase.childrenLowercaseArrayOffset).isEqualTo(101);
+
+        // The difference between 'e' (101 in ASCII) and 'u' (117 in ASCII) is 16, so 'e' is at index 0 and 'u' at index
+        // 16 in the children array
+        assertThat(childrenLowercase.childrenLowercase.length).isEqualTo(17);
+
+        // This is the 'e' in 'breus' with as prefix 'us'
+        KeyMatcher.RadixTrieNode childrenLowerCaseIndex0 = childrenLowercase.childrenLowercase[0];
+        Objects.requireNonNull(childrenLowerCaseIndex0);
+        assertThat(childrenLowerCaseIndex0.prefixLowercase).isEqualTo("us".getBytes(StandardCharsets.UTF_8));
+
+        // This is the 'u' in 'bruce' with as prefix 'ce'
+        KeyMatcher.RadixTrieNode childrenLowerCaseIndex16 = childrenLowercase.childrenLowercase[16];
+        Objects.requireNonNull(childrenLowerCaseIndex16);
+        assertThat(childrenLowerCaseIndex16.prefixLowercase).isEqualTo("ce".getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -60,7 +60,7 @@ public class StreamTypeBenchmark {
             json = BenchmarkUtils.randomJson(targetKeys, jsonSize, "unicode", 0.1).getBytes(StandardCharsets.UTF_8);
 
             // prepare an input file for FileStreams
-            try (FileWriter inputFileWriter = new FileWriter(INPUT_FILE_STREAM_NAME)) {
+            try (FileWriter inputFileWriter = new FileWriter(INPUT_FILE_STREAM_NAME, StandardCharsets.UTF_8)) {
                 inputFileWriter.write(new String(json, StandardCharsets.UTF_8));
                 inputFileWriter.flush();
             }

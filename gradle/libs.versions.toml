@@ -11,7 +11,7 @@ junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", ver
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
 jmh-generator-annproccesor = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
-nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.2" }
+nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.3" }
 errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.36.0" }
 
 [plugins]

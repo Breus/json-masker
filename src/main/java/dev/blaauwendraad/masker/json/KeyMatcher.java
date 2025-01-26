@@ -60,8 +60,7 @@ final class KeyMatcher {
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
-        RadixTrieNode root = compress(preInitRootNode);
-        this.root = new RadixTriePointer(root, 0);
+        this.root = new RadixTriePointer(compress(preInitRootNode), 0);
     }
 
     /**

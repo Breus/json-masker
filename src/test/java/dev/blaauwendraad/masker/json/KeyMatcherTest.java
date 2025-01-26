@@ -202,8 +202,8 @@ final class KeyMatcherTest {
 
         KeyMatcher.RadixTrieNode radixTrieNode = KeyMatcher.convertToRadixTrieNode(preInitTrieNode, List.of());
         // There is just one lower and uppercase child, representing 'br' and 'BR'
-        assertThat(radixTrieNode.childrenLowercase.length).isEqualTo(1);
-        assertThat(radixTrieNode.childrenUppercase.length).isEqualTo(1);
+        assertThat(radixTrieNode.childrenLowercase).hasSize(1);
+        assertThat(radixTrieNode.childrenUppercase).hasSize(1);
         KeyMatcher.RadixTrieNode childrenLowercase = radixTrieNode.childrenLowercase[0];
         Objects.requireNonNull(childrenLowercase);
         assertThat(childrenLowercase.prefixLowercase).isEqualTo("r".getBytes(StandardCharsets.UTF_8));
@@ -213,7 +213,7 @@ final class KeyMatcherTest {
 
         // The difference between 'e' (101 in ASCII) and 'u' (117 in ASCII) is 16, so 'e' is at index 0 and 'u' at index
         // 16 in the children array
-        assertThat(childrenLowercase.childrenLowercase.length).isEqualTo(17);
+        assertThat(childrenLowercase.childrenLowercase).hasSize(17);
 
         // This is the 'e' in 'breus' with as prefix 'us'
         KeyMatcher.RadixTrieNode childrenLowerCaseIndex0 = childrenLowercase.childrenLowercase[0];

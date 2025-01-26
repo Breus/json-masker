@@ -5,21 +5,31 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayDeque;
 
 /**
- * Tracks the current JSONPath segments in the trie.
+ * Tracks the currently matched JSONPath segments in the radix trie during masking.
  */
 class JsonPathTracker {
+    /**
+     * A node representing {@code null} to satisfy {@link ArrayDeque}, which does not support it.
+     */
     private static final KeyMatcher.RadixTriePointer NULL_NODE = new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
 
     private final KeyMatcher keyMatcher;
+    /**
+     * Stack of the segments that reflects the JSON nesting level during matching. If the current JSON key has been
+     * matched against the current JSONPath segment, the {@link KeyMatcher.RadixTriePointer} node is added on top of the
+     * stack. If the current JSON key didn't match the current JSONPath segment, the {@link JsonPathTracker#NULL_NODE}
+     * is added instead to keep track of the nesting level.
+     */
     private final ArrayDeque<KeyMatcher.RadixTriePointer> jsonPathSegments = new ArrayDeque<>();
 
     JsonPathTracker(KeyMatcher keyMatcher) {
         this.keyMatcher = keyMatcher;
         var root = keyMatcher.getRootNode();
+        // The first character is always the '$' character, which is essentially skipped here.
         if (!root.descent((byte) '$')) {
             throw new IllegalStateException("JSONPath root node is null");
         }
-        this.jsonPathSegments.push(new KeyMatcher.RadixTriePointer(root));
+        this.jsonPathSegments.push(root.checkpoint());
         root.reset();
     }
 
@@ -61,7 +71,7 @@ class JsonPathTracker {
             }
             if (current.isJsonPathWildcard()) {
                 current.descent((byte) '*');
-                return new KeyMatcher.RadixTriePointer(current);
+                return current.checkpoint();
             }
             return NULL_NODE;
         } finally {
@@ -70,7 +80,8 @@ class JsonPathTracker {
     }
 
     /**
-     * Traverse the trie node when entering a key-value. The matching can be done for the matching key, or through a wildcard ('*') JSONPath.
+     * Traverse the trie node when entering a key-value. The matching can be done for the matching key, or through a
+     * wildcard ('*') JSONPath.
      */
     private KeyMatcher.RadixTriePointer getKeyValueNodeOrNullNode(byte[] bytes, int keyOffset, int keyLength) {
         var current = currentNode();
@@ -83,11 +94,11 @@ class JsonPathTracker {
             }
             if (current.isJsonPathWildcard()) {
                 current.descent((byte) '*');
-                return new KeyMatcher.RadixTriePointer(current);
+                return current.checkpoint();
             } else {
                 var child = keyMatcher.traverseFrom(current, bytes, keyOffset, keyLength);
                 if (child != null) {
-                    return new KeyMatcher.RadixTriePointer(child);
+                    return child.checkpoint();
                 }
             }
             return NULL_NODE;

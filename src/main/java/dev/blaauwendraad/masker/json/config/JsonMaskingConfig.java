@@ -21,7 +21,7 @@ public final class JsonMaskingConfig {
      */
     private final TargetKeyMode targetKeyMode;
     /**
-     * Specifies the set of JSON keys for which the string/number values should be targeted (either masked or allowed,
+     * Specifies the set of JSON keys for which the string/number values should be targeted (either masked or allowed),
      * depending on the configured {@link JsonMaskingConfig#targetKeyMode}.
      */
     private final Set<String> targetKeys;
@@ -107,7 +107,7 @@ public final class JsonMaskingConfig {
     /**
      * Returns the config for the given key. If no specific config is available for the given key, returns the default config.
      *
-     * @param key key to be masked
+     * @param key the key to be masked
      * @return the config for the given key or the default config
      */
     public KeyMaskingConfig getConfig(String key) {
@@ -117,7 +117,7 @@ public final class JsonMaskingConfig {
     /**
      * Returns the config for the given key. If no specific config is available for the given key, returns {@code null}.
      *
-     * @param key key to be masked
+     * @param key the key to be masked
      * @return the config for the given key
      */
     public @Nullable KeyMaskingConfig getKeyConfig(String key) {

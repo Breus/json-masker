@@ -283,7 +283,7 @@ final class KeyMatcher {
 
     /**
      * Traverses the trie node by the key offset in the byte array. The node returned might be a prefix,
-     * so {@link RadixTrieNode#terminalNode} needs to be checked additionally to determine whether a full key was 
+     * so {@link RadixTrieNode#terminalNode} needs to be checked additionally to determine whether a full key was
      * matched or only the prefix.
      *
      * @param node   from which node to do the search, either the root node or the existing JSONPath node
@@ -401,7 +401,7 @@ final class KeyMatcher {
     }
 
     String printTree() {
-        return root.node.toString();
+        return root.startingNode.toString();
     }
 
     /**
@@ -579,85 +579,96 @@ final class KeyMatcher {
 
     /**
      * A helper class for matching against the (radix) trie node.
-     * <p>During matching the node keeps transient matching state - reference to the node {@link #tempNode} and
-     * the {@link #tempPrefixIndex} for keeping track of how much of the common prefix has been matched already.
-     * During matching, this helper class changes the
      *
-     * <p> After the matching, the node can be reset to the initial state using {@link #reset()}.
+     * <p>During matching, i.e. {@link #descent(byte)}, this class keeps a currently matched trie node together
+     * with the prefix index within that node.
+     *
+     * <p> After the (unsuccessful) matching, the matching node can be reset to the starting node using {@link #reset()}.
      */
     static class RadixTriePointer {
-        private final RadixTrieNode node;
-        private final int prefixIndex;
+        private final RadixTrieNode startingNode;
+        private final int startingNodePrefixIndex;
 
-        private RadixTrieNode tempNode;
-        private int tempPrefixIndex;
+        private RadixTrieNode currentMatchingNode;
+        private int currentMatchingNodePrefixIndex;
 
         RadixTriePointer(RadixTrieNode node, int prefixIndex) {
-            this.node = this.tempNode = node;
-            this.prefixIndex = this.tempPrefixIndex = prefixIndex;
-        }
-
-        RadixTriePointer(RadixTriePointer node) {
-            this(node.tempNode, node.tempPrefixIndex);
+            this.startingNode = this.currentMatchingNode = node;
+            this.startingNodePrefixIndex = this.currentMatchingNodePrefixIndex = prefixIndex;
         }
 
         /**
-         * Returns the current node with increased prefix index or a child of this node representing the provided byte
-         * value, or {@code null} if such child does not exist and the byte value does not match the current prefix.
+         * Checks if the given byte value matches the radix trie.
          *
-         * <p>This mutates the current state of the {@link RadixTriePointer}.
-         * If the current prefix matches the byte value, this method returns the existing radix trie node with increased
-         * prefix index. Otherwise, it looks if a child node matches the byte value. If neither match, returns
-         * {@code null}.
+         * <p>If the current node and the corresponding prefix index matches the input byte value, it increments the
+         * index or, if the prefix is fully exhausted, looks up the child node to continue matching and resets the
+         * prefix index to {@code 0}.
          *
          * @param byteValue the "next" byte value to find the matching radix trie node for
-         * @return the current radix trie node or a child of it, if either of them match. Otherwise, returns
-         * {@code null}
+         * @return {@code true} if descending (matching) was successful, otherwise, if the current matching node has not
+         * been matched or has no children to continue the matching, returns {code false}
          */
         boolean descent(byte byteValue) {
-            RadixTrieNode childNode = tempNode.child(byteValue, tempPrefixIndex++);
+            RadixTrieNode childNode = currentMatchingNode.child(byteValue, currentMatchingNodePrefixIndex++);
             if (childNode == null) {
                 return false;
-            } else if (childNode != tempNode) {
-                tempNode = childNode;
-                tempPrefixIndex = 0;
+            } else if (childNode != currentMatchingNode) {
+                currentMatchingNode = childNode;
+                currentMatchingNodePrefixIndex = 0;
             }
             return true;
         }
 
+        /**
+         * Check if the current matching node has a wildcard child that is terminal node ('.*') or has another segment
+         * after it ('.*.')
+         */
         boolean isJsonPathWildcard() {
-            // check if the current JSONPath node has a wildcard child that is terminal node ('.*')
-            // or has another segment after it ('.*.')
-            return tempNode.child((byte) '*', tempPrefixIndex) != null
-                   && (tempNode.isTerminalNode(tempPrefixIndex + 1)
-                       || tempNode.child((byte) '.', tempPrefixIndex + 1) != null);
+            return currentMatchingNode.child((byte) '*', currentMatchingNodePrefixIndex) != null
+                   && (currentMatchingNode.isTerminalNode(currentMatchingNodePrefixIndex + 1)
+                       || currentMatchingNode.child((byte) '.', currentMatchingNodePrefixIndex + 1) != null);
         }
 
         boolean isTerminalNode() {
-            return tempNode.isTerminalNode(tempPrefixIndex);
+            return currentMatchingNode.isTerminalNode(currentMatchingNodePrefixIndex);
         }
 
         boolean negativeMatch() {
-            return tempNode.negativeMatch;
+            return currentMatchingNode.negativeMatch;
         }
 
         @Nullable
         KeyMaskingConfig keyMaskingConfig() {
-            return tempNode.keyMaskingConfig;
+            return currentMatchingNode.keyMaskingConfig;
         }
 
         /**
-         * Resets the node to its original state. Since the node is stateful, this method MUST be called any matching
-         * has been performed (successful or failed).
+         * Resets the matching node to its original state (the starting node). Since the {@link RadixTriePointer} is
+         * stateful, this method MUST be called after any matching has been performed (either successful or failed).
          */
         void reset() {
-            tempNode = node;
-            tempPrefixIndex = prefixIndex;
+            currentMatchingNode = startingNode;
+            currentMatchingNodePrefixIndex = startingNodePrefixIndex;
         }
 
+        /**
+         * Creates a {@link RadixTriePointer} instance which is essentially a checkpoint with the current matching node
+         * and the current prefix index as new starting point.
+         *
+         * @return a new {@link RadixTriePointer} instance with the current matching node and prefix index as starting
+         * point
+         */
+        RadixTriePointer checkpoint() {
+            return new RadixTriePointer(this.currentMatchingNode, this.currentMatchingNodePrefixIndex);
+        }
+
+        /**
+         * Returns a string representation of the current state of the {@link RadixTriePointer}, only used for debugging
+         * purposes.
+         */
         @Override
         public String toString() {
-            return "[sequence: %s] %s".formatted(tempPrefixIndex, tempNode);
+            return "[sequence: %s] %s".formatted(currentMatchingNodePrefixIndex, currentMatchingNode);
         }
     }
 }

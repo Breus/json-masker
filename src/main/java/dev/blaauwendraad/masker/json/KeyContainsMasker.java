@@ -66,14 +66,18 @@ final class KeyContainsMasker implements JsonMasker {
     private void mask(MaskingState maskingState) {
         try {
             KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
-            if (maskingState.jsonPathEnabled()) {
-                maskingState.expandCurrentJsonPath(keyMatcher.getJsonPathRootNode());
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, maskingState.getCurrentJsonPathNode());
+
+            JsonPathTracker jsonPathTracker;
+            if (!maskingConfig.getTargetJsonPaths().isEmpty()) {
+                jsonPathTracker = new JsonPathTracker(keyMatcher);
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, jsonPathTracker.currentNode());
+            } else {
+                jsonPathTracker = null;
             }
 
             while (!maskingState.endOfJson()) {
                 stepOverWhitespaceCharacters(maskingState);
-                if (!visitValue(maskingState, keyMaskingConfig)) {
+                if (!visitValue(maskingState, jsonPathTracker, keyMaskingConfig)) {
                     maskingState.next();
                 }
             }
@@ -86,19 +90,19 @@ final class KeyContainsMasker implements JsonMasker {
      * Entrypoint of visiting any value (object, array or primitive) in the JSON.
      *
      * @param maskingState     the current masking state
+     * @param jsonPathTracker    the current {@link JsonPathTracker}
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
      *                         being masked
-     *
      * @return whether a value was found, if returned false the calling code must advance to avoid infinite loops
      */
-    private boolean visitValue(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
+    private boolean visitValue(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig keyMaskingConfig) {
         if (maskingState.endOfJson()) {
             return true;
         }
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
-            case '[' -> visitArray(maskingState, keyMaskingConfig);
-            case '{' -> visitObject(maskingState, keyMaskingConfig);
+            case '[' -> visitArray(maskingState, jsonPathTracker, keyMaskingConfig);
+            case '{' -> visitObject(maskingState, jsonPathTracker, keyMaskingConfig);
             case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
                 if (keyMaskingConfig != null) {
                     maskNumber(maskingState, keyMaskingConfig);
@@ -136,15 +140,18 @@ final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} on
-     * each element while propagating the {@link KeyMaskingConfig}.
+     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)}
+     * on each element while propagating the {@link KeyMaskingConfig}.
      *
      * @param maskingState     the current {@link MaskingState}
-     * @param keyMaskingConfig if not null it means that the current value is being masked according to the
+     * @param jsonPathTracker  the current {@link JsonPathTracker}
+     * @param keyMaskingConfig if not {@code null}, it means that the current value is being masked according to the
      *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
-    private void visitArray(MaskingState maskingState, @Nullable KeyMaskingConfig keyMaskingConfig) {
-        maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), -1, -1));
+    private void visitArray(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig keyMaskingConfig) {
+        if (jsonPathTracker != null) {
+            jsonPathTracker.pushArraySegment();
+        }
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty array
@@ -152,7 +159,7 @@ final class KeyContainsMasker implements JsonMasker {
                 break;
             }
 
-            visitValue(maskingState, keyMaskingConfig);
+            visitValue(maskingState, jsonPathTracker, keyMaskingConfig);
 
             stepOverWhitespaceCharacters(maskingState);
             // check if we're at the end of a (non-empty) array
@@ -161,22 +168,25 @@ final class KeyContainsMasker implements JsonMasker {
             }
         }
         maskingState.next(); // step over array closing square bracket
-        maskingState.backtrackCurrentJsonPath();
+        if (jsonPathTracker != null) {
+            jsonPathTracker.backtrack();
+        }
     }
 
     /**
      * Visits an object, iterates over the keys and checks whether key needs to be masked (if
      * {@link JsonMaskingConfig.TargetKeyMode#MASK}) or allowed (if {@link JsonMaskingConfig.TargetKeyMode#ALLOW}). For
-     * each value, invokes {@link #visitValue(MaskingState, KeyMaskingConfig)} with a non-null {@link KeyMaskingConfig}
+     * each value, invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)} with a non-null {@link KeyMaskingConfig}
      * (when key needs to be masked) or {@code null} (when key is allowed). Whenever 'parentKeyMaskingConfig' is
      * supplied, it means that the object with all its keys is being masked. The only situation when the individual
      * values do not need to be masked is when the key is explicitly allowed (in allow mode).
      *
      * @param maskingState           the current {@link MaskingState}
+     * @param jsonPathTracker          the current {@link JsonPathTracker}
      * @param parentKeyMaskingConfig if not null it means that the current value is being masked according to the
      *                               {@link KeyMaskingConfig}. Otherwise, the value is not being masked
      */
-    private void visitObject(MaskingState maskingState, @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
+    private void visitObject(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty object
@@ -188,12 +198,17 @@ final class KeyContainsMasker implements JsonMasker {
 
             stepOverStringValue(maskingState);
 
-            int keyStartIndex = maskingState.getCurrentTokenStartIndex();
-            int afterClosingQuoteIndex = maskingState.currentIndex();
-            int keyLength = afterClosingQuoteIndex - keyStartIndex - 2; // minus the opening and closing quotes
-            maskingState.expandCurrentJsonPath(keyMatcher.traverseJsonPathSegment(maskingState.getMessage(), maskingState.getCurrentJsonPathNode(), keyStartIndex + 1, keyLength));
-            KeyMaskingConfig keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex + 1, // plus one for the opening quote
-                    keyLength, maskingState.getCurrentJsonPathNode());
+            int keyStartIndex = maskingState.getCurrentTokenStartIndex() + 1; // plus the opening quote
+            int keyLength = maskingState.currentIndex() - keyStartIndex - 1; // minus the closing quote
+            KeyMaskingConfig keyMaskingConfig;
+            if (jsonPathTracker != null) {
+                jsonPathTracker.pushKeyValueSegment(maskingState.getMessage(), keyStartIndex, keyLength);
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, jsonPathTracker.currentNode());
+            } else {
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, null);
+            }
+
+
             maskingState.clearTokenStartIndex();
             stepOverWhitespaceCharacters(maskingState);
             // step over the colon ':'
@@ -208,15 +223,17 @@ final class KeyContainsMasker implements JsonMasker {
             } else {
                 // this is where it might get confusing - this method is called when the whole object is being masked
                 // if we got a maskingConfig for the key - we need to mask this key with that config. However, if the config
-                // we got was the default config, then it means that the key doesn't have a specific configuration and
+                // we got was the default config, then it means that the key doesn't have a specific configuration, and
                 // we should fall back to key specific config that the object is being masked with.
                 // E.g.: '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
                 if (parentKeyMaskingConfig != null && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
                     keyMaskingConfig = parentKeyMaskingConfig;
                 }
-                visitValue(maskingState, keyMaskingConfig);
+                visitValue(maskingState, jsonPathTracker, keyMaskingConfig);
             }
-            maskingState.backtrackCurrentJsonPath();
+            if (jsonPathTracker != null) {
+                jsonPathTracker.backtrack();
+            }
 
             stepOverWhitespaceCharacters(maskingState);
             // check if we're at the end of a (non-empty) object

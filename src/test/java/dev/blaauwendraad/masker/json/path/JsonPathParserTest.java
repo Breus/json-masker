@@ -19,6 +19,7 @@ class JsonPathParserTest {
     void parseLegalJsonPathLiterals(String literal, JsonPath expected) {
         JsonPathParser parser = new JsonPathParser();
         Assertions.assertEquals(expected, parser.parse(literal));
+        Assertions.assertEquals(expected, parser.tryParse(literal));
     }
 
     @ParameterizedTest

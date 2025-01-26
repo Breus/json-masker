@@ -338,10 +338,11 @@ final class KeyMatcher {
                 } else {
                     // decoding non-BMP characters in UTF-16 using a pair of high and low
                     // surrogates which together form one Unicode character.
+                    char lowSurrogate = 0;
                     int codePoint = -1;
                     if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
                             && isUnicodeEncodedCharacter(bytes, i, endIndex)) {
-                        char lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
+                        lowSurrogate = Utf8Util.unicodeHexToChar(bytes, i + 2);
                         if (Character.isLowSurrogate(lowSurrogate)) {
                             codePoint = Character.toCodePoint(unicodeHexBytesAsChar, lowSurrogate);
                         }

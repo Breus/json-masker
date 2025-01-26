@@ -28,6 +28,13 @@ class JsonPathParserTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> parser.parse(literal));
     }
 
+    @ParameterizedTest
+    @MethodSource("illegalJsonPathLiterals")
+    void tryParseIllegalJsonPathLiterals(String literal) {
+        JsonPathParser parser = new JsonPathParser();
+        Assertions.assertNull(parser.tryParse(literal));
+    }
+
     @Test
     void twoJsonPathAreEqual() {
         JsonPathParser parser = new JsonPathParser();
@@ -88,7 +95,8 @@ class JsonPathParserTest {
                 "$.a.b[?length(*)<3]",
                 "$[a][b][5].c",
                 "$.a[0].b[1].c[2]",
-                "$.a[0].[b][c]"
+                "$.a[0].[b][c]",
+                "$[(@.length - 1)].b"
         );
     }
 

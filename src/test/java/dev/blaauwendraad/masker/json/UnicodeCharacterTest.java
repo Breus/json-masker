@@ -250,6 +250,61 @@ class UnicodeCharacterTest {
                                                 "$.💩",
                                                 "$.encoded.💩"
                                         )
-                                        .build())));
+                                        .build())),
+                new JsonMaskerTestInstance(
+                        """
+                       {
+                         "\\u0300": "1st byte mismatch",
+                         "\\u00AA": "2nd byte mismatch",
+                         "\\u00A9": "secret"
+                       }
+                       """,
+                        """
+                       {
+                         "\\u0300": "1st byte mismatch",
+                         "\\u00AA": "2nd byte mismatch",
+                         "\\u00A9": "***"
+                       }
+                       """,
+                        JsonMasker.getMasker(Set.of("©"))),
+                new JsonMaskerTestInstance(
+                        """
+                        {
+                          "\\u0800": "1st byte mismatch",
+                          "\\u2182": "2nd byte mismatch",
+                          "\\u20AD": "3rd byte mismatch",
+                          "\\u20AC": "secret"
+                        }
+                        """,
+                        """
+                        {
+                          "\\u0800": "1st byte mismatch",
+                          "\\u2182": "2nd byte mismatch",
+                          "\\u20AD": "3rd byte mismatch",
+                          "\\u20AC": "***"
+                        }
+                        """,
+                        JsonMasker.getMasker(Set.of("€"))),
+                new JsonMaskerTestInstance(
+                        """
+                        {
+                          "\\uDB3D\\uDCA9": "1st byte mismatch",
+                          "\\uD84D\\uDCA8": "2nd byte mismatch",
+                          "\\uD83C\\uDCA9": "3rd byte mismatch",
+                          "\\uD83D\\uDCA8": "4th byte mismatch",
+                          "\\uD83D\\uDCA9": "secret"
+                        }
+                        """,
+                        """
+                        {
+                          "\\uDB3D\\uDCA9": "1st byte mismatch",
+                          "\\uD84D\\uDCA8": "2nd byte mismatch",
+                          "\\uD83C\\uDCA9": "3rd byte mismatch",
+                          "\\uD83D\\uDCA8": "4th byte mismatch",
+                          "\\uD83D\\uDCA9": "***"
+                        }
+                        """,
+                        JsonMasker.getMasker(Set.of("💩")))
+        );
     }
 }

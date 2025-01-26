@@ -133,32 +133,19 @@ public final class Utf8Util {
             // quotation mark, reverse solidus, and the control characters (U+0000 through U+001F)
             // unicode character do not have to be transformed into \\u form
             switch (character) {
-                case '\b':
-                    encoded.append("\\b");
-                    break;
-                case '\t':
-                    encoded.append("\\t");
-                    break;
-                case '\n':
-                    encoded.append("\\n");
-                    break;
-                case '\f':
-                    encoded.append("\\f");
-                    break;
-                case '\r':
-                    encoded.append("\\r");
-                    break;
-                case '"':
-                case '\\':
-                    encoded.append('\\').append(character);
-                    break;
-                default:
+                case '\b' -> encoded.append("\\b");
+                case '\t' -> encoded.append("\\t");
+                case '\n' -> encoded.append("\\n");
+                case '\f' -> encoded.append("\\f");
+                case '\r' -> encoded.append("\\r");
+                case '"', '\\' -> encoded.append('\\').append(character);
+                default -> {
                     if (character <= '\u001F') {
                         encoded.append(String.format("\\u%04X", (int) character));
                     } else {
                         encoded.append(character);
                     }
-                    break;
+                }
             }
         }
         if (includeQuotes) {

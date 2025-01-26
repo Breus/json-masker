@@ -90,7 +90,7 @@ public final class ValueMaskers {
         String replacement = Utf8Util.jsonEncode(value, false);
         byte[] replacementBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every character as %s".formatted(replacement),
+                String.format("every character as %s", replacement),
                 context -> {
                     /*
                     So we don't add asterisks for escape characters or additional encoding bytes (which are not part of the String length)
@@ -118,7 +118,7 @@ public final class ValueMaskers {
         }
         byte[] replacementBytes = String.valueOf(digit).getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every digit as integer: %s".formatted(digit),
+                String.format("every digit as integer: %s", digit),
                 context -> context.replaceBytes(0, context.byteLength(), replacementBytes, context.byteLength())
         );
     }
@@ -134,7 +134,7 @@ public final class ValueMaskers {
         String replacement = Utf8Util.jsonEncode(value, false);
         byte[] maskValueBytes = replacement.getBytes(StandardCharsets.UTF_8);
         return describe(
-                "every digit as string: %s".formatted(replacement),
+                String.format("every digit as string: %s", replacement),
                 context -> {
                     int originalValueBytesLength = context.byteLength();
                     int totalMaskLength = originalValueBytesLength * maskValueBytes.length;
@@ -179,9 +179,8 @@ public final class ValueMaskers {
      */
     public static ValueMasker.StringMasker email(int keepPrefixLength, int keepSuffixLength, boolean keepDomain, String mask) {
         byte[] replacementBytes = mask.getBytes(StandardCharsets.UTF_8);
-        return describe(
-                "email, keep prefix: %s, keep suffix: %s, keep domain: %s"
-                        .formatted(keepPrefixLength, keepSuffixLength, keepDomain),
+        return describe(String.format(
+                "email, keep prefix: %s, keep suffix: %s, keep domain: %s", keepPrefixLength, keepSuffixLength, keepDomain),
                 context -> {
                     int prefixLength = keepPrefixLength + 1; // add opening quote
                     int suffixLength = keepSuffixLength + 1; // keep closing quote
@@ -274,7 +273,7 @@ public final class ValueMaskers {
      */
     public static ValueMasker.AnyValueMasker withRawValueFunction(Function<String, @Nullable String> masker) {
         return describe(
-                "withRawValueFunction (%s)".formatted(masker),
+                String.format("withRawValueFunction (%s)", masker),
                 context -> {
                     String value = context.asString(0, context.byteLength());
                     String maskedValue = masker.apply(value);
@@ -339,7 +338,7 @@ public final class ValueMaskers {
      */
     public static ValueMasker.AnyValueMasker withTextFunction(Function<String, @Nullable String> masker) {
         return describe(
-                "withTextFunction (%s)".formatted(masker),
+                String.format("withTextFunction (%s)", masker),
                 context -> {
                     String decodedValue; // the original value decoded
                     if (context.getByte(0) != '"') {
@@ -366,14 +365,27 @@ public final class ValueMaskers {
                             } else {
                                 originalByte = context.getByte(encodedIndex++);
                                 switch (originalByte) {
-                                    case 'b' -> decodedBytes[decodedIndex++] = '\b';
-                                    case 't' -> decodedBytes[decodedIndex++] = '\t';
-                                    case 'n' -> decodedBytes[decodedIndex++] = '\n';
-                                    case 'f' -> decodedBytes[decodedIndex++] = '\f';
-                                    case 'r' -> decodedBytes[decodedIndex++] = '\r';
-                                    case '"', '/', '\\' -> decodedBytes[decodedIndex++] = originalByte;
-                                    case 'u' -> {
-                                        // Decode hexadecimal encoded unicode character into
+                                    case 'b':
+                                        decodedBytes[decodedIndex++] = '\b';
+                                        break;
+                                    case 't':
+                                        decodedBytes[decodedIndex++] = '\t';
+                                        break;
+                                    case 'n':
+                                        decodedBytes[decodedIndex++] = '\n';
+                                        break;
+                                    case 'f':
+                                        decodedBytes[decodedIndex++] = '\f';
+                                        break;
+                                    case 'r':
+                                        decodedBytes[decodedIndex++] = '\r';
+                                        break;
+                                    case '"':
+                                    case '/':
+                                    case '\\':
+                                        decodedBytes[decodedIndex++] = originalByte;
+                                        break;
+                                    case 'u':// Decode hexadecimal encoded unicode character into
                                         int valueStartIndex = encodedIndex - 2;
                                         try {
                                             char unicodeHexBytesAsChar = Utf8Util.unicodeHexToChar(
@@ -400,10 +412,10 @@ public final class ValueMaskers {
                                                 // surrogates which together form one unicode character.
                                                 int codePoint = -1;
                                                 if (Character.isHighSurrogate(unicodeHexBytesAsChar) // first surrogate must be the high surrogate
-                                                        && encodedIndex <= context.byteLength() - 6 /* -6 for all bytes of
+                                                    && encodedIndex <= context.byteLength() - 6 /* -6 for all bytes of
                                                        the byte encoded unicode character (\\u + 4 hex bytes) to prevent possible ArrayIndexOutOfBoundsExceptions */
-                                                        && context.getByte(encodedIndex) == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
-                                                        && context.getByte(encodedIndex + 1) == 'u'
+                                                    && context.getByte(encodedIndex) == '\\' // the high surrogate must be followed by a low surrogate (starting with \\u)
+                                                    && context.getByte(encodedIndex + 1) == 'u'
                                                 ) {
                                                     encodedIndex += 2; // step over the '\' and 'u'
                                                     char lowSurrogate = Utf8Util.unicodeHexToChar(
@@ -420,8 +432,7 @@ public final class ValueMaskers {
                                                     // default String behaviour is to replace invalid surrogate pairs with the "replacement character"
                                                     // (https://en.wikipedia.org/wiki/Specials_(Unicode_block)#Replacement_character)
                                                     // but from the JSON perspective, it's better to throw an InvalidJsonException
-                                                    throw context.invalidJson("Invalid surrogate pair '%s'"
-                                                            .formatted(context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
+                                                    throw context.invalidJson(String.format("Invalid surrogate pair '%s'", context.asString(valueStartIndex, encodedIndex - valueStartIndex)), valueStartIndex);
                                                 } else {
                                                     decodedBytes[decodedIndex++] = (byte) (0xf0 | (codePoint >> 18));
                                                     decodedBytes[decodedIndex++] = (byte) (0x80 | ((codePoint >> 12) & 0x3f));
@@ -432,8 +443,9 @@ public final class ValueMaskers {
                                         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
                                             throw context.invalidJson(Objects.requireNonNull(e.getMessage()), valueStartIndex);
                                         }
-                                    }
-                                    default -> throw context.invalidJson("Unexpected character after '\\': '%s'".formatted((char) originalByte), encodedIndex);
+                                        break;
+                                    default:
+                                        throw context.invalidJson(String.format("Unexpected character after '\\': '%s'", (char) originalByte), encodedIndex);
                                 }
                             }
                         }

@@ -58,8 +58,7 @@ public final class KeyMaskingConfig {
 
     @Override
     public String toString() {
-        return "maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s"
-                .formatted(maskStringsWith, maskNumbersWith, maskBooleansWith);
+        return String.format("maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s", maskStringsWith, maskNumbersWith, maskBooleansWith);
     }
 
     public static class Builder {

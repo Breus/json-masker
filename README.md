@@ -75,8 +75,8 @@ The package requires no additional runtime dependencies.
 
 ## JDK Compatibility
 
-The `json-masker` baseline JDK requirement is JDK 17. However, we might consider releasing a version which lowers this
-requirement to JDK 11, when requested.
+From version 1.1 onwards, the `json-masker` artifact became a multi-release JAR (MRJAR) supporting both JDK 11 and 
+JDK 17 simultaneously, so **the minimum JDK requirement is JDK 11**.
 
 ## Usage examples
 

@@ -139,15 +139,12 @@ public final class JsonMaskingConfig {
 
     @Override
     public String toString() {
-        return """
-               targetKeys=%s,
-               targetJsonPaths=%s,
-               targetKeyMode=%s,
-               caseSensitiveTargetKeys=%s,
-               defaultConfig=%s,
-               targetKeyConfigs=%s
-               """
-                .formatted(targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+        return String.format("targetKeys=%s,\n" +
+                             "targetJsonPaths=%s,\n" +
+                             "targetKeyMode=%s,\n" +
+                             "caseSensitiveTargetKeys=%s,\n" +
+                             "defaultConfig=%s,\n" +
+                             "targetKeyConfigs=%s\n", targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
     /**
@@ -234,7 +231,7 @@ public final class JsonMaskingConfig {
                                                    " maskKeys that accepts KeyMaskingConfig");
             }
             if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
-                throw new IllegalArgumentException("Duplicate key '%s'".formatted(key));
+                throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
             }
             // in ALLOW mode this method can be used to set a specific masking config for a key
             if (targetKeyMode != TargetKeyMode.ALLOW) {
@@ -313,7 +310,7 @@ public final class JsonMaskingConfig {
             }
             JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
             if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
-                throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
+                throw new IllegalArgumentException(String.format("Duplicate JSONPath '%s'", jsonPath));
             }
             // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
             if (targetKeyMode != TargetKeyMode.ALLOW) {
@@ -352,7 +349,7 @@ public final class JsonMaskingConfig {
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String key : keys) {
                 if (targetKeys.contains(key)) {
-                    throw new IllegalArgumentException("Duplicate key '%s'".formatted(key));
+                    throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
                 }
                 targetKeys.add(key);
             }
@@ -390,7 +387,7 @@ public final class JsonMaskingConfig {
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
                 if (targetJsonPaths.contains(parsed)) {
-                    throw new IllegalArgumentException("Duplicate JSONPath '%s'".formatted(jsonPath));
+                    throw new IllegalArgumentException(String.format("Duplicate JSONPath '%s'", jsonPath));
                 }
                 targetJsonPaths.add(parsed);
             }
@@ -414,7 +411,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all string values with the provided value.
-         * For example, "maskMe": "secret" -> "maskMe": "***".
+         * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
          * <p>
          * Masking strings with '***' is the default behaviour if no string masking option is set.
          *
@@ -430,7 +427,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all characters of string values with the provided character, preserving the length.
-         * For example, "maskMe": "secret" -> "maskMe": "******".
+         * For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
@@ -457,7 +454,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all number values with the provided value.
-         * For example, "maskMe": 12345 -> "maskMe": "###".
+         * For example, {@literal "maskMe": 12345 to "maskMe": "###"}.
          * <p>
          * Masking numbers with '###' is the default behaviour if no number masking option is set.
          *
@@ -474,7 +471,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all number values with the provided value.
-         * For example, "maskMe": 12345 -> "maskMe": 0.
+         * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -489,7 +486,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all digits of number values with the provided digit, preserving the length.
-         * For example, "maskMe": 12345 -> "maskMe": 88888.
+         * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -519,7 +516,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": "&&&".}
+         * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
          * <p>
          * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
          *
@@ -535,7 +532,7 @@ public final class JsonMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * For example, "maskMe": true -> "maskMe": false.
+         * For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)

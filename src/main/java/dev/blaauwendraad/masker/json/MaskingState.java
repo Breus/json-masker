@@ -265,7 +265,7 @@ class MaskingState implements ValueMaskerContext {
     @Override
     public InvalidJsonException invalidJson(String message, int index) {
         int offset = getCurrentTokenStartIndex();
-        return new InvalidJsonException("%s at index %s".formatted(message, offset + index));
+        return new InvalidJsonException(String.format("%s at index %s", message, offset + index));
     }
 
     private void checkCurrentValueBounds(int index) {
@@ -297,16 +297,27 @@ class MaskingState implements ValueMaskerContext {
      * every mask, we store the replacement operations in a list and apply them all at once at the end, thus making only
      * a single resize operation.
      *
-     * @param startIndex index from which to start replacing
-     * @param length     the length of the target value slice
-     * @param mask       byte array mask to use as replacement for the value
-     * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
-     *
      * @see #flushReplacementOperations()
      */
-    @SuppressWarnings({"ArrayRecordComponent", "java:S6218"}) // never used for comparison
-    private record ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
+    private static final class ReplacementOperation {
+        private final int startIndex;
+        private final int length;
+        private final byte[] mask;
+        private final int maskRepeat;
 
+        /**
+         * @param startIndex index from which to start replacing
+         * @param length     the length of the target value slice
+         * @param mask       byte array mask to use as replacement for the value
+         * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
+         */
+        private ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
+            this.startIndex = startIndex;
+            this.length = length;
+            this.mask = mask;
+            this.maskRepeat = maskRepeat;
+        }
+    
         /**
          * The difference between the mask length and the length of the target value to replace.
          * Used to calculate keep track of the offset during replacements.
@@ -315,5 +326,4 @@ class MaskingState implements ValueMaskerContext {
             return mask.length * maskRepeat - length;
         }
     }
-
 }

@@ -256,6 +256,7 @@ public class JSONTestSuiteTest {
         }
     }
 
+    @SuppressWarnings("ArrayRecordComponent") // not used for equals & hashCode
     record JsonTestSuiteFile(String name, byte[] originalContent, byte @Nullable [] maskedContent) {
     }
 }

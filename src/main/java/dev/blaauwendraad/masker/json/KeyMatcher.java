@@ -667,7 +667,7 @@ final class KeyMatcher {
          */
         @Override
         public String toString() {
-            return "[sequence: %s] %s".formatted(currentMatchingNodePrefixIndex, currentMatchingNode);
+            return String.format("[sequence: %s] %s", currentMatchingNodePrefixIndex, currentMatchingNode);
         }
     }
 }

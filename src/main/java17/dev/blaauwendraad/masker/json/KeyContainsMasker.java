@@ -101,55 +101,40 @@ final class KeyContainsMasker implements JsonMasker {
         }
         // using switch-case over 'if'-statements to improve performance by ~20% (measured in benchmarks)
         switch (maskingState.byteAtCurrentIndex()) {
-            case '[':
-                visitArray(maskingState, jsonPathTracker, keyMaskingConfig);
-                break;
-            case '{':
-                visitObject(maskingState, jsonPathTracker, keyMaskingConfig);
-                break;
-            case '-':
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
+            case '[' -> visitArray(maskingState, jsonPathTracker, keyMaskingConfig);
+            case '{' -> visitObject(maskingState, jsonPathTracker, keyMaskingConfig);
+            case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
                 if (keyMaskingConfig != null) {
                     maskNumber(maskingState, keyMaskingConfig);
                 } else {
                     stepOverNumericValue(maskingState);
                 }
-                break;
-            case '"':
+            }
+            case '"' -> {
                 if (keyMaskingConfig != null) {
                     maskString(maskingState, keyMaskingConfig);
                 } else {
                     stepOverStringValue(maskingState);
                 }
-                break;
-            case 't':
+            }
+            case 't' -> {
                 if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
                     maskingState.incrementIndex(4);
                 }
-                break;
-            case 'f':
+            }
+            case 'f' -> {
                 if (keyMaskingConfig != null) {
                     maskBoolean(maskingState, keyMaskingConfig);
                 } else {
                     maskingState.incrementIndex(5);
                 }
-                break;
-            case 'n':
-                maskingState.incrementIndex(4);
-                break;
-            default:
+            }
+            case 'n' -> maskingState.incrementIndex(4);
+            default -> {
                 return false;
+            }
         }
         return true;
     }
@@ -328,39 +313,13 @@ final class KeyContainsMasker implements JsonMasker {
      */
     private static void stepOverValue(MaskingState maskingState) {
         switch (maskingState.byteAtCurrentIndex()) {
-            case '"':
-                stepOverStringValue(maskingState);
-                break;
-            case '-':
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                stepOverNumericValue(maskingState);
-                break;
-            case 't':
-            case 'n':
-                maskingState.incrementIndex(4);
-                break;
-            // true or null
-            case 'f':
-                maskingState.incrementIndex(5);
-                break;
-            // false
-            case '{':
-                stepOverObject(maskingState);
-                break;
-            case '[':
-                stepOverArray(maskingState);
-                break;
-            default:/* return */
-                break;
+            case '"' -> stepOverStringValue(maskingState);
+            case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> stepOverNumericValue(maskingState);
+            case 't', 'n' -> maskingState.incrementIndex(4); // true or null
+            case 'f' -> maskingState.incrementIndex(5); // false
+            case '{' -> stepOverObject(maskingState);
+            case '[' -> stepOverArray(maskingState);
+            default -> { /* return */ }
         }
     }
 

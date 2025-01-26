@@ -120,8 +120,7 @@ class BufferedMaskingState extends MaskingState {
             bufferSize <<= 1; // note: <<= 1 is equal to doubling the bufferSize
             if (bufferSize > MAX_BUFFER_SIZE) {
                 throw new InvalidJsonException(
-                        "Invalid JSON input provided: it contains a single JSON token (key or value) with %s characters".formatted(
-                                currentTokenLength));
+                        String.format("Invalid JSON input provided: it contains a single JSON token (key or value) with %s characters", currentTokenLength));
             }
             byte[] extendedBuffer = new byte[bufferSize];
 

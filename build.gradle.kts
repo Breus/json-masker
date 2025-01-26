@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
     alias(libs.plugins.errorprone)
+    alias(libs.plugins.mrjar)
     `maven-publish`
     `java-library`
     signing
@@ -31,13 +32,15 @@ java {
     }
     withJavadocJar()
     withSourcesJar()
-    registerFeature("nullabilityAnnotations") {
-        usingSourceSet(sourceSets["main"])
-    }
+}
+
+multiRelease {
+    targetVersions(11, 17)
 }
 
 dependencies {
-    "nullabilityAnnotationsImplementation"(libs.jspecify)
+    api(libs.jspecify)
+    "java17Implementation"(libs.jspecify)
 
     testImplementation(libs.assertj.core)
     testImplementation(libs.jackson.databind)
@@ -89,7 +92,7 @@ publishing {
                     }
                     developer {
                         id = "gavlyukovskiy"
-                        name = "Arthur Gavlyukovskiy"
+                        name = "Artur Havliukovskyi"
                         email = "agavlyukovskiy@gmail.com"
                     }
                 }
@@ -161,6 +164,16 @@ sonar {
 }
 
 tasks {
+    compileJava {
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
+    }
+
+    compileTestJava {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+
     test {
         useJUnitPlatform()
     }

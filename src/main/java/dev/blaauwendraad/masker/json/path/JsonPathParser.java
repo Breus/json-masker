@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Parses a jsonpath literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
@@ -43,13 +44,13 @@ public class JsonPathParser {
      */
     public JsonPath parse(String literal) {
         if (!(literal.equals("$") || literal.startsWith("$.") || literal.startsWith("$["))) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "JSONPath must start with a root node identifier.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "JSONPath must start with a root node identifier.");
         }
         if (literal.contains("'") || literal.contains("\\")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Escape characters are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Escape characters are not supported.");
         }
         if (literal.contains("..")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Descendant segments are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Descendant segments are not supported.");
         }
         List<String> segments = parseSegments(literal);
         segments.forEach(segment -> validateSegment(segment, literal));
@@ -82,7 +83,7 @@ public class JsonPathParser {
         for (int i = 2; i < literal.length() - 1; i++) {
             char symbol = literal.charAt(i);
             char nextSymbol = literal.charAt(i + 1);
-            if (symbol == '.' || (symbol == '[' && !segment.isEmpty())) {
+            if (symbol == '.' || (symbol == '[' && !(segment.length() == 0))) {
                 segments.add(segment.toString());
                 segment = new StringBuilder();
             } else if ((symbol == ']' && nextSymbol == '.') || (symbol == ']' && nextSymbol == '[')) {
@@ -96,11 +97,11 @@ public class JsonPathParser {
         if (literal.charAt(literal.length() - 1) != ']' && literal.charAt(literal.length() - 1) != '.') {
             segment.append(literal.charAt(literal.length() - 1));
         }
-        if (!segment.isEmpty() || literal.endsWith("[]")) {
+        if (!(segment.length() == 0) || literal.endsWith("[]")) {
             segments.add(segment.toString());
         }
         if (segments.size() > 1 && segments.get(segments.size() - 1).equals("*") && !segments.get(segments.size() - 2).equals("*")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "A single leading wildcard is not allowed. " +
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "A single leading wildcard is not allowed. " +
                     "Use '" + literal.substring(0, literal.length() - 2) + "' instead.");
 
         }
@@ -109,13 +110,13 @@ public class JsonPathParser {
 
     private void validateSegment(String segment, String literal) {
         if (isNumber(segment)) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Numbers as key names are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Numbers as key names are not supported.");
         } else if (segment.startsWith("?")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Filter selectors are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Filter selectors are not supported.");
         } else if (segment.contains(":")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Array slice selectors are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Array slice selectors are not supported.");
         } else if (segment.contains("(")) {
-            throw new IllegalArgumentException(ERROR_PREFIX.formatted(literal) + "Function extensions are not supported.");
+            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Function extensions are not supported.");
         }
     }
 
@@ -136,7 +137,7 @@ public class JsonPathParser {
      * @param jsonPaths input set of jsonpath queries
      */
     public void checkAmbiguity(Set<JsonPath> jsonPaths) {
-        List<JsonPath> jsonPathList = jsonPaths.stream().sorted(Comparator.comparing(JsonPath::toString)).toList();
+        List<JsonPath> jsonPathList = jsonPaths.stream().sorted(Comparator.comparing(JsonPath::toString)).collect(Collectors.toUnmodifiableList());
         for (int i = 1; i < jsonPathList.size(); i++) {
             JsonPath current = jsonPathList.get(i - 1);
             JsonPath next = jsonPathList.get(i);

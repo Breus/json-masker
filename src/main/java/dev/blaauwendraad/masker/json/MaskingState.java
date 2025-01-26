@@ -1,12 +1,10 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.Utf8Util;
-import org.jspecify.annotations.Nullable;
 
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -14,8 +12,6 @@ import java.util.List;
  * operation.
  */
 class MaskingState implements ValueMaskerContext {
-    private static final int INITIAL_JSONPATH_STACK_CAPACITY = 16; // an initial size of the JsonPath array
-
     protected byte[] message;
     protected int messageLength;
     protected int currentIndex = 0;
@@ -35,20 +31,11 @@ class MaskingState implements ValueMaskerContext {
      */
     protected int replacementOperationsTotalDifference = 0;
 
-    /**
-     * Current JSONPath is represented by a stack of segment references.
-     * A stack is implemented with an array of the trie nodes that reference the end of the segment
-     */
-    protected KeyMatcher.@Nullable RadixTriePointer @Nullable [] currentJsonPath = null;
-    protected int currentJsonPathHeadIndex = -1;
     protected int currentTokenStartIndex = -1;
 
-    public MaskingState(byte[] message, boolean trackJsonPath) {
+    public MaskingState(byte[] message) {
         this.message = message;
         this.messageLength = message.length;
-        if (trackJsonPath) {
-            currentJsonPath = new KeyMatcher.RadixTriePointer[INITIAL_JSONPATH_STACK_CAPACITY];
-        }
     }
 
     /**
@@ -160,32 +147,6 @@ class MaskingState implements ValueMaskerContext {
         );
 
         return newMessage;
-    }
-
-    /**
-     * Expands current jsonpath.
-     *
-     * @param trieNode a node in the trie where the new segment ends.
-     */
-    void expandCurrentJsonPath(KeyMatcher.@Nullable RadixTriePointer trieNode) {
-        if (currentJsonPath != null) {
-            currentJsonPath[++currentJsonPathHeadIndex] = trieNode;
-            if (currentJsonPathHeadIndex == currentJsonPath.length - 1) {
-                // resize
-                currentJsonPath = Arrays.copyOf(currentJsonPath, currentJsonPath.length*2);
-            }
-        }
-    }
-
-    /**
-     * Returns the TrieNode that references the end of the latest segment in the current jsonpath
-     */
-    public KeyMatcher.@Nullable RadixTriePointer getCurrentJsonPathNode() {
-        if (currentJsonPath != null && currentJsonPathHeadIndex != -1) {
-            return currentJsonPath[currentJsonPathHeadIndex];
-        } else {
-            return null;
-        }
     }
 
     /**

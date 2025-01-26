@@ -13,7 +13,7 @@ class MaskingStateTest {
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8), false);
+                """.getBytes(StandardCharsets.UTF_8));
 
         Assertions.assertThat(maskingState).hasToString("""
                 >{<
@@ -49,7 +49,7 @@ class MaskingStateTest {
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8), false);
+                """.getBytes(StandardCharsets.UTF_8));
 
         Assertions.assertThatThrownBy(maskingState::getCurrentTokenStartIndex)
                 .isInstanceOf(IllegalStateException.class);

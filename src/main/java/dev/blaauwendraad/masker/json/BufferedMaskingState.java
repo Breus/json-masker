@@ -28,12 +28,8 @@ class BufferedMaskingState extends MaskingState {
     private final OutputStream outputStream;
     private int bufferSize; // size of byte array buffers to be read from the input stream
 
-    public BufferedMaskingState(
-            InputStream inputStream,
-            OutputStream outputStream,
-            boolean trackJsonPath,
-            int bufferSize) {
-        super(new byte[bufferSize], trackJsonPath);
+    public BufferedMaskingState(InputStream inputStream, OutputStream outputStream, int bufferSize) {
+        super(new byte[bufferSize]);
         /*
          There is a special optimization for "true", "false" and "null" values. We identify such values by their first
          character ("t", "f" and "n" respectively) and assume the identified value length. When the masker is in allow

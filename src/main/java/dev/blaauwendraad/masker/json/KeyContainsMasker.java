@@ -43,7 +43,7 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public byte[] mask(byte[] input) {
-        MaskingState maskingState = new MaskingState(input, !maskingConfig.getTargetJsonPaths().isEmpty());
+        MaskingState maskingState = new MaskingState(input);
         mask(maskingState);
         return maskingState.flushReplacementOperations();
     }
@@ -58,7 +58,7 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public void mask(InputStream inputStream, OutputStream outputStream) {
-        var maskingState = new BufferedMaskingState(inputStream, outputStream, !maskingConfig.getTargetJsonPaths().isEmpty(), maskingConfig.bufferSize());
+        var maskingState = new BufferedMaskingState(inputStream, outputStream, maskingConfig.bufferSize());
         mask(maskingState);
         maskingState.flushCurrentBuffer();
     }

@@ -4,6 +4,7 @@ import dev.blaauwendraad.masker.json.ValueMaskers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -23,14 +24,16 @@ final class JsonMaskingConfigTest {
                 () -> JsonMaskingConfig.builder(),
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of()),
                 () -> JsonMaskingConfig.builder().maskKeys(Set.of(), KeyMaskingConfig.builder().build()),
-                () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of()),
-                () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of(), KeyMaskingConfig.builder().build()),
+                () -> JsonMaskingConfig.builder().maskKeys(Map.of()),
                 () -> JsonMaskingConfig.builder().maskKeys("maskMe").maskKeys("maskMe"),
-                () -> JsonMaskingConfig.builder().maskKeys("maskMe").maskKeys(Set.of("maskMe")),
                 () -> JsonMaskingConfig.builder().maskKeys("maskMe").allowKeys("allowMe"),
                 () -> JsonMaskingConfig.builder().maskKeys("maskMe").allowJsonPaths("$.allowMe"),
+                () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of()),
+                () -> JsonMaskingConfig.builder().maskJsonPaths(Set.of(), KeyMaskingConfig.builder().build()),
+                () -> JsonMaskingConfig.builder().maskJsonPaths(Map.of()),
+                () -> JsonMaskingConfig.builder().maskJsonPaths(Map.of()),
+                () -> JsonMaskingConfig.builder().maskJsonPaths("$.maskMe").maskJsonPaths("$.maskMe"),
                 () -> JsonMaskingConfig.builder().allowKeys("allowMe").allowKeys("allowMe"),
-                () -> JsonMaskingConfig.builder().allowKeys("allowMe").allowKeys(Set.of("allowMe")),
                 () -> JsonMaskingConfig.builder().allowKeys("allowMe").maskKeys("maskMe"),
                 () -> JsonMaskingConfig.builder().allowKeys("allowMe").maskJsonPaths("$.maskMe"),
                 () -> JsonMaskingConfig.builder().allowJsonPaths("$.allowMe").allowJsonPaths("$.allowMe"),

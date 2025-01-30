@@ -46,7 +46,8 @@ Finally, no additional third-party runtime dependencies  are required to use thi
 * Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
 * Limited support for JSONPath masking in both  **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`)
   modes
-* Masking a valid JSON will always return a valid JSON
+* Masking a valid JSON will always produce a valid JSON. If the input is not valid JSON, processing is guaranteed to
+  complete, but the resulting masked output is undefined
 
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.

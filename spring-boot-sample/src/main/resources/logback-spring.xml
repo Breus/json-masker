@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Console appender with structured logging logback configuration provided for import,
+equivalent to the programmatic initialization performed by Boot
+-->
+
+<configuration debug="true">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!--        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+        <!--            <level>${CONSOLE_LOG_THRESHOLD}</level>-->
+        <!--        </filter>-->
+        <encoder class="notdefaultpackage.MaskingEncoder">
+            <allowKeys>@timestamp,log.level,process.pid,process.thread.name</allowKeys>
+            <caseSensitiveKeys>true</caseSensitiveKeys>
+            <maskStringsWith>***</maskStringsWith>
+            <maskNumbersWith>0</maskNumbersWith>
+
+            <keyConfig>
+                <maskKeys>artur</maskKeys>
+                <maskStringsWith>
+                    <partial keepPrefix="3" keepSuffix="3">***</partial>
+                </maskStringsWith>
+            </keyConfig>
+            <keyConfig>
+                <maskKeys>cardNumber</maskKeys>
+                <maskStringsWith>[redacted]</maskStringsWith>
+            </keyConfig>
+
+            <delegate class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+                <format>${CONSOLE_LOG_STRUCTURED_FORMAT}</format>
+                <charset>${CONSOLE_LOG_CHARSET}</charset>
+            </delegate>
+            <!--<maskingConfig>
+                <keyConfig>
+                    <maskKey>iban</maskKey>
+                    <config>
+                        asdasd
+                    </config>
+                </keyConfig>
+                <maskKey>12</maskKey>
+                <maskKey>123</maskKey>
+                <maskKey>12324</maskKey>
+            </maskingConfig>-->
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

@@ -15,7 +15,7 @@ nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.3" 
 errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.36.0" }
 
 [plugins]
-jmh = { id = "me.champeau.jmh", version = "0.7.2" }
+jmh = { id = "me.champeau.jmh", version = "0.7.3" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }

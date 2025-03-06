@@ -56,13 +56,14 @@ final class KeyMatcherTest {
     @Test
     void shouldBeAbleToSearchByOffset() {
         KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskKeys("maskMe").build());
+        var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         byte[] bytes = "maskMe".getBytes(StandardCharsets.UTF_8);
         byte[] bytesWithPadding = """
                 {"maskMe": "secret"}
                 """.strip().getBytes(StandardCharsets.UTF_8);
 
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null)).isNotNull();
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, null)).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, pointer, null)).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytesWithPadding, 2, bytes.length, pointer, null)).isNotNull();
     }
 
     @Test
@@ -124,8 +125,9 @@ final class KeyMatcherTest {
     }
 
     private ObjectAssert<KeyMaskingConfig> assertThatConfig(KeyMatcher keyMatcher, String key) {
+        var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         byte[] bytes = key.getBytes(StandardCharsets.UTF_8);
-        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, null));
+        return Assertions.assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, bytes.length, pointer, null));
     }
 
     @Test

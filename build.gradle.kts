@@ -39,9 +39,12 @@ multiRelease {
 }
 
 dependencies {
+    testImplementation(platform(libs.junit.bom))
+
     api(libs.jspecify)
     "java17Implementation"(libs.jspecify)
 
+    testImplementation(libs.junit.platform.launcher)
     testImplementation(libs.assertj.core)
     testImplementation(libs.jackson.databind)
     testImplementation(libs.junit.api)

@@ -182,13 +182,16 @@ tasks {
         options.errorprone {
             error(
                 "CheckedExceptionNotThrown",
+                "DeadException",
+                "DefaultCharset",
                 "FunctionalInterfaceClash",
+                "InvalidThrows",
+                "InvalidThrowsLink",
                 "NonFinalStaticField",
                 "NullAway",
                 "RedundantOverride",
                 "RedundantThrows",
                 "RemoveUnusedImports",
-                "DefaultCharset",
                 "UnnecessarilyFullyQualified",
                 "UnnecessarilyUsedValue",
                 "UnnecessaryBoxedAssignment",

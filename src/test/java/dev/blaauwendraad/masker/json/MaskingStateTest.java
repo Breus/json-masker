@@ -7,13 +7,14 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 
 class MaskingStateTest {
+    private final KeyMatcher.RadixTriePointer pointer = new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
     @Test
     void shouldReturnStringRepresentationForDebugging() {
         MaskingState maskingState = new MaskingState("""
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8));
+                """.getBytes(StandardCharsets.UTF_8), pointer);
 
         Assertions.assertThat(maskingState).hasToString("""
                 >{<
@@ -49,7 +50,7 @@ class MaskingStateTest {
                 {
                     "maskMe": "some value"
                 }
-                """.getBytes(StandardCharsets.UTF_8));
+                """.getBytes(StandardCharsets.UTF_8), pointer);
 
         Assertions.assertThatThrownBy(maskingState::getCurrentTokenStartIndex)
                 .isInstanceOf(IllegalStateException.class);

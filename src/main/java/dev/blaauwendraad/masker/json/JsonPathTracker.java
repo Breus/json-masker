@@ -22,15 +22,17 @@ class JsonPathTracker {
      */
     private final ArrayDeque<KeyMatcher.RadixTriePointer> jsonPathSegments = new ArrayDeque<>();
 
-    JsonPathTracker(KeyMatcher keyMatcher) {
+    JsonPathTracker(KeyMatcher keyMatcher, KeyMatcher.RadixTriePointer keyMatcherRootNodePointer) {
         this.keyMatcher = keyMatcher;
-        var root = keyMatcher.getRootNode();
-        // The first character is always the '$' character, which is essentially skipped here.
-        if (!root.descent((byte) '$')) {
-            throw new IllegalStateException("JSONPath root node is null");
+        try {
+            // The first character is always the '$' character, which is essentially skipped here.
+            if (!keyMatcherRootNodePointer.descent((byte) '$')) {
+                throw new IllegalStateException("JSONPath root node is null");
+            }
+            this.jsonPathSegments.push(keyMatcherRootNodePointer.checkpoint());
+        } finally {
+            keyMatcherRootNodePointer.reset();
         }
-        this.jsonPathSegments.push(root.checkpoint());
-        root.reset();
     }
 
     /**

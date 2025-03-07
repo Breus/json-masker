@@ -33,9 +33,12 @@ class MaskingState implements ValueMaskerContext {
 
     protected int currentTokenStartIndex = -1;
 
-    public MaskingState(byte[] message) {
+    private KeyMatcher.RadixTriePointer keyMatcherRootNodePointer;
+
+    public MaskingState(byte[] message, KeyMatcher.RadixTriePointer keyMatcherRootNodePointer) {
         this.message = message;
         this.messageLength = message.length;
+        this.keyMatcherRootNodePointer = keyMatcherRootNodePointer;
     }
 
     /**
@@ -184,6 +187,10 @@ class MaskingState implements ValueMaskerContext {
      */
     public void clearTokenStartIndex() {
         this.currentTokenStartIndex = -1;
+    }
+
+    public KeyMatcher.RadixTriePointer getKeyMatcherRootNodePointer() {
+        return keyMatcherRootNodePointer;
     }
 
     @Override

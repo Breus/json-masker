@@ -43,7 +43,8 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public byte[] mask(byte[] input) {
-        MaskingState maskingState = new MaskingState(input);
+        var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
+        MaskingState maskingState = new MaskingState(input, pointer);
         mask(maskingState);
         return maskingState.flushReplacementOperations();
     }
@@ -58,7 +59,8 @@ final class KeyContainsMasker implements JsonMasker {
      */
     @Override
     public void mask(InputStream inputStream, OutputStream outputStream) {
-        var maskingState = new BufferedMaskingState(inputStream, outputStream, maskingConfig.bufferSize());
+        var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
+        var maskingState = new BufferedMaskingState(inputStream, outputStream, maskingConfig.bufferSize(), pointer);
         mask(maskingState);
         maskingState.flushCurrentBuffer();
     }
@@ -69,8 +71,9 @@ final class KeyContainsMasker implements JsonMasker {
 
             JsonPathTracker jsonPathTracker;
             if (!maskingConfig.getTargetJsonPaths().isEmpty()) {
-                jsonPathTracker = new JsonPathTracker(keyMatcher);
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, jsonPathTracker.currentNode());
+                KeyMatcher.RadixTriePointer pointer = maskingState.getKeyMatcherRootNodePointer();
+                jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, pointer, jsonPathTracker.currentNode());
             } else {
                 jsonPathTracker = null;
             }
@@ -200,12 +203,13 @@ final class KeyContainsMasker implements JsonMasker {
 
             int keyStartIndex = maskingState.getCurrentTokenStartIndex() + 1; // plus the opening quote
             int keyLength = maskingState.currentIndex() - keyStartIndex - 1; // minus the closing quote
+            var pointer = maskingState.getKeyMatcherRootNodePointer();
             KeyMaskingConfig keyMaskingConfig;
             if (jsonPathTracker != null) {
                 jsonPathTracker.pushKeyValueSegment(maskingState.getMessage(), keyStartIndex, keyLength);
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, jsonPathTracker.currentNode());
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, pointer, jsonPathTracker.currentNode());
             } else {
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, null);
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, pointer, null);
             }
 
 

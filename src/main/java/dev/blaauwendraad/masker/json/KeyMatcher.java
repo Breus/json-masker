@@ -48,7 +48,7 @@ final class KeyMatcher {
     /**
      * Used for look-ups in combination with JSONPaths
      */
-    private final RadixTriePointer root;
+    private final RadixTrieNode root;
 
     public KeyMatcher(JsonMaskingConfig maskingConfig) {
         this.maskingConfig = maskingConfig;
@@ -60,7 +60,7 @@ final class KeyMatcher {
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
         }
-        this.root = new RadixTriePointer(compress(preInitRootNode), 0);
+        this.root = compress(preInitRootNode);
     }
 
     /**
@@ -231,7 +231,7 @@ final class KeyMatcher {
      */
     @Nullable
     KeyMaskingConfig getMaskConfigIfMatched(
-            byte[] bytes, int keyOffset, int keyLength, @Nullable RadixTriePointer currentJsonPathNode) {
+            byte[] bytes, int keyOffset, int keyLength, RadixTriePointer keyMatcherRootNodePointer, @Nullable RadixTriePointer currentJsonPathNode) {
         if (maskingConfig.isInMaskMode()) {
              // The matching in mask mode has two states
              //  1. the key did not match: not in mask list, do not mask (returns {@code null})
@@ -242,12 +242,12 @@ final class KeyMatcher {
             }
             if (keyLength != SKIP_KEY_LOOKUP) {
                 try {
-                    var node = traverseFrom(root, bytes, keyOffset, keyLength);
+                    var node = traverseFrom(keyMatcherRootNodePointer, bytes, keyOffset, keyLength);
                     if (node != null && node.isTerminalNode()) {
                         return node.keyMaskingConfig() != null ? node.keyMaskingConfig() : maskingConfig.getDefaultConfig();
                     }
                 } finally {
-                    root.reset();
+                    keyMatcherRootNodePointer.reset();
                 }
             }
             return null;
@@ -265,7 +265,7 @@ final class KeyMatcher {
             }
             if (keyLength != SKIP_KEY_LOOKUP) {
                 try {
-                    var node = traverseFrom(root, bytes, keyOffset, keyLength);
+                    var node = traverseFrom(keyMatcherRootNodePointer, bytes, keyOffset, keyLength);
                     if (node != null && node.isTerminalNode()) {
                         if (node.negativeMatch()) {
                             return node.keyMaskingConfig();
@@ -273,7 +273,7 @@ final class KeyMatcher {
                         return null;
                     }
                 } finally {
-                    root.reset();
+                    keyMatcherRootNodePointer.reset();
                 }
             }
             return maskingConfig.getDefaultConfig();
@@ -396,12 +396,12 @@ final class KeyMatcher {
         return fromIndex <= toIndex - 6 && bytes[fromIndex] == '\\' && bytes[fromIndex + 1] == 'u';
     }
 
-    RadixTriePointer getRootNode() {
+    RadixTrieNode getRootNode() {
         return root;
     }
 
     String printTree() {
-        return root.startingNode.toString();
+        return root.toString();
     }
 
     /**

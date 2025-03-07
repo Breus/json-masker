@@ -163,6 +163,7 @@ sonar {
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.organization", "breus")
         property("sonar.projectKey", "Breus_json-masker")
+        property("sonar.java.source", "17")
     }
 }
 

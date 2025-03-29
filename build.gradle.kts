@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
     alias(libs.plugins.errorprone)
-    alias(libs.plugins.mrjar)
     `maven-publish`
     `java-library`
     signing
@@ -34,15 +33,19 @@ java {
     withSourcesJar()
 }
 
-multiRelease {
-    targetVersions(11, 17)
+val java17: SourceSet by sourceSets.creating {
+    java.srcDir("src/main/java17")
+}
+
+val java17Implementation: Configuration by configurations.getting {
+    extendsFrom(configurations.implementation.get())
 }
 
 dependencies {
     testImplementation(platform(libs.junit.bom))
 
+    java17Implementation(sourceSets.main.get().output.classesDirs)
     api(libs.jspecify)
-    "java17Implementation"(libs.jspecify)
 
     testImplementation(libs.junit.platform.launcher)
     testImplementation(libs.assertj.core)
@@ -173,13 +176,23 @@ tasks {
         targetCompatibility = "11"
     }
 
-    compileTestJava {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-
     test {
         useJUnitPlatform()
+    }
+
+    jar {
+        into("META-INF/versions/17") {
+            from(java17.output)
+        }
+        manifest {
+            attributes("Multi-Release" to "true")
+        }
+    }
+
+    named<Jar>("sourcesJar") {
+        into("META-INF/versions/17") {
+            from(java17.allSource)
+        }
     }
 
     withType<JavaCompile>().configureEach {

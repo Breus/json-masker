@@ -58,7 +58,7 @@ jobs:
 
             # increment patch version of the latest release to create new snapshot version
             # when pre-release - continue snapshots of the same version
-            # v0.1.0    -> 0.1.0-SNAPSHOT
+            # v0.1.0    -> 0.1.1-SNAPSHOT
             # v0.1.0-rc -> 0.1.0-SNAPSHOT
             if [[ -z $pre_release ]]; then
               patch=$(($patch + 1))

@@ -6,7 +6,7 @@ assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.27.3
 jspecify = { group = "org.jspecify", name = "jspecify", version = "1.0.0" }
 jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.19.1" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
-junit-bom = { group = "org.junit", name = "junit-bom", version = "5.13.2" }
+junit-bom = { group = "org.junit", name = "junit-bom", version = "5.13.4" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }

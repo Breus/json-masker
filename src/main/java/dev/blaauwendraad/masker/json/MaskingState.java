@@ -279,18 +279,18 @@ class MaskingState implements ValueMaskerContext {
          * @param mask       byte array mask to use as replacement for the value
          * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
          */
-        private ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
+        ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
             this.startIndex = startIndex;
             this.length = length;
             this.mask = mask;
             this.maskRepeat = maskRepeat;
         }
-    
+
         /**
          * The difference between the mask length and the length of the target value to replace.
          * Used to calculate keep track of the offset during replacements.
          */
-        public int difference() {
+        int difference() {
             return mask.length * maskRepeat - length;
         }
     }

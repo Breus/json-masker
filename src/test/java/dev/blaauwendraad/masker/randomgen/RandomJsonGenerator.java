@@ -213,7 +213,7 @@ public final class RandomJsonGenerator {
         private final Random random;
         int estimatedSizeBytes;
 
-        public Context(Random random) {
+        Context(Random random) {
             this.random = random;
         }
     }

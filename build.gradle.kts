@@ -201,6 +201,7 @@ tasks {
                 "CheckedExceptionNotThrown",
                 "DeadException",
                 "DefaultCharset",
+                "EffectivelyPrivate",
                 "FunctionalInterfaceClash",
                 "InvalidThrows",
                 "InvalidThrowsLink",

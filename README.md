@@ -18,12 +18,12 @@ streaming and in-memory APIs to cater to various use cases.
 The library is designed for high throughput and efficient memory usage, it minimizes heap allocations to reduce GC 
 pressure.
 
-Finally, no additional third-party runtime dependencies  are required to use this library.
+Finally, no additional third-party runtime dependencies are required to use this library.
 
 ## Features
 
 * Mask a user-provided stream of JSON and write it to a user-provided output stream 
-* Mask all primitive values by specifying the keys to mask, by default any `string` is masked as `"***"`, any `number`
+* Mask all primitive values by specifying the keys to mask, by default, any `string` is masked as `"***"`, any `number`
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
   be masked, recursively
@@ -43,8 +43,8 @@ Finally, no additional third-party runtime dependencies  are required to use thi
 * Ability to configure JSON type preserving masking configurations so the masked JSON can be deserialized back into a
   Java object it was serialized from
 * Target key **case sensitivity configuration** (default: `false`)
-* Use **block-list** (`maskKeys`) or **allow-list** (`allowKeys`) for masking
-* Limited support for JSONPath masking in both  **block-list** (`maskJsonPaths`) and **allow-list** (`allowJsonPaths`)
+* Use **blocklist** (`maskKeys`) or **allowlist** (`allowKeys`) for masking
+* Limited support for JSONPath masking in both **blocklist** (`maskJsonPaths`) and **allowlist** (`allowJsonPaths`)
   modes
 * Masking a valid JSON will always produce a valid JSON. If the input is not valid JSON, processing is guaranteed to
   complete, but the resulting masked output is undefined
@@ -116,7 +116,7 @@ var jsonMasker = JsonMasker.getMasker(
 );
 ```
 
-Using `JsonMaskingConfig` allows customizing the masking behaviour of types, keys or JSONPath or mix keys and JSON
+Using `JsonMaskingConfig` allows customizing the masking behavior of types, keys or JSONPath or mix keys and JSON
 paths.
 
 > [!NOTE]
@@ -199,7 +199,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ### Allow-list approach
 
-Example showing an allow-list based approach of masking a JSON.
+Example showing an allowlist-based approach of masking a JSON.
 
 #### Usage
 
@@ -355,7 +355,7 @@ jsonMasker.mask(jsonInputStream, jsonOutputStream);
 
 ### Masking with JSONPath
 
-To have more control over the nesting, JSONPath can be used to specify the keys that needs to be masked (allowed).
+To have more control over the nesting, JSONPath can be used to specify the keys that need to be masked (allowed).
 
 The following JSONPath features are not supported:
 
@@ -474,7 +474,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ### Masking with preserving the type
 
-The following configuration might be useful where the value must be masked, but the type needs to be preserved, so that
+The following configuration might be useful where the value must be masked, but the type needs to be preserved so that
 the resulting JSON can be parsed again or if the strict JSON schema is required.
 
 #### Usage
@@ -615,7 +615,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ### Masking with using a per-key masking configuration
 
-When using a `JsonMaskingConfig` you can also define a per-key masking configuration, which allows to customize the way
+When using a `JsonMaskingConfig` you can also define a per-key masking configuration, which allows customizing the way
 certain values are masked.
 
 #### Usage
@@ -757,7 +757,7 @@ String maskedJson = jsonMasker.mask(json);
 ## Performance
 
 The `json-masker` library is optimized for a fast key lookup that scales well with a large key set to mask (or allow).
-The input is only scanned once and memory allocations are avoided whenever possible.
+The input is only scanned once, and memory allocations are avoided whenever possible.
 
 ### Benchmarks
 
@@ -768,7 +768,7 @@ For benchmarking, we compare the implementation against multiple baseline benchm
   corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
-Generally our implementation is ~15-25 times faster than using Jackson, besides the additional benefits of no
+Generally, our implementation is ~15–25 times faster than using Jackson, besides the additional benefits of no
 runtime dependencies and a convenient API out-of-the-box.
 
 ```text

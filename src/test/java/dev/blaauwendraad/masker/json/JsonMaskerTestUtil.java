@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,11 @@ public final class JsonMaskerTestUtil {
 
     public static List<JsonMaskerTestInstance> getJsonMaskerTestInstancesFromFile(String fileName) throws IOException {
         List<JsonMaskerTestInstance> testInstances = new ArrayList<>();
-        ArrayNode jsonArray = mapper.readValue(JsonMaskerTestUtil.class.getClassLoader().getResource(fileName), ArrayNode.class);
+        URL fileUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(fileName);
+        if (fileUrl == null) {
+            throw new IllegalArgumentException("File not found: " + fileName);
+        }
+        ArrayNode jsonArray = mapper.readValue(fileUrl.openStream(), ArrayNode.class);
         for (JsonNode jsonNode : jsonArray) {
             JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
             JsonNode jsonMaskingConfig = jsonNode.findValue("maskingConfig");
@@ -47,9 +52,9 @@ public final class JsonMaskerTestUtil {
     }
 
     private static void applyConfig(JsonNode jsonMaskingConfig, JsonMaskingConfig.Builder builder) {
-        jsonMaskingConfig.fields().forEachRemaining(e -> {
-            String key = e.getKey();
-            JsonNode value = e.getValue();
+        jsonMaskingConfig.properties().forEach(p -> {
+            String key = p.getKey();
+            JsonNode value = p.getValue();
             switch (key) {
                 case "maskKeys" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
                     if (node.isTextual()) {
@@ -95,9 +100,9 @@ public final class JsonMaskerTestUtil {
 
     private static KeyMaskingConfig applyKeyConfig(JsonNode jsonNode) {
         KeyMaskingConfig.Builder builder = KeyMaskingConfig.builder();
-        jsonNode.fields().forEachRemaining(e -> {
-            String key = e.getKey();
-            JsonNode value = e.getValue();
+        jsonNode.properties().forEach(p -> {
+            String key = p.getKey();
+            JsonNode value = p.getValue();
             switch (key) {
                 case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
                 case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
@@ -126,7 +131,7 @@ public final class JsonMaskerTestUtil {
     }
 
     /**
-     * Asserts that JsonMasker result matches the expected output and is the same when using bytes mode,
+     * Asserts that JsonMasker result matches the expected output and is the same when using byte mode,
      * streaming mode and streaming mode with minimal buffer size.
      *
      * @param jsonMasker an instance of JsonMasker

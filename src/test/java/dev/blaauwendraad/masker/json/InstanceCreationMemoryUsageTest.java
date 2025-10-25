@@ -1592,8 +1592,11 @@ public class InstanceCreationMemoryUsageTest {
     @Test
     public void defaultInstanceCreation() throws IOException {
         URL targetKeyFileUrl = RandomJsonGenerator.class.getResource("/target_keys.json");
+        if (targetKeyFileUrl == null) {
+            throw new IllegalStateException("target_keys.json is not found.");
+        }
         Set<String> targetKeys = new HashSet<>();
-        objectMapper.readValue(targetKeyFileUrl, ArrayNode.class).forEach(t -> targetKeys.add(t.textValue()));
+        objectMapper.readValue(targetKeyFileUrl.openStream(), ArrayNode.class).forEach(t -> targetKeys.add(t.textValue()));
 
         long memoryBeforeInstanceCreationKb = getCurrentRetainedMemory();
 

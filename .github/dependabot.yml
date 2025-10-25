@@ -8,6 +8,14 @@ updates:
       - "Breus"
     reviewers:
       - "Breus"
+    labels:
+      - "dependencies"
+      - "automerge"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "deps"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

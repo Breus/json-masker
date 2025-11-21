@@ -1,7 +1,5 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
@@ -10,6 +8,7 @@ import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGeneratorConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.JsonNode;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -25,7 +24,7 @@ final class FuzzingTest {
 
     @ParameterizedTest
     @MethodSource("jsonMaskingConfigs")
-    void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
+    void fuzzingAgainstParseAndMaskUsingJackson(JsonMaskingConfig jsonMaskingConfig) {
         long timeLimit = FuzzingDurationUtil.determineTestTimeLimit(jsonMaskingConfigs().count());
         Instant startTime = Instant.now();
         int randomTestExecuted = 0;

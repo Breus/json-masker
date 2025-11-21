@@ -1,10 +1,9 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Set;
 
@@ -12,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 final class ParseAndMaskUtilTest {
     @Test
-    void parseAndMaskStrings() throws JsonProcessingException {
+    void parseAndMaskStrings() {
         JsonNode jsonNode = ParseAndMaskUtil.mask(
                 """
                           {
@@ -26,14 +25,14 @@ final class ParseAndMaskUtilTest {
                         """,
                 JsonMaskingConfig.builder().maskKeys(Set.of("someSecret", "someSecret2")).build()
         );
-        assertThat(jsonNode.get("someSecret").textValue()).isEqualTo("***");
-        assertThat(jsonNode.get("someOtherKey").get("someSecret2").textValue()).isEqualTo("***");
-        assertThat(jsonNode.get("someOtherKey").get("noneSecret").textValue()).isEqualTo("hello");
+        assertThat(jsonNode.get("someSecret").asString()).isEqualTo("***");
+        assertThat(jsonNode.get("someOtherKey").get("someSecret2").asString()).isEqualTo("***");
+        assertThat(jsonNode.get("someOtherKey").get("noneSecret").asString()).isEqualTo("hello");
         assertThat(jsonNode.get("someOtherKey").get("numericKey").numberValue()).isEqualTo(123);
     }
 
     @Test
-    void parseAndMaskObjectValue() throws JsonProcessingException {
+    void parseAndMaskObjectValue() {
         JsonNode jsonNode = ParseAndMaskUtil.mask(
                 """
                           {
@@ -46,12 +45,12 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.builder().maskKeys("maskMe").build()
         );
         JsonNode maskedNode = jsonNode.get("maskMe");
-        assertThat(maskedNode.get("someOtherKey").textValue()).isEqualTo("***");
-        assertThat(maskedNode.get("someKey").textValue()).isEqualTo("***");
+        assertThat(maskedNode.get("someOtherKey").asString()).isEqualTo("***");
+        assertThat(maskedNode.get("someKey").asString()).isEqualTo("***");
     }
 
     @Test
-    void parseAndMaskArrayValue() throws JsonProcessingException {
+    void parseAndMaskArrayValue() {
         JsonNode jsonNode = ParseAndMaskUtil.mask("""
                           {
                              "maskMe": ["hello", "there"],
@@ -61,13 +60,13 @@ final class ParseAndMaskUtilTest {
                 JsonMaskingConfig.builder().maskKeys(Set.of("maskMe", "alsoMaskMe")).build()
         );
         JsonNode maskedNode = jsonNode.get("maskMe");
-        assertThat(maskedNode.get(0).textValue()).isEqualTo("***");
-        assertThat(maskedNode.get(1).textValue()).isEqualTo("***");
-        assertThat(jsonNode.get("dontMaskMe").get(0).get("alsoMaskMe").textValue()).isEqualTo("***");
+        assertThat(maskedNode.get(0).asString()).isEqualTo("***");
+        assertThat(maskedNode.get(1).asString()).isEqualTo("***");
+        assertThat(jsonNode.get("dontMaskMe").get(0).get("alsoMaskMe").asString()).isEqualTo("***");
     }
 
     @Test
-    void parseAndMaskAllowMode() throws JsonProcessingException {
+    void parseAndMaskAllowMode() {
         JsonNode jsonNode = ParseAndMaskUtil.mask(
                 """
                         {
@@ -85,11 +84,11 @@ final class ParseAndMaskUtilTest {
                         """,
                 JsonMaskingConfig.builder().allowKeys(Set.of("targetKey1", "targetKey2")).build()
         );
-        assertThat(jsonNode.get("&I").get("targetKey1").asText()).isEqualTo(new ObjectMapper().readTree("\"c\\u0014x\"").asText());
+        assertThat(jsonNode.get("&I").get("targetKey1").asString()).isEqualTo(new JsonMapper().readTree("\"c\\u0014x\"").asString());
     }
 
     @Test
-    void parseAndMaskAllowModeNestedField() throws JsonProcessingException {
+    void parseAndMaskAllowModeNestedField() {
         JsonNode jsonNode = ParseAndMaskUtil.mask(
                 """
                         {
@@ -104,11 +103,11 @@ final class ParseAndMaskUtilTest {
                         """,
                 JsonMaskingConfig.builder().allowKeys(Set.of("targetKey1", "targetKey2")).build()
         );
-        assertThat(jsonNode.get("targetKey2").get("").asText()).isEqualTo(new ObjectMapper().readTree("\"p\\u000FE\"").asText());
+        assertThat(jsonNode.get("targetKey2").get("").asString()).isEqualTo(new JsonMapper().readTree("\"p\\u000FE\"").asString());
     }
 
     @Test
-    void parseAndMaskAllowModeNestedField2() throws JsonProcessingException {
+    void parseAndMaskAllowModeNestedField2() {
         JsonNode jsonNode = ParseAndMaskUtil.mask(
                 """
                         {
@@ -124,6 +123,6 @@ final class ParseAndMaskUtilTest {
                         """,
                 JsonMaskingConfig.builder().allowKeys(Set.of("targetKey1", "targetKey2")).build()
         );
-        assertThat(jsonNode.get("targetKey1").get(">").asText()).isEqualTo(new ObjectMapper().readTree("\"\\r\\u0014\"").asText());
+        assertThat(jsonNode.get("targetKey1").get(">").asString()).isEqualTo(new JsonMapper().readTree("\"\\r\\u0014\"").asString());
     }
 }

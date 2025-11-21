@@ -1,19 +1,17 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfigTestUtil;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,62 +26,61 @@ public final class JsonMaskerTestUtil {
     private JsonMaskerTestUtil() {
     }
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final JsonMapper jsonMapper = new JsonMapper();
 
     public static List<JsonMaskerTestInstance> getJsonMaskerTestInstancesFromFile(String fileName) throws IOException {
-        List<JsonMaskerTestInstance> testInstances = new ArrayList<>();
-        URL fileUrl = JsonMaskerTestUtil.class.getClassLoader().getResource(fileName);
-        if (fileUrl == null) {
-            throw new IllegalArgumentException("File not found: " + fileName);
-        }
-        ArrayNode jsonArray = mapper.readValue(fileUrl.openStream(), ArrayNode.class);
-        for (JsonNode jsonNode : jsonArray) {
-            JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
-            JsonNode jsonMaskingConfig = jsonNode.findValue("maskingConfig");
-            if (jsonMaskingConfig != null) {
-                applyConfig(jsonMaskingConfig, builder);
+        try (var stream = JsonMaskerTestUtil.class.getClassLoader().getResourceAsStream(fileName)) {
+            if (stream == null) {
+                throw new IllegalArgumentException("File not found: " + fileName);
             }
-            JsonMaskingConfig maskingConfig = builder.build();
-            var input = jsonNode.get("input").toPrettyString();
-            var expectedOutput = jsonNode.get("expectedOutput").toPrettyString();
-            testInstances.add(new JsonMaskerTestInstance(input, expectedOutput, new KeyContainsMasker(maskingConfig)));
+            List<JsonMaskerTestInstance> testInstances = new ArrayList<>();
+            ArrayNode jsonArray = jsonMapper.readValue(stream, ArrayNode.class);
+            for (JsonNode jsonNode : jsonArray) {
+                JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
+                JsonNode jsonMaskingConfig = jsonNode.findValue("maskingConfig");
+                if (jsonMaskingConfig != null) {
+                    applyConfig(jsonMaskingConfig, builder);
+                }
+                JsonMaskingConfig maskingConfig = builder.build();
+                var input = jsonNode.get("input").toPrettyString();
+                var expectedOutput = jsonNode.get("expectedOutput").toPrettyString();
+                testInstances.add(new JsonMaskerTestInstance(input, expectedOutput, new KeyContainsMasker(maskingConfig)));
+            }
+            return testInstances;
         }
-        return testInstances;
     }
 
     private static void applyConfig(JsonNode jsonMaskingConfig, JsonMaskingConfig.Builder builder) {
-        jsonMaskingConfig.properties().forEach(p -> {
-            String key = p.getKey();
-            JsonNode value = p.getValue();
+        jsonMaskingConfig.forEachEntry((key, value) -> {
             switch (key) {
                 case "maskKeys" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
-                    if (node.isTextual()) {
-                        builder.maskKeys(Set.of(node.asText()));
+                    if (node.isString()) {
+                        builder.maskKeys(Set.of(node.asString()));
                     } else {
-                        builder.maskKeys(asSet(node.get("keys"), JsonNode::asText), applyKeyConfig(node.get("keyMaskingConfig")));
+                        builder.maskKeys(asSet(node.get("keys"), JsonNode::asString), applyKeyConfig(node.get("keyMaskingConfig")));
                     }
                 });
                 case "maskJsonPaths" -> StreamSupport.stream(value.spliterator(), false).forEach(node -> {
-                    if (node.isTextual()) {
-                        builder.maskJsonPaths(Set.of(node.asText()));
+                    if (node.isString()) {
+                        builder.maskJsonPaths(Set.of(node.asString()));
                     } else {
-                        builder.maskJsonPaths(asSet(node.get("keys"), JsonNode::asText), applyKeyConfig(node.get("keyMaskingConfig")));
+                        builder.maskJsonPaths(asSet(node.get("keys"), JsonNode::asString), applyKeyConfig(node.get("keyMaskingConfig")));
                     }
                 });
-                case "allowKeys" -> builder.allowKeys(asSet(value, JsonNode::asText));
-                case "allowJsonPaths" -> builder.allowJsonPaths(asSet(value, JsonNode::asText));
+                case "allowKeys" -> builder.allowKeys(asSet(value, JsonNode::asString));
+                case "allowJsonPaths" -> builder.allowJsonPaths(asSet(value, JsonNode::asString));
                 case "caseSensitiveTargetKeys" -> {
                     if (value.booleanValue()) {
                         builder.caseSensitiveTargetKeys();
                     }
                 }
-                case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
-                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
+                case "maskStringsWith" -> builder.maskStringsWith(value.asString());
+                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.asString());
                 case "maskNumbersWith" -> {
                     if (value.isInt()) {
                         builder.maskNumbersWith(value.intValue());
                     } else {
-                        builder.maskNumbersWith(value.textValue());
+                        builder.maskNumbersWith(value.asString());
                     }
                 }
                 case "maskNumberDigitsWith" -> builder.maskNumberDigitsWith(value.intValue());
@@ -91,7 +88,7 @@ public final class JsonMaskerTestUtil {
                     if (value.isBoolean()) {
                         builder.maskBooleansWith(value.booleanValue());
                     }
-                    builder.maskBooleansWith(value.textValue());
+                    builder.maskBooleansWith(value.asString());
                 }
                 default -> throw new IllegalArgumentException("Unknown option " + key);
             }
@@ -100,17 +97,15 @@ public final class JsonMaskerTestUtil {
 
     private static KeyMaskingConfig applyKeyConfig(JsonNode jsonNode) {
         KeyMaskingConfig.Builder builder = KeyMaskingConfig.builder();
-        jsonNode.properties().forEach(p -> {
-            String key = p.getKey();
-            JsonNode value = p.getValue();
+        jsonNode.forEachEntry((key, value) -> {
             switch (key) {
-                case "maskStringsWith" -> builder.maskStringsWith(value.textValue());
-                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.textValue());
+                case "maskStringsWith" -> builder.maskStringsWith(value.asString());
+                case "maskStringCharactersWith" -> builder.maskStringCharactersWith(value.asString());
                 case "maskNumbersWith" -> {
                     if (value.isInt()) {
                         builder.maskNumbersWith(value.intValue());
                     } else {
-                        builder.maskNumbersWith(value.textValue());
+                        builder.maskNumbersWith(value.asString());
                     }
                 }
                 case "maskNumberDigitsWith" -> builder.maskNumberDigitsWith(value.intValue());
@@ -118,7 +113,7 @@ public final class JsonMaskerTestUtil {
                     if (value.isBoolean()) {
                         builder.maskBooleansWith(value.booleanValue());
                     }
-                    builder.maskBooleansWith(value.textValue());
+                    builder.maskBooleansWith(value.asString());
                 }
                 default -> throw new IllegalArgumentException("Unknown option " + key);
             }
@@ -148,13 +143,9 @@ public final class JsonMaskerTestUtil {
         String minimalBufferStreamsOutput = getStreamingModeOutput(jsonMasker, input);
         JsonMaskingConfigTestUtil.setBufferSize(((KeyContainsMasker) jsonMasker).maskingConfig, oldBufferSize);
         if (pretty) {
-            try {
-                bytesOutput = ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(bytesOutput).toString();
-                streamsOutput = ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(streamsOutput).toString();
-                minimalBufferStreamsOutput = ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(minimalBufferStreamsOutput).toString();
-            } catch (JsonProcessingException e) {
-                throw new IllegalStateException("Failed for input: " + input, e);
-            }
+            bytesOutput = ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(bytesOutput).toString();
+            streamsOutput = ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(streamsOutput).toString();
+            minimalBufferStreamsOutput = ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(minimalBufferStreamsOutput).toString();
         }
         if (expectedOutput != null) {
             Assertions.assertEquals(expectedOutput, bytesOutput, "Failed for input: " + input);

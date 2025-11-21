@@ -1,19 +1,18 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JacksonException;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.core.JacksonException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,13 +89,9 @@ public class JSONTestSuiteTest {
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         // must be equivalent to being parsed by jackson
-        try {
-            assertThat(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(actual))
-                    .as("Failed for input: " + new String(actual, StandardCharsets.UTF_8))
-                    .isEqualTo(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(file.originalContent));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        assertThat(ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(actual))
+                .as("Failed for input: " + new String(actual, StandardCharsets.UTF_8))
+                .isEqualTo(ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(file.originalContent));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -122,14 +117,12 @@ public class JSONTestSuiteTest {
 
         // if jackson can parse it - out should be equivalent
         try {
-            assertThat(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(actual))
+            assertThat(ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(actual))
                     .as("Failed for input: " + new String(actual, StandardCharsets.UTF_8))
-                    .isEqualTo(ParseAndMaskUtil.DEFAULT_OBJECT_MAPPER.readTree(file.originalContent));
+                    .isEqualTo(ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(file.originalContent));
         } catch (JacksonException e) {
             // JsonMasker didn't fail, but jackson can't parse it, nothing to compare
             // suck cases are also tested by shouldMaskAllTestCasesPredictably
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 

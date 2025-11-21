@@ -1,15 +1,14 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -1587,16 +1586,11 @@ public class InstanceCreationMemoryUsageTest {
     );
 
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper jsonMapper = new JsonMapper();
 
     @Test
     public void defaultInstanceCreation() throws IOException {
-        URL targetKeyFileUrl = RandomJsonGenerator.class.getResource("/target_keys.json");
-        if (targetKeyFileUrl == null) {
-            throw new IllegalStateException("target_keys.json is not found.");
-        }
-        Set<String> targetKeys = new HashSet<>();
-        objectMapper.readValue(targetKeyFileUrl.openStream(), ArrayNode.class).forEach(t -> targetKeys.add(t.textValue()));
+        var targetKeys = loadTargetKeys();
 
         long memoryBeforeInstanceCreationKb = getCurrentRetainedMemory();
 
@@ -1641,5 +1635,16 @@ public class InstanceCreationMemoryUsageTest {
 
     private long bytesToKb(long bytes) {
         return bytes / 1024;
+    }
+
+    private static Set<String> loadTargetKeys() throws IOException {
+        try (var stream = RandomJsonGenerator.class.getResourceAsStream("/target_keys.json")) {
+            if (stream == null) {
+                throw new IllegalArgumentException("File not found: target_keys.json");
+            }
+            Set<String> targetKeys = new HashSet<>();
+            jsonMapper.readValue(stream, ArrayNode.class).forEach(t -> targetKeys.add(t.asString()));
+            return targetKeys;
+        }
     }
 }

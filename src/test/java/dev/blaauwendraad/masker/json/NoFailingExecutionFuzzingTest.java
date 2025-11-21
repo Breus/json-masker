@@ -1,6 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.util.FuzzingDurationUtil;
 import dev.blaauwendraad.masker.json.util.JsonFormatter;

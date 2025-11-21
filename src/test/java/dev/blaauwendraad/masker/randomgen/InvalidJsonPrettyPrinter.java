@@ -1,10 +1,9 @@
 package dev.blaauwendraad.masker.randomgen;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -36,74 +35,74 @@ public class InvalidJsonPrettyPrinter implements PrettyPrinter {
     private final DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter();
 
     @Override
-    public void writeRootValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeRootValueSeparator(JsonGenerator gen) {
         defaultPrettyPrinter.writeRootValueSeparator(gen);
     }
 
     @Override
-    public void writeStartObject(JsonGenerator gen) throws IOException {
+    public void writeStartObject(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeStartObject(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeEndObject(JsonGenerator gen, int nrOfEntries) throws IOException {
+    public void writeEndObject(JsonGenerator gen, int nrOfEntries) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeEndObject(gen, nrOfEntries);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeObjectEntrySeparator(JsonGenerator gen) throws IOException {
+    public void writeObjectEntrySeparator(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeObjectEntrySeparator(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeObjectFieldValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeObjectNameValueSeparator(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
-        defaultPrettyPrinter.writeObjectFieldValueSeparator(gen);
+        defaultPrettyPrinter.writeObjectEntrySeparator(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeStartArray(JsonGenerator gen) throws IOException {
+    public void writeStartArray(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeStartArray(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeEndArray(JsonGenerator gen, int nrOfValues) throws IOException {
+    public void writeEndArray(JsonGenerator gen, int nrOfValues) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeEndArray(gen, nrOfValues);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void writeArrayValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeArrayValueSeparator(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.writeArrayValueSeparator(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void beforeArrayValues(JsonGenerator gen) throws IOException {
+    public void beforeArrayValues(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.beforeArrayValues(gen);
         addRandomJsonControlCharacter(gen);
     }
 
     @Override
-    public void beforeObjectEntries(JsonGenerator gen) throws IOException {
+    public void beforeObjectEntries(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
         defaultPrettyPrinter.beforeObjectEntries(gen);
         addRandomJsonControlCharacter(gen);
     }
 
-    private void addRandomJsonControlCharacter(JsonGenerator gen) throws IOException {
+    private void addRandomJsonControlCharacter(JsonGenerator gen) {
         // insert invalid character with 10% chance
         if (ThreadLocalRandom.current().nextDouble(1) < 0.1) {
             int index = ThreadLocalRandom.current().nextInt(JSON_CONTROL_CHARACTERS.size());

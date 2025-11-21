@@ -1,10 +1,9 @@
 package dev.blaauwendraad.masker.randomgen;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
 
-import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
@@ -25,74 +24,74 @@ public class RandomWhiteSpacePrettyPrinter implements PrettyPrinter {
     }
 
     @Override
-    public void writeRootValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeRootValueSeparator(JsonGenerator gen) {
         defaultPrettyPrinter.writeRootValueSeparator(gen);
     }
 
     @Override
-    public void writeStartObject(JsonGenerator gen) throws IOException {
+    public void writeStartObject(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeStartObject(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeEndObject(JsonGenerator gen, int nrOfEntries) throws IOException {
+    public void writeEndObject(JsonGenerator gen, int nrOfEntries) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeEndObject(gen, nrOfEntries);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeObjectEntrySeparator(JsonGenerator gen) throws IOException {
+    public void writeObjectEntrySeparator(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeObjectEntrySeparator(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeObjectFieldValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeObjectNameValueSeparator(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
-        defaultPrettyPrinter.writeObjectFieldValueSeparator(gen);
+        defaultPrettyPrinter.writeObjectNameValueSeparator(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeStartArray(JsonGenerator gen) throws IOException {
+    public void writeStartArray(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeStartArray(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeEndArray(JsonGenerator gen, int nrOfValues) throws IOException {
+    public void writeEndArray(JsonGenerator gen, int nrOfValues) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeEndArray(gen, nrOfValues);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void writeArrayValueSeparator(JsonGenerator gen) throws IOException {
+    public void writeArrayValueSeparator(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.writeArrayValueSeparator(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void beforeArrayValues(JsonGenerator gen) throws IOException {
+    public void beforeArrayValues(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.beforeArrayValues(gen);
         addRandomWhiteSpace(gen);
     }
 
     @Override
-    public void beforeObjectEntries(JsonGenerator gen) throws IOException {
+    public void beforeObjectEntries(JsonGenerator gen) {
         addRandomWhiteSpace(gen);
         defaultPrettyPrinter.beforeObjectEntries(gen);
         addRandomWhiteSpace(gen);
     }
 
-    private void addRandomWhiteSpace(JsonGenerator gen) throws IOException {
+    private void addRandomWhiteSpace(JsonGenerator gen) {
         if (numberOfWhiteSpacesToInject == 0) {
             return;
         }

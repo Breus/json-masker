@@ -63,7 +63,7 @@ public class InvalidJsonPrettyPrinter implements PrettyPrinter {
     @Override
     public void writeObjectNameValueSeparator(JsonGenerator gen) {
         addRandomJsonControlCharacter(gen);
-        defaultPrettyPrinter.writeObjectEntrySeparator(gen);
+        defaultPrettyPrinter.writeObjectNameValueSeparator(gen);
         addRandomJsonControlCharacter(gen);
     }
 

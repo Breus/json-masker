@@ -1,36 +1,34 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NumericNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.BooleanNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.NumericNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class ParseAndMaskUtil {
 
-    public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+    public static final JsonMapper DEFAULT_JSON_MAPPER = new JsonMapper();
 
     private ParseAndMaskUtil() {
         // util
     }
 
-    static JsonNode mask(String jsonString, JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
-        return mask(DEFAULT_OBJECT_MAPPER.readTree(jsonString), jsonMaskingConfig);
+    static JsonNode mask(String jsonString, JsonMaskingConfig jsonMaskingConfig) {
+        return mask(DEFAULT_JSON_MAPPER.readTree(jsonString), jsonMaskingConfig);
     }
 
-    static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) throws JsonProcessingException {
+    static JsonNode mask(JsonNode jsonNode, JsonMaskingConfig jsonMaskingConfig) {
         if (jsonMaskingConfig.isInAllowMode() && !jsonNode.isArray() && !jsonNode.isObject()) {
             return maskJsonValue(jsonNode, jsonMaskingConfig.getDefaultConfig(), jsonMaskingConfig, jsonMaskingConfig.getTargetKeys());
         }
@@ -63,11 +61,11 @@ public final class ParseAndMaskUtil {
             String currentJsonPath,
             Set<String> casingAppliedTargetKeys,
             Set<String> casingAppliedTargetJsonPathKeys
-    ) throws JsonProcessingException {
+    ) {
         if (jsonNode instanceof ObjectNode objectNode) {
-            Iterable<String> fieldNames = objectNode::fieldNames;
-            for (String fieldName : fieldNames) {
-                String jsonPathKey = currentJsonPath + "." + fieldName;
+            var propertyNames = objectNode.propertyNames();
+            for (String propertyName : propertyNames) {
+                String jsonPathKey = currentJsonPath + "." + propertyName;
                 String casingAppliedJsonPathKey = jsonMaskingConfig.caseSensitiveTargetKeys()
                         ? jsonPathKey
                         : jsonPathKey.toLowerCase();
@@ -76,17 +74,17 @@ public final class ParseAndMaskUtil {
                     || (jsonMaskingConfig.isInAllowMode()
                        && !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys))) {
                     objectNode.replace(
-                            fieldName,
+                            propertyName,
                             maskJsonValue(
-                                    objectNode.get(fieldName),
-                                    jsonMaskingConfig.getConfig(fieldName),
+                                    objectNode.get(propertyName),
+                                    jsonMaskingConfig.getConfig(propertyName),
                                     jsonMaskingConfig,
                                     casingAppliedTargetKeys
                             )
                     );
                 } else if (!jsonMaskingConfig.isInAllowMode()
                            || !isTargetKey(casingAppliedJsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys)) {
-                    mask(jsonNode.get(fieldName), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
+                    mask(jsonNode.get(propertyName), jsonMaskingConfig, jsonPathKey, casingAppliedTargetKeys, casingAppliedTargetJsonPathKeys);
                 }
             }
         } else if (jsonNode instanceof ArrayNode arrayNode) {
@@ -129,9 +127,9 @@ public final class ParseAndMaskUtil {
             KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
-    ) throws JsonProcessingException {
+    ) {
         return switch (jsonNode.getNodeType()) {
-            case STRING -> maskTextNode((TextNode) jsonNode, config);
+            case STRING -> maskStringNode((StringNode) jsonNode, config);
             case NUMBER -> maskNumericNode((NumericNode) jsonNode, config);
             case BOOLEAN -> maskBooleanNode((BooleanNode) jsonNode, config);
             case ARRAY -> maskArrayNodeValue((ArrayNode) jsonNode, config, jsonMaskingConfig, casingAppliedTargetKeys);
@@ -140,22 +138,22 @@ public final class ParseAndMaskUtil {
         };
     }
 
-    private static JsonNode maskBooleanNode(BooleanNode booleanNode, KeyMaskingConfig config) throws JsonProcessingException {
+    private static JsonNode maskBooleanNode(BooleanNode booleanNode, KeyMaskingConfig config) {
         String maskedValue = ByteValueMaskerContext.maskBooleanWith(booleanNode.booleanValue(), config.getBooleanValueMasker());
-        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
+        return DEFAULT_JSON_MAPPER.readTree(maskedValue);
     }
 
-    private static JsonNode maskTextNode(TextNode textNode, KeyMaskingConfig config) throws JsonProcessingException {
+    private static JsonNode maskStringNode(StringNode stringNode, KeyMaskingConfig config) {
         // can't use testValue due to not preserving
-        String stringRepresentation = textNode.toString();
+        String stringRepresentation = stringNode.toString();
         String withoutQuotes = stringRepresentation.substring(1, stringRepresentation.length() - 1);
         String maskedValue = ByteValueMaskerContext.maskStringWith(withoutQuotes, config.getStringValueMasker());
-        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
+        return DEFAULT_JSON_MAPPER.readTree(maskedValue);
     }
 
-    private static JsonNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) throws JsonProcessingException {
+    private static JsonNode maskNumericNode(NumericNode numericNode, KeyMaskingConfig config) {
         String maskedValue = ByteValueMaskerContext.maskNumberWith(numericNode.numberValue(), config.getNumberValueMasker());
-        return DEFAULT_OBJECT_MAPPER.readTree(maskedValue);
+        return DEFAULT_JSON_MAPPER.readTree(maskedValue);
     }
 
     private static ArrayNode maskArrayNodeValue(
@@ -163,7 +161,7 @@ public final class ParseAndMaskUtil {
             KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
-    ) throws JsonProcessingException {
+    ) {
         ArrayNode maskedArrayNode = JsonNodeFactory.instance.arrayNode();
         for (JsonNode element : arrayNode) {
             maskedArrayNode.add(maskJsonValue(element, config, jsonMaskingConfig, casingAppliedTargetKeys));
@@ -176,21 +174,18 @@ public final class ParseAndMaskUtil {
             KeyMaskingConfig config,
             JsonMaskingConfig jsonMaskingConfig,
             Set<String> casingAppliedTargetKeys
-    ) throws JsonProcessingException {
+    ) {
         ObjectNode maskedObjectNode = JsonNodeFactory.instance.objectNode();
-        Iterator<String> fieldNames = objectNode.fieldNames();
 
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            if (jsonMaskingConfig.isInAllowMode() && casingAppliedTargetKeys
-                    .contains(jsonMaskingConfig.caseSensitiveTargetKeys() ? fieldName : fieldName.toLowerCase())) {
+        objectNode.forEachEntry((key, value) -> {
+            if (jsonMaskingConfig.isInAllowMode()
+                    && casingAppliedTargetKeys.contains(jsonMaskingConfig.caseSensitiveTargetKeys() ? key : key.toLowerCase())) {
                 // field is explicitly allowed, so just put the original field back
-                maskedObjectNode.set(fieldName, objectNode.get(fieldName));
+                maskedObjectNode.set(key, value);
             } else {
-                JsonNode fieldValue = objectNode.get(fieldName);
-                maskedObjectNode.set(fieldName, maskJsonValue(fieldValue, config, jsonMaskingConfig, casingAppliedTargetKeys));
+                maskedObjectNode.set(key, maskJsonValue(value, config, jsonMaskingConfig, casingAppliedTargetKeys));
             }
-        }
+        });
         return maskedObjectNode;
     }
 

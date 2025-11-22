@@ -4,9 +4,9 @@ jmh = "1.37"
 [libraries]
 assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.27.6" }
 jspecify = { group = "org.jspecify", name = "jspecify", version = "1.0.0" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.20.0" }
+jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version = "3.0.2" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
-junit-bom = { group = "org.junit", name = "junit-bom", version = "6.0.0" }
+junit-bom = { group = "org.junit", name = "junit-bom", version = "6.0.1" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
@@ -19,5 +19,5 @@ errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", 
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 test-logger = { id = "com.adarshr.test-logger", version = "4.0.0" }
-sonarqube = { id = "org.sonarqube", version = "7.0.0.6105" }
+sonarqube = { id = "org.sonarqube", version = "7.0.1.6134" }
 errorprone = { id = "net.ltgt.errorprone", version = "4.3.0" }

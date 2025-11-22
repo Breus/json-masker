@@ -1,11 +1,9 @@
 package dev.blaauwendraad.masker.json.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.randomgen.InvalidJsonPrettyPrinter;
 import dev.blaauwendraad.masker.randomgen.RandomWhiteSpacePrettyPrinter;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 public enum JsonFormatter {
     PRETTY,
@@ -15,27 +13,19 @@ public enum JsonFormatter {
 
     private final static int MAX_NUMBER_OF_SPACES_TO_INJECT = 50;
 
-    @SuppressWarnings("ImmutableEnumChecker")
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper RANDOM_WHITESPACE_JSON_MAPPER = JsonMapper.builder().defaultPrettyPrinter(new RandomWhiteSpacePrettyPrinter(JsonFormatter.MAX_NUMBER_OF_SPACES_TO_INJECT)).build();
+    private static final JsonMapper INVALID_JSON_MAPPER = JsonMapper.builder().defaultPrettyPrinter(new InvalidJsonPrettyPrinter()).build();
 
     public String format(JsonNode jsonNode) {
         return switch (this) {
             case PRETTY -> jsonNode.toPrettyString();
             case COMPACT -> jsonNode.toString();
-            case RANDOM_WHITESPACE -> withPrinter(jsonNode, new RandomWhiteSpacePrettyPrinter(JsonFormatter.MAX_NUMBER_OF_SPACES_TO_INJECT));
-            case INVALID_JSON -> withPrinter(jsonNode, new InvalidJsonPrettyPrinter());
+            case RANDOM_WHITESPACE -> RANDOM_WHITESPACE_JSON_MAPPER.writeValueAsString(jsonNode);
+            case INVALID_JSON -> INVALID_JSON_MAPPER.writeValueAsString(jsonNode);
         };
     }
 
     public boolean isValid() {
         return this != INVALID_JSON;
-    }
-
-    private String withPrinter(JsonNode jsonNode, PrettyPrinter printer) {
-        try {
-            return objectMapper.writer(printer).writeValueAsString(jsonNode);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

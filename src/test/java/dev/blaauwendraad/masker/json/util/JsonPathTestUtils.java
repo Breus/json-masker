@@ -1,12 +1,11 @@
 package dev.blaauwendraad.masker.json.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -36,16 +34,10 @@ public class JsonPathTestUtils {
      * @return a set of JSONPath keys transformed from <code>keys</code>.
      */
     public static Set<String> transformToJsonPathKeys(Set<String> keys, String json) {
-        JsonNode root;
-        try {
-            root = new ObjectMapper().readTree(json.toLowerCase());
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Illegal input json.", e);
-        }
+        JsonNode root = new JsonMapper().readTree(json.toLowerCase());
         JsonPathParser jsonPathParser = new JsonPathParser();
         Set<String> transformedTargetKeys = new HashSet<>();
-        for (String targetKey : keys) {
-            targetKey = targetKey.toLowerCase();
+        for (String targetKey : keys.stream().map(String::toLowerCase).toList()) {
             Deque<Map.Entry<String, JsonNode>> stack = new ArrayDeque<>();
             stack.push(new AbstractMap.SimpleEntry<>("$", root));
             while (!stack.isEmpty()) {
@@ -55,18 +47,15 @@ public class JsonPathTestUtils {
                     continue;
                 }
                 if (curr.getValue() instanceof ObjectNode currObject) {
-                    Iterator<Map.Entry<String, JsonNode>> fieldsIterator = currObject.fields();
-                    while (fieldsIterator.hasNext()) {
-                        Map.Entry<String, JsonNode> child = fieldsIterator.next();
-                        if (child.getKey().equals(targetKey)) {
+                    currObject.forEachEntry((key, child) -> {
+                        if (key.equals(targetKey)) {
                             transformedTargetKeys.add(candidateKey);
                         }
-                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "." + child.getKey(), child.getValue()));
-                    }
+                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "." + key, child));
+                    });
                 } else if (curr.getValue() instanceof ArrayNode currArray) {
-                    for (int i = 0; i < currArray.size(); i++) {
-                        stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", currArray.get(i)));
-                    }
+                    currArray.values().forEach((child) ->
+                            stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", child)));
                 }
                 if (stack.isEmpty()) {
                     // the key does not exist

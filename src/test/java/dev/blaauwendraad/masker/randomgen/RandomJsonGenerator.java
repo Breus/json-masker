@@ -1,14 +1,14 @@
 package dev.blaauwendraad.masker.randomgen;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BigIntegerNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.NumericNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.BigIntegerNode;
+import tools.jackson.databind.node.BooleanNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.NumericNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -63,7 +63,7 @@ public final class RandomJsonGenerator {
             case objectNode -> createRandomObjectNode(context, depth + 1);
             case numberNode -> createRandomNumericNode(context);
             case booleanNode -> createRandomBooleanNode(context);
-            case stringNode -> createRandomTextNode(context);
+            case stringNode -> createRandomStringNode(context);
             case nullNode -> createNullNode(context);
         };
     }
@@ -81,8 +81,8 @@ public final class RandomJsonGenerator {
         return NodeType.values()[rnd];
     }
 
-    private TextNode createRandomTextNode(Context context) {
-        TextNode node = JsonNodeFactory.instance.textNode(getRandomString(context));
+    private StringNode createRandomStringNode(Context context) {
+        StringNode node = JsonNodeFactory.instance.stringNode(getRandomString(context));
         context.estimatedSizeBytes += sizeOf(node);
         return node;
     }
@@ -108,7 +108,7 @@ public final class RandomJsonGenerator {
             while (objectNode.has(key)) {
                 key = randomKey(context);
             }
-            context.estimatedSizeBytes += sizeOf(JsonNodeFactory.instance.textNode(key));
+            context.estimatedSizeBytes += sizeOf(JsonNodeFactory.instance.stringNode(key));
             context.estimatedSizeBytes += 1; // for the semicolon
             if (i > 0) {
                 context.estimatedSizeBytes += 1; // for the comma

@@ -1,10 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
-
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -16,9 +12,10 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +30,7 @@ import java.util.stream.Collectors;
  @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class InstanceCreationBenchmark {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper jsonMapper = new JsonMapper();
 
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
@@ -45,15 +42,19 @@ public class InstanceCreationBenchmark {
 
         @Setup
         public synchronized void setup() throws IOException {
-            URL targetKeyFileUrl = RandomJsonGenerator.class.getResource("/target_keys.json");
-            List<String> targetKeyList = new ArrayList<>();
-            objectMapper.readValue(targetKeyFileUrl, ArrayNode.class).forEach(t -> targetKeyList.add(t.textValue()));
-            if (!"ALL".equals(numberOfTargetKeys) && Integer.parseInt(numberOfTargetKeys) <= targetKeyList.size()) {
-                Collections.shuffle(targetKeyList, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
-                targetKeys =
-                        targetKeyList.stream().limit(Integer.parseInt(numberOfTargetKeys)).collect(Collectors.toSet());
-            } else {
-                targetKeys = targetKeyList.stream().collect(Collectors.toSet());
+            try (var stream = RandomJsonGenerator.class.getResourceAsStream("/target_keys.json")) {
+                if (stream == null) {
+                    throw new IllegalArgumentException("File not found: target_keys.json");
+                }
+                List<String> targetKeyList = new ArrayList<>();
+                jsonMapper.readValue(stream, ArrayNode.class).forEach(t -> targetKeyList.add(t.asString()));
+                if (!"ALL".equals(numberOfTargetKeys) && Integer.parseInt(numberOfTargetKeys) <= targetKeyList.size()) {
+                    Collections.shuffle(targetKeyList, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
+                    targetKeys =
+                            targetKeyList.stream().limit(Integer.parseInt(numberOfTargetKeys)).collect(Collectors.toSet());
+                } else {
+                    targetKeys = targetKeyList.stream().collect(Collectors.toSet());
+                }
             }
         }
     }

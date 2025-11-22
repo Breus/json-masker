@@ -1,13 +1,12 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -258,7 +257,7 @@ class ValueMaskersTest {
     }
 
     @Test
-    void withTextFunctionEscapedCharacters() throws JsonProcessingException {
+    void withTextFunctionEscapedCharacters() {
         // Verifying escaping per https://datatracker.ietf.org/doc/html/rfc8259#section-7
         // quotation mark
         Assertions.assertThat(ByteValueMaskerContext.maskStringWith("\\\"", ValueMaskers.withTextFunction(value -> {
@@ -273,10 +272,10 @@ class ValueMaskersTest {
         }))).isEqualTo("\"\\\\\"");
 
         // the control characters (U+0000 through U+001F)
-        ObjectMapper objectMapper = new ObjectMapper();
+        JsonMapper jsonMapper = new JsonMapper();
         for (int i = 0; i < 32; i++) {
             String controlCharacter = String.valueOf((char) i);
-            String encoded = objectMapper.writeValueAsString(controlCharacter);
+            String encoded = jsonMapper.writeValueAsString(controlCharacter);
 
             Assertions.assertThat(ByteValueMaskerContext.maskStringWith(encoded.substring(1, encoded.length() - 1), ValueMaskers.withTextFunction(value -> {
                 Assertions.assertThat(value).isEqualTo(controlCharacter);

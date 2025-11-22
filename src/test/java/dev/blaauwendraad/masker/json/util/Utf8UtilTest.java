@@ -1,13 +1,12 @@
 package dev.blaauwendraad.masker.json.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -75,11 +74,11 @@ class Utf8UtilTest {
 
     @ParameterizedTest
     @MethodSource("equivalentJsonNodes")
-    void parsingObjectWithUtf8CharacterData(Set<String> equivalentJsonNodes) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    void parsingObjectWithUtf8CharacterData(Set<String> equivalentJsonNodes) {
+        JsonMapper jsonMapper = new JsonMapper();
         JsonNode jsonNode = null;
         for (String equivalentJsonNode : equivalentJsonNodes) {
-            JsonNode otherJsonNode = objectMapper.readTree(equivalentJsonNode);
+            JsonNode otherJsonNode = jsonMapper.readTree(equivalentJsonNode);
             if (jsonNode != null) {
                 assertThat(otherJsonNode).isEqualTo(jsonNode);
             }

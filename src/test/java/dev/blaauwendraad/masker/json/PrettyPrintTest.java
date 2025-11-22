@@ -1,19 +1,18 @@
 package dev.blaauwendraad.masker.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PrettyPrintTest {
 
     @Test
-    void prettyPrintMaskingKeyContains() throws JsonProcessingException {
+    void prettyPrintMaskingKeyContains() {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode().put("Test", "Value");
         JsonNode jsonNode = JsonNodeFactory.instance.objectNode().set("Test1", objectNode);
         String prettyString = jsonNode.toPrettyString();
@@ -23,6 +22,6 @@ class PrettyPrintTest {
                 .build()
                 .readValue(mask, JsonNode.class)
                 .findValue("Test")
-                .textValue()).isEqualTo("***");
+                .asString()).isEqualTo("***");
     }
 }

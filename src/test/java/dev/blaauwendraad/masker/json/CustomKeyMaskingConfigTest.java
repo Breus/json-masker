@@ -454,4 +454,38 @@ class CustomKeyMaskingConfigTest {
                         }
                         """);
     }
+
+    @Test
+    void maskKeysWithSpecificConfigInAllowMode() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys("allowed")
+                .allowJsonPaths(Set.of("$.allowedPath"))
+                .maskKeys("maskedLikeEpsteinFiles", KeyMaskingConfig.builder()
+                        .maskStringsWith("■■■■■")
+                        .build())
+                .maskJsonPaths("$.maskedPathLikeEpsteinFiles", KeyMaskingConfig.builder()
+                        .maskStringsWith("■■■■■")
+                        .build())
+                .build());
+
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
+                {
+                  "allowed": "allowMe",
+                  "masked": "maskMe",
+                  "maskedLikeEpsteinFiles": "maskMe",
+                  "allowedPath": "allowMe",
+                  "maskedPath": "maskMe",
+                  "maskedPathLikeEpsteinFiles": "maskMe"
+                }
+                """, """
+                {
+                  "allowed": "allowMe",
+                  "masked": "***",
+                  "maskedLikeEpsteinFiles": "■■■■■",
+                  "allowedPath": "allowMe",
+                  "maskedPath": "***",
+                  "maskedPathLikeEpsteinFiles": "■■■■■"
+                }
+                """);
+    }
 }

@@ -1,4 +1,4 @@
-Copyright (c) 2025 [Breus Blaauwendraad](https://github.com/Breus) & [Artur Havliukovskyi](https://github.com/gavlyukovskiy)
+Copyright (c) 2023  [Artur Havliukovskyi](https://github.com/gavlyukovskiy) & [Breus Blaauwendraad](https://github.com/Breus)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

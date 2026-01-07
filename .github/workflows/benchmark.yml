@@ -38,10 +38,10 @@ jobs:
           ref: "${{ github.event.pull_request.head.sha }}"
           path: benchmark-pull-request
 
-      - name: Setup JDK 17
+      - name: Setup JDK 25
         uses: actions/setup-java@v5
         with:
-          java-version: '17'
+          java-version: '25'
           distribution: 'temurin'
           cache: 'gradle'
 

@@ -25,14 +25,9 @@ public class BenchmarkUtils {
         int sizeBytes = Integer.parseInt(matcher.group(1));
         String unit = matcher.group(2).toLowerCase();
         switch (unit) {
-            case "kb":
-                sizeBytes *= 1024;
-                break;
-            case "mb":
-                sizeBytes *= 1024 * 1024;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid size param: " + size);
+            case "kb" -> sizeBytes *= 1024;
+            case "mb" -> sizeBytes *= 1024 * 1024;
+            default -> throw new IllegalArgumentException("Invalid size param: " + size);
         }
         return sizeBytes;
     }

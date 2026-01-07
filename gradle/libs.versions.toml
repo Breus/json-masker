@@ -6,14 +6,14 @@ assertj-core = { group = "org.assertj", name = "assertj-core", version = "3.27.6
 jspecify = { group = "org.jspecify", name = "jspecify", version = "1.0.0" }
 jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version = "3.0.3" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api" }
-junit-bom = { group = "org.junit", name = "junit-bom", version = "6.0.1" }
+junit-bom = { group = "org.junit", name = "junit-bom", version = "6.0.2" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
 jmh-core = { group = "org.openjdk.jmh", name = "jmh-core", version.ref = "jmh" }
 jmh-generator-annproccesor = { group = "org.openjdk.jmh", name = "jmh-generator-annprocess", version.ref = "jmh" }
-nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.10" }
-errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.42.0" }
+nullaway = { group = "com.uber.nullaway", name = "nullaway", version = "0.12.15" }
+errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version = "2.45.0" }
 
 [plugins]
 jmh = { id = "me.champeau.jmh", version = "0.7.3" }

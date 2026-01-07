@@ -3,15 +3,18 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "monthly"
-    assignees: 
+      interval: "quarterly"
+    assignees:
       - "Breus"
     reviewers:
       - "Breus"
+    groups:
+      dependencies-gradle:
+        patterns: ["*"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
     assignees:
       - "Breus"
     reviewers:
@@ -23,3 +26,6 @@ updates:
       separator: "-"
     commit-message:
       prefix: "deps"
+    groups:
+      dependencies-github-actions:
+        patterns: ["*"]

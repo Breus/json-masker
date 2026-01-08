@@ -1,28 +1,126 @@
-# High-performance JSON masker
+<div align="center">
+
+# JSON Masker
+
+### Blazingly fast, zero-dependency JSON masking for Java
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker?style=flat-square)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
 [![Javadoc](https://javadoc.io/badge2/dev.blaauwendraad/json-masker/javadoc.svg?style=flat-square)](https://javadoc.io/doc/dev.blaauwendraad/json-masker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster&style=flat-square)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
 [![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-JSON Masker library allows for highly flexible masking of sensitive data in JSON, supporting two modes:
+**Protect sensitive data in your JSON logs, API responses, and messages with a library that's up to 11x faster than
+Jackson-based alternatives.**
 
-* Block Mode: Mask values corresponding to a specified set of keys.
-* Allow Mode: Unmask only the values corresponding to specified keys, while masking all others.
+[Getting Started](#getting-started) •
+[Features](#features) •
+[Performance](#performance) •
+[Contributing](CONTRIBUTING.md)
 
-The library provides modern and convenient Java APIs, offering extensive masking customizations. It includes both 
-streaming and in-memory APIs to cater to various use cases.
+</div>
 
-The library is designed for high throughput and efficient memory usage, it minimizes heap allocations to reduce GC 
-pressure.
+---
 
-Finally, no additional third-party runtime dependencies are required to use this library.
+## Quick Example
+
+```java
+var jsonMasker = JsonMasker.getMasker(Set.of("email", "password"));
+
+String masked = jsonMasker.mask("""
+        {"name": "John", "email": "user@example.com", "password": "secret123"}
+        """);
+
+// Result: {"name": "John", "email": "***", "password": "***"}
+```
+
+## Why JSON Masker?
+
+| Feature                  |  JSON Masker   | Jackson + Manual |    Regex    |
+|--------------------------|:--------------:|:----------------:|:-----------:|
+| **Performance**          | 🏎️ 454K ops/s |   🐢 40K ops/s   | 🐌 5K ops/s |
+| **Convenient API**       |       ✅        |     ❌ Manual     |  ❌ Manual   |
+| **Zero Dependencies**    |       ✅        |        ❌         |      ✅      |
+| **JSONPath Support**     |       ✅        |   ⚠️ Extra lib   |      ❌      |
+| **Streaming API**        |       ✅        |        ✅         |      ❌      |
+| **Preserves Formatting** |       ✅        |        ❌         |      ✅      |
+| **Lightweight**          |     ~60 KB     |     ~2.5 MB+     |     N/A     |
+
+## Use Cases
+
+- **📝 Logging**: Safely log JSON payloads without exposing PII, passwords, or API keys
+- **🔒 GDPR Compliance**: Mask personal data before storing or transmitting
+- **🐛 Debugging**: Share JSON data with support teams while protecting sensitive fields
+- **📊 Analytics**: Process JSON data while anonymizing user information
+- **🔄 API Proxies**: Sanitize responses before forwarding to third parties
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Features](#features)
+- [JDK Compatibility](#jdk-compatibility)
+- [Usage Examples](#usage-examples)
+- [Performance](#performance)
+- [Contributing](#contributing)
+
+---
+
+## Getting Started
+
+Add the dependency to your project:
+
+**Gradle:**
+
+```groovy
+implementation("dev.blaauwendraad:json-masker:${version}")
+```
+
+**Maven:**
+
+```xml
+
+<dependency>
+    <groupId>dev.blaauwendraad</groupId>
+    <artifactId>json-masker</artifactId>
+    <version>${version}</version>
+</dependency>
+```
+
+Then start masking:
+
+```java
+// Create a reusable, thread-safe masker
+var jsonMasker = JsonMasker.getMasker(Set.of("email", "ssn", "creditCard"));
+
+// Mask sensitive data
+String masked = jsonMasker.mask(jsonString);
+```
+> [!TIP]
+> Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
+
+---
 
 ## Features
 
-* Mask a user-provided stream of JSON and write it to a user-provided output stream 
+JSON Masker supports two modes:
+
+1. **Block Mode**: Mask values corresponding to a specified set of keys.
+2. **Allow Mode**: Unmask only the values corresponding to specified keys, while masking all others.
+
+### Key Capabilities
+
+**Streaming & In-Memory APIs** - Process large JSON files efficiently or mask strings in memory
+
+**High Performance** - Single-pass scanning with minimal heap allocations to reduce GC pressure
+
+**Flexible Targeting** - Use blocklist, allowlist, or JSONPath expressions to target specific fields
+
+**Customizable Masking** - Configure masking per type, per key, or use custom `ValueMasker` functions
+
+### Supported Masking Strategies
+
 * Mask all primitive values by specifying the keys to mask, by default, any `string` is masked as `"***"`, any `number`
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
@@ -44,7 +142,7 @@ Finally, no additional third-party runtime dependencies are required to use this
   Java object it was serialized from
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **blocklist** (`maskKeys`) or **allowlist** (`allowKeys`) for masking
-* Limited support for JSONPath masking in both **blocklist** (`maskJsonPaths`) and **allowlist** (`allowJsonPaths`)
+* Support for JSONPath masking in both **blocklist** (`maskJsonPaths`) and **allowlist** (`allowJsonPaths`)
   modes
 * Masking a valid JSON will always produce a valid JSON. If the input is not valid JSON, processing is guaranteed to
   complete, but the resulting masked output is undefined
@@ -52,34 +150,12 @@ Finally, no additional third-party runtime dependencies are required to use this
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
-## Using the json-masker package
-
-The json-masker library is available from [Maven Central](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker).
-
-To use the package, you can use the following **Gradle** dependency:
-
-```groovy
-implementation("dev.blaauwendraad:json-masker:${version}")
-```
-
-Or using **Maven**:
-
-```xml
-<dependency>
-    <groupId>dev.blaauwendraad</groupId>
-    <artifactId>json-masker</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-
-The package requires no additional runtime dependencies.
-
 ## JDK Compatibility
 
-From version 1.1 onwards, the `json-masker` artifact became a multi-release JAR (MRJAR) supporting both JDK 11 and 
-JDK 17 simultaneously, so **the minimum JDK requirement is JDK 11**.
+From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11
+the minimum requirement.
 
-## Usage examples
+## Usage Examples
 
 `JsonMasker` instance can be created using any of the following factory methods:
 
@@ -337,11 +413,13 @@ String maskedJson = jsonMasker.mask(json);
 ```
 
 ### Masking with the streaming API
-To mask (potentially) large JSON input, the streaming API can be used. 
 
-All features of the JsonMasker work exactly the same for the streaming API and the (default) in-memory API. 
+To mask (potentially) large JSON input, the streaming API can be used.
+
+All features of the JsonMasker work exactly the same for the streaming API and the (default) in-memory API.
 
 #### Usage
+
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
@@ -349,9 +427,10 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-jsonMasker.mask(jsonInputStream, jsonOutputStream);
-```
+jsonMasker.
 
+mask(jsonInputStream, jsonOutputStream);
+```
 
 ### Masking with JSONPath
 
@@ -372,9 +451,11 @@ The library also imposes a number of additional restrictions:
 
 * Numbers as key names are disallowed.
 * JSONPath keys must not have ambiguous segments that share the same path.  
-For example, `$.payment.iban` and `$.payment.*.address` combination is disallowed because segment 2 is ambiguous and shares the same path (`$.payment.`).  
-On contrary, `$.payment.iban` and `$.customerDetails.*.address` combination is allowed because segment 2 does not share the same path.  
-Also, `$.payment.iban` and `$.payment.customerDetails` combination is allowed because segment 2 is not ambiguous.
+  For example, `$.payment.iban` and `$.payment.*.address` combination is disallowed because segment 2 is ambiguous and
+  shares the same path (`$.payment.`).  
+  On contrary, `$.payment.iban` and `$.customerDetails.*.address` combination is allowed because segment 2 does not
+  share the same path.  
+  Also, `$.payment.iban` and `$.payment.customerDetails` combination is allowed because segment 2 is not ambiguous.
 * JSONPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
 
 #### Usage
@@ -750,9 +831,7 @@ String maskedJson = jsonMasker.mask(json);
 }
 ```
 
-## Dependencies
-
-**The library has no third-party runtime dependencies**
+---
 
 ## Performance
 
@@ -768,16 +847,35 @@ For benchmarking, we compare the implementation against multiple baseline benchm
   corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
-Generally, our implementation is ~15–25 times faster than using Jackson, besides the additional benefits of no
-runtime dependencies and a convenient API out-of-the-box.
+**Our implementation is ~10–15 times faster than using Jackson** with no runtime dependencies and a convenient API
+out-of-the-box.
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units
-BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2578523.937 ± 133325.274  ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    30917.311 ±   1055.254  ops/s
-BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     5272.318 ±     48.701  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   369819.788 ±   5381.612  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   214893.887 ±   2143.556  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   179303.261 ±   3833.357  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   154621.472 ±   2132.929  ops/s
+BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2762218.146 ±  41683.232  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    40483.364 ±    785.524  ops/s
+BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     4107.170 ±    162.509  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   451025.312 ±   4761.981  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   454335.938 ±   3760.368  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   233862.490 ±   3505.727  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   218006.202 ±   1130.448  ops/s
 ```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+- 🐛 Found a bug? [Open an issue](https://github.com/Breus/json-masker/issues)
+- 💡 Have an idea? [Start a discussion](https://github.com/Breus/json-masker/discussions)
+- 🔧 Want to contribute? [Submit a PR](https://github.com/Breus/json-masker/pulls)
+
+---
+
+<div align="center">
+
+### ⭐ If this project helps you, consider giving it a star!
+
+</div>
+

@@ -11,7 +11,7 @@
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-**Protect sensitive data in your JSON logs, API responses, and messages with a library that's 15-25x faster than Jackson-based alternatives.**
+**Protect sensitive data in your JSON logs, API responses, and messages with a library that's 10-15x faster than Jackson-based alternatives.**
 
 [Getting Started](#-quick-start) •
 [Documentation](#features) •
@@ -47,9 +47,9 @@ String masked = jsonMasker.mask("""
 
 - [Use Cases](#-use-cases)
 - [Quick Start](#-quick-start)
-- [Features](#features)
-- [JDK Compatibility](#jdk-compatibility)
-- [Usage Examples](#usage-examples)
+- [Features](#-features)
+- [JDK Compatibility](#-jdk-compatibility)
+- [Usage Examples](#-usage-examples)
 - [Performance](#-performance)
 - [Contributing](#contributing)
 
@@ -95,7 +95,7 @@ String masked = jsonMasker.mask(jsonString);
 
 ---
 
-## Features
+## 🔧 Features
 
 JSON Masker supports two modes:
 1. **Block Mode**: Mask values corresponding to a specified set of keys.
@@ -141,12 +141,12 @@ JSON Masker supports two modes:
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
-## JDK Compatibility
+## ☕ JDK Compatibility
 
-From version 1.1 onwards, the `json-masker` artifact became a multi-release JAR (MRJAR) adding support for JDK 11, so 
-the minimum JDK requirement is JDK version 11.
+From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11 
+the minimum requirement.
 
-## Usage examples
+## 📖 Usage examples
 
 `JsonMasker` instance can be created using any of the following factory methods:
 
@@ -833,7 +833,7 @@ For benchmarking, we compare the implementation against multiple baseline benchm
   corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
-**Our implementation is ~15–25 times faster than using Jackson**, with no runtime dependencies and a convenient API out-of-the-box.
+**Our implementation is ~10–15 times faster than using Jackson** with no runtime dependencies and a convenient API out-of-the-box.
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units

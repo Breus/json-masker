@@ -861,7 +861,7 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 <div align="center">
 
-### If this project helps you, consider giving it a star!
+### ⭐ If this project helps you, consider giving it a star!
 
 </div>
 

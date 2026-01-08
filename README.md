@@ -12,9 +12,10 @@
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-**Protect sensitive data in your JSON logs, API responses, and messages with a library that's up to 11x faster than Jackson-based alternatives.**
+**Protect sensitive data in your JSON logs, API responses, and messages with a library that's up to 11x faster than
+Jackson-based alternatives.**
 
-[Getting Started](#quick-start) •
+[Getting Started](#getting-started) •
 [Features](#features) •
 [Performance](#performance) •
 [Contributing](CONTRIBUTING.md)
@@ -27,32 +28,25 @@
 
 ```java
 var jsonMasker = JsonMasker.getMasker(Set.of("email", "password"));
+
 String masked = jsonMasker.mask("""
-    {"email": "user@example.com", "password": "secret123", "name": "John"}
-    """);
-// Result: {"email": "***", "password": "***", "name": "John"}
+        {"name": "John", "email": "user@example.com", "password": "secret123"}
+        """);
+
+// Result: {"name": "John", "email": "***", "password": "***"}
 ```
 
 ## Why JSON Masker?
 
-| Feature               | JSON Masker  | Jackson + Manual |    Regex    |
-|-----------------------|:------------:|:----------------:|:-----------:|
-| **Performance**       | ⚡ 454K ops/s |   🐢 40K ops/s   | 🐌 5K ops/s |
-| **Zero Dependencies** |      ✅       |        ❌         |      ✅      |
-| **Lightweight**       |    ~60 KB    |     ~2.5 MB+     |     N/A     |
-| **JSONPath Support**  |      ✅       |   ⚠️ Extra lib   |      ❌      |
-| **Streaming API**     |      ✅       |        ✅         |      ❌      |
-| **Convenient API**    |      ✅       |     ❌ Manual     |  ❌ Manual   |
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Use Cases](#use-cases)
-- [Features](#features)
-- [JDK Compatibility](#jdk-compatibility)
-- [Usage Examples](#usage-examples)
-- [Performance](#performance)
-- [Contributing](#contributing)
+| Feature                  |  JSON Masker   | Jackson + Manual |    Regex    |
+|--------------------------|:--------------:|:----------------:|:-----------:|
+| **Performance**          | 🏎️ 454K ops/s |   🐢 40K ops/s   | 🐌 5K ops/s |
+| **Convenient API**       |       ✅        |     ❌ Manual     |  ❌ Manual   |
+| **Zero Dependencies**    |       ✅        |        ❌         |      ✅      |
+| **JSONPath Support**     |       ✅        |   ⚠️ Extra lib   |      ❌      |
+| **Streaming API**        |       ✅        |        ✅         |      ❌      |
+| **Preserves Formatting** |       ✅        |        ❌         |      ✅      |
+| **Lightweight**          |     ~60 KB     |     ~2.5 MB+     |     N/A     |
 
 ## Use Cases
 
@@ -62,19 +56,32 @@ String masked = jsonMasker.mask("""
 - **📊 Analytics**: Process JSON data while anonymizing user information
 - **🔄 API Proxies**: Sanitize responses before forwarding to third parties
 
+## Table of Contents
+
+- [Getting Start](#getting-started)
+- [Use Cases](#use-cases)
+- [Features](#features)
+- [JDK Compatibility](#jdk-compatibility)
+- [Usage Examples](#usage-examples)
+- [Performance](#performance)
+- [Contributing](#contributing)
+
 ---
 
-## Quick Start
+## Getting Started
 
 Add the dependency to your project:
 
 **Gradle:**
+
 ```groovy
 implementation("dev.blaauwendraad:json-masker:${version}")
 ```
 
 **Maven:**
+
 ```xml
+
 <dependency>
     <groupId>dev.blaauwendraad</groupId>
     <artifactId>json-masker</artifactId>
@@ -91,14 +98,15 @@ var jsonMasker = JsonMasker.getMasker(Set.of("email", "ssn", "creditCard"));
 // Mask sensitive data
 String masked = jsonMasker.mask(jsonString);
 ```
-
-> **Tip:** Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
+> [!TIP]
+> Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
 
 ---
 
 ## Features
 
 JSON Masker supports two modes:
+
 1. **Block Mode**: Mask values corresponding to a specified set of keys.
 2. **Allow Mode**: Unmask only the values corresponding to specified keys, while masking all others.
 
@@ -113,6 +121,7 @@ JSON Masker supports two modes:
 **Customizable Masking** - Configure masking per type, per key, or use custom `ValueMasker` functions
 
 ### Supported Masking Strategies
+
 * Mask all primitive values by specifying the keys to mask, by default, any `string` is masked as `"***"`, any `number`
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
@@ -144,7 +153,7 @@ are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker
 
 ## JDK Compatibility
 
-From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11 
+From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11
 the minimum requirement.
 
 ## Usage Examples
@@ -405,11 +414,13 @@ String maskedJson = jsonMasker.mask(json);
 ```
 
 ### Masking with the streaming API
-To mask (potentially) large JSON input, the streaming API can be used. 
 
-All features of the JsonMasker work exactly the same for the streaming API and the (default) in-memory API. 
+To mask (potentially) large JSON input, the streaming API can be used.
+
+All features of the JsonMasker work exactly the same for the streaming API and the (default) in-memory API.
 
 #### Usage
+
 ```java
 var jsonMasker = JsonMasker.getMasker(
         JsonMaskingConfig.builder()
@@ -417,9 +428,10 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-jsonMasker.mask(jsonInputStream, jsonOutputStream);
-```
+jsonMasker.
 
+mask(jsonInputStream, jsonOutputStream);
+```
 
 ### Masking with JSONPath
 
@@ -440,9 +452,11 @@ The library also imposes a number of additional restrictions:
 
 * Numbers as key names are disallowed.
 * JSONPath keys must not have ambiguous segments that share the same path.  
-For example, `$.payment.iban` and `$.payment.*.address` combination is disallowed because segment 2 is ambiguous and shares the same path (`$.payment.`).  
-On contrary, `$.payment.iban` and `$.customerDetails.*.address` combination is allowed because segment 2 does not share the same path.  
-Also, `$.payment.iban` and `$.payment.customerDetails` combination is allowed because segment 2 is not ambiguous.
+  For example, `$.payment.iban` and `$.payment.*.address` combination is disallowed because segment 2 is ambiguous and
+  shares the same path (`$.payment.`).  
+  On contrary, `$.payment.iban` and `$.customerDetails.*.address` combination is allowed because segment 2 does not
+  share the same path.  
+  Also, `$.payment.iban` and `$.payment.customerDetails` combination is allowed because segment 2 is not ambiguous.
 * JSONPath must not end with a single leading wildcard. Use `$.a` instead of `$.a.*`.
 
 #### Usage
@@ -834,7 +848,8 @@ For benchmarking, we compare the implementation against multiple baseline benchm
   corresponding to the targeted keys
 - A naive regex masking (replacement) implementation.
 
-**Our implementation is ~10–15 times faster than using Jackson** with no runtime dependencies and a convenient API out-of-the-box.
+**Our implementation is ~10–15 times faster than using Jackson** with no runtime dependencies and a convenient API
+out-of-the-box.
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units

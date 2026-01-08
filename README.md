@@ -6,6 +6,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker?style=flat-square)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
 [![Javadoc](https://javadoc.io/badge2/dev.blaauwendraad/json-masker/javadoc.svg?style=flat-square)](https://javadoc.io/doc/dev.blaauwendraad/json-masker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Breus/json-masker/build.yml?query=branch%3Amaster&style=flat-square)](https://github.com/Breus/json-masker/actions/workflows/build.yml?query=branch%3Amaster)
 [![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
@@ -14,7 +15,7 @@
 **Protect sensitive data in your JSON logs, API responses, and messages with a library that's 10-15x faster than Jackson-based alternatives.**
 
 [Getting Started](#-quick-start) •
-[Documentation](#features) •
+[Features](#-features) •
 [Performance](#-performance) •
 [Contributing](CONTRIBUTING.md)
 
@@ -45,8 +46,8 @@ String masked = jsonMasker.mask("""
 
 ## 📋 Table of Contents
 
-- [Use Cases](#-use-cases)
 - [Quick Start](#-quick-start)
+- [Use Cases](#-use-cases)
 - [Features](#-features)
 - [JDK Compatibility](#-jdk-compatibility)
 - [Usage Examples](#-usage-examples)

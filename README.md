@@ -427,9 +427,7 @@ var jsonMasker = JsonMasker.getMasker(
                 .build()
 );
 
-jsonMasker.
-
-mask(jsonInputStream, jsonOutputStream);
+jsonMasker.mask(jsonInputStream, jsonOutputStream);
 ```
 
 ### Masking with JSONPath

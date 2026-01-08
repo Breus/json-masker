@@ -862,7 +862,5 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 ### ⭐ If this project helps you, consider giving it a star!
 
-Made with ❤️ by the JSON Masker contributors
-
 </div>
 

@@ -12,7 +12,7 @@
 [![Sonar Coverage](https://img.shields.io/sonar/coverage/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&color=appveyor&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 [![Sonar Tests](https://img.shields.io/sonar/total_tests/Breus_json-masker?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/project/overview?id=Breus_json-masker)
 
-**Protect sensitive data in your JSON logs, API responses, and messages with a library that's 10-15x faster than Jackson-based alternatives.**
+**Protect sensitive data in your JSON logs, API responses, and messages with a library that's up to 11x faster than Jackson-based alternatives.**
 
 [Getting Started](#quick-start) •
 [Features](#features) •
@@ -37,7 +37,7 @@ String masked = jsonMasker.mask("""
 
 | Feature               | JSON Masker  | Jackson + Manual |    Regex    |
 |-----------------------|:------------:|:----------------:|:-----------:|
-| **Performance**       | ⚡ 370K ops/s |   🐢 31K ops/s   | 🐌 5K ops/s |
+| **Performance**       | ⚡ 454K ops/s |   🐢 40K ops/s   | 🐌 5K ops/s |
 | **Zero Dependencies** |      ✅       |        ❌         |      ✅      |
 | **Lightweight**       |    ~60 KB    |     ~2.5 MB+     |     N/A     |
 | **JSONPath Support**  |      ✅       |   ⚠️ Extra lib   |      ❌      |
@@ -838,13 +838,13 @@ For benchmarking, we compare the implementation against multiple baseline benchm
 
 ```text
 Benchmark                              (characters)  (jsonPath)  (jsonSize)  (maskedKeyProbability)   Mode  Cnt        Score        Error  Units
-BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2578523.937 ± 133325.274  ops/s
-BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    30917.311 ±   1055.254  ops/s
-BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     5272.318 ±     48.701  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   369819.788 ±   5381.612  ops/s
-JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   214893.887 ±   2143.556  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   179303.261 ±   3833.357  ops/s
-JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   154621.472 ±   2132.929  ops/s
+BaselineBenchmark.countBytes                unicode         N/A         1kb                     0.1  thrpt    4  2762218.146 ±  41683.232  ops/s
+BaselineBenchmark.jacksonParseAndMask       unicode         N/A         1kb                     0.1  thrpt    4    40483.364 ±    785.524  ops/s
+BaselineBenchmark.regexReplace              unicode         N/A         1kb                     0.1  thrpt    4     4107.170 ±    162.509  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode       false         1kb                     0.1  thrpt    4   451025.312 ±   4761.981  ops/s
+JsonMaskerBenchmark.jsonMaskerBytes         unicode        true         1kb                     0.1  thrpt    4   454335.938 ±   3760.368  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode       false         1kb                     0.1  thrpt    4   233862.490 ±   3505.727  ops/s
+JsonMaskerBenchmark.jsonMaskerString        unicode        true         1kb                     0.1  thrpt    4   218006.202 ±   1130.448  ops/s
 ```
 
 ---
@@ -861,7 +861,7 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 <div align="center">
 
-### ⭐ If this project helps you, consider giving it a star!
+### If this project helps you, consider giving it a star!
 
 </div>
 

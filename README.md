@@ -58,8 +58,7 @@ String masked = jsonMasker.mask("""
 
 ## Table of Contents
 
-- [Getting Start](#getting-started)
-- [Use Cases](#use-cases)
+- [Getting Started](#getting-started)
 - [Features](#features)
 - [JDK Compatibility](#jdk-compatibility)
 - [Usage Examples](#usage-examples)

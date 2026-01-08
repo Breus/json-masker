@@ -14,16 +14,16 @@
 
 **Protect sensitive data in your JSON logs, API responses, and messages with a library that's 10-15x faster than Jackson-based alternatives.**
 
-[Getting Started](#-quick-start) •
-[Features](#-features) •
-[Performance](#-performance) •
+[Getting Started](#quick-start) •
+[Features](#features) •
+[Performance](#performance) •
 [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 
-## ✨ Quick Example
+## Quick Example
 
 ```java
 var jsonMasker = JsonMasker.getMasker(Set.of("email", "password"));
@@ -33,7 +33,7 @@ String masked = jsonMasker.mask("""
 // Result: {"email": "***", "password": "***", "name": "John"}
 ```
 
-## 🚀 Why JSON Masker?
+## Why JSON Masker?
 
 | Feature               | JSON Masker  | Jackson + Manual |    Regex    |
 |-----------------------|:------------:|:----------------:|:-----------:|
@@ -44,17 +44,17 @@ String masked = jsonMasker.mask("""
 | **Streaming API**     |      ✅       |        ✅         |      ❌      |
 | **Convenient API**    |      ✅       |     ❌ Manual     |  ❌ Manual   |
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Quick Start](#-quick-start)
-- [Use Cases](#-use-cases)
-- [Features](#-features)
-- [JDK Compatibility](#-jdk-compatibility)
-- [Usage Examples](#-usage-examples)
-- [Performance](#-performance)
+- [Quick Start](#quick-start)
+- [Use Cases](#use-cases)
+- [Features](#features)
+- [JDK Compatibility](#jdk-compatibility)
+- [Usage Examples](#usage-examples)
+- [Performance](#performance)
 - [Contributing](#contributing)
 
-## 🎯 Use Cases
+## Use Cases
 
 - **📝 Logging**: Safely log JSON payloads without exposing PII, passwords, or API keys
 - **🔒 GDPR Compliance**: Mask personal data before storing or transmitting
@@ -64,7 +64,7 @@ String masked = jsonMasker.mask("""
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Add the dependency to your project:
 
@@ -92,11 +92,11 @@ var jsonMasker = JsonMasker.getMasker(Set.of("email", "ssn", "creditCard"));
 String masked = jsonMasker.mask(jsonString);
 ```
 
-> 💡 **Tip:** Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
+> **Tip:** Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
 
 ---
 
-## 🔧 Features
+## Features
 
 JSON Masker supports two modes:
 1. **Block Mode**: Mask values corresponding to a specified set of keys.
@@ -104,13 +104,13 @@ JSON Masker supports two modes:
 
 ### Key Capabilities
 
-🔄 **Streaming & In-Memory APIs** - Process large JSON files efficiently or mask strings in memory
+**Streaming & In-Memory APIs** - Process large JSON files efficiently or mask strings in memory
 
-⚡ **High Performance** - Single-pass scanning with minimal heap allocations to reduce GC pressure
+**High Performance** - Single-pass scanning with minimal heap allocations to reduce GC pressure
 
-🎯 **Flexible Targeting** - Use blocklist, allowlist, or JSONPath expressions to target specific fields
+**Flexible Targeting** - Use blocklist, allowlist, or JSONPath expressions to target specific fields
 
-🔧 **Customizable Masking** - Configure masking per type, per key, or use custom `ValueMasker` functions
+**Customizable Masking** - Configure masking per type, per key, or use custom `ValueMasker` functions
 
 ### Supported Masking Strategies
 * Mask all primitive values by specifying the keys to mask, by default, any `string` is masked as `"***"`, any `number`
@@ -142,12 +142,12 @@ JSON Masker supports two modes:
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
 
-## ☕ JDK Compatibility
+## JDK Compatibility
 
 From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11 
 the minimum requirement.
 
-## 📖 Usage Examples
+## Usage Examples
 
 `JsonMasker` instance can be created using any of the following factory methods:
 
@@ -820,7 +820,7 @@ String maskedJson = jsonMasker.mask(json);
 
 ---
 
-## ⚡ Performance
+## Performance
 
 The `json-masker` library is optimized for a fast key lookup that scales well with a large key set to mask (or allow).
 The input is only scanned once, and memory allocations are avoided whenever possible.

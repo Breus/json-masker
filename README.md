@@ -146,7 +146,7 @@ are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker
 From version 1.1 onwards, `json-masker` became a multi-release JAR (MRJAR) supporting JDK 11 and higher, making JDK 11 
 the minimum requirement.
 
-## 📖 Usage examples
+## 📖 Usage Examples
 
 `JsonMasker` instance can be created using any of the following factory methods:
 

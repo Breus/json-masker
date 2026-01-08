@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎭 JSON Masker
+# JSON Masker
 
 ### Blazingly fast, zero-dependency JSON masking for Java
 
@@ -14,7 +14,7 @@
 **Protect sensitive data in your JSON logs, API responses, and messages with a library that's 15-25x faster than Jackson-based alternatives.**
 
 [Getting Started](#-quick-start) •
-[Documentation](#usage-examples) •
+[Documentation](#features) •
 [Performance](#-performance) •
 [Contributing](CONTRIBUTING.md)
 
@@ -48,7 +48,6 @@ String masked = jsonMasker.mask("""
 - [Quick Start](#-quick-start)
 - [Features](#features)
 - [Use Cases](#-use-cases)
-- [Installation](#installation)
 - [Usage Examples](#usage-examples)
 - [Performance](#-performance)
 - [Contributing](#contributing)
@@ -91,16 +90,15 @@ var jsonMasker = JsonMasker.getMasker(Set.of("email", "ssn", "creditCard"));
 String masked = jsonMasker.mask(jsonString);
 ```
 
-> 💡 **Tip:** Reuse the `JsonMasker` instance - it pre-processes keys for optimal performance!
+> 💡 **Tip:** Reuse the `JsonMasker` instance: it pre-processes keys for optimal performance!
 
 ---
 
 ## Features
 
 JSON Masker supports two modes:
-
-* **Block Mode**: Mask values corresponding to a specified set of keys.
-* **Allow Mode**: Unmask only the values corresponding to specified keys, while masking all others.
+1. **Block Mode**: Mask values corresponding to a specified set of keys.
+2. **Allow Mode**: Unmask only the values corresponding to specified keys, while masking all others.
 
 ### Key Capabilities
 
@@ -112,7 +110,7 @@ JSON Masker supports two modes:
 
 🔧 **Customizable Masking** - Configure masking per type, per key, or use custom `ValueMasker` functions
 
-**Masking Strategies:** 
+### Supported Masking Strategies
 * Mask all primitive values by specifying the keys to mask, by default, any `string` is masked as `"***"`, any `number`
   as `"###"` and any `boolean` as `"&&&"`
 * If the value of a targeted key corresponds to an `object`, all nested fields, including nested arrays and objects will
@@ -134,35 +132,13 @@ JSON Masker supports two modes:
   Java object it was serialized from
 * Target key **case sensitivity configuration** (default: `false`)
 * Use **blocklist** (`maskKeys`) or **allowlist** (`allowKeys`) for masking
-* Limited support for JSONPath masking in both **blocklist** (`maskJsonPaths`) and **allowlist** (`allowJsonPaths`)
+* Support for JSONPath masking in both **blocklist** (`maskJsonPaths`) and **allowlist** (`allowJsonPaths`)
   modes
 * Masking a valid JSON will always produce a valid JSON. If the input is not valid JSON, processing is guaranteed to
   complete, but the resulting masked output is undefined
 
 Note: Since [RFC 8259](https://datatracker.ietf.org/doc/html/rfc8259) dictates that JSON exchanges between systems that
 are not part of an enclosed system MUST be encoded using UTF-8, the `json-masker` only supports UTF-8 encoding.
-
-## Installation
-
-The json-masker library is available from [Maven Central](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker).
-
-**Gradle:**
-
-```groovy
-implementation("dev.blaauwendraad:json-masker:${version}")
-```
-
-**Maven:**
-
-```xml
-<dependency>
-    <groupId>dev.blaauwendraad</groupId>
-    <artifactId>json-masker</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-
-No additional dependencies are required.
 
 ## JDK Compatibility
 

@@ -6,8 +6,6 @@ updates:
       interval: "quarterly"
     assignees:
       - "Breus"
-    reviewers:
-      - "Breus"
     groups:
       dependencies-gradle:
         patterns: ["*"]
@@ -16,8 +14,6 @@ updates:
     schedule:
       interval: "quarterly"
     assignees:
-      - "Breus"
-    reviewers:
       - "Breus"
     labels:
       - "dependencies"

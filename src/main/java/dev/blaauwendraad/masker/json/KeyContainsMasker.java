@@ -402,11 +402,12 @@ final class KeyContainsMasker implements JsonMasker {
     private static void stepOverStringValue(MaskingState maskingState) {
         boolean isEscapeCharacter = false;
         while (maskingState.next()) {
-            if (!isEscapeCharacter && maskingState.byteAtCurrentIndex() == '"') {
+            byte b = maskingState.byteAtCurrentIndex();
+            if (!isEscapeCharacter && b == '"') {
                 maskingState.next();  // step over the closing quote
                 break;
             }
-            isEscapeCharacter = !isEscapeCharacter && maskingState.byteAtCurrentIndex() == '\\';
+            isEscapeCharacter = !isEscapeCharacter && b == '\\';
         }
     }
 

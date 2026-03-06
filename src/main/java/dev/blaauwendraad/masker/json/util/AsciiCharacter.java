@@ -1,51 +1,48 @@
 package dev.blaauwendraad.masker.json.util;
 
 /** ASCII encoding characters and utility methods. */
-public enum AsciiCharacter {
-    ASTERISK((byte) '*'),
-    BACK_SLASH((byte) '\\'),
-    CARRIAGE_RETURN((byte) 13),
-    COLON((byte) ':'),
-    COMMA((byte) ','),
-    CURLY_BRACKET_CLOSE((byte) '}'),
-    CURLY_BRACKET_OPEN((byte) '{'),
-    DOUBLE_QUOTE((byte) '"'),
-    HORIZONTAL_TAB((byte) 9),
-    LINE_FEED((byte) 10),
-    MINUS((byte) '-'),
-    PERIOD((byte) '.'),
-    PLUS((byte) '+'),
-    SPACE((byte) ' '),
-    SQUARE_BRACKET_OPEN((byte) '['),
-    SQUARE_BRACKET_CLOSE((byte) ']'),
-    UPPERCASE_E((byte) 'E'),
+public final class AsciiCharacter {
 
-    LOWERCASE_A((byte) 'a'),
-    LOWERCASE_E((byte) 'e'),
-    LOWERCASE_F((byte) 'f'),
-    LOWERCASE_L((byte) 'l'),
-    LOWERCASE_N((byte) 'n'),
-    LOWERCASE_R((byte) 'r'),
-    LOWERCASE_S((byte) 's'),
-    LOWERCASE_T((byte) 't'),
-    LOWERCASE_U((byte) 'u'),
+    public static final byte ASTERISK = (byte) '*';
+    public static final byte BACK_SLASH = (byte) '\\';
+    public static final byte CARRIAGE_RETURN = (byte) 13;
+    public static final byte COLON = (byte) ':';
+    public static final byte COMMA = (byte) ',';
+    public static final byte CURLY_BRACKET_CLOSE = (byte) '}';
+    public static final byte CURLY_BRACKET_OPEN = (byte) '{';
+    public static final byte DOUBLE_QUOTE = (byte) '"';
+    public static final byte HORIZONTAL_TAB = (byte) 9;
+    public static final byte LINE_FEED = (byte) 10;
+    public static final byte MINUS = (byte) '-';
+    public static final byte PERIOD = (byte) '.';
+    public static final byte PLUS = (byte) '+';
+    public static final byte SPACE = (byte) ' ';
+    public static final byte SQUARE_BRACKET_OPEN = (byte) '[';
+    public static final byte SQUARE_BRACKET_CLOSE = (byte) ']';
+    public static final byte UPPERCASE_E = (byte) 'E';
 
-    ZERO((byte) '0'),
-    ONE((byte) '1'),
-    TWO((byte) '2'),
-    THREE((byte) '3'),
-    FOUR((byte) '4'),
-    FIVE((byte) '5'),
-    SIX((byte) '6'),
-    SEVEN((byte) '7'),
-    EIGHT((byte) '8'),
-    NINE((byte) '9');
+    public static final byte LOWERCASE_A = (byte) 'a';
+    public static final byte LOWERCASE_E = (byte) 'e';
+    public static final byte LOWERCASE_F = (byte) 'f';
+    public static final byte LOWERCASE_L = (byte) 'l';
+    public static final byte LOWERCASE_N = (byte) 'n';
+    public static final byte LOWERCASE_R = (byte) 'r';
+    public static final byte LOWERCASE_S = (byte) 's';
+    public static final byte LOWERCASE_T = (byte) 't';
+    public static final byte LOWERCASE_U = (byte) 'u';
 
-    final byte byteValue;
+    public static final byte ZERO = (byte) '0';
+    public static final byte ONE = (byte) '1';
+    public static final byte TWO = (byte) '2';
+    public static final byte THREE = (byte) '3';
+    public static final byte FOUR = (byte) '4';
+    public static final byte FIVE = (byte) '5';
+    public static final byte SIX = (byte) '6';
+    public static final byte SEVEN = (byte) '7';
+    public static final byte EIGHT = (byte) '8';
+    public static final byte NINE = (byte) '9';
 
-    AsciiCharacter(byte byteValue) {
-        this.byteValue = byteValue;
-    }
+    private AsciiCharacter() { /* don't instantiate */ }
 
     /**
      * Tests if the given byte corresponds to a double quote '{@literal "}' in ASCII encoding.
@@ -54,7 +51,7 @@ public enum AsciiCharacter {
      * @return {@code true} if the byte corresponds to a double quote in ASCII encoding, {@code false} otherwise
      */
     public static boolean isDoubleQuote(byte inputByte) {
-        return DOUBLE_QUOTE.getAsciiByteValue() == inputByte;
+        return DOUBLE_QUOTE == inputByte;
     }
 
     /**
@@ -65,7 +62,7 @@ public enum AsciiCharacter {
      * otherwise
      */
     public static boolean isEscapeCharacter(byte inputByte) {
-        return BACK_SLASH.getAsciiByteValue() == inputByte;
+        return BACK_SLASH == inputByte;
     }
 
     /**
@@ -75,7 +72,7 @@ public enum AsciiCharacter {
      * @return {@code true} if the byte corresponds to a lowercase 'u' in ASCII encoding, {@code false} otherwise
      */
     public static boolean isLowercaseU(byte inputByte) {
-        return LOWERCASE_U.getAsciiByteValue() == inputByte;
+        return LOWERCASE_U == inputByte;
     }
 
     /**
@@ -86,7 +83,7 @@ public enum AsciiCharacter {
      * otherwise
      */
     public static boolean isSquareBracketOpen(byte inputByte) {
-        return SQUARE_BRACKET_OPEN.getAsciiByteValue() == inputByte;
+        return SQUARE_BRACKET_OPEN == inputByte;
     }
 
     /**
@@ -97,7 +94,7 @@ public enum AsciiCharacter {
      * {@code false} otherwise
      */
     public static boolean isSquareBracketClose(byte inputByte) {
-        return SQUARE_BRACKET_CLOSE.getAsciiByteValue() == inputByte;
+        return SQUARE_BRACKET_CLOSE == inputByte;
     }
 
     /**
@@ -109,7 +106,7 @@ public enum AsciiCharacter {
      *     encoding, {@code false} otherwise
      */
     public static boolean isCurlyBracketOpen(byte inputByte) {
-        return CURLY_BRACKET_OPEN.getAsciiByteValue() == inputByte;
+        return CURLY_BRACKET_OPEN == inputByte;
     }
 
     /**
@@ -121,7 +118,7 @@ public enum AsciiCharacter {
      *     encoding, {@code false} otherwise
      */
     public static boolean isCurlyBracketClose(byte inputByte) {
-        return CURLY_BRACKET_CLOSE.getAsciiByteValue() == inputByte;
+        return CURLY_BRACKET_CLOSE == inputByte;
     }
 
     /**
@@ -132,15 +129,6 @@ public enum AsciiCharacter {
      *     otherwise
      */
     public static boolean isLowercaseT(byte inputByte) {
-        return LOWERCASE_T.getAsciiByteValue() == inputByte;
-    }
-
-    /**
-     * Get the corresponding ASCII encoding byte value.
-     *
-     * @return the ASCII encoding byte value.
-     */
-    public byte getAsciiByteValue() {
-        return byteValue;
+        return LOWERCASE_T == inputByte;
     }
 }

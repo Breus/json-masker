@@ -45,7 +45,7 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
 
     java17Implementation(sourceSets.main.get().output.classesDirs)
-    api(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     testImplementation(libs.junit.platform.launcher)
     testImplementation(libs.assertj.core)

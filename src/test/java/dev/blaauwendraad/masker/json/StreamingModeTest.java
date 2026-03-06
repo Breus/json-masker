@@ -10,6 +10,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -34,6 +38,31 @@ class StreamingModeTest {
         jsonMasker.mask(inputStream, outputStream);
 
         Assertions.assertThat(outputStream).hasToString(expectedResult);
+    }
+
+    @Test
+    void shouldThrowWriteErrorOnOutputStreamFailureDuringFlush() {
+        JsonMaskingConfig config = JsonMaskingConfig.builder().maskKeys("mask").build();
+        // small buffer forces a buffer reload (and thus a flushCurrentBuffer() call) mid-stream
+        JsonMaskingConfigTestUtil.setBufferSize(config, 16);
+        JsonMasker jsonMasker = JsonMasker.getMasker(config);
+
+        InputStream inputStream = new ByteArrayInputStream("{\"doNotMask\": [0], \"mask\": \"a\"}".getBytes(StandardCharsets.UTF_8));
+        OutputStream failingOutputStream = new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                throw new IOException("simulated write failure");
+            }
+
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                throw new IOException("simulated write failure");
+            }
+        };
+
+        Assertions.assertThatThrownBy(() -> jsonMasker.mask(inputStream, failingOutputStream))
+                .isInstanceOf(UncheckedIOException.class)
+                .hasMessage("Failed to write to output stream");
     }
 
     @Test

@@ -18,8 +18,22 @@ class Utf8UtilTest {
 
     @Test
     void asciiCharacters() {
-        for (AsciiCharacter asciiCharacter : AsciiCharacter.values()) {
-            assertThat(Utf8Util.getCodePointByteLength(asciiCharacter.getAsciiByteValue())).isEqualTo(1);
+        byte[] asciiBytes = {
+            AsciiCharacter.ASTERISK, AsciiCharacter.BACK_SLASH, AsciiCharacter.CARRIAGE_RETURN,
+            AsciiCharacter.COLON, AsciiCharacter.COMMA, AsciiCharacter.CURLY_BRACKET_CLOSE,
+            AsciiCharacter.CURLY_BRACKET_OPEN, AsciiCharacter.DOUBLE_QUOTE, AsciiCharacter.HORIZONTAL_TAB,
+            AsciiCharacter.LINE_FEED, AsciiCharacter.MINUS, AsciiCharacter.PERIOD,
+            AsciiCharacter.PLUS, AsciiCharacter.SPACE, AsciiCharacter.SQUARE_BRACKET_OPEN,
+            AsciiCharacter.SQUARE_BRACKET_CLOSE, AsciiCharacter.UPPERCASE_E, AsciiCharacter.LOWERCASE_A,
+            AsciiCharacter.LOWERCASE_E, AsciiCharacter.LOWERCASE_F, AsciiCharacter.LOWERCASE_L,
+            AsciiCharacter.LOWERCASE_N, AsciiCharacter.LOWERCASE_R, AsciiCharacter.LOWERCASE_S,
+            AsciiCharacter.LOWERCASE_T, AsciiCharacter.LOWERCASE_U, AsciiCharacter.ZERO,
+            AsciiCharacter.ONE, AsciiCharacter.TWO, AsciiCharacter.THREE, AsciiCharacter.FOUR,
+            AsciiCharacter.FIVE, AsciiCharacter.SIX, AsciiCharacter.SEVEN, AsciiCharacter.EIGHT,
+            AsciiCharacter.NINE
+        };
+        for (byte b : asciiBytes) {
+            assertThat(Utf8Util.getCodePointByteLength(b)).isEqualTo(1);
         }
     }
 

@@ -106,10 +106,10 @@ public class RandomWhiteSpacePrettyPrinter implements PrettyPrinter {
 
     private byte getRandomWhiteSpaceByte(int randomInt) {
         return switch (randomInt) {
-            case 0 -> HORIZONTAL_TAB.getAsciiByteValue();
-            case 1 -> LINE_FEED.getAsciiByteValue();
-            case 2 -> SPACE.getAsciiByteValue();
-            case 3 -> CARRIAGE_RETURN.getAsciiByteValue();
+            case 0 -> HORIZONTAL_TAB;
+            case 1 -> LINE_FEED;
+            case 2 -> SPACE;
+            case 3 -> CARRIAGE_RETURN;
             default -> throw new IllegalStateException("Unexpected value to get random whitespace byte: " + randomInt);
         };
     }

@@ -140,7 +140,7 @@ class BufferedMaskingState extends MaskingState {
             outputStream.flush();
             lastReplacementEndIndex = 0;
         } catch (IOException e) {
-            throw new UncheckedIOException(STREAM_READ_ERROR_MESSAGE, e);
+            throw new UncheckedIOException(STREAM_WRITE_ERROR_MESSAGE, e);
         }
     }
 

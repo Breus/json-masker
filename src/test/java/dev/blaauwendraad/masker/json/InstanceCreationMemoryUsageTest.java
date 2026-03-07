@@ -3,14 +3,13 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class InstanceCreationMemoryUsageTest {
 
@@ -852,8 +851,7 @@ public class InstanceCreationMemoryUsageTest {
             "aawebaaaaaaataaaaaaaa",
             "aaxaa",
             "ￓ",
-            "ￗaaaaa"
-    );
+            "ￗaaaaa");
 
     private final Set<String> obfuscatedTargetJsonPaths = Set.of(
             "$",
@@ -1582,9 +1580,7 @@ public class InstanceCreationMemoryUsageTest {
             "$.tdaaaaaaaaaaaaaaaaa.whaaaaaaa.qaaaaaaaaa",
             "$.tdaaaaaﾐaaaaaaaaaaaaaaaaa",
             "$.tkaaaaaaaaa",
-            "$.tnaaaaaaaaaaaa"
-    );
-
+            "$.tnaaaaaaaaaaaa");
 
     private static final JsonMapper jsonMapper = new JsonMapper();
 
@@ -1613,7 +1609,8 @@ public class InstanceCreationMemoryUsageTest {
 
         JsonMaskingConfig config = JsonMaskingConfig.builder()
                 .maskKeys(obfuscatedTargetKeys, KeyMaskingConfig.builder().build())
-                .maskJsonPaths(obfuscatedTargetJsonPaths, KeyMaskingConfig.builder().build())
+                .maskJsonPaths(
+                        obfuscatedTargetJsonPaths, KeyMaskingConfig.builder().build())
                 .build();
         JsonMasker masker = JsonMasker.getMasker(config);
         masker.mask("{\"maskMe\": \"secret\"}"); // just run once to make sure there's no side effects

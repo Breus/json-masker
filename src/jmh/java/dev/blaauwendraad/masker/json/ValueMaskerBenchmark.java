@@ -1,6 +1,9 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -13,10 +16,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
@@ -24,44 +23,42 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.Throughput)
 public class ValueMaskerBenchmark {
 
-
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
 
-        @Param({ "1kb", "128kb" })
+        @Param({"1kb", "128kb"})
         String jsonSize;
-        @Param({ "unicode" })
+
+        @Param({"unicode"})
         String characters;
-        @Param({ "0.1" })
+
+        @Param({"0.1"})
         double maskedKeyProbability;
 
-        private final JsonMasker nativeMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys("targetKey")
-                .build()
-        );
+        private final JsonMasker nativeMasker = JsonMasker.getMasker(
+                JsonMaskingConfig.builder().maskKeys("targetKey").build());
 
         private final JsonMasker rawValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys("targetKey")
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
-                .build()
-        );
+                .build());
 
         private final JsonMasker textValueMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys("targetKey")
                 .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
                 .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
                 .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
-                .build()
-        );
+                .build());
 
         private byte[] jsonBytes;
 
         @Setup
         public synchronized void setup() {
-            String jsonString = BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
+            String jsonString =
+                    BenchmarkUtils.randomJson(Set.of("targetKey"), jsonSize, characters, maskedKeyProbability);
             jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
         }
     }

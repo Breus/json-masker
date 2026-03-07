@@ -1,6 +1,14 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -15,19 +23,10 @@ import org.openjdk.jmh.annotations.Warmup;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
- @OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class InstanceCreationBenchmark {
     private static final JsonMapper jsonMapper = new JsonMapper();
@@ -50,8 +49,9 @@ public class InstanceCreationBenchmark {
                 jsonMapper.readValue(stream, ArrayNode.class).forEach(t -> targetKeyList.add(t.asString()));
                 if (!"ALL".equals(numberOfTargetKeys) && Integer.parseInt(numberOfTargetKeys) <= targetKeyList.size()) {
                     Collections.shuffle(targetKeyList, new Random(RandomJsonGenerator.STATIC_RANDOM_SEED));
-                    targetKeys =
-                            targetKeyList.stream().limit(Integer.parseInt(numberOfTargetKeys)).collect(Collectors.toSet());
+                    targetKeys = targetKeyList.stream()
+                            .limit(Integer.parseInt(numberOfTargetKeys))
+                            .collect(Collectors.toSet());
                 } else {
                     targetKeys = targetKeyList.stream().collect(Collectors.toSet());
                 }

@@ -1,6 +1,4 @@
-/**
- * This package contains internal configuration for the JSONPath support.
- */
+/** This package contains internal configuration for the JSONPath support. */
 @NullMarked
 package dev.blaauwendraad.masker.json.path;
 

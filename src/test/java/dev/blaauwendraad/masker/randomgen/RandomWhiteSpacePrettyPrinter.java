@@ -1,19 +1,16 @@
 package dev.blaauwendraad.masker.randomgen;
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.PrettyPrinter;
-import tools.jackson.core.util.DefaultPrettyPrinter;
-
-import java.util.concurrent.ThreadLocalRandom;
-
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.CARRIAGE_RETURN;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.HORIZONTAL_TAB;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.LINE_FEED;
 import static dev.blaauwendraad.masker.json.util.AsciiCharacter.SPACE;
 
-/**
- * This class is DefaultPrettyPrinter with additional logic to add white spaces to JSON
- */
+import java.util.concurrent.ThreadLocalRandom;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+
+/** This class is DefaultPrettyPrinter with additional logic to add white spaces to JSON */
 public class RandomWhiteSpacePrettyPrinter implements PrettyPrinter {
     private final DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter();
 

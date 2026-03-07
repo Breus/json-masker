@@ -1,56 +1,62 @@
 package dev.blaauwendraad.masker.json.path;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Parses a jsonpath literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
- * <p>
- * The following features from jsonpath specification are not supported:
+ *
+ * <p>The following features from jsonpath specification are not supported:
+ *
  * <ul>
- *  <li>Descendant segments</li>
- *  <li>Child segments</li>
- *  <li>Name selectors</li>
- *  <li>Array slice selectors</li>
- *  <li>Index selectors</li>
- *  <li>Filter selectors</li>
- *  <li>Function extensions</li>
- *  <li>Escape characters</li>
+ *   <li>Descendant segments
+ *   <li>Child segments
+ *   <li>Name selectors
+ *   <li>Array slice selectors
+ *   <li>Index selectors
+ *   <li>Filter selectors
+ *   <li>Function extensions
+ *   <li>Escape characters
  * </ul>
- * <p>
- * The parser makes a couple of additional restrictions:
+ *
+ * <p>The parser makes a couple of additional restrictions:
+ *
  * <ul>
- *  <li>Numbers as key names are disallowed</li>
- *  <li>A set of input jsonpath literals must not be ambiguous</li>
+ *   <li>Numbers as key names are disallowed
+ *   <li>A set of input jsonpath literals must not be ambiguous
  * </ul>
- * An example of ambiguous set of queries is {@code $.*.b} and {@code $.a.b}. In this case, we cannot match forward the segments.
+ *
+ * An example of ambiguous set of queries is {@code $.*.b} and {@code $.a.b}. In this case, we cannot match forward the
+ * segments.
  */
 public class JsonPathParser {
 
     private static final String ERROR_PREFIX = "Invalid jsonpath expression '%s'. ";
 
     /**
-     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
-     * Throws {@link java.lang.IllegalArgumentException} when the input literal does not follow the jsonpath specification.
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object. Throws
+     * {@link java.lang.IllegalArgumentException} when the input literal does not follow the jsonpath specification.
      *
      * @param literal a jsonpath literal to be parsed.
      * @return {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
      */
     public JsonPath parse(String literal) {
         if (!(literal.equals("$") || literal.startsWith("$.") || literal.startsWith("$["))) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "JSONPath must start with a root node identifier.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "JSONPath must start with a root node identifier.");
         }
         if (literal.contains("'") || literal.contains("\\")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Escape characters are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Escape characters are not supported.");
         }
         if (literal.contains("..")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Descendant segments are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Descendant segments are not supported.");
         }
         List<String> segments = parseSegments(literal);
         segments.forEach(segment -> validateSegment(segment, literal));
@@ -58,8 +64,8 @@ public class JsonPathParser {
     }
 
     /**
-     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object.
-     * Returns null when the input literal does not follow the jsonpath specification.
+     * Parses an input literal into a {@link dev.blaauwendraad.masker.json.path.JsonPath} object. Returns null when the
+     * input literal does not follow the jsonpath specification.
      *
      * @param literal a jsonpath literal to be parsed.
      * @return a {@link dev.blaauwendraad.masker.json.path.JsonPath} object parsed from the literal.
@@ -100,23 +106,29 @@ public class JsonPathParser {
         if (segment.length() != 0 || literal.endsWith("[]")) {
             segments.add(segment.toString());
         }
-        if (segments.size() > 1 && segments.get(segments.size() - 1).equals("*") && !segments.get(segments.size() - 2).equals("*")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "A single leading wildcard is not allowed. " +
-                    "Use '" + literal.substring(0, literal.length() - 2) + "' instead.");
-
+        if (segments.size() > 1
+                && segments.get(segments.size() - 1).equals("*")
+                && !segments.get(segments.size() - 2).equals("*")) {
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "A single leading wildcard is not allowed. " + "Use '"
+                            + literal.substring(0, literal.length() - 2) + "' instead.");
         }
         return segments;
     }
 
     private void validateSegment(String segment, String literal) {
         if (isNumber(segment)) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Numbers as key names are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Numbers as key names are not supported.");
         } else if (segment.startsWith("?")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Filter selectors are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Filter selectors are not supported.");
         } else if (segment.contains(":")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Array slice selectors are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Array slice selectors are not supported.");
         } else if (segment.contains("(")) {
-            throw new IllegalArgumentException(String.format(ERROR_PREFIX, literal) + "Function extensions are not supported.");
+            throw new IllegalArgumentException(
+                    String.format(ERROR_PREFIX, literal) + "Function extensions are not supported.");
         }
     }
 
@@ -130,14 +142,18 @@ public class JsonPathParser {
     }
 
     /**
-     * Validates if the input set of JSONPath queries contains ambiguous segments. Throws {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it does.
-     * <p>
-     * The method does a lexical sort of input jsonpath queries, iterates over sorted values and checks if any local pair is ambiguous.
+     * Validates if the input set of JSONPath queries contains ambiguous segments. Throws
+     * {@code java.lang.IllegalArgumentException#IllegalArgumentException} if it does.
+     *
+     * <p>The method does a lexical sort of input jsonpath queries, iterates over sorted values and checks if any local
+     * pair is ambiguous.
      *
      * @param jsonPaths input set of jsonpath queries
      */
     public void checkAmbiguity(Set<JsonPath> jsonPaths) {
-        List<JsonPath> jsonPathList = jsonPaths.stream().sorted(Comparator.comparing(JsonPath::toString)).collect(Collectors.toUnmodifiableList());
+        List<JsonPath> jsonPathList = jsonPaths.stream()
+                .sorted(Comparator.comparing(JsonPath::toString))
+                .collect(Collectors.toUnmodifiableList());
         for (int i = 1; i < jsonPathList.size(); i++) {
             JsonPath current = jsonPathList.get(i - 1);
             JsonPath next = jsonPathList.get(i);
@@ -145,12 +161,13 @@ public class JsonPathParser {
                 if (!current.segments()[j].equals(next.segments()[j])) {
                     if (current.segments()[j].equals("*") || next.segments()[j].equals("*")) {
                         String commonPath = String.join(".", Arrays.copyOfRange(current.segments(), 0, j));
-                        throw new IllegalArgumentException(String.format("'%s' and '%s' JSONPath keys combination is not supported: ambiguity at segment %d with shared path %s.", current, next, j, commonPath));
+                        throw new IllegalArgumentException(String.format(
+                                "'%s' and '%s' JSONPath keys combination is not supported: ambiguity at segment %d with shared path %s.",
+                                current, next, j, commonPath));
                     }
                     break;
                 }
             }
         }
     }
-
 }

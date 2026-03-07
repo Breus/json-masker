@@ -2,11 +2,13 @@ package dev.blaauwendraad.masker.json.util;
 
 /** UTF-8 encoding utilities class */
 public final class Utf8Util {
-    private Utf8Util() { /* don't instantiate */ }
+    private Utf8Util() {
+        /* don't instantiate */
+    }
 
     /**
-     * UTF-8: variable width 1-4 byte code points: 1 byte: 0xxxxxxx 2 bytes: 110xxxxx 10xxxxxx 3
-     * bytes: 1110xxxx 10xxxxxx 10xxxxxx 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+     * UTF-8: variable width 1-4 byte code points: 1 byte: 0xxxxxxx 2 bytes: 110xxxxx 10xxxxxx 3 bytes: 1110xxxx
+     * 10xxxxxx 10xxxxxx 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
      *
      * @param input first (or only) code point byte
      * @return code point length in bytes
@@ -32,12 +34,13 @@ public final class Utf8Util {
     }
 
     /**
-     * Converts a 4-byte UTF-8 encoded character ('\u0000') into a char.
-     * Each byte MUST represent a valid HEX character, i.e.
+     * Converts a 4-byte UTF-8 encoded character ('\u0000') into a char. Each byte MUST represent a valid HEX character,
+     * i.e.
+     *
      * <ul>
-     *     <li>in range from {@code 48} ({@code '0'}) to {@code 57} ({@code '9'})
-     *     <li>in range from {@code 65} ({@code 'A'}) to {@code 70} ({@code 'F'})
-     *     <li>in range from {@code 97} ({@code 'a'}) to {@code 102} ({@code 'f'})
+     *   <li>in range from {@code 48} ({@code '0'}) to {@code 57} ({@code '9'})
+     *   <li>in range from {@code 65} ({@code 'A'}) to {@code 70} ({@code 'F'})
+     *   <li>in range from {@code 97} ({@code 'a'}) to {@code 102} ({@code 'f'})
      * </ul>
      */
     public static char unicodeHexToChar(byte b1, byte b2, byte b3, byte b4) {
@@ -65,20 +68,17 @@ public final class Utf8Util {
             return hexByte; // a character from a to f
         }
         throw new IllegalArgumentException(String.format("Invalid hex character '%s'", (char) hexByte));
-
     }
 
     /**
-     * Counts the number of non-visible characters inside the string. The intervals provided must be
-     * within a single string as this method will not do boundary checks or terminate at the end of
-     * string value.
+     * Counts the number of non-visible characters inside the string. The intervals provided must be within a single
+     * string as this method will not do boundary checks or terminate at the end of string value.
      *
      * @param message the byte array containing the string
      * @param fromIndex the starting index of the string value (after the quote)
      * @param length the length of the string value (excluding the quotes)
-     * @return the number of non-visible characters in the string, i.e., escape characters, unicode
-     *     characters ('\u0000'), or other characters that are represented by more than a single
-     *     byte are counted as one character
+     * @return the number of non-visible characters in the string, i.e., escape characters, unicode characters
+     *     ('\u0000'), or other characters that are represented by more than a single byte are counted as one character
      */
     public static int countNonVisibleCharacters(byte[] message, int fromIndex, int length) {
         int index = fromIndex;
@@ -119,8 +119,8 @@ public final class Utf8Util {
     }
 
     /**
-     * Encodes a string value into JSON string.
-     * Escapes all necessary characters according to <a href="https://datatracker.ietf.org/doc/html/rfc8259#section-7">RFC 8259, section 7</a>
+     * Encodes a string value into JSON string. Escapes all necessary characters according to <a
+     * href="https://datatracker.ietf.org/doc/html/rfc8259#section-7">RFC 8259, section 7</a>
      */
     public static String jsonEncode(String value, boolean includeQuotes) {
         StringBuilder encoded = new StringBuilder();

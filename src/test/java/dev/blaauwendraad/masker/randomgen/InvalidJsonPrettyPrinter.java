@@ -1,36 +1,16 @@
 package dev.blaauwendraad.masker.randomgen;
 
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.PrettyPrinter;
 import tools.jackson.core.util.DefaultPrettyPrinter;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
-/**
- * This class is DefaultPrettyPrinter with additional logic to add white spaces to JSON
- */
+/** This class is DefaultPrettyPrinter with additional logic to add white spaces to JSON */
 public class InvalidJsonPrettyPrinter implements PrettyPrinter {
 
-    private static final List<Character> JSON_CONTROL_CHARACTERS = List.of(
-            '{',
-            '}',
-            '[',
-            ']',
-            ':',
-            '\'',
-            '"',
-            ',',
-            'a',
-            't',
-            'f',
-            'n',
-            '-',
-            '0',
-            '1',
-            '.',
-            'e'
-    );
+    private static final List<Character> JSON_CONTROL_CHARACTERS =
+            List.of('{', '}', '[', ']', ':', '\'', '"', ',', 'a', 't', 'f', 'n', '-', '0', '1', '.', 'e');
 
     private final DefaultPrettyPrinter defaultPrettyPrinter = new DefaultPrettyPrinter();
 
@@ -108,6 +88,5 @@ public class InvalidJsonPrettyPrinter implements PrettyPrinter {
             int index = ThreadLocalRandom.current().nextInt(JSON_CONTROL_CHARACTERS.size());
             gen.writeRaw(JSON_CONTROL_CHARACTERS.get(index));
         }
-
     }
 }

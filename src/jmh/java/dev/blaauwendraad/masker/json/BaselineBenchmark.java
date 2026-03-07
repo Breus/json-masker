@@ -1,6 +1,16 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -14,17 +24,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
@@ -35,11 +34,13 @@ public class BaselineBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({ "1kb", "128kb", "2mb" })
+        @Param({"1kb", "128kb", "2mb"})
         String jsonSize;
-        @Param({ "ascii", "unicode" })
+
+        @Param({"ascii", "unicode"})
         String characters;
-        @Param({ "0.01" })
+
+        @Param({"0.01"})
         double maskedKeyProbability;
 
         private Set<String> targetKeys;
@@ -106,8 +107,8 @@ public class BaselineBenchmark {
     @Benchmark
     public String jacksonParseAndMask(State state) throws IOException {
         return ParseAndMaskUtil.mask(
-                state.jsonString,
-                JsonMaskingConfig.builder().maskKeys(state.targetKeys).build()
-        ).toString();
+                        state.jsonString,
+                        JsonMaskingConfig.builder().maskKeys(state.targetKeys).build())
+                .toString();
     }
 }

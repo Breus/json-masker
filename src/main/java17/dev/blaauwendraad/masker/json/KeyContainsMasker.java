@@ -4,23 +4,15 @@ import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.AsciiCharacter;
 import dev.blaauwendraad.masker.json.util.AsciiJsonUtil;
-import org.jspecify.annotations.Nullable;
-
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.jspecify.annotations.Nullable;
 
-/**
- * Default implementation of the {@link JsonMasker}.
- */
+/** Default implementation of the {@link JsonMasker}. */
 final class KeyContainsMasker implements JsonMasker {
-    /**
-     * Look-up trie containing the target keys.
-     */
+    /** Look-up trie containing the target keys. */
     private final KeyMatcher keyMatcher;
-    /**
-     * The masking configuration for the JSON masking process.
-     * Package private for unit tests.
-     */
+    /** The masking configuration for the JSON masking process. Package private for unit tests. */
     final JsonMaskingConfig maskingConfig;
 
     /**
@@ -50,9 +42,9 @@ final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Runs masker in a streaming mode.
-     * The masker buffers data from provided input stream in chunks of size 8192 bytes and processes each chunk
-     * sequentially. The output is written into provided output stream after processing each chunk.
+     * Runs masker in a streaming mode. The masker buffers data from provided input stream in chunks of size 8192 bytes
+     * and processes each chunk sequentially. The output is written into provided output stream after processing each
+     * chunk.
      *
      * @param inputStream the JSON input stream
      * @param outputStream masked JSON output stream
@@ -73,7 +65,8 @@ final class KeyContainsMasker implements JsonMasker {
             if (!maskingConfig.getTargetJsonPaths().isEmpty()) {
                 KeyMatcher.RadixTriePointer pointer = maskingState.getKeyMatcherRootNodePointer();
                 jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), -1, -1, pointer, jsonPathTracker.currentNode());
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
+                        maskingState.getMessage(), -1, -1, pointer, jsonPathTracker.currentNode());
             } else {
                 jsonPathTracker = null;
             }
@@ -92,13 +85,16 @@ final class KeyContainsMasker implements JsonMasker {
     /**
      * Entrypoint of visiting any value (object, array or primitive) in the JSON.
      *
-     * @param maskingState     the current masking state
-     * @param jsonPathTracker    the current {@link JsonPathTracker}
+     * @param maskingState the current masking state
+     * @param jsonPathTracker the current {@link JsonPathTracker}
      * @param keyMaskingConfig if not null it means that the current value is being masked otherwise the value is not
-     *                         being masked
+     *     being masked
      * @return whether a value was found, if returned false the calling code must advance to avoid infinite loops
      */
-    private boolean visitValue(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig keyMaskingConfig) {
+    private boolean visitValue(
+            MaskingState maskingState,
+            @Nullable JsonPathTracker jsonPathTracker,
+            @Nullable KeyMaskingConfig keyMaskingConfig) {
         if (maskingState.endOfJson()) {
             return true;
         }
@@ -143,15 +139,18 @@ final class KeyContainsMasker implements JsonMasker {
     }
 
     /**
-     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)}
-     * on each element while propagating the {@link KeyMaskingConfig}.
+     * Visits an array of unknown values (or empty) and invokes {@link #visitValue(MaskingState, JsonPathTracker,
+     * KeyMaskingConfig)} on each element while propagating the {@link KeyMaskingConfig}.
      *
-     * @param maskingState     the current {@link MaskingState}
-     * @param jsonPathTracker  the current {@link JsonPathTracker}
+     * @param maskingState the current {@link MaskingState}
+     * @param jsonPathTracker the current {@link JsonPathTracker}
      * @param keyMaskingConfig if not {@code null}, it means that the current value is being masked according to the
-     *                         {@link KeyMaskingConfig}. Otherwise, the value is not masked
+     *     {@link KeyMaskingConfig}. Otherwise, the value is not masked
      */
-    private void visitArray(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig keyMaskingConfig) {
+    private void visitArray(
+            MaskingState maskingState,
+            @Nullable JsonPathTracker jsonPathTracker,
+            @Nullable KeyMaskingConfig keyMaskingConfig) {
         if (jsonPathTracker != null) {
             jsonPathTracker.pushArraySegment();
         }
@@ -179,17 +178,21 @@ final class KeyContainsMasker implements JsonMasker {
     /**
      * Visits an object, iterates over the keys and checks whether key needs to be masked (if
      * {@link JsonMaskingConfig.TargetKeyMode#MASK}) or allowed (if {@link JsonMaskingConfig.TargetKeyMode#ALLOW}). For
-     * each value, invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)} with a non-null {@link KeyMaskingConfig}
-     * (when key needs to be masked) or {@code null} (when key is allowed). Whenever 'parentKeyMaskingConfig' is
-     * supplied, it means that the object with all its keys is being masked. The only situation when the individual
-     * values do not need to be masked is when the key is explicitly allowed (in allow mode).
+     * each value, invokes {@link #visitValue(MaskingState, JsonPathTracker, KeyMaskingConfig)} with a non-null
+     * {@link KeyMaskingConfig} (when key needs to be masked) or {@code null} (when key is allowed). Whenever
+     * 'parentKeyMaskingConfig' is supplied, it means that the object with all its keys is being masked. The only
+     * situation when the individual values do not need to be masked is when the key is explicitly allowed (in allow
+     * mode).
      *
-     * @param maskingState           the current {@link MaskingState}
-     * @param jsonPathTracker          the current {@link JsonPathTracker}
+     * @param maskingState the current {@link MaskingState}
+     * @param jsonPathTracker the current {@link JsonPathTracker}
      * @param parentKeyMaskingConfig if not null it means that the current value is being masked according to the
-     *                               {@link KeyMaskingConfig}. Otherwise, the value is not being masked
+     *     {@link KeyMaskingConfig}. Otherwise, the value is not being masked
      */
-    private void visitObject(MaskingState maskingState, @Nullable JsonPathTracker jsonPathTracker, @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
+    private void visitObject(
+            MaskingState maskingState,
+            @Nullable JsonPathTracker jsonPathTracker,
+            @Nullable KeyMaskingConfig parentKeyMaskingConfig) {
         while (maskingState.next()) {
             stepOverWhitespaceCharacters(maskingState);
             // check if we're in an empty object
@@ -207,11 +210,12 @@ final class KeyContainsMasker implements JsonMasker {
             KeyMaskingConfig keyMaskingConfig;
             if (jsonPathTracker != null) {
                 jsonPathTracker.pushKeyValueSegment(maskingState.getMessage(), keyStartIndex, keyLength);
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, pointer, jsonPathTracker.currentNode());
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
+                        maskingState.getMessage(), keyStartIndex, keyLength, pointer, jsonPathTracker.currentNode());
             } else {
-                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(maskingState.getMessage(), keyStartIndex, keyLength, pointer, null);
+                keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
+                        maskingState.getMessage(), keyStartIndex, keyLength, pointer, null);
             }
-
 
             maskingState.clearTokenStartIndex();
             stepOverWhitespaceCharacters(maskingState);
@@ -226,11 +230,13 @@ final class KeyContainsMasker implements JsonMasker {
                 stepOverValue(maskingState);
             } else {
                 // this is where it might get confusing - this method is called when the whole object is being masked
-                // if we got a maskingConfig for the key - we need to mask this key with that config. However, if the config
+                // if we got a maskingConfig for the key - we need to mask this key with that config. However, if the
+                // config
                 // we got was the default config, then it means that the key doesn't have a specific configuration, and
                 // we should fall back to key specific config that the object is being masked with.
                 // E.g.: '{ "a": { "b": "value" } }' we want to use config of 'b' if any, but fallback to config of 'a'
-                if (parentKeyMaskingConfig != null && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
+                if (parentKeyMaskingConfig != null
+                        && (keyMaskingConfig == null || keyMaskingConfig == maskingConfig.getDefaultConfig())) {
                     keyMaskingConfig = parentKeyMaskingConfig;
                 }
                 visitValue(maskingState, jsonPathTracker, keyMaskingConfig);
@@ -252,12 +258,12 @@ final class KeyContainsMasker implements JsonMasker {
     /**
      * Masks the string value in the message of the {@link MaskingState}, starting from the current index which should
      * be at the opening quote of the string value.
-     * <p>
-     * When the method returns, the current index in the masking state is one position after the latest byte which was
-     * part of the masked string value.
      *
-     * @param maskingState     the current {@link MaskingState} for which the current index must correspond to the
-     *                         opening quote of the string value in the input array
+     * <p>When the method returns, the current index in the masking state is one position after the latest byte which
+     * was part of the masked string value.
+     *
+     * @param maskingState the current {@link MaskingState} for which the current index must correspond to the opening
+     *     quote of the string value in the input array
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskString(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
@@ -272,12 +278,12 @@ final class KeyContainsMasker implements JsonMasker {
     /**
      * Masks the numeric value in the message of the {@link MaskingState}, starting from the current index which should
      * be at the first numeric character of numeric value.
-     * <p>
-     * When the method returns, the current index in the masking state is one position after the latest byte which was
-     * part of the masked number.
      *
-     * @param maskingState     the current {@link MaskingState} for which the current index must correspond to the first
-     *                         numeric character of the numeric value in the input array
+     * <p>When the method returns, the current index in the masking state is one position after the latest byte which
+     * was part of the masked number.
+     *
+     * @param maskingState the current {@link MaskingState} for which the current index must correspond to the first
+     *     numeric character of the numeric value in the input array
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskNumber(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
@@ -294,8 +300,8 @@ final class KeyContainsMasker implements JsonMasker {
      * Masks the boolean value in the message of the {@link MaskingState}, starting from the current index which should
      * be at the first character of the boolean value.
      *
-     * @param maskingState     the current {@link MaskingState} for which the current index must correspond to the first
-     *                         character of the boolean value in the input array
+     * @param maskingState the current {@link MaskingState} for which the current index must correspond to the first
+     *     character of the boolean value in the input array
      * @param keyMaskingConfig the {@link KeyMaskingConfig} for the corresponding JSON key
      */
     private void maskBoolean(MaskingState maskingState, KeyMaskingConfig keyMaskingConfig) {
@@ -311,9 +317,9 @@ final class KeyContainsMasker implements JsonMasker {
      * This method assumes the masking state is currently at the first byte of a JSON value which can be any of: array,
      * boolean, object, null, number, or string and increments the current index in the masking state until the current
      * index is one position after the value.
-     * <p>
-     * Note: in case the value is an object or array, it steps over the entire object and array and all the elements it
-     * includes (e.g. nested arrays, objects, etc.).
+     *
+     * <p>Note: in case the value is an object or array, it steps over the entire object and array and all the elements
+     * it includes (e.g. nested arrays, objects, etc.).
      */
     private static void stepOverValue(MaskingState maskingState) {
         switch (maskingState.byteAtCurrentIndex()) {
@@ -323,7 +329,9 @@ final class KeyContainsMasker implements JsonMasker {
             case 'f' -> maskingState.incrementIndex(5); // false
             case '{' -> stepOverObject(maskingState);
             case '[' -> stepOverArray(maskingState);
-            default -> { /* return */ }
+            default -> {
+                /* return */
+            }
         }
     }
 
@@ -363,7 +371,7 @@ final class KeyContainsMasker implements JsonMasker {
         while (maskingState.next()) {
             byte b = maskingState.byteAtCurrentIndex();
             if (!isEscapeCharacter && b == '"') {
-                maskingState.next();  // step over the closing quote
+                maskingState.next(); // step over the closing quote
                 break;
             }
             isEscapeCharacter = !isEscapeCharacter && b == '\\';

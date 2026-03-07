@@ -2,9 +2,8 @@ package dev.blaauwendraad.masker.json.config;
 
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskers;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 public final class KeyMaskingConfig {
     private final ValueMasker.StringMasker maskStringsWith;
@@ -12,18 +11,9 @@ public final class KeyMaskingConfig {
     private final ValueMasker.BooleanMasker maskBooleansWith;
 
     KeyMaskingConfig(KeyMaskingConfig.Builder builder) {
-        this.maskStringsWith = Objects.requireNonNullElseGet(
-                builder.maskStringsWith,
-                () -> ValueMaskers.with("***")
-        );
-        this.maskNumbersWith = Objects.requireNonNullElseGet(
-                builder.maskNumbersWith,
-                () -> ValueMaskers.with("###")
-        );
-        this.maskBooleansWith = Objects.requireNonNullElseGet(
-                builder.maskBooleansWith,
-                () -> ValueMaskers.with("&&&")
-        );
+        this.maskStringsWith = Objects.requireNonNullElseGet(builder.maskStringsWith, () -> ValueMaskers.with("***"));
+        this.maskNumbersWith = Objects.requireNonNullElseGet(builder.maskNumbersWith, () -> ValueMaskers.with("###"));
+        this.maskBooleansWith = Objects.requireNonNullElseGet(builder.maskBooleansWith, () -> ValueMaskers.with("&&&"));
     }
 
     /**
@@ -35,30 +25,26 @@ public final class KeyMaskingConfig {
         return new Builder();
     }
 
-    /**
-     * Returns a {@link ValueMasker} to mask a string value.
-     */
+    /** Returns a {@link ValueMasker} to mask a string value. */
     public ValueMasker.StringMasker getStringValueMasker() {
         return maskStringsWith;
     }
 
-    /**
-     * Returns a {@link ValueMasker} to mask a number value.
-     */
+    /** Returns a {@link ValueMasker} to mask a number value. */
     public ValueMasker.NumberMasker getNumberValueMasker() {
         return maskNumbersWith;
     }
 
-    /**
-     * Returns a {@link ValueMasker} to mask a number value.
-     */
+    /** Returns a {@link ValueMasker} to mask a number value. */
     public ValueMasker.BooleanMasker getBooleanValueMasker() {
         return maskBooleansWith;
     }
 
     @Override
     public String toString() {
-        return String.format("maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s", maskStringsWith, maskNumbersWith, maskBooleansWith);
+        return String.format(
+                "maskStringsWith=%s, maskNumbersWith=%s, maskBooleansWith=%s",
+                maskStringsWith, maskNumbersWith, maskBooleansWith);
     }
 
     public static class Builder {
@@ -66,13 +52,14 @@ public final class KeyMaskingConfig {
         private ValueMasker.@Nullable NumberMasker maskNumbersWith;
         private ValueMasker.@Nullable BooleanMasker maskBooleansWith;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Mask all string values with the provided value.
-         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
-         * <p> Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
+         *
+         * <p>For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
+         *
+         * <p>Masking strings with {@literal "***"} is the default behaviour if no string masking option is set.
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
@@ -85,7 +72,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all characters of string values with the provided character, preserving the length.
-         * <p> For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
+         *
+         * <p>For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
@@ -114,9 +102,10 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all numeric values with the provided value.
-         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
-         * <p>
-         * Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
+         *
+         * <p>For example, {@literal "maskMe": 12345 -> "maskMe": "###"}.
+         *
+         * <p>Masking numbers with {@literal "###"} is the default behaviour if no number masking option is set.
          *
          * @return the builder instance
          * @see #maskNumbersWith(int)
@@ -130,7 +119,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all numeric values with the provided value.
-         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
+         *
+         * <p>For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -144,7 +134,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all digits of numeric values with the provided digit, preserving the length.
-         * <p> For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
+         *
+         * <p>For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -175,8 +166,10 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * <p> For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
-         * <p> Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
+         *
+         * <p>For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
+         *
+         * <p>Masking booleans with {@literal "&&&"} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
@@ -189,7 +182,8 @@ public final class KeyMaskingConfig {
 
         /**
          * Mask all boolean values with the provided value.
-         * <p> For example, {@literal "maskMe": true -> "maskMe": false}.
+         *
+         * <p>For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)

@@ -1,13 +1,9 @@
 package dev.blaauwendraad.masker.json.path;
 
+import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Arrays;
-
-/**
- * The library represents a jsonpath as an array of segments.
- * See {@link JsonPathParser} for details.
- */
+/** The library represents a jsonpath as an array of segments. See {@link JsonPathParser} for details. */
 public final class JsonPath {
     private final String[] segments;
 

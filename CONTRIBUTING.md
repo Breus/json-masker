@@ -40,3 +40,20 @@ Proper bug reports tend to have:
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+
+## Prerequisites
+
+Ensure you have the following tools installed:
+
+* [Java 21+ JDK](https://www.oracle.com/java/technologies/downloads/#java21) - For building and testing the project
+* [pre-commit](https://pre-commit.com/#install) - For automatic code formatting on commit
+
+### Setting up the pre-commit hook
+
+After cloning the repository, install the git hook by running:
+
+```bash
+pre-commit install
+```
+
+From that point on, any staged `.java` files will be automatically formatted before each commit.

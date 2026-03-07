@@ -2,7 +2,12 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.JsonStringCharacters;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
-
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -15,17 +20,10 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
 @Measurement(iterations = 1, time = 3)
- @OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.Throughput)
 public class LargeKeySetInstanceCreationBenchmark {
 
@@ -43,13 +41,12 @@ public class LargeKeySetInstanceCreationBenchmark {
         @Setup
         public synchronized void setup() throws IOException {
             Random random = new Random(RandomJsonGenerator.STATIC_RANDOM_SEED);
-            List<Character> characters =
-                    JsonStringCharacters.mergeCharSets(
-                                    JsonStringCharacters.getPrintableAsciiCharacters(),
-                                    JsonStringCharacters.getUnicodeControlCharacters(),
-                                    JsonStringCharacters.getRandomPrintableUnicodeCharacters())
-                            .stream()
-                            .toList();
+            List<Character> characters = JsonStringCharacters.mergeCharSets(
+                            JsonStringCharacters.getPrintableAsciiCharacters(),
+                            JsonStringCharacters.getUnicodeControlCharacters(),
+                            JsonStringCharacters.getRandomPrintableUnicodeCharacters())
+                    .stream()
+                    .toList();
             for (int i = 0; i < numberOfTargetKeys; i++) {
                 targetKeys.add(getRandomString(random, keyLength, characters));
             }

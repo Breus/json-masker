@@ -4,24 +4,25 @@ package dev.blaauwendraad.masker.json;
  * A functional interface which enables masking JSON values (boolean, numbers, and strings) in almost every imaginable
  * way. Accepts {@link ValueMaskerContext} that contains the context of the current value being masked.
  *
- * <p> This is a sealed interface in order to make sure that correct JSON type is only masked with the implementation
- * that supports masking of that particular type of the value. There's also a special {@link AnyValueMasker}
- * that can mask values of any JSON type.
- * <p> Most of the out-of-the-box implementation are, in fact, instances of {@link AnyValueMasker}, but
- * some concrete implementations can only mask values of the specific type: For strings it's
- * {@link ValueMaskers#email(int, int, boolean, String)} and {@link ValueMaskers#eachCharacterWith(String)}, for numbers
+ * <p>This is a sealed interface in order to make sure that correct JSON type is only masked with the implementation
+ * that supports masking of that particular type of the value. There's also a special {@link AnyValueMasker} that can
+ * mask values of any JSON type.
+ *
+ * <p>Most of the out-of-the-box implementation are, in fact, instances of {@link AnyValueMasker}, but some concrete
+ * implementations can only mask values of the specific type: For strings it's {@link ValueMaskers#email(int, int,
+ * boolean, String)} and {@link ValueMaskers#eachCharacterWith(String)}, for numbers
  * {@link ValueMaskers#eachDigitWith(int)}.
  *
  * @see ValueMaskers for several out-of-the-box implementations
  */
-public sealed interface ValueMasker permits
-        ValueMasker.StringMasker,
-        ValueMasker.NumberMasker,
-        ValueMasker.BooleanMasker,
-        ValueMasker.AnyValueMasker {
+public sealed interface ValueMasker
+        permits ValueMasker.StringMasker,
+                ValueMasker.NumberMasker,
+                ValueMasker.BooleanMasker,
+                ValueMasker.AnyValueMasker {
     /**
-     * Used for masking JSON values. Accepts {@link ValueMaskerContext} that contains context of the
-     * current value being masked.
+     * Used for masking JSON values. Accepts {@link ValueMaskerContext} that contains context of the current value being
+     * masked.
      */
     void maskValue(ValueMaskerContext context);
 
@@ -31,8 +32,7 @@ public sealed interface ValueMasker permits
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskStringsWith(StringMasker)
      */
     @FunctionalInterface
-    non-sealed interface StringMasker extends ValueMasker {
-    }
+    non-sealed interface StringMasker extends ValueMasker {}
 
     /**
      * {@link ValueMasker} that can mask JSON number values.
@@ -40,8 +40,7 @@ public sealed interface ValueMasker permits
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskNumbersWith(NumberMasker)
      */
     @FunctionalInterface
-    non-sealed interface NumberMasker extends ValueMasker {
-    }
+    non-sealed interface NumberMasker extends ValueMasker {}
 
     /**
      * {@link ValueMasker} that can mask JSON boolean values.
@@ -49,13 +48,9 @@ public sealed interface ValueMasker permits
      * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(BooleanMasker)
      */
     @FunctionalInterface
-    non-sealed interface BooleanMasker extends ValueMasker {
-    }
+    non-sealed interface BooleanMasker extends ValueMasker {}
 
-    /**
-     * {@link ValueMasker} that can mask any JSON value (string, number or a boolean).
-     */
+    /** {@link ValueMasker} that can mask any JSON value (string, number or a boolean). */
     @FunctionalInterface
-    non-sealed interface AnyValueMasker extends ValueMasker, StringMasker, NumberMasker, BooleanMasker {
-    }
+    non-sealed interface AnyValueMasker extends ValueMasker, StringMasker, NumberMasker, BooleanMasker {}
 }

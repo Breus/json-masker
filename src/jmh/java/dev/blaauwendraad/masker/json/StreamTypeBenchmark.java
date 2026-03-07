@@ -2,19 +2,6 @@ package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.util.JsonPathTestUtils;
-import org.jspecify.annotations.NullUnmarked;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.annotations.Warmup;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -28,6 +15,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.NullUnmarked;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
 
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
@@ -44,8 +43,10 @@ public class StreamTypeBenchmark {
     public static class State {
         @Param({"ByteArrayStream", "FileStream"})
         String streamInputType;
+
         @Param({"ByteArrayStream", "FileStream"})
         String streamOutputType;
+
         @Param({"10mb"})
         String jsonSize;
 
@@ -57,7 +58,8 @@ public class StreamTypeBenchmark {
         public synchronized void setup() throws IOException {
             // prepare a json
             Set<String> targetKeys = BenchmarkUtils.getTargetKeys(20);
-            json = BenchmarkUtils.randomJson(targetKeys, jsonSize, "unicode", 0.1).getBytes(StandardCharsets.UTF_8);
+            json = BenchmarkUtils.randomJson(targetKeys, jsonSize, "unicode", 0.1)
+                    .getBytes(StandardCharsets.UTF_8);
 
             // prepare an input file for FileStreams
             try (FileWriter inputFileWriter = new FileWriter(INPUT_FILE_STREAM_NAME, StandardCharsets.UTF_8)) {
@@ -67,7 +69,8 @@ public class StreamTypeBenchmark {
 
             // create a masker
             JsonMaskingConfig.Builder builder = JsonMaskingConfig.builder();
-            builder.maskJsonPaths(JsonPathTestUtils.transformToJsonPathKeys(targetKeys, new String(json, StandardCharsets.UTF_8)));
+            builder.maskJsonPaths(
+                    JsonPathTestUtils.transformToJsonPathKeys(targetKeys, new String(json, StandardCharsets.UTF_8)));
 
             jsonMasker = JsonMasker.getMasker(builder.build());
         }
@@ -98,7 +101,7 @@ public class StreamTypeBenchmark {
     @Benchmark
     public void jsonMaskerStreams(State state) throws IOException {
         try (InputStream inputStream = createInputStream(state.json, state.streamInputType);
-             OutputStream outputStream = createOutputStream(state.streamOutputType)) {
+                OutputStream outputStream = createOutputStream(state.streamOutputType)) {
             state.jsonMasker.mask(inputStream, outputStream);
         }
     }

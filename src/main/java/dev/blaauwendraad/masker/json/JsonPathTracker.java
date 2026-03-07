@@ -1,17 +1,13 @@
 package dev.blaauwendraad.masker.json;
 
+import java.util.ArrayDeque;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayDeque;
-
-/**
- * Tracks the currently matched JSONPath segments in the radix trie during masking.
- */
+/** Tracks the currently matched JSONPath segments in the radix trie during masking. */
 class JsonPathTracker {
-    /**
-     * A node representing {@code null} to satisfy {@link ArrayDeque}, which does not support it.
-     */
-    private static final KeyMatcher.RadixTriePointer NULL_NODE = new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
+    /** A node representing {@code null} to satisfy {@link ArrayDeque}, which does not support it. */
+    private static final KeyMatcher.RadixTriePointer NULL_NODE =
+            new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
 
     private final KeyMatcher keyMatcher;
     /**
@@ -35,32 +31,26 @@ class JsonPathTracker {
         }
     }
 
-    /**
-     * Expands the current tracked JSONPath with an array segment.
-     */
+    /** Expands the current tracked JSONPath with an array segment. */
     void pushArraySegment() {
         jsonPathSegments.push(getWildcardNodeOrNullNode());
     }
 
-    /**
-     * Expands the current tracked JSONPath with a value segment.
-     */
+    /** Expands the current tracked JSONPath with a value segment. */
     void pushKeyValueSegment(byte[] bytes, int keyOffset, int keyLength) {
         jsonPathSegments.push(getKeyValueNodeOrNullNode(bytes, keyOffset, keyLength));
     }
 
-    /**
-     * Backtracks the current tracked JSONPath to the previous segment.
-     */
+    /** Backtracks the current tracked JSONPath to the previous segment. */
     void backtrack() {
         jsonPathSegments.pop();
     }
 
     /**
      * Traverse the trie node when entering an array. In order to match the array it has to be a wildcard.
-     * <p>For example:
-     * For a JSON like this {@code { "holder": [ { "maskMe": "secret" } } } the matching JSONPath has to be
-     * {@code '$.holder.*.maskMe'}, so that entering the array requires a wildcard node.
+     *
+     * <p>For example: For a JSON like this {@code { "holder": [ { "maskMe": "secret" } } } the matching JSONPath has to
+     * be {@code '$.holder.*.maskMe'}, so that entering the array requires a wildcard node.
      */
     private KeyMatcher.RadixTriePointer getWildcardNodeOrNullNode() {
         var current = currentNode();

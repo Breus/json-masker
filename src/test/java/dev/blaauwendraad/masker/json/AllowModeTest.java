@@ -1,20 +1,18 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.io.IOException;
 import java.util.stream.Stream;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 final class AllowModeTest {
 
     @ParameterizedTest
     @MethodSource("testAllowMode")
     void targetKeyAllowMode(JsonMaskerTestInstance testInstance) {
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input(),
-                testInstance.expectedOutput());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(
+                testInstance.jsonMasker(), testInstance.input(), testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> testAllowMode() throws IOException {
@@ -24,14 +22,13 @@ final class AllowModeTest {
     @ParameterizedTest
     @MethodSource("targetKeyAllowModeNotPretty")
     void targetKeyAllowModeNotPretty(JsonMaskerTestInstance testInstance) {
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(testInstance.jsonMasker(), testInstance.input(),
-                testInstance.expectedOutput());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(
+                testInstance.jsonMasker(), testInstance.input(), testInstance.expectedOutput());
     }
 
     private static Stream<JsonMaskerTestInstance> targetKeyAllowModeNotPretty() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .allowKeys("allowedKey")
-                .build());
+        JsonMasker jsonMasker = JsonMasker.getMasker(
+                JsonMaskingConfig.builder().allowKeys("allowedKey").build());
         return Stream.of(
                 new JsonMaskerTestInstance("""
                          [                               \s
@@ -47,8 +44,7 @@ final class AllowModeTest {
                             "notAllowedKey": "***"
                           }
                         ]
-                        """, jsonMasker
-                ),
+                        """, jsonMasker),
                 new JsonMaskerTestInstance("""
                             [
                               false,
@@ -75,8 +71,7 @@ final class AllowModeTest {
                               },
                               "***"
                             ]
-                        """, jsonMasker
-                ),
+                        """, jsonMasker),
                 new JsonMaskerTestInstance("""
                             [
                               "value1",
@@ -103,14 +98,12 @@ final class AllowModeTest {
                               },
                               "***"
                             ]
-                        """, jsonMasker
-                ),
+                        """, jsonMasker),
                 new JsonMaskerTestInstance("""
                         ["value",{}]
                         """, """
                         ["***",{}]
-                        """, jsonMasker
-                ),
+                        """, jsonMasker),
                 new JsonMaskerTestInstance("""
                         [ {     "_@":  [   [  "This is a random value",{    "allowedKey": "This is allowed" }  ]  ,    [   "This is a random value",  {
                                                \s
@@ -181,19 +174,15 @@ final class AllowModeTest {
                                       "allowedKey":    "This is allowed" } , "*.:   }<^{    *&%":   [   "***",   {
                                                \s
                                          "allowedKey":  "This is allowed" }    ] }     }  ] \s
-                       \s""", jsonMasker
-                ),
+                       \s""", jsonMasker),
                 new JsonMaskerTestInstance("""
                         {
                                    "|":    true,   ")+*":   {
                                     "allowedKey": "Nested allowed value" }   ,"number"    :13452547 ,     ",    #":   false }
-                        """,
-                        """
+                        """, """
                         {
                                    "|":    "&&&",   ")+*":   {
                                     "allowedKey": "Nested allowed value" }   ,"number"    :"###" ,     ",    #":   "&&&" }
-                        """, jsonMasker
-                )
-        );
+                        """, jsonMasker));
     }
 }

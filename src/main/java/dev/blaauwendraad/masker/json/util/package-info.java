@@ -1,6 +1,4 @@
-/**
- * This package contains internal utilities.
- */
+/** This package contains internal utilities. */
 @NullMarked
 package dev.blaauwendraad.masker.json.util;
 

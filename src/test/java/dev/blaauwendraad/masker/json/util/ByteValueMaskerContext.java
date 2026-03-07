@@ -3,12 +3,11 @@ package dev.blaauwendraad.masker.json.util;
 import dev.blaauwendraad.masker.json.InvalidJsonException;
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.ValueMaskerContext;
-
 import java.nio.charset.StandardCharsets;
 
 /**
- * {@link ValueMaskerContext} implementation that uses a byte array as the value. Used only for testing purposes due
- * to absence of {@code MaskingState} when masking with Jackson.
+ * {@link ValueMaskerContext} implementation that uses a byte array as the value. Used only for testing purposes due to
+ * absence of {@code MaskingState} when masking with Jackson.
  */
 public class ByteValueMaskerContext implements ValueMaskerContext {
     private final byte[] value;
@@ -77,31 +76,14 @@ public class ByteValueMaskerContext implements ValueMaskerContext {
         int newArraySize = fromIndex + (mask.length * maskRepeat) + suffixLength;
         byte[] newMaskedValue = new byte[newArraySize];
         // copy the prefix
-        System.arraycopy(
-                maskedValue,
-                0,
-                newMaskedValue,
-                0,
-                fromIndex
-        );
+        System.arraycopy(maskedValue, 0, newMaskedValue, 0, fromIndex);
         // copy the mask(s)
         for (int i = 0; i < maskRepeat; i++) {
-            System.arraycopy(
-                    mask,
-                    0,
-                    newMaskedValue,
-                    fromIndex + i * mask.length,
-                    mask.length
-            );
+            System.arraycopy(mask, 0, newMaskedValue, fromIndex + i * mask.length, mask.length);
         }
         // copy the suffix
         System.arraycopy(
-                maskedValue,
-                fromIndex + length,
-                newMaskedValue,
-                newMaskedValue.length - suffixLength,
-                suffixLength
-        );
+                maskedValue, fromIndex + length, newMaskedValue, newMaskedValue.length - suffixLength, suffixLength);
 
         this.maskedValue = newMaskedValue;
     }

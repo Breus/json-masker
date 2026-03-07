@@ -1,5 +1,10 @@
 package dev.blaauwendraad.masker.json.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,28 +13,46 @@ import org.junit.jupiter.params.provider.MethodSource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 class Utf8UtilTest {
 
     @Test
     void asciiCharacters() {
         byte[] asciiBytes = {
-            AsciiCharacter.ASTERISK, AsciiCharacter.BACK_SLASH, AsciiCharacter.CARRIAGE_RETURN,
-            AsciiCharacter.COLON, AsciiCharacter.COMMA, AsciiCharacter.CURLY_BRACKET_CLOSE,
-            AsciiCharacter.CURLY_BRACKET_OPEN, AsciiCharacter.DOUBLE_QUOTE, AsciiCharacter.HORIZONTAL_TAB,
-            AsciiCharacter.LINE_FEED, AsciiCharacter.MINUS, AsciiCharacter.PERIOD,
-            AsciiCharacter.PLUS, AsciiCharacter.SPACE, AsciiCharacter.SQUARE_BRACKET_OPEN,
-            AsciiCharacter.SQUARE_BRACKET_CLOSE, AsciiCharacter.UPPERCASE_E, AsciiCharacter.LOWERCASE_A,
-            AsciiCharacter.LOWERCASE_E, AsciiCharacter.LOWERCASE_F, AsciiCharacter.LOWERCASE_L,
-            AsciiCharacter.LOWERCASE_N, AsciiCharacter.LOWERCASE_R, AsciiCharacter.LOWERCASE_S,
-            AsciiCharacter.LOWERCASE_T, AsciiCharacter.LOWERCASE_U, AsciiCharacter.ZERO,
-            AsciiCharacter.ONE, AsciiCharacter.TWO, AsciiCharacter.THREE, AsciiCharacter.FOUR,
-            AsciiCharacter.FIVE, AsciiCharacter.SIX, AsciiCharacter.SEVEN, AsciiCharacter.EIGHT,
+            AsciiCharacter.ASTERISK,
+            AsciiCharacter.BACK_SLASH,
+            AsciiCharacter.CARRIAGE_RETURN,
+            AsciiCharacter.COLON,
+            AsciiCharacter.COMMA,
+            AsciiCharacter.CURLY_BRACKET_CLOSE,
+            AsciiCharacter.CURLY_BRACKET_OPEN,
+            AsciiCharacter.DOUBLE_QUOTE,
+            AsciiCharacter.HORIZONTAL_TAB,
+            AsciiCharacter.LINE_FEED,
+            AsciiCharacter.MINUS,
+            AsciiCharacter.PERIOD,
+            AsciiCharacter.PLUS,
+            AsciiCharacter.SPACE,
+            AsciiCharacter.SQUARE_BRACKET_OPEN,
+            AsciiCharacter.SQUARE_BRACKET_CLOSE,
+            AsciiCharacter.UPPERCASE_E,
+            AsciiCharacter.LOWERCASE_A,
+            AsciiCharacter.LOWERCASE_E,
+            AsciiCharacter.LOWERCASE_F,
+            AsciiCharacter.LOWERCASE_L,
+            AsciiCharacter.LOWERCASE_N,
+            AsciiCharacter.LOWERCASE_R,
+            AsciiCharacter.LOWERCASE_S,
+            AsciiCharacter.LOWERCASE_T,
+            AsciiCharacter.LOWERCASE_U,
+            AsciiCharacter.ZERO,
+            AsciiCharacter.ONE,
+            AsciiCharacter.TWO,
+            AsciiCharacter.THREE,
+            AsciiCharacter.FOUR,
+            AsciiCharacter.FIVE,
+            AsciiCharacter.SIX,
+            AsciiCharacter.SEVEN,
+            AsciiCharacter.EIGHT,
             AsciiCharacter.NINE
         };
         for (byte b : asciiBytes) {
@@ -76,7 +99,8 @@ class Utf8UtilTest {
     @ParameterizedTest
     @MethodSource("unicodeCharactersLength")
     void unicodeCharacters(String character, int utf8ByteLength) {
-        assertThat(Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0])).isEqualTo(utf8ByteLength);
+        assertThat(Utf8Util.getCodePointByteLength(character.getBytes(StandardCharsets.UTF_8)[0]))
+                .isEqualTo(utf8ByteLength);
     }
 
     @ParameterizedTest
@@ -112,7 +136,7 @@ class Utf8UtilTest {
                 Arguments.of("𐍈", 4), // same as the above
                 Arguments.of("\uD83D\uDCA9", 4),
                 Arguments.of("💩", 4) // same as the above
-        );
+                );
     }
 
     private static Stream<Arguments> nonVisibleCharactersInString() {
@@ -138,23 +162,18 @@ class Utf8UtilTest {
                 Arguments.of("d\u001Eb\u0018n9", 1),
                 // same as the above, but using UTF-8 string with character data so that Java doesn't convert it
                 // into a single character
-                Arguments.of("d\\u001Eb\\u0018n9", 11)
-        );
+                Arguments.of("d\\u001Eb\\u0018n9", 11));
     }
 
     private static Stream<Set<String>> equivalentJsonNodes() {
-        return Stream.of(
-                Set.of("\"\uD800\uDF48\"", "\"\\uD800\\uDF48\""),
-                Set.of("""
+        return Stream.of(Set.of("\"\uD800\uDF48\"", "\"\\uD800\\uDF48\""), Set.of("""
                         {
                           "𐍈": "𐍈"
                         }
-                        """,
-                        """
+                        """, """
                         {
                           "\\uD800\\uDF48": "\\uD800\\uDF48"
                         }
-                        """)
-        );
+                        """));
     }
 }

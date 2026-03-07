@@ -3,9 +3,7 @@ package dev.blaauwendraad.masker.json;
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import org.junit.jupiter.api.Test;
 
-/**
- * The test suite covers masking of values whose length is assumed by the masker: "true", "false" and "null"
- */
+/** The test suite covers masking of values whose length is assumed by the masker: "true", "false" and "null" */
 class AssumedLengthValuesTest {
     @Test
     void shouldMaskConstantSizeValues() {
@@ -16,6 +14,7 @@ class AssumedLengthValuesTest {
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, "{\"mask\":true}", "{\"mask\":\"&&&\"}");
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, "{\"mask\":null}", "{\"mask\":null}");
     }
+
     @Test
     void shouldAllowConstantSizeValuesInMaskMode() {
         JsonMaskingConfig config = JsonMaskingConfig.builder().allowKeys("mask").build();

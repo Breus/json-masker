@@ -8,19 +8,19 @@
 
 | Method | characters | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jacksonParseOnly | unicode | 1kb | 0.1 | 89,035 | 90,192 | 🟢 +1.3% | 17,616.0 | 17,616.0 | ⚪ +0.0% |
-| writeFile | unicode | 1kb | 0.1 | 8,293 | 7,003 | 🔴 -15.5% | 5,920.3 | 5,920.3 | ⚪ +0.0% |
+| `jacksonParseOnly` | `unicode` | `1kb` | `0.1` | `89,035` | `90,192` | 🟢 +1.3% | `17,616.0` | `17,616.0` | ⚪ +0.0% |
+| `writeFile` | `unicode` | `1kb` | `0.1` | `8,293` | `7,003` | 🔴 -15.5% | `5,920.3` | `5,920.3` | ⚪ +0.0% |
 
 <details>
 <summary>Full results — BaselineBenchmark</summary>
 
 | Method | characters | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| countBytes | unicode | 1kb | 0.1 | 2,518,975 | 2,533,217 | ⚪ +0.6% | 0.0010 | 0.0010 | ⚪ +0.0% |
-| jacksonParseAndMask | unicode | 1kb | 0.1 | 40,769 | 40,460 | ⚪ -0.8% | 58,184.1 | 58,456.1 | ⚪ +0.5% |
-| jacksonParseOnly | unicode | 1kb | 0.1 | 89,035 | 90,192 | 🟢 +1.3% | 17,616.0 | 17,616.0 | ⚪ +0.0% |
-| regexReplace | unicode | 1kb | 0.1 | 5,979 | 5,978 | ⚪ -0.0% | 53,048.4 | 53,048.4 | ⚪ +0.0% |
-| writeFile | unicode | 1kb | 0.1 | 8,293 | 7,003 | 🔴 -15.5% | 5,920.3 | 5,920.3 | ⚪ +0.0% |
+| `countBytes` | `unicode` | `1kb` | `0.1` | `2,518,975` | `2,533,217` | ⚪ +0.6% | `0.0010` | `0.0010` | ⚪ +0.0% |
+| `jacksonParseAndMask` | `unicode` | `1kb` | `0.1` | `40,769` | `40,460` | ⚪ -0.8% | `58,184.1` | `58,456.1` | ⚪ +0.5% |
+| `jacksonParseOnly` | `unicode` | `1kb` | `0.1` | `89,035` | `90,192` | 🟢 +1.3% | `17,616.0` | `17,616.0` | ⚪ +0.0% |
+| `regexReplace` | `unicode` | `1kb` | `0.1` | `5,979` | `5,978` | ⚪ -0.0% | `53,048.4` | `53,048.4` | ⚪ +0.0% |
+| `writeFile` | `unicode` | `1kb` | `0.1` | `8,293` | `7,003` | 🔴 -15.5% | `5,920.3` | `5,920.3` | ⚪ +0.0% |
 
 </details>
 
@@ -30,14 +30,14 @@
 
 | Method | numberOfTargetKeys | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMasker | 1000 | 1,564 | 1,587 | 🟢 +1.4% | 1,637,307 | 1,637,212 | ⚪ -0.0% |
+| `jsonMasker` | `1000` | `1,564` | `1,587` | 🟢 +1.4% | `1,637,307` | `1,637,212` | ⚪ -0.0% |
 
 <details>
 <summary>Full results — InstanceCreationBenchmark</summary>
 
 | Method | numberOfTargetKeys | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMasker | 1000 | 1,564 | 1,587 | 🟢 +1.4% | 1,637,307 | 1,637,212 | ⚪ -0.0% |
+| `jsonMasker` | `1000` | `1,564` | `1,587` | 🟢 +1.4% | `1,637,307` | `1,637,212` | ⚪ -0.0% |
 
 </details>
 
@@ -47,23 +47,23 @@
 
 | Method | characters | jsonPath | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMaskerByteArrayStreams | unicode | false | 1kb | 0.1 | 241,303 | 234,946 | 🔴 -2.6% | 10,840.0 | 10,840.0 | ⚪ +0.0% |
-| jsonMaskerByteArrayStreams | unicode | true | 1kb | 0.1 | 221,516 | 275,345 | 🟢 +24.3% | 12,184.0 | 12,184.0 | ⚪ -0.0% |
-| jsonMaskerBytes | unicode | true | 1kb | 0.1 | 437,403 | 425,883 | 🔴 -2.6% | 2,024.0 | 2,024.0 | ⚪ +0.0% |
-| jsonMaskerString | unicode | false | 1kb | 0.1 | 243,638 | 232,464 | 🔴 -4.6% | 10,176.0 | 10,176.0 | ⚪ +0.0% |
-| jsonMaskerString | unicode | true | 1kb | 0.1 | 218,375 | 222,449 | 🟢 +1.9% | 10,944.0 | 10,944.0 | ⚪ -0.0% |
+| `jsonMaskerByteArrayStreams` | `unicode` | `false` | `1kb` | `0.1` | `241,303` | `234,946` | 🔴 -2.6% | `10,840.0` | `10,840.0` | ⚪ +0.0% |
+| `jsonMaskerByteArrayStreams` | `unicode` | `true` | `1kb` | `0.1` | `221,516` | `275,345` | 🟢 +24.3% | `12,184.0` | `12,184.0` | ⚪ -0.0% |
+| `jsonMaskerBytes` | `unicode` | `true` | `1kb` | `0.1` | `437,403` | `425,883` | 🔴 -2.6% | `2,024.0` | `2,024.0` | ⚪ +0.0% |
+| `jsonMaskerString` | `unicode` | `false` | `1kb` | `0.1` | `243,638` | `232,464` | 🔴 -4.6% | `10,176.0` | `10,176.0` | ⚪ +0.0% |
+| `jsonMaskerString` | `unicode` | `true` | `1kb` | `0.1` | `218,375` | `222,449` | 🟢 +1.9% | `10,944.0` | `10,944.0` | ⚪ -0.0% |
 
 <details>
 <summary>Full results — JsonMaskerBenchmark</summary>
 
 | Method | characters | jsonPath | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMaskerByteArrayStreams | unicode | false | 1kb | 0.1 | 241,303 | 234,946 | 🔴 -2.6% | 10,840.0 | 10,840.0 | ⚪ +0.0% |
-| jsonMaskerByteArrayStreams | unicode | true | 1kb | 0.1 | 221,516 | 275,345 | 🟢 +24.3% | 12,184.0 | 12,184.0 | ⚪ -0.0% |
-| jsonMaskerBytes | unicode | false | 1kb | 0.1 | 446,412 | 443,851 | ⚪ -0.6% | 2,272.0 | 2,272.0 | ⚪ +0.0% |
-| jsonMaskerBytes | unicode | true | 1kb | 0.1 | 437,403 | 425,883 | 🔴 -2.6% | 2,024.0 | 2,024.0 | ⚪ +0.0% |
-| jsonMaskerString | unicode | false | 1kb | 0.1 | 243,638 | 232,464 | 🔴 -4.6% | 10,176.0 | 10,176.0 | ⚪ +0.0% |
-| jsonMaskerString | unicode | true | 1kb | 0.1 | 218,375 | 222,449 | 🟢 +1.9% | 10,944.0 | 10,944.0 | ⚪ -0.0% |
+| `jsonMaskerByteArrayStreams` | `unicode` | `false` | `1kb` | `0.1` | `241,303` | `234,946` | 🔴 -2.6% | `10,840.0` | `10,840.0` | ⚪ +0.0% |
+| `jsonMaskerByteArrayStreams` | `unicode` | `true` | `1kb` | `0.1` | `221,516` | `275,345` | 🟢 +24.3% | `12,184.0` | `12,184.0` | ⚪ -0.0% |
+| `jsonMaskerBytes` | `unicode` | `false` | `1kb` | `0.1` | `446,412` | `443,851` | ⚪ -0.6% | `2,272.0` | `2,272.0` | ⚪ +0.0% |
+| `jsonMaskerBytes` | `unicode` | `true` | `1kb` | `0.1` | `437,403` | `425,883` | 🔴 -2.6% | `2,024.0` | `2,024.0` | ⚪ +0.0% |
+| `jsonMaskerString` | `unicode` | `false` | `1kb` | `0.1` | `243,638` | `232,464` | 🔴 -4.6% | `10,176.0` | `10,176.0` | ⚪ +0.0% |
+| `jsonMaskerString` | `unicode` | `true` | `1kb` | `0.1` | `218,375` | `222,449` | 🟢 +1.9% | `10,944.0` | `10,944.0` | ⚪ -0.0% |
 
 </details>
 
@@ -73,14 +73,14 @@
 
 | Method | keyLength | numberOfTargetKeys | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMasker | 100 | 1000 | 117.37 | 115.85 | 🔴 -1.3% | 32,372,334 | 32,372,239 | ⚪ -0.0% |
+| `jsonMasker` | `100` | `1000` | `117.37` | `115.85` | 🔴 -1.3% | `32,372,334` | `32,372,239` | ⚪ -0.0% |
 
 <details>
 <summary>Full results — LargeKeySetInstanceCreationBenchmark</summary>
 
 | Method | keyLength | numberOfTargetKeys | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMasker | 100 | 1000 | 117.37 | 115.85 | 🔴 -1.3% | 32,372,334 | 32,372,239 | ⚪ -0.0% |
+| `jsonMasker` | `100` | `1000` | `117.37` | `115.85` | 🔴 -1.3% | `32,372,334` | `32,372,239` | ⚪ -0.0% |
 
 </details>
 
@@ -90,19 +90,19 @@
 
 | Method | jsonSize | streamInputType | streamOutputType | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMaskerStreams | 1kb | ByteArrayStream | ByteArrayStream | 220,008 | 227,667 | 🟢 +3.5% | 12,184.0 | 12,184.0 | ⚪ +0.0% |
-| jsonMaskerStreams | 1kb | FileStream | ByteArrayStream | 68,387 | 67,444 | 🔴 -1.4% | 12,336.0 | 12,320.0 | ⚪ -0.1% |
-| jsonMaskerStreams | 1kb | FileStream | FileStream | 5,474 | 5,818 | 🟢 +6.3% | 9,392.4 | 9,392.4 | ⚪ -0.0% |
+| `jsonMaskerStreams` | `1kb` | `ByteArrayStream` | `ByteArrayStream` | `220,008` | `227,667` | 🟢 +3.5% | `12,184.0` | `12,184.0` | ⚪ +0.0% |
+| `jsonMaskerStreams` | `1kb` | `FileStream` | `ByteArrayStream` | `68,387` | `67,444` | 🔴 -1.4% | `12,336.0` | `12,320.0` | ⚪ -0.1% |
+| `jsonMaskerStreams` | `1kb` | `FileStream` | `FileStream` | `5,474` | `5,818` | 🟢 +6.3% | `9,392.4` | `9,392.4` | ⚪ -0.0% |
 
 <details>
 <summary>Full results — StreamTypeBenchmark</summary>
 
 | Method | jsonSize | streamInputType | streamOutputType | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| jsonMaskerStreams | 1kb | ByteArrayStream | ByteArrayStream | 220,008 | 227,667 | 🟢 +3.5% | 12,184.0 | 12,184.0 | ⚪ +0.0% |
-| jsonMaskerStreams | 1kb | ByteArrayStream | FileStream | 6,179 | 6,162 | ⚪ -0.3% | 9,208.4 | 9,208.4 | ⚪ +0.0% |
-| jsonMaskerStreams | 1kb | FileStream | ByteArrayStream | 68,387 | 67,444 | 🔴 -1.4% | 12,336.0 | 12,320.0 | ⚪ -0.1% |
-| jsonMaskerStreams | 1kb | FileStream | FileStream | 5,474 | 5,818 | 🟢 +6.3% | 9,392.4 | 9,392.4 | ⚪ -0.0% |
+| `jsonMaskerStreams` | `1kb` | `ByteArrayStream` | `ByteArrayStream` | `220,008` | `227,667` | 🟢 +3.5% | `12,184.0` | `12,184.0` | ⚪ +0.0% |
+| `jsonMaskerStreams` | `1kb` | `ByteArrayStream` | `FileStream` | `6,179` | `6,162` | ⚪ -0.3% | `9,208.4` | `9,208.4` | ⚪ +0.0% |
+| `jsonMaskerStreams` | `1kb` | `FileStream` | `ByteArrayStream` | `68,387` | `67,444` | 🔴 -1.4% | `12,336.0` | `12,320.0` | ⚪ -0.1% |
+| `jsonMaskerStreams` | `1kb` | `FileStream` | `FileStream` | `5,474` | `5,818` | 🟢 +6.3% | `9,392.4` | `9,392.4` | ⚪ -0.0% |
 
 </details>
 
@@ -112,17 +112,17 @@
 
 | Method | characters | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| maskWithRawValueFunction | unicode | 1kb | 0.1 | 624,328 | 617,057 | 🔴 -1.2% | 1,632.0 | 1,632.0 | ⚪ +0.0% |
-| maskWithTextValueFunction | unicode | 1kb | 0.1 | 588,537 | 585,127 | ⚪ -0.6% | 1,848.0 | 1,776.0 | 🟢 -3.9% |
+| `maskWithRawValueFunction` | `unicode` | `1kb` | `0.1` | `624,328` | `617,057` | 🔴 -1.2% | `1,632.0` | `1,632.0` | ⚪ +0.0% |
+| `maskWithTextValueFunction` | `unicode` | `1kb` | `0.1` | `588,537` | `585,127` | ⚪ -0.6% | `1,848.0` | `1,776.0` | 🟢 -3.9% |
 
 <details>
 <summary>Full results — ValueMaskerBenchmark</summary>
 
 | Method | characters | jsonSize | maskedKeyProbability | master (ops/s) | PR (ops/s) | change | master alloc (B/op) | PR alloc (B/op) | alloc change |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| maskWithRawValueFunction | unicode | 1kb | 0.1 | 624,328 | 617,057 | 🔴 -1.2% | 1,632.0 | 1,632.0 | ⚪ +0.0% |
-| maskWithStatic | unicode | 1kb | 0.1 | 666,894 | 671,402 | ⚪ +0.7% | 1,272.0 | 1,272.0 | ⚪ +0.0% |
-| maskWithTextValueFunction | unicode | 1kb | 0.1 | 588,537 | 585,127 | ⚪ -0.6% | 1,848.0 | 1,776.0 | 🟢 -3.9% |
+| `maskWithRawValueFunction` | `unicode` | `1kb` | `0.1` | `624,328` | `617,057` | 🔴 -1.2% | `1,632.0` | `1,632.0` | ⚪ +0.0% |
+| `maskWithStatic` | `unicode` | `1kb` | `0.1` | `666,894` | `671,402` | ⚪ +0.7% | `1,272.0` | `1,272.0` | ⚪ +0.0% |
+| `maskWithTextValueFunction` | `unicode` | `1kb` | `0.1` | `588,537` | `585,127` | ⚪ -0.6% | `1,848.0` | `1,776.0` | 🟢 -3.9% |
 
 </details>
 

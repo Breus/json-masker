@@ -309,12 +309,12 @@ def _build_class_table(
             continue
 
         param_dict = dict(key[1:])
-        param_cells = " | ".join(param_dict.get(col, "N/A") for col in active_params)
+        param_cells = " | ".join(f"`{param_dict.get(col, 'N/A')}`" for col in active_params)
 
         method_name = key[0].split(".")[-1] if "." in key[0] else key[0]
 
-        master_cell = format_score(master_r.score, unit) if master_r else "N/A"
-        pr_cell = format_score(pr_r.score, unit) if pr_r else "N/A"
+        master_cell = f"`{format_score(master_r.score, unit)}`" if master_r else "N/A"
+        pr_cell = f"`{format_score(pr_r.score, unit)}`" if pr_r else "N/A"
 
         if master_r and pr_r:
             change = change_cell(master_r.score, pr_r.score, threshold)
@@ -327,8 +327,8 @@ def _build_class_table(
         if has_alloc:
             m_alloc = master_r.alloc_score if master_r else None
             p_alloc = pr_r.alloc_score if pr_r else None
-            m_alloc_cell = format_score(m_alloc, "B/op") if m_alloc is not None else "N/A"
-            p_alloc_cell = format_score(p_alloc, "B/op") if p_alloc is not None else "N/A"
+            m_alloc_cell = f"`{format_score(m_alloc, 'B/op')}`" if m_alloc is not None else "N/A"
+            p_alloc_cell = f"`{format_score(p_alloc, 'B/op')}`" if p_alloc is not None else "N/A"
             if m_alloc is not None and p_alloc is not None:
                 alloc_ch = change_cell(m_alloc, p_alloc, threshold, inverted=True)
             elif m_alloc is not None or p_alloc is not None:
@@ -337,7 +337,7 @@ def _build_class_table(
                 alloc_ch = "N/A"
             alloc_cells = f" | {m_alloc_cell} | {p_alloc_cell} | {alloc_ch}"
 
-        rows.append(f"| {method_name} | {param_cells} | {master_cell} | {pr_cell} | {change}{alloc_cells} |")
+        rows.append(f"| `{method_name}` | {param_cells} | {master_cell} | {pr_cell} | {change}{alloc_cells} |")
 
     if len(rows) == 2:
         # Only header + separator, no data rows matched

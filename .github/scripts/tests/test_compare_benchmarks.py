@@ -13,7 +13,7 @@ snapshot by running:
         --master-sha e3a00f208b781fc6946043d4527921f6d0e8f1f4 \\
         --pr-sha fa40aadbc0f7285ea77472d3a4e65adb3de865d4 \\
         --base-ref master \\
-        --threshold 1.0 \\
+        --threshold 3.0 \\
         .github/scripts/tests/fixtures/master.txt \\
         .github/scripts/tests/fixtures/pr.txt \\
         > .github/scripts/tests/fixtures/expected_comment.md
@@ -35,7 +35,7 @@ _FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 MASTER_SHA = "e3a00f208b781fc6946043d4527921f6d0e8f1f4"
 PR_SHA = "fa40aadbc0f7285ea77472d3a4e65adb3de865d4"
 BASE_REF = "master"
-THRESHOLD = 1.0
+THRESHOLD = 3.0
 
 
 def test_comment_matches_snapshot() -> None:

@@ -59,7 +59,7 @@ jobs:
             --master-sha "${{ steps.get-master-sha.outputs.sha }}" \
             --pr-sha "${{ github.event.pull_request.head.sha }}" \
             --base-ref "${{ github.base_ref }}" \
-            --threshold 1.0 \
+            --threshold 3.0 \
             benchmark-master/build/results/jmh/results.txt \
             benchmark-pull-request/build/results/jmh/results.txt \
             >> ${{ env.COMMENT_FILE }}

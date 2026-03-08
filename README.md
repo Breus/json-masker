@@ -221,56 +221,35 @@ var jsonMasker = JsonMasker.getMasker(Set.of("email", "age", "visaApproved", "ib
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "***",
-    "age": "###",
-    "visaApproved": "&&&"
-  },
-  "payment": {
-    "iban": "***",
-    "successful": true,
-    "billingAddress": [
-      "***",
-      "***"
-    ]
-  },
-  "companyContact": {
-    "email": "***"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "***",
++    "age": "###",
++    "visaApproved": "&&&"
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "***",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "***",
++      "***"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "***"
+   }
+ }
 ```
 
 ### Allow-list approach
@@ -289,56 +268,35 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "***",
-    "age": "###",
-    "visaApproved": "&&&"
-  },
-  "payment": {
-    "iban": "***",
-    "successful": true,
-    "billingAddress": [
-      "***",
-      "***"
-    ]
-  },
-  "companyContact": {
-    "email": "***"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "***",
++    "age": "###",
++    "visaApproved": "&&&"
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "***",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "***",
++      "***"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "***"
+   }
+ }
 ```
 
 ### Overriding default masks
@@ -360,56 +318,35 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "[redacted]",
-    "age": "[redacted]",
-    "visaApproved": "[redacted]"
-  },
-  "payment": {
-    "iban": "[redacted]",
-    "successful": true,
-    "billingAddress": [
-      "[redacted]",
-      "[redacted]"
-    ]
-  },
-  "companyContact": {
-    "email": "[redacted]"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "[redacted]",
++    "age": "[redacted]",
++    "visaApproved": "[redacted]"
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "[redacted]",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "[redacted]",
++      "[redacted]"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "[redacted]"
+   }
+ }
 ```
 
 ### Masking with the streaming API
@@ -475,80 +412,48 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true,
-    "identificationDocuments": [
-      {
-        "type": "passport",
-        "country": "NL",
-        "number": "1234567890"
-      },
-      {
-        "type": "passport",
-        "country": "US",
-        "number": "E12345678"
-      }
-    ]
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "***",
-    "age": "###",
-    "visaApproved": "&&&",
-    "identificationDocuments": [
-      {
-        "type": "passport",
-        "country": "NL",
-        "number": "***"
-      },
-      {
-        "type": "passport",
-        "country": "US",
-        "number": "***"
-      }
-    ]
-  },
-  "payment": {
-    "iban": "***",
-    "successful": true,
-    "billingAddress": [
-      "***",
-      "***"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true,
++    "email": "***",
++    "age": "###",
++    "visaApproved": "&&&",
+     "identificationDocuments": [
+       {
+         "type": "passport",
+         "country": "NL",
+-        "number": "1234567890"
++        "number": "***"
+       },
+       {
+         "type": "passport",
+         "country": "US",
+-        "number": "E12345678"
++        "number": "***"
+       }
+     ]
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "***",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "***",
++      "***"
+     ]
+   },
+   "companyContact": {
+     "email": "info@acme.com"
+   }
+ }
 ```
 
 ### Masking with preserving the type
@@ -570,56 +475,35 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "***",
-    "age": 0,
-    "visaApproved": false
-  },
-  "payment": {
-    "iban": "***",
-    "successful": true,
-    "billingAddress": [
-      "***",
-      "***"
-    ]
-  },
-  "companyContact": {
-    "email": "***"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "***",
++    "age": 0,
++    "visaApproved": false
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "***",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "***",
++      "***"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "***"
+   }
+ }
 ```
 
 ### Masking with preserving the length
@@ -640,56 +524,35 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "*******************************",
-    "age": 88,
-    "visaApproved": "&&&"
-  },
-  "payment": {
-    "iban": "**********************",
-    "successful": true,
-    "billingAddress": [
-      "*************",
-      "*****************"
-    ]
-  },
-  "companyContact": {
-    "email": "*************"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "*******************************",
++    "age": 88,
++    "visaApproved": "&&&"
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "**********************",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "*************",
++      "*****************"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "*************"
+   }
+ }
 ```
 
 ### Masking with using a per-key masking configuration
@@ -719,56 +582,35 @@ String maskedJson = jsonMasker.mask(json);
 >
 > If config is attached to a JSONPath it has a precedence over a regular key.
 
-#### Input
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "some-customer-email@example.com",
-    "age": 29,
-    "visaApproved": true
-  },
-  "payment": {
-    "iban": "NL91 FAKE 0417 1643 00",
-    "successful": true,
-    "billingAddress": [
-      "Museumplein 6",
-      "1071 DJ Amsterdam"
-    ]
-  },
-  "companyContact": {
-    "email": "info@acme.com"
-  }
-}
-```
-
-#### Output
-
-```json
-{
-  "orderId": "789 123 456",
-  "customerDetails": {
-    "id": 1,
-    "travelPurpose": "business",
-    "email": "***",
-    "age": "###",
-    "visaApproved": "&&&"
-  },
-  "payment": {
-    "iban": "**********************",
-    "successful": true,
-    "billingAddress": [
-      "***",
-      "***"
-    ]
-  },
-  "companyContact": {
-    "email": "***"
-  }
-}
+```diff
+ {
+   "orderId": "789 123 456",
+   "customerDetails": {
+     "id": 1,
+     "travelPurpose": "business",
+-    "email": "some-customer-email@example.com",
+-    "age": 29,
+-    "visaApproved": true
++    "email": "***",
++    "age": "###",
++    "visaApproved": "&&&"
+   },
+   "payment": {
+-    "iban": "NL91 FAKE 0417 1643 00",
++    "iban": "**********************",
+     "successful": true,
+     "billingAddress": [
+-      "Museumplein 6",
+-      "1071 DJ Amsterdam"
++      "***",
++      "***"
+     ]
+   },
+   "companyContact": {
+-    "email": "info@acme.com"
++    "email": "***"
+   }
+ }
 ```
 
 ### Masking with a `ValueMasker`
@@ -805,28 +647,16 @@ var jsonMasker = JsonMasker.getMasker(
 String maskedJson = jsonMasker.mask(json);
 ```
 
-#### Input
-
-```json
-{
-  "values": [
-    "not a secret",
-    "secret: very much"
-  ],
-  "email": "agavlyukovskiy@gmail.com"
-}
-```
-
-#### Output
-
-```json
-{
-  "values": [
-    "not a secret",
-    "***"
-  ],
-  "email": "ag***iy@gmail.com"
-}
+```diff
+ {
+   "values": [
+     "not a secret",
+-    "secret: very much"
++    "***"
+   ],
+-  "email": "agavlyukovskiy@gmail.com"
++  "email": "ag***iy@gmail.com"
+ }
 ```
 
 ---

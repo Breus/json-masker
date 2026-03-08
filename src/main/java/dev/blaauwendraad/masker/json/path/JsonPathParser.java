@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -153,7 +152,7 @@ public class JsonPathParser {
     public void checkAmbiguity(Set<JsonPath> jsonPaths) {
         List<JsonPath> jsonPathList = jsonPaths.stream()
                 .sorted(Comparator.comparing(JsonPath::toString))
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
         for (int i = 1; i < jsonPathList.size(); i++) {
             JsonPath current = jsonPathList.get(i - 1);
             JsonPath next = jsonPathList.get(i);

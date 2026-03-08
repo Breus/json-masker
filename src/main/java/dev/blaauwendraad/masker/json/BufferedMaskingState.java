@@ -7,7 +7,7 @@ import java.io.UncheckedIOException;
 
 /**
  * Represents the state of the {@link JsonMasker} at a given point in time during the
- * {@link JsonMasker#mask(InputStream, OutputStream)} )} operation.
+ * {@link JsonMasker#mask(InputStream, OutputStream)} operation.
  */
 class BufferedMaskingState extends MaskingState {
     /**
@@ -142,10 +142,10 @@ class BufferedMaskingState extends MaskingState {
     public void flushCurrentBuffer() {
         try {
             int remainingBufferLength = !isCurrentTokenRegistered()
+                    // flush the remaining of the message
                     ? messageLength - lastReplacementEndIndex
-                    : // flush the remaining of the message
-                    currentTokenStartIndex
-                            - lastReplacementEndIndex; // flush the remaining of the message up to the current token
+                    // flush the remaining of the message up to the current token
+                    : currentTokenStartIndex - lastReplacementEndIndex;
             // start index
             outputStream.write(message, lastReplacementEndIndex, remainingBufferLength);
             outputStream.flush();

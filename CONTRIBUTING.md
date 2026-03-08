@@ -45,7 +45,7 @@ Proper bug reports tend to have:
 
 Ensure you have the following tools installed:
 
-* [Java 21+ JDK](https://www.oracle.com/java/technologies/downloads/#java21) - For building and testing the project
+* [Java 21+ JDK](https://www.oracle.com/java/technologies/downloads/#java21) - Required to run Gradle. The build uses Gradle toolchains to automatically provision the JDK version needed for compilation and testing.
 * [pre-commit](https://pre-commit.com/#install) - For automatic code formatting on commit
 
 ### Setting up the pre-commit hook

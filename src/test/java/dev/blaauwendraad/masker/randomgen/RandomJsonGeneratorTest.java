@@ -26,10 +26,9 @@ public class RandomJsonGeneratorTest {
 
             int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
-            double allowedDifference = targetJsonSizeBytes * 0.01;
             assertThat(actualSizeBytes)
                     .as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±1%), got: " + actualSizeBytes)
-                    .isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
+                    .isCloseTo(targetJsonSizeBytes, withinPercentage(1.0));
         }
     }
 
@@ -44,10 +43,9 @@ public class RandomJsonGeneratorTest {
 
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
-        double allowedDifference = targetJsonSizeBytes * 0.001;
         assertThat(actualSizeBytes)
                 .as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes)
-                .isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
+                .isCloseTo(targetJsonSizeBytes, withinPercentage(0.1));
     }
 
     @Test
@@ -61,10 +59,9 @@ public class RandomJsonGeneratorTest {
 
         int actualSizeBytes = randomJsonNode.toString().getBytes(StandardCharsets.UTF_8).length;
 
-        double allowedDifference = targetJsonSizeBytes * 0.001;
         assertThat(actualSizeBytes)
                 .as(() -> "Expected json to be of size " + targetJsonSizeBytes + " (±0.1%), got: " + actualSizeBytes)
-                .isCloseTo(targetJsonSizeBytes, withinPercentage(allowedDifference));
+                .isCloseTo(targetJsonSizeBytes, withinPercentage(0.1));
     }
 
     @Test

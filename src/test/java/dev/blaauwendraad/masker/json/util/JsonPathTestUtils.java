@@ -54,8 +54,7 @@ public class JsonPathTestUtils {
                 } else if (curr.getValue() instanceof ArrayNode currArray) {
                     currArray
                             .values()
-                            .forEach(
-                                    (child) -> stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", child)));
+                            .forEach(child -> stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", child)));
                 }
                 if (stack.isEmpty()) {
                     // the key does not exist

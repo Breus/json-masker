@@ -42,7 +42,7 @@ final class NoFailingExecutionFuzzingTest {
     void regularRandomJson(JsonMaskingConfig jsonMaskingConfig) {
         long timeLimit = FuzzingDurationUtil.determineTestTimeLimit(
                 failureFuzzingConfigurations().count());
-        System.out.printf("Running tests with the following JSON masking configuration: \n%s", jsonMaskingConfig);
+        System.out.printf("Running tests with the following JSON masking configuration: %n%s", jsonMaskingConfig);
         Instant startTime = Instant.now();
         AtomicInteger randomTestsExecuted = new AtomicInteger();
         AtomicReference<String> lastExecutedJson = new AtomicReference<>();
@@ -67,14 +67,14 @@ final class NoFailingExecutionFuzzingTest {
                 int currentNumberOfExecutedTests = randomTestsExecuted.get();
                 if (currentNumberOfExecutedTests == lastCheckedNumberOfTests) {
                     fail(String.format(
-                            "The test got stuck after executing %d test when the following JSON was being processed: \n %s",
+                            "The test got stuck after executing %d test when the following JSON was being processed: %n %s",
                             randomTestsExecuted.get(), lastExecutedJson));
                 }
                 lastCheckedNumberOfTests = currentNumberOfExecutedTests;
             }
         } catch (InterruptedException e) {
             fail(String.format(
-                    "The test was interrupted after executing %d test when the following JSON was being processed: \n %s",
+                    "The test was interrupted after executing %d test when the following JSON was being processed: %n %s",
                     randomTestsExecuted.get(), lastExecutedJson));
         } finally {
             executor.shutdownNow();
@@ -98,12 +98,12 @@ final class NoFailingExecutionFuzzingTest {
             if (formatter.isValid()) {
                 Assertions.assertDoesNotThrow(
                         () -> keyContainsMasker.mask(mutatedJsonNodeString),
-                        String.format("Failed for the following JSON:\n%s", mutatedJsonNodeString));
+                        String.format("Failed for the following JSON:%n%s", mutatedJsonNodeString));
                 Assertions.assertDoesNotThrow(
                         () -> keyContainsMasker.mask(
                                 new ByteArrayInputStream(mutatedJsonNodeString.getBytes(StandardCharsets.UTF_8)),
                                 new ByteArrayOutputStream()),
-                        String.format("Streaming mode failed for the following JSON:\n%s", mutatedJsonNodeString));
+                        String.format("Streaming mode failed for the following JSON:%n%s", mutatedJsonNodeString));
             } else {
                 try {
                     keyContainsMasker.mask(mutatedJsonNodeString);

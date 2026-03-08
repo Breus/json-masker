@@ -20,7 +20,7 @@ class ValueMaskersTest {
 
         Assertions.assertThat(valueMasker.toString())
                 .startsWith("dev.blaauwendraad.masker.json.ValueMaskersTest$$Lambda");
-        Assertions.assertThat(descriptiveValueMasker.toString()).isEqualTo("null (literal)");
+        Assertions.assertThat(descriptiveValueMasker).hasToString("null (literal)");
     }
 
     @Test

@@ -33,7 +33,7 @@ public interface ValueMaskerContext {
      * @param mask the mask to replace the original value with
      * @param maskRepeat number of times to repeat the mask, useful for masking digits or characters, for static masks
      *     the value should be 1.
-     * @see ValueMaskers#with(String) static string replacement imnplementation
+     * @see ValueMaskers#with(String) static string replacement implementation
      * @see ValueMaskers#email(int, int, boolean, String) dynamic masking implementation
      */
     void replaceBytes(int fromIndex, int length, byte[] mask, int maskRepeat);

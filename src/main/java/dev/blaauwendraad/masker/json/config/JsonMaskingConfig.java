@@ -132,11 +132,7 @@ public final class JsonMaskingConfig {
     @Override
     public String toString() {
         return String.format(
-                "targetKeys=%s,\n" + "targetJsonPaths=%s,\n"
-                        + "targetKeyMode=%s,\n"
-                        + "caseSensitiveTargetKeys=%s,\n"
-                        + "defaultConfig=%s,\n"
-                        + "targetKeyConfigs=%s\n",
+                "targetKeys=%s,%ntargetJsonPaths=%s,%ntargetKeyMode=%s,%ncaseSensitiveTargetKeys=%s,%ndefaultConfig=%s,%ntargetKeyConfigs=%s%n",
                 targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 

@@ -10,8 +10,8 @@ public class FuzzingDurationUtil {
     }
 
     /**
-     * Determines time limit for an individual test so that whole tests suite executes in either 30 seconds (local)
-     * or 5 minutes (CI)
+     * Determines time limit for an individual test so that whole tests suite executes in either 30 seconds (local) or 5
+     * minutes (CI)
      */
     public static long determineTestTimeLimit(long numberOfTests) {
         return TOTAL_TEST_DURATION_SECONDS.toMillis() / numberOfTests;

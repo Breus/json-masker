@@ -6,21 +6,22 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 
 /**
- * Represents the state of the {@link JsonMasker} at a given point in time during the {@link JsonMasker#mask(InputStream, OutputStream)} )}
- * operation.
+ * Represents the state of the {@link JsonMasker} at a given point in time during the
+ * {@link JsonMasker#mask(InputStream, OutputStream)} operation.
  */
 class BufferedMaskingState extends MaskingState {
     /**
-     * Defines the maximum size for the buffer used by the streaming API:
-     * {@link JsonMasker#mask(InputStream, OutputStream)}.
-     * <p>
-     * This is a security measure to prevent too much memory being allocated for maliciously crafted JSONs with huge
+     * Defines the maximum size for the buffer used by the streaming API: {@link JsonMasker#mask(InputStream,
+     * OutputStream)}.
+     *
+     * <p>This is a security measure to prevent too much memory being allocated for maliciously crafted JSONs with huge
      * tokens (keys or values) to consume too much memory.
-     * <p>
-     * The maximum allowed buffer size corresponds to 16MB, which corresponds to a maximum token length of 4 million
+     *
+     * <p>The maximum allowed buffer size corresponds to 16MB, which corresponds to a maximum token length of 4 million
      * characters.
      */
     private static final int MAX_BUFFER_SIZE = 16777216;
+
     private static final String STREAM_READ_ERROR_MESSAGE = "Failed to read from input stream";
     private static final String STREAM_WRITE_ERROR_MESSAGE = "Failed to write to output stream";
 
@@ -28,7 +29,11 @@ class BufferedMaskingState extends MaskingState {
     private final OutputStream outputStream;
     private int bufferSize; // size of byte array buffers to be read from the input stream
 
-    public BufferedMaskingState(InputStream inputStream, OutputStream outputStream, int bufferSize, KeyMatcher.RadixTriePointer keyMatcherRootNodePointer) {
+    public BufferedMaskingState(
+            InputStream inputStream,
+            OutputStream outputStream,
+            int bufferSize,
+            KeyMatcher.RadixTriePointer keyMatcherRootNodePointer) {
         super(new byte[bufferSize], keyMatcherRootNodePointer);
         /*
          There is a special optimization for "true", "false" and "null" values. We identify such values by their first
@@ -87,7 +92,8 @@ class BufferedMaskingState extends MaskingState {
 
             // fill up the remaining of the buffer
             try {
-                messageLength = inputStream.readNBytes(message, currentTokenLength, bufferSize - currentTokenLength) + currentTokenLength;
+                messageLength = inputStream.readNBytes(message, currentTokenLength, bufferSize - currentTokenLength)
+                        + currentTokenLength;
             } catch (IOException e) {
                 throw new UncheckedIOException(STREAM_READ_ERROR_MESSAGE, e);
             }
@@ -101,22 +107,24 @@ class BufferedMaskingState extends MaskingState {
 
     /**
      * Moves the current JSON token to the beginning of buffer.
-     * <p>
-     * If the current JSON token size is larger than a quarter of the buffer size, double the buffer size.
+     *
+     * <p>If the current JSON token size is larger than a quarter of the buffer size, double the buffer size.
      *
      * @param currentTokenLength the length of the current JSON token, in bytes
      */
     private void moveCurrentTokenToBeginningOfBuffer(int currentTokenLength) {
         if (currentTokenLength < bufferSize >> 2) { // note: >> 2 is equal to dividing by 4
-            // in case the current value is shorter than a quarter of the buffer fill up the buffer without extending its
+            // in case the current value is shorter than a quarter of the buffer fill up the buffer without extending
+            // its
             // length by moving the current value to the beginning of the buffer
             System.arraycopy(message, currentTokenStartIndex, message, 0, currentTokenLength);
         } else {
             // in case the current value is longer than a quarter of the buffer, double the buffer size
             bufferSize <<= 1; // note: <<= 1 is equal to doubling the bufferSize
             if (bufferSize > MAX_BUFFER_SIZE) {
-                throw new InvalidJsonException(
-                        String.format("Invalid JSON input provided: it contains a single JSON token (key or value) with %s characters", currentTokenLength));
+                throw new InvalidJsonException(String.format(
+                        "Invalid JSON input provided: it contains a single JSON token (key or value) with %s characters",
+                        currentTokenLength));
             }
             byte[] extendedBuffer = new byte[bufferSize];
 
@@ -133,9 +141,12 @@ class BufferedMaskingState extends MaskingState {
      */
     public void flushCurrentBuffer() {
         try {
-            int remainingBufferLength = !isCurrentTokenRegistered() ?
-                    messageLength - lastReplacementEndIndex : // flush the remaining of the message
-                    currentTokenStartIndex - lastReplacementEndIndex; // flush the remaining of the message up to the current token start index
+            int remainingBufferLength = !isCurrentTokenRegistered()
+                    // flush the remaining of the message
+                    ? messageLength - lastReplacementEndIndex
+                    // flush the remaining of the message up to the current token
+                    : currentTokenStartIndex - lastReplacementEndIndex;
+            // start index
             outputStream.write(message, lastReplacementEndIndex, remainingBufferLength);
             outputStream.flush();
             lastReplacementEndIndex = 0;
@@ -145,13 +156,12 @@ class BufferedMaskingState extends MaskingState {
     }
 
     /**
-     * Flushes the current buffer into the output stream, moves the current token to the beginning of the
-     * buffer, and fills up the buffer from the input stream.
-     * In case the current token is too long (i.e. the start index is not in the last quarter of the buffer),
-     * double the current buffer size.
+     * Flushes the current buffer into the output stream, moves the current token to the beginning of the buffer, and
+     * fills up the buffer from the input stream. In case the current token is too long (i.e. the start index is not in
+     * the last quarter of the buffer), double the current buffer size.
      *
-     * @return {@code true} if more data is available in the input stream, {@code false} if the end of the
-     * stream is reached.
+     * @return {@code true} if more data is available in the input stream, {@code false} if the end of the stream is
+     *     reached.
      */
     private boolean reloadBuffer() {
         flushCurrentBuffer();

@@ -8,10 +8,17 @@ plugins {
     alias(libs.plugins.nexus.publish)
     alias(libs.plugins.jmh)
     alias(libs.plugins.errorprone)
+    alias(libs.plugins.spotless)
     `maven-publish`
     `java-library`
     signing
     jacoco
+}
+
+spotless {
+    java {
+        palantirJavaFormat("2.89.0").formatJavadoc(true)
+    }
 }
 
 description = "High-performance JSON masker in Java with no runtime dependencies"
@@ -174,6 +181,10 @@ tasks {
     compileJava {
         sourceCompatibility = "11"
         targetCompatibility = "11"
+    }
+
+    check {
+        dependsOn("spotlessCheck")
     }
 
     test {

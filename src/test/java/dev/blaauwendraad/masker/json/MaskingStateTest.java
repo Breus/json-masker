@@ -1,13 +1,14 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import java.nio.charset.StandardCharsets;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
-
 class MaskingStateTest {
-    private final KeyMatcher.RadixTriePointer pointer = new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
+    private final KeyMatcher.RadixTriePointer pointer =
+            new KeyMatcher.RadixTriePointer(new KeyMatcher.RadixTrieNode(new byte[0], new byte[0]), 0);
+
     @Test
     void shouldReturnStringRepresentationForDebugging() {
         MaskingState maskingState = new MaskingState("""
@@ -60,19 +61,16 @@ class MaskingStateTest {
     void shouldUseCorrectOffsetWhenThrowingValueMaskerError() {
         var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys("maskMe")
-                        .maskStringsWith(context -> {
-                            throw context.invalidJson("Didn't like the value at index 3", 3);
-                        })
-                .build()
-        );
+                .maskStringsWith(context -> {
+                    throw context.invalidJson("Didn't like the value at index 3", 3);
+                })
+                .build());
 
-        Assertions.assertThatThrownBy(() ->
-                jsonMasker.mask("""
+        Assertions.assertThatThrownBy(() -> jsonMasker.mask("""
                 {
                     "maskMe": "some value"
                 }
-                """
-        ))
+                """))
                 .isInstanceOf(InvalidJsonException.class)
                 .hasMessage("Didn't like the value at index 3 at index 19");
     }

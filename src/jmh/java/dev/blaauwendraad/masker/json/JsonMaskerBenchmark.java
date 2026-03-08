@@ -1,6 +1,12 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
+import dev.blaauwendraad.masker.json.util.JsonPathTestUtils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NullUnmarked;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -12,13 +18,6 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Warmup;
-import dev.blaauwendraad.masker.json.util.JsonPathTestUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 1, time = 3)
 @Fork(value = 1)
@@ -30,13 +29,16 @@ public class JsonMaskerBenchmark {
     @org.openjdk.jmh.annotations.State(Scope.Thread)
     @NullUnmarked
     public static class State {
-        @Param({ "1kb", "128kb", "2mb" })
+        @Param({"1kb", "128kb", "2mb"})
         String jsonSize;
-        @Param({ "ascii", "unicode" })
+
+        @Param({"ascii", "unicode"})
         String characters;
-        @Param({ "0.01", "0.1" })
+
+        @Param({"0.01", "0.1"})
         double maskedKeyProbability;
-        @Param({ "false", "true" })
+
+        @Param({"false", "true"})
         boolean jsonPath;
 
         private String jsonString;

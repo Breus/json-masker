@@ -11,10 +11,14 @@ public enum JsonFormatter {
     RANDOM_WHITESPACE,
     INVALID_JSON;
 
-    private final static int MAX_NUMBER_OF_SPACES_TO_INJECT = 50;
+    private static final int MAX_NUMBER_OF_SPACES_TO_INJECT = 50;
 
-    private static final JsonMapper RANDOM_WHITESPACE_JSON_MAPPER = JsonMapper.builder().defaultPrettyPrinter(new RandomWhiteSpacePrettyPrinter(JsonFormatter.MAX_NUMBER_OF_SPACES_TO_INJECT)).build();
-    private static final JsonMapper INVALID_JSON_MAPPER = JsonMapper.builder().defaultPrettyPrinter(new InvalidJsonPrettyPrinter()).build();
+    private static final JsonMapper RANDOM_WHITESPACE_JSON_MAPPER = JsonMapper.builder()
+            .defaultPrettyPrinter(new RandomWhiteSpacePrettyPrinter(JsonFormatter.MAX_NUMBER_OF_SPACES_TO_INJECT))
+            .build();
+    private static final JsonMapper INVALID_JSON_MAPPER = JsonMapper.builder()
+            .defaultPrettyPrinter(new InvalidJsonPrettyPrinter())
+            .build();
 
     public String format(JsonNode jsonNode) {
         return switch (this) {

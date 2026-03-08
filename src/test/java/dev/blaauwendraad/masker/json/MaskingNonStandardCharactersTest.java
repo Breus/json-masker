@@ -1,12 +1,11 @@
 package dev.blaauwendraad.masker.json;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
-import org.junit.jupiter.api.Test;
-
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class MaskingNonStandardCharactersTest {
 
@@ -14,8 +13,7 @@ class MaskingNonStandardCharactersTest {
     void maskingNonStandardCharacters() {
         JsonMasker jsonMasker = JsonMasker.getMasker(Set.of("привіт", "💩"));
 
-        assertThat(jsonMasker.mask(
-                """
+        assertThat(jsonMasker.mask("""
                         {
                           "привіт": "hello",
                           "otherKey": null,
@@ -39,8 +37,7 @@ class MaskingNonStandardCharactersTest {
                             }
                           ]
                         }
-                        """
-        )).isEqualTo("""
+                        """)).isEqualTo("""
                 {
                   "привіт": "***",
                   "otherKey": null,
@@ -69,12 +66,11 @@ class MaskingNonStandardCharactersTest {
 
     @Test
     void maskingNonStandardCharactersInAllowMode() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder().allowKeys(Set.of("привіт", "otherKey", "someArray")).build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys(Set.of("привіт", "otherKey", "someArray"))
+                .build());
 
-        assertThat(jsonMasker.mask(
-                """
+        assertThat(jsonMasker.mask("""
                         {
                           "привіт": "hello",
                           "otherKey": null,
@@ -98,8 +94,7 @@ class MaskingNonStandardCharactersTest {
                             }
                           ]
                         }
-                        """
-        )).isEqualTo("""
+                        """)).isEqualTo("""
                 {
                   "привіт": "hello",
                   "otherKey": null,
@@ -128,14 +123,15 @@ class MaskingNonStandardCharactersTest {
 
     @Test
     void maskingWithUnicodeCharacters() {
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .maskKeys("💩", KeyMaskingConfig.builder().maskStringCharactersWith("💩").build())
-                        .build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(
+                        "💩",
+                        KeyMaskingConfig.builder()
+                                .maskStringCharactersWith("💩")
+                                .build())
+                .build());
 
-        assertThat(jsonMasker.mask(
-                """
+        assertThat(jsonMasker.mask("""
                         {
                           "привіт": "hello",
                           "otherKey": null,
@@ -159,8 +155,7 @@ class MaskingNonStandardCharactersTest {
                             }
                           ]
                         }
-                        """
-        )).isEqualTo("""
+                        """)).isEqualTo("""
                 {
                   "привіт": "hello",
                   "otherKey": null,

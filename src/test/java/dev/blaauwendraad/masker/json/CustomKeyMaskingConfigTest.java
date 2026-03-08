@@ -1,16 +1,15 @@
 package dev.blaauwendraad.masker.json;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
-import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
 
 class CustomKeyMaskingConfigTest {
 
@@ -78,18 +77,20 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
                 .maskJsonPaths(Set.of("$.stringPath", "$.numberPath", "$.booleanPath"))
-                .maskKeys(Set.of("stringCustom", "numberCustom", "booleanCustom"), KeyMaskingConfig.builder()
-                        .maskStringsWith("(string)")
-                        .maskNumbersWith("(number)")
-                        .maskBooleansWith("(boolean)")
-                        .build()
-                )
-                .maskJsonPaths(Set.of("$.stringPathCustom", "$.numberPathCustom", "$.booleanPathCustom"), KeyMaskingConfig.builder()
-                        .maskStringsWith("(string)")
-                        .maskNumbersWith("(number)")
-                        .maskBooleansWith("(boolean)")
-                        .build()
-                )
+                .maskKeys(
+                        Set.of("stringCustom", "numberCustom", "booleanCustom"),
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith("(string)")
+                                .maskNumbersWith("(number)")
+                                .maskBooleansWith("(boolean)")
+                                .build())
+                .maskJsonPaths(
+                        Set.of("$.stringPathCustom", "$.numberPathCustom", "$.booleanPathCustom"),
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith("(string)")
+                                .maskNumbersWith("(number)")
+                                .maskBooleansWith("(boolean)")
+                                .build())
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
@@ -130,17 +131,18 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean", "a"))
                 .maskKeys(Map.of(
-                        "b", KeyMaskingConfig.builder()
-                                .maskStringsWith("(mask_b.string)")
-                                .maskNumbersWith("(mask_b.number)")
-                                .maskBooleansWith("(mask_b.boolean)")
-                                .build(),
-                        "c", KeyMaskingConfig.builder()
-                                .maskStringsWith("(mask_c.string)")
-                                .maskNumbersWith("(mask_c.number)")
-                                .maskBooleansWith("(mask_c.boolean)")
-                                .build()
-                ))
+                        "b",
+                                KeyMaskingConfig.builder()
+                                        .maskStringsWith("(mask_b.string)")
+                                        .maskNumbersWith("(mask_b.number)")
+                                        .maskBooleansWith("(mask_b.boolean)")
+                                        .build(),
+                        "c",
+                                KeyMaskingConfig.builder()
+                                        .maskStringsWith("(mask_c.string)")
+                                        .maskNumbersWith("(mask_c.number)")
+                                        .maskBooleansWith("(mask_c.boolean)")
+                                        .build()))
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
@@ -207,17 +209,18 @@ class CustomKeyMaskingConfigTest {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskJsonPaths("$.a")
                 .maskJsonPaths(Map.of(
-                        "$.a.b", KeyMaskingConfig.builder()
-                                .maskStringsWith("(mask_b.string)")
-                                .maskNumbersWith("(mask_b.number)")
-                                .maskBooleansWith("(mask_b.boolean)")
-                                .build(),
-                        "$.a.b.c", KeyMaskingConfig.builder()
-                                .maskStringsWith("(mask_c.string)")
-                                .maskNumbersWith("(mask_c.number)")
-                                .maskBooleansWith("(mask_c.boolean)")
-                                .build()
-                ))
+                        "$.a.b",
+                                KeyMaskingConfig.builder()
+                                        .maskStringsWith("(mask_b.string)")
+                                        .maskNumbersWith("(mask_b.number)")
+                                        .maskBooleansWith("(mask_b.boolean)")
+                                        .build(),
+                        "$.a.b.c",
+                                KeyMaskingConfig.builder()
+                                        .maskStringsWith("(mask_c.string)")
+                                        .maskNumbersWith("(mask_c.number)")
+                                        .maskBooleansWith("(mask_c.boolean)")
+                                        .build()))
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
@@ -283,22 +286,26 @@ class CustomKeyMaskingConfigTest {
     void maskEmail() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .maskKeys(Set.of("string", "number", "boolean"))
-                .maskKeys("emailPrefixSuffixDomain", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.email(2, 2, true, "***"))
-                        .build()
-                )
-                .maskKeys("emailPrefixOnly", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.email(2, 0, false, "***"))
-                        .build()
-                )
-                .maskKeys("emailSuffixOnly", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.email(0, 2, false, "***"))
-                        .build()
-                )
-                .maskKeys("emailDomainOnly", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.email(0, 0, true, "***"))
-                        .build()
-                )
+                .maskKeys(
+                        "emailPrefixSuffixDomain",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.email(2, 2, true, "***"))
+                                .build())
+                .maskKeys(
+                        "emailPrefixOnly",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.email(2, 0, false, "***"))
+                                .build())
+                .maskKeys(
+                        "emailSuffixOnly",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.email(0, 2, false, "***"))
+                                .build())
+                .maskKeys(
+                        "emailDomainOnly",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.email(0, 0, true, "***"))
+                                .build())
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
@@ -332,18 +339,23 @@ class CustomKeyMaskingConfigTest {
                 .maskStringsWith(ValueMaskers.withRawValueFunction(value -> "\"***\""))
                 .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> "\"###\""))
                 .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> "\"&&&\""))
-                .maskKeys("function", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.replaceAll("\\[this secret]", "***")))
-                        .build()
-                )
-                .maskKeys("functionNull", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> null))
-                        .build()
-                )
-                .maskKeys("functionConditional", KeyMaskingConfig.builder()
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value.startsWith("\"secret:") ? "\"***\"" : value))
-                        .build()
-                )
+                .maskKeys(
+                        "function",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.withRawValueFunction(
+                                        value -> value.replaceAll("\\[this secret]", "***")))
+                                .build())
+                .maskKeys(
+                        "functionNull",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.withRawValueFunction(value -> null))
+                                .build())
+                .maskKeys(
+                        "functionConditional",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(ValueMaskers.withRawValueFunction(
+                                        value -> value.startsWith("\"secret:") ? "\"***\"" : value))
+                                .build())
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
@@ -376,29 +388,33 @@ class CustomKeyMaskingConfigTest {
     @Test
     void shouldNotAllowGettingValuesOutsideOfIndex() {
         JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
-                .maskKeys("customValueMasker", KeyMaskingConfig.builder()
-                        .maskStringsWith(context -> {
-                            assertThatThrownBy(() -> context.getByte(-1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.getByte(context.byteLength()))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                .maskKeys(
+                        "customValueMasker",
+                        KeyMaskingConfig.builder()
+                                .maskStringsWith(context -> {
+                                    assertThatThrownBy(() -> context.getByte(-1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(() -> context.getByte(context.byteLength()))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
 
-                            assertThatThrownBy(() -> context.replaceBytes(-1, 1, new byte[0], 1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.replaceBytes(0, context.byteLength() + 1, new byte[0], 1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.replaceBytes(1, context.byteLength(), new byte[0], 1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(() -> context.replaceBytes(-1, 1, new byte[0], 1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(() ->
+                                                    context.replaceBytes(0, context.byteLength() + 1, new byte[0], 1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(
+                                                    () -> context.replaceBytes(1, context.byteLength(), new byte[0], 1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
 
-                            assertThatThrownBy(() -> context.countNonVisibleCharacters(-1, 1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.countNonVisibleCharacters(0, context.byteLength() + 1))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                            assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.byteLength()))
-                                    .isInstanceOf(IndexOutOfBoundsException.class);
-                        })
-                        .build()
-                )
+                                    assertThatThrownBy(() -> context.countNonVisibleCharacters(-1, 1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(() ->
+                                                    context.countNonVisibleCharacters(0, context.byteLength() + 1))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                    assertThatThrownBy(() -> context.countNonVisibleCharacters(1, context.byteLength()))
+                                            .isInstanceOf(IndexOutOfBoundsException.class);
+                                })
+                                .build())
                 .build());
         jsonMasker.mask("""
                 {
@@ -414,41 +430,33 @@ class CustomKeyMaskingConfigTest {
 
     @Test
     void maskEveryNumberDigitWithStringCharacter() {
-        JsonMasker jsonMasker =
-                JsonMasker.getMasker(
-                        JsonMaskingConfig.builder()
-                                .maskKeys("customValueMasker")
-                                .maskNumbersWith(ValueMaskers.eachDigitWith("*"))
-                                .build());
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
-                """
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys("customValueMasker")
+                .maskNumbersWith(ValueMaskers.eachDigitWith("*"))
+                .build());
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                         {
                           "customValueMasker": 0
                         }
-                        """,
-                """
+                        """, """
                         {
                           "customValueMasker": "*"
                         }
                         """);
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
-                """
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                         {
                           "customValueMasker": 123
                         }
-                        """,
-                """
+                        """, """
                         {
                           "customValueMasker": "***"
                         }
                         """);
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker,
-                """
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
                         {
                           "customValueMasker": 12345
                         }
-                        """,
-                """
+                        """, """
                         {
                           "customValueMasker": "*****"
                         }
@@ -460,12 +468,12 @@ class CustomKeyMaskingConfigTest {
         var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
                 .allowKeys("allowed")
                 .allowJsonPaths(Set.of("$.allowedPath"))
-                .maskKeys("maskedLikeEpsteinFiles", KeyMaskingConfig.builder()
-                        .maskStringsWith("■■■■■")
-                        .build())
-                .maskJsonPaths("$.maskedPathLikeEpsteinFiles", KeyMaskingConfig.builder()
-                        .maskStringsWith("■■■■■")
-                        .build())
+                .maskKeys(
+                        "maskedLikeEpsteinFiles",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
+                .maskJsonPaths(
+                        "$.maskedPathLikeEpsteinFiles",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
                 .build());
 
         JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """

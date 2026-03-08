@@ -1,5 +1,9 @@
 package dev.blaauwendraad.masker.randomgen;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.BigIntegerNode;
@@ -9,11 +13,6 @@ import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.NumericNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.StringNode;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class RandomJsonGenerator {
 
@@ -51,8 +50,8 @@ public final class RandomJsonGenerator {
         } else if (config.hasTargetSize() && depth == 0) {
             // always start with an object root if generating json of certain size
             nodeType = NodeType.objectNode;
-        } else if ((depth < config.getMaxNodeDepth() / 3) && (nodeType != NodeType.objectNode
-                && nodeType != NodeType.arrayNode)) {
+        } else if ((depth < config.getMaxNodeDepth() / 3)
+                && (nodeType != NodeType.objectNode && nodeType != NodeType.arrayNode)) {
             // forcefully override chance to 50% to create an object if only <33% of max node depth is reached
             if (context.random.nextBoolean()) {
                 nodeType = NodeType.objectNode;
@@ -174,13 +173,16 @@ public final class RandomJsonGenerator {
 
     private NumericNode createRandomNumericNode(Context context) {
         int rnd = context.random.nextInt(1, 5);
-        NumericNode node = switch (rnd) {
-            case 1 -> JsonNodeFactory.instance.numberNode(context.random.nextLong(config.getMaxLong()));
-            case 2 -> JsonNodeFactory.instance.numberNode(context.random.nextFloat(config.getMaxFloat()));
-            case 3 -> JsonNodeFactory.instance.numberNode(context.random.nextDouble(config.getMaxDouble()));
-            case 4 -> BigIntegerNode.valueOf(new BigInteger(config.getMaxBigInt().bitLength(), context.random));
-            default -> throw new IllegalStateException("Unexpected value: " + rnd);
-        };
+        NumericNode node =
+                switch (rnd) {
+                    case 1 -> JsonNodeFactory.instance.numberNode(context.random.nextLong(config.getMaxLong()));
+                    case 2 -> JsonNodeFactory.instance.numberNode(context.random.nextFloat(config.getMaxFloat()));
+                    case 3 -> JsonNodeFactory.instance.numberNode(context.random.nextDouble(config.getMaxDouble()));
+                    case 4 ->
+                        BigIntegerNode.valueOf(
+                                new BigInteger(config.getMaxBigInt().bitLength(), context.random));
+                    default -> throw new IllegalStateException("Unexpected value: " + rnd);
+                };
         context.estimatedSizeBytes += sizeOf(node);
         return node;
     }

@@ -42,7 +42,9 @@ public final class AsciiCharacter {
     public static final byte EIGHT = (byte) '8';
     public static final byte NINE = (byte) '9';
 
-    private AsciiCharacter() { /* don't instantiate */ }
+    private AsciiCharacter() {
+        /* don't instantiate */
+    }
 
     /**
      * Tests if the given byte corresponds to a double quote '{@literal "}' in ASCII encoding.
@@ -59,7 +61,7 @@ public final class AsciiCharacter {
      *
      * @param inputByte the input byte
      * @return {@code true} if the byte corresponds to an escape character (backslash) in ASCII encoding, {@code false}
-     * otherwise
+     *     otherwise
      */
     public static boolean isEscapeCharacter(byte inputByte) {
         return BACK_SLASH == inputByte;
@@ -80,7 +82,7 @@ public final class AsciiCharacter {
      *
      * @param inputByte the input byte
      * @return {@code true} if the byte corresponds to an opening square bracket '[' in ASCII encoding, {@code false}
-     * otherwise
+     *     otherwise
      */
     public static boolean isSquareBracketOpen(byte inputByte) {
         return SQUARE_BRACKET_OPEN == inputByte;
@@ -91,31 +93,29 @@ public final class AsciiCharacter {
      *
      * @param inputByte the input byte
      * @return {@code true} if the byte corresponds to a closing square bracket '{@literal ]}' in ASCII encoding,
-     * {@code false} otherwise
+     *     {@code false} otherwise
      */
     public static boolean isSquareBracketClose(byte inputByte) {
         return SQUARE_BRACKET_CLOSE == inputByte;
     }
 
     /**
-     * Tests if the given byte corresponds to an opening curly bracket '{@literal {}}' in ASCII
-     * encoding.
+     * Tests if the given byte corresponds to an opening curly bracket '{@literal {}}' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return {@code true} if the byte corresponds to an opening curly bracket '{@literal {}}' in ASCII
-     *     encoding, {@code false} otherwise
+     * @return {@code true} if the byte corresponds to an opening curly bracket '{@literal {}}' in ASCII encoding,
+     *     {@code false} otherwise
      */
     public static boolean isCurlyBracketOpen(byte inputByte) {
         return CURLY_BRACKET_OPEN == inputByte;
     }
 
     /**
-     * Tests if the given byte corresponds to a closing curly bracket '{@literal }}' in ASCII
-     * encoding.
+     * Tests if the given byte corresponds to a closing curly bracket '{@literal }}' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return {@code true} if the byte corresponds to a closing curly bracket '{@literal }}' in ASCII
-     *     encoding, {@code false} otherwise
+     * @return {@code true} if the byte corresponds to a closing curly bracket '{@literal }}' in ASCII encoding,
+     *     {@code false} otherwise
      */
     public static boolean isCurlyBracketClose(byte inputByte) {
         return CURLY_BRACKET_CLOSE == inputByte;
@@ -125,8 +125,7 @@ public final class AsciiCharacter {
      * Tests if the given byte corresponds to a lower case t 't' in ASCII encoding.
      *
      * @param inputByte the input byte
-     * @return {@code true} if the byte corresponds to a lower case t 't' in ASCII encoding, {@code false}
-     *     otherwise
+     * @return {@code true} if the byte corresponds to a lower case t 't' in ASCII encoding, {@code false} otherwise
      */
     public static boolean isLowercaseT(byte inputByte) {
         return LOWERCASE_T == inputByte;

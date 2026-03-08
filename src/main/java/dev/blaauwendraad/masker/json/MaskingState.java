@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.json;
 
 import dev.blaauwendraad.masker.json.util.Utf8Util;
-
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -22,12 +21,12 @@ class MaskingState implements ValueMaskerContext {
      */
     protected int lastReplacementEndIndex = 0;
     /**
-     * The total difference in the replacement operations related to the byte masking process.
-     * This counter aggregates the difference in lengths between the original byte sequences and
-     * their corresponding replacement masks over multiple replacement operations.
-     * <p>
-     * It is used to keep track of the cumulative change in byte count which informs buffer adjustments
-     * during the masking process in order to accommodate the length variations due to replacements.
+     * The total difference in the replacement operations related to the byte masking process. This counter aggregates
+     * the difference in lengths between the original byte sequences and their corresponding replacement masks over
+     * multiple replacement operations.
+     *
+     * <p>It is used to keep track of the cumulative change in byte count which informs buffer adjustments during the
+     * masking process in order to accommodate the length variations due to replacements.
      */
     protected int replacementOperationsTotalDifference = 0;
 
@@ -45,7 +44,7 @@ class MaskingState implements ValueMaskerContext {
      * Advances to the next byte in the message or (Streaming API) buffer, expanding the buffer if necessary.
      *
      * @return {@code true} if the current index is within the bounds of the message or if the (Streaming API) buffer
-     * was successfully reloaded and more data is available in the stream, {@code false} otherwise
+     *     was successfully reloaded and more data is available in the stream, {@code false} otherwise
      */
     public boolean next() {
         return ++currentIndex < messageLength;
@@ -77,8 +76,8 @@ class MaskingState implements ValueMaskerContext {
      * {@link #flushReplacementOperations()}.
      *
      * @param startIndex the start index of the target value in the byte array
-     * @param length     the length of the target value to be replaced
-     * @param mask       the byte array representing the mask
+     * @param length the length of the target value to be replaced
+     * @param mask the byte array representing the mask
      * @param maskRepeat the number of times the mask should be repeated
      * @throws UncheckedIOException if an I/O error occurs while writing to the output stream
      * @see ReplacementOperation
@@ -91,12 +90,12 @@ class MaskingState implements ValueMaskerContext {
 
     /**
      * Performs all replacement operations to the message array, must be called at the end of the replacements.
-     * <p>
-     * For every operation that required resizing of the original array, to avoid copying the array multiple times,
+     *
+     * <p>For every operation that required resizing of the original array, to avoid copying the array multiple times,
      * those operations were stored in a list and can be performed in one go, thus resizing the array only once.
-     * <p>
-     * Replacement operation is only recorded if the length of the target value is different from the length of the mask,
-     * otherwise the replacement must have been done in-place.
+     *
+     * <p>Replacement operation is only recorded if the length of the target value is different from the length of the
+     * mask, otherwise the replacement must have been done in-place.
      *
      * @return the message array with all replacement operations performed.
      */
@@ -105,8 +104,10 @@ class MaskingState implements ValueMaskerContext {
             return message;
         }
 
-        // Create new empty array with a length computed by the difference of all mismatches of lengths between the target values and the masks
-        // in some edge cases the length difference might be equal to 0, but since some indices mismatch (otherwise there would be no replacement operations)
+        // Create new empty array with a length computed by the difference of all mismatches of lengths between the
+        // target values and the masks
+        // in some edge cases the length difference might be equal to 0, but since some indices mismatch (otherwise
+        // there would be no replacement operations)
         // we still have to copy the array to keep track of data according to original indices
         byte[] newMessage = new byte[messageLength + replacementOperationsTotalDifference];
 
@@ -117,13 +118,7 @@ class MaskingState implements ValueMaskerContext {
         int offset = 0;
         for (ReplacementOperation replacementOperation : replacementOperations) {
             // Copy everything from message up until replacement operation start index
-            System.arraycopy(
-                    message,
-                    index,
-                    newMessage,
-                    index + offset,
-                    replacementOperation.startIndex - index
-            );
+            System.arraycopy(message, index, newMessage, index + offset, replacementOperation.startIndex - index);
             // Insert the mask bytes
             int length = replacementOperation.mask.length;
             for (int i = 0; i < replacementOperation.maskRepeat; i++) {
@@ -132,8 +127,7 @@ class MaskingState implements ValueMaskerContext {
                         0,
                         newMessage,
                         replacementOperation.startIndex + offset + i * length,
-                        length
-                );
+                        length);
             }
             // Adjust index and offset to continue copying from the end of the replacement operation
             index = replacementOperation.startIndex + replacementOperation.length;
@@ -141,13 +135,7 @@ class MaskingState implements ValueMaskerContext {
         }
 
         // Copy the remainder of the original array
-        System.arraycopy(
-                message,
-                index,
-                newMessage,
-                index + offset,
-                messageLength - index
-        );
+        System.arraycopy(message, index, newMessage, index + offset, messageLength - index);
 
         return newMessage;
     }
@@ -182,9 +170,7 @@ class MaskingState implements ValueMaskerContext {
         this.currentTokenStartIndex = currentIndex;
     }
 
-    /**
-     * Clears the previous registered token start index.
-     */
+    /** Clears the previous registered token start index. */
     public void clearTokenStartIndex() {
         this.currentTokenStartIndex = -1;
     }
@@ -215,11 +201,7 @@ class MaskingState implements ValueMaskerContext {
     public int countNonVisibleCharacters(int fromIndex, int length) {
         checkCurrentValueBounds(fromIndex);
         checkCurrentValueBounds(fromIndex + length - 1);
-        return Utf8Util.countNonVisibleCharacters(
-                message,
-                getCurrentTokenStartIndex() + fromIndex,
-                length
-        );
+        return Utf8Util.countNonVisibleCharacters(message, getCurrentTokenStartIndex() + fromIndex, length);
     }
 
     @Override
@@ -238,7 +220,8 @@ class MaskingState implements ValueMaskerContext {
 
     private void checkCurrentValueBounds(int index) {
         if (index < 0 || index >= byteLength()) {
-            throw new IndexOutOfBoundsException("Index " + index + " is out of bounds for value of length " + byteLength());
+            throw new IndexOutOfBoundsException(
+                    "Index " + index + " is out of bounds for value of length " + byteLength());
         }
     }
 
@@ -246,7 +229,8 @@ class MaskingState implements ValueMaskerContext {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(new String(message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex), StandardCharsets.UTF_8));
+        sb.append(new String(
+                message, Math.max(0, currentIndex - 10), Math.min(10, currentIndex), StandardCharsets.UTF_8));
         sb.append(">");
         if (currentIndex >= messageLength) {
             sb.append("<end of buffer>");
@@ -254,7 +238,11 @@ class MaskingState implements ValueMaskerContext {
             sb.append((char) message[currentIndex]);
             if (currentIndex + 1 < messageLength) {
                 sb.append("<");
-                sb.append(new String(message, currentIndex + 1, Math.min(10, messageLength - currentIndex - 1), StandardCharsets.UTF_8));
+                sb.append(new String(
+                        message,
+                        currentIndex + 1,
+                        Math.min(10, messageLength - currentIndex - 1),
+                        StandardCharsets.UTF_8));
             }
         }
         return sb.toString();
@@ -275,8 +263,8 @@ class MaskingState implements ValueMaskerContext {
 
         /**
          * @param startIndex index from which to start replacing
-         * @param length     the length of the target value slice
-         * @param mask       byte array mask to use as replacement for the value
+         * @param length the length of the target value slice
+         * @param mask byte array mask to use as replacement for the value
          * @param maskRepeat number of times to repeat the mask (for cases when every character or digit is masked)
          */
         ReplacementOperation(int startIndex, int length, byte[] mask, int maskRepeat) {
@@ -287,8 +275,8 @@ class MaskingState implements ValueMaskerContext {
         }
 
         /**
-         * The difference between the mask length and the length of the target value to replace.
-         * Used to calculate keep track of the offset during replacements.
+         * The difference between the mask length and the length of the target value to replace. Used to calculate keep
+         * track of the offset during replacements.
          */
         int difference() {
             return mask.length * maskRepeat - length;

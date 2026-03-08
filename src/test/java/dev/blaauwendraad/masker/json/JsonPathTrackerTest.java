@@ -1,22 +1,23 @@
 package dev.blaauwendraad.masker.json;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import dev.blaauwendraad.masker.json.config.KeyMaskingConfig;
 import dev.blaauwendraad.masker.json.util.ByteValueMaskerContext;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class JsonPathTrackerTest {
 
     @Test
     void jsonPathExceedsCapacity() {
         byte[] wildcard = "key".getBytes(StandardCharsets.UTF_8);
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$" + ".*".repeat(202)).build());
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder()
+                .maskJsonPaths("$" + ".*".repeat(202))
+                .build());
         var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         JsonPathTracker jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
         for (int i = 0; i < 101; i++) {
@@ -38,7 +39,8 @@ class JsonPathTrackerTest {
 
     @Test
     void shouldMatchJsonPaths() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
+        KeyMatcher keyMatcher = new KeyMatcher(
+                JsonMaskingConfig.builder().maskJsonPaths("$.a.b").build());
         var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         JsonPathTracker jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
 
@@ -49,20 +51,24 @@ class JsonPathTrackerTest {
 
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'a'), 1);
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, pointer, jsonPathTracker.currentNode())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, pointer, jsonPathTracker.currentNode()))
+                .isNotNull();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
 
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'a'), 1);
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, pointer, jsonPathTracker.currentNode())).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, 0, pointer, jsonPathTracker.currentNode()))
+                .isNull();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
     }
 
     @Test
     void shouldMatchJsonPathArrays() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths(Set.of("$.a[*].b", "$.a[*].c")).build());
+        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder()
+                .maskJsonPaths(Set.of("$.a[*].b", "$.a[*].c"))
+                .build());
         var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         JsonPathTracker jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
 
@@ -94,7 +100,8 @@ class JsonPathTrackerTest {
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'a'), 1);
         jsonPathTracker.pushKeyValueSegment(bytes, -1, -1);
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'b'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNotNull();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
@@ -102,7 +109,8 @@ class JsonPathTrackerTest {
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'a'), 1);
         jsonPathTracker.pushKeyValueSegment(bytes, -1, -1);
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'c'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNotNull();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
@@ -110,7 +118,8 @@ class JsonPathTrackerTest {
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'a'), 1);
         jsonPathTracker.pushKeyValueSegment(bytes, -1, -1);
         jsonPathTracker.pushKeyValueSegment(bytes, indexOf(bytes, 'd'), 1);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNull();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
         jsonPathTracker.backtrack();
@@ -118,7 +127,8 @@ class JsonPathTrackerTest {
 
     @Test
     void shouldNotMatchJsonPathPrefix() {
-        KeyMatcher keyMatcher = new KeyMatcher(JsonMaskingConfig.builder().maskJsonPaths("$.maskMe").build());
+        KeyMatcher keyMatcher = new KeyMatcher(
+                JsonMaskingConfig.builder().maskJsonPaths("$.maskMe").build());
         var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
         JsonPathTracker jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
 
@@ -128,11 +138,13 @@ class JsonPathTrackerTest {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
         jsonPathTracker.pushKeyValueSegment(bytes, 2, 4);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNull();
         jsonPathTracker.backtrack();
 
         jsonPathTracker.pushKeyValueSegment(bytes, 2, 6);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNotNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNotNull();
         jsonPathTracker.backtrack();
     }
 
@@ -140,7 +152,9 @@ class JsonPathTrackerTest {
     void shouldReturnMaskingConfigForJsonPathInAllowMode() {
         JsonMaskingConfig config = JsonMaskingConfig.builder()
                 .allowJsonPaths("$.allowMe")
-                .maskJsonPaths("$.maskMeLikeCIA", KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
+                .maskJsonPaths(
+                        "$.maskMeLikeCIA",
+                        KeyMaskingConfig.builder().maskStringsWith("[redacted]").build())
                 .build();
         KeyMatcher keyMatcher = new KeyMatcher(config);
         var pointer = new KeyMatcher.RadixTriePointer(keyMatcher.getRootNode(), 0);
@@ -152,7 +166,8 @@ class JsonPathTrackerTest {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
         jsonPathTracker.pushKeyValueSegment(bytes, 2, 7);
-        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode())).isNull();
+        assertThat(keyMatcher.getMaskConfigIfMatched(bytes, 0, -1, pointer, jsonPathTracker.currentNode()))
+                .isNull();
         jsonPathTracker.backtrack();
 
         jsonPathTracker.pushKeyValueSegment(bytes, 20, 6);
@@ -178,7 +193,8 @@ class JsonPathTrackerTest {
         for (int i = 0; i < bytes.length; i++) {
             if (bytes[i] == (byte) c) {
                 if (found != -1) {
-                    throw new IllegalStateException("Char must not be duplicated, got on index %s and %s".formatted(found, i));
+                    throw new IllegalStateException(
+                            "Char must not be duplicated, got on index %s and %s".formatted(found, i));
                 }
                 found = i;
             }
@@ -188,5 +204,4 @@ class JsonPathTrackerTest {
         }
         return found;
     }
-
 }

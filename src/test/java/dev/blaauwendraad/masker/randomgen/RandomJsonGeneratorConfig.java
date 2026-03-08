@@ -1,7 +1,6 @@
 package dev.blaauwendraad.masker.randomgen;
 
 import dev.blaauwendraad.masker.json.util.JsonStringCharacters;
-
 import java.math.BigInteger;
 import java.util.Set;
 
@@ -35,8 +34,7 @@ public final class RandomJsonGeneratorConfig {
             Set<Character> allowedCharacters,
             Set<String> targetKeys,
             int targetJsonSizeBytes,
-            long randomSeed
-    ) {
+            long randomSeed) {
         this.maxArraySize = maxArraySize;
         this.maxFloat = maxFloat;
         this.maxDouble = maxDouble;
@@ -64,30 +62,22 @@ public final class RandomJsonGeneratorConfig {
         return maxStringLength;
     }
 
-    /**
-     * @return max positive and negative float used by the RandomJsonGenerator
-     */
+    /** @return max positive and negative float used by the RandomJsonGenerator */
     public float getMaxFloat() {
         return maxFloat;
     }
 
-    /**
-     * @return max positive and negative double used by the RandomJsonGenerator
-     */
+    /** @return max positive and negative double used by the RandomJsonGenerator */
     public double getMaxDouble() {
         return maxDouble;
     }
 
-    /**
-     * @return max positive and negative long used by the RandomJsonGenerator
-     */
+    /** @return max positive and negative long used by the RandomJsonGenerator */
     public long getMaxLong() {
         return maxLong;
     }
 
-    /**
-     * @return max positive and negative big integer used by the RandomJsonGenerator
-     */
+    /** @return max positive and negative big integer used by the RandomJsonGenerator */
     public BigInteger getMaxBigInt() {
         return maxBigInt;
     }
@@ -137,8 +127,7 @@ public final class RandomJsonGeneratorConfig {
         private Set<Character> allowedCharacters = JsonStringCharacters.mergeCharSets(
                 JsonStringCharacters.getPrintableAsciiCharacters(),
                 JsonStringCharacters.getUnicodeControlCharacters(),
-                JsonStringCharacters.getRandomPrintableUnicodeCharacters()
-        );
+                JsonStringCharacters.getRandomPrintableUnicodeCharacters());
         private Set<String> targetKeys = defaultTargetKeys;
         private int targetJsonSizeBytes = -1; // no target, random size depending on other constraints
         private long randomSeed = 0; // no seed, using the ThreadLocalRandom()
@@ -222,8 +211,7 @@ public final class RandomJsonGeneratorConfig {
                     allowedCharacters,
                     targetKeys,
                     targetJsonSizeBytes,
-                    randomSeed
-            );
+                    randomSeed);
         }
     }
 }

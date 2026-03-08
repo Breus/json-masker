@@ -2,11 +2,6 @@ package dev.blaauwendraad.masker.json.util;
 
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
 import dev.blaauwendraad.masker.randomgen.RandomJsonGenerator;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -17,17 +12,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 public class JsonPathTestUtils {
 
     /**
-     * Transforms an input set of keys into a set of JSONPath keys for a given json.
-     * The input set of keys are assumed not to be jsonpath keys already.
-     * If a key from the input set does not exist in the json,
-     * then a path from the down-left most key in the json is used as a prefix to the key.
-     * <p>
-     * Given that the input will expand to much larger set of JSONPaths, which would lead to skewed benchmarks,
-     * only the subset of JSONPaths is returned, that is equal to amount of incoming keys.
+     * Transforms an input set of keys into a set of JSONPath keys for a given json. The input set of keys are assumed
+     * not to be jsonpath keys already. If a key from the input set does not exist in the json, then a path from the
+     * down-left most key in the json is used as a prefix to the key.
+     *
+     * <p>Given that the input will expand to much larger set of JSONPaths, which would lead to skewed benchmarks, only
+     * the subset of JSONPaths is returned, that is equal to amount of incoming keys.
      *
      * @param keys a set of keys to be transformed into jason path keys. Assumed not to be jsonpath keys already.
      * @param json a target json.
@@ -54,8 +52,9 @@ public class JsonPathTestUtils {
                         stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "." + key, child));
                     });
                 } else if (curr.getValue() instanceof ArrayNode currArray) {
-                    currArray.values().forEach((child) ->
-                            stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", child)));
+                    currArray
+                            .values()
+                            .forEach(child -> stack.push(new AbstractMap.SimpleEntry<>(curr.getKey() + "[*]", child)));
                 }
                 if (stack.isEmpty()) {
                     // the key does not exist
@@ -70,8 +69,9 @@ public class JsonPathTestUtils {
 
     /**
      * Disambiguates the input list of jsonpath keys.
-     * <p>
-     * If two keys <code>$.a.b</code> and <code>$.a</code> are present, the more specific <code>$.a.b</code> will be chosen.
+     *
+     * <p>If two keys <code>$.a.b</code> and <code>$.a</code> are present, the more specific <code>$.a.b</code> will be
+     * chosen.
      *
      * @param jsonPathKeys the input list of jsonpath keys
      * @return disambiguated set of jsonpath keys
@@ -80,7 +80,7 @@ public class JsonPathTestUtils {
         Set<String> disambiguated = new HashSet<>(jsonPathKeys);
         Collections.sort(jsonPathKeys);
         for (int i = 1; i < jsonPathKeys.size(); i++) {
-            String current = jsonPathKeys.get(i-1);
+            String current = jsonPathKeys.get(i - 1);
             String next = jsonPathKeys.get(i);
             if (next.indexOf(current) == 0 && !next.equals(current) && next.charAt(current.length()) == '.') {
                 disambiguated.remove(current);

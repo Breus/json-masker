@@ -3,39 +3,30 @@ package dev.blaauwendraad.masker.json.config;
 import dev.blaauwendraad.masker.json.ValueMasker;
 import dev.blaauwendraad.masker.json.path.JsonPath;
 import dev.blaauwendraad.masker.json.path.JsonPathParser;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
-/**
- * Contains the JSON masker configurations.
- */
+/** Contains the JSON masker configurations. */
 public final class JsonMaskingConfig {
-    /**
-     * The target key mode specifies how to the JSON properties corresponding to the target keys are processed.
-     */
+    /** The target key mode specifies how to the JSON properties corresponding to the target keys are processed. */
     private final TargetKeyMode targetKeyMode;
     /**
      * Specifies the set of JSON keys for which the string/number values should be targeted (either masked or allowed),
      * depending on the configured {@link JsonMaskingConfig#targetKeyMode}.
      */
     private final Set<String> targetKeys;
-    /**
-     * Specifies the set of JSONPaths for which the string/number values should be masked.
-     */
+    /** Specifies the set of JSONPaths for which the string/number values should be masked. */
     private final Set<JsonPath> targetJsonPaths;
-    /**
-     * @see JsonMaskingConfig.Builder#caseSensitiveTargetKeys
-     */
+    /** @see JsonMaskingConfig.Builder#caseSensitiveTargetKeys */
     private final boolean caseSensitiveTargetKeys;
     /**
-     * Not configurable. Specifies the initial size of the byte array buffer in streaming mode
-     * Package private for unit tests
+     * Not configurable. Specifies the initial size of the byte array buffer in streaming mode Package private for unit
+     * tests
      */
     int bufferSize = 8192;
 
@@ -105,7 +96,8 @@ public final class JsonMaskingConfig {
     }
 
     /**
-     * Returns the config for the given key. If no specific config is available for the given key, returns the default config.
+     * Returns the config for the given key. If no specific config is available for the given key, returns the default
+     * config.
      *
      * @param key the key to be masked
      * @return the config for the given key or the default config
@@ -139,32 +131,28 @@ public final class JsonMaskingConfig {
 
     @Override
     public String toString() {
-        return String.format("targetKeys=%s,\n" +
-                             "targetJsonPaths=%s,\n" +
-                             "targetKeyMode=%s,\n" +
-                             "caseSensitiveTargetKeys=%s,\n" +
-                             "defaultConfig=%s,\n" +
-                             "targetKeyConfigs=%s\n", targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+        return String.format(
+                "targetKeys=%s,%ntargetJsonPaths=%s,%ntargetKeyMode=%s,%ncaseSensitiveTargetKeys=%s,%ndefaultConfig=%s,%ntargetKeyConfigs=%s%n",
+                targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
     }
 
-    /**
-     * Builder to create {@link JsonMaskingConfig} instances using the builder pattern.
-     */
+    /** Builder to create {@link JsonMaskingConfig} instances using the builder pattern. */
     public static class Builder {
         private static final JsonPathParser JSON_PATH_PARSER = new JsonPathParser();
 
         private final Set<String> targetKeys = new HashSet<>();
         private final Set<JsonPath> targetJsonPaths = new HashSet<>();
+
         @Nullable
         private TargetKeyMode targetKeyMode;
+
         @Nullable
         private Boolean caseSensitiveTargetKeys;
 
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Masks all JSON values corresponding to the given keys with the default masking configuration.
@@ -226,9 +214,9 @@ public final class JsonMaskingConfig {
 
         private void addMaskKey(String key, @Nullable KeyMaskingConfig config) {
             if (config == null && targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want" +
-                                                   " to customize masking for specific keys in ALLOW mode, use" +
-                                                   " maskKeys that accepts KeyMaskingConfig");
+                throw new IllegalArgumentException("Cannot mask keys when in ALLOW mode, if you want"
+                        + " to customize masking for specific keys in ALLOW mode, use"
+                        + " maskKeys that accepts KeyMaskingConfig");
             }
             if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
                 throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
@@ -304,9 +292,9 @@ public final class JsonMaskingConfig {
 
         private void addMaskJsonPath(String jsonPath, @Nullable KeyMaskingConfig config) {
             if (config == null && targetKeyMode == TargetKeyMode.ALLOW) {
-                throw new IllegalArgumentException("Cannot mask JSONPaths when in ALLOW mode, if you want to customize" +
-                                                   " masking for specific JSONPaths in ALLOW mode, use" +
-                                                   " maskJsonPaths that accepts KeyMaskingConfig");
+                throw new IllegalArgumentException("Cannot mask JSONPaths when in ALLOW mode, if you want to customize"
+                        + " masking for specific JSONPaths in ALLOW mode, use"
+                        + " maskJsonPaths that accepts KeyMaskingConfig");
             }
             JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
             if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
@@ -325,8 +313,8 @@ public final class JsonMaskingConfig {
         /**
          * Only allow the given key to be unmasked, mask JSON values corresponding to any other key.
          *
-         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
-         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s) needs
+         * to be masked with a specific {@link KeyMaskingConfig} masking configuration.
          *
          * @return the builder instance
          */
@@ -337,8 +325,8 @@ public final class JsonMaskingConfig {
         /**
          * Only allow the given keys to be unmasked, mask JSON values corresponding to any other key.
          *
-         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
-         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s) needs
+         * to be masked with a specific {@link KeyMaskingConfig} masking configuration.
          *
          * @return the builder instance
          */
@@ -359,8 +347,8 @@ public final class JsonMaskingConfig {
         /**
          * Only allow the given JSONPath to be unmasked, mask JSON values corresponding to any other key.
          *
-         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
-         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s) needs
+         * to be masked with a specific {@link KeyMaskingConfig} masking configuration.
          *
          * @return the builder instance
          */
@@ -371,8 +359,8 @@ public final class JsonMaskingConfig {
         /**
          * Only allow the given JSONPaths to be unmasked, mask JSON values corresponding to any other key.
          *
-         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s)
-         * needs to be masked with a specific {@link KeyMaskingConfig} masking configuration.
+         * <p>This method is incompatible with any mask method, except cases when a specific key(s) or JSONPath(s) needs
+         * to be masked with a specific {@link KeyMaskingConfig} masking configuration.
          *
          * @return the builder instance
          */
@@ -396,8 +384,8 @@ public final class JsonMaskingConfig {
 
         /**
          * Configures whether the target keys are considered case-sensitive (e.g. cvv != CVV)
-         * <p>
-         * Default value: false (target keys are considered case-insensitive)
+         *
+         * <p>Default value: false (target keys are considered case-insensitive)
          *
          * @return the builder instance
          */
@@ -410,10 +398,10 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all string values with the provided value.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "***"}.
-         * <p>
-         * Masking strings with '***' is the default behaviour if no string masking option is set.
+         * Mask all string values with the provided value. For example, {@literal "maskMe": "secret" -> "maskMe":
+         * "***"}.
+         *
+         * <p>Masking strings with '***' is the default behaviour if no string masking option is set.
          *
          * @return the builder instance
          * @see #maskStringCharactersWith(String)
@@ -426,8 +414,8 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all characters of string values with the provided character, preserving the length.
-         * For example, {@literal "maskMe": "secret" -> "maskMe": "******"}.
+         * Mask all characters of string values with the provided character, preserving the length. For example,
+         * {@literal "maskMe": "secret" -> "maskMe": "******"}.
          *
          * @return the builder instance
          * @see #maskStringsWith(String)
@@ -453,10 +441,9 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all number values with the provided value.
-         * For example, {@literal "maskMe": 12345 to "maskMe": "###"}.
-         * <p>
-         * Masking numbers with '###' is the default behaviour if no number masking option is set.
+         * Mask all number values with the provided value. For example, {@literal "maskMe": 12345 to "maskMe": "###"}.
+         *
+         * <p>Masking numbers with '###' is the default behaviour if no number masking option is set.
          *
          * @return the builder instance
          * @see #maskNumbersWith(int)
@@ -470,8 +457,7 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all number values with the provided value.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
+         * Mask all number values with the provided value. For example, {@literal "maskMe": 12345 -> "maskMe": 0}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -485,8 +471,8 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all digits of number values with the provided digit, preserving the length.
-         * For example, {@literal "maskMe": 12345 -> "maskMe": 88888}.
+         * Mask all digits of number values with the provided digit, preserving the length. For example,
+         * {@literal "maskMe": 12345 -> "maskMe": 88888}.
          *
          * @return the builder instance
          * @see #maskNumbersWith(String)
@@ -515,10 +501,9 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
-         * <p>
-         * Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
+         * Mask all boolean values with the provided value. For example, {@literal "maskMe": true -> "maskMe": "&&&"}.
+         *
+         * <p>Masking booleans with {@literal '&&&'} is the default behaviour if no boolean masking option is set.
          *
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
@@ -531,8 +516,7 @@ public final class JsonMaskingConfig {
         }
 
         /**
-         * Mask all boolean values with the provided value.
-         * For example, {@literal "maskMe": true -> "maskMe": false}.
+         * Mask all boolean values with the provided value. For example, {@literal "maskMe": true -> "maskMe": false}.
          *
          * @return the builder instance
          * @see #maskBooleansWith(String)
@@ -550,7 +534,8 @@ public final class JsonMaskingConfig {
          * @return the builder instance
          * @see #maskBooleansWith(boolean)
          * @see #maskBooleansWith(String)
-         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
+         * @see
+         *     dev.blaauwendraad.masker.json.config.KeyMaskingConfig.Builder#maskBooleansWith(ValueMasker.BooleanMasker)
          */
         public Builder maskBooleansWith(ValueMasker.BooleanMasker valueMasker) {
             defaultConfigBuilder.maskBooleansWith(valueMasker);
@@ -568,9 +553,7 @@ public final class JsonMaskingConfig {
         }
     }
 
-    /**
-     * Defines how target keys should be interpreted.
-     */
+    /** Defines how target keys should be interpreted. */
     public enum TargetKeyMode {
         /**
          * In this mode, target keys are interpreted as the only JSON keys for which the corresponding property is

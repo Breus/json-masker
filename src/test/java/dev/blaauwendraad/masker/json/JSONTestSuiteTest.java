@@ -1,13 +1,8 @@
 package dev.blaauwendraad.masker.json;
 
-import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
-import org.assertj.core.api.Assertions;
-import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import tools.jackson.core.JacksonException;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.blaauwendraad.masker.json.config.JsonMaskingConfig;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,18 +15,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.core.JacksonException;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * Test cases from <a href="https://github.com/nst/JSONTestSuite">JSONTestSuite</a>
- */
+/** Test cases from <a href="https://github.com/nst/JSONTestSuite">JSONTestSuite</a> */
 public class JSONTestSuiteTest {
 
-    private static final List<String> PRODUCING_STACK_OVER_FLOW = List.of(
-            "n_structure_100000_opening_arrays.json",
-            "n_structure_open_array_object.json"
-    );
+    private static final List<String> PRODUCING_STACK_OVER_FLOW =
+            List.of("n_structure_100000_opening_arrays.json", "n_structure_open_array_object.json");
 
     private static final List<String> INVALID_UTF_8 = List.of(
             "i_string_1st_surrogate_but_2nd_missing.json",
@@ -59,8 +54,7 @@ public class JSONTestSuiteTest {
             "n_string_invalid_unicode_escape.json",
             "n_string_invalid_utf8_after_escape.json",
             "n_string_unicode_CapitalU.json",
-            "n_structure_open_open.json"
-    );
+            "n_structure_open_open.json");
 
     private static final List<String> INVALID_JSON_JACKSON_DIFFERENT_BEHAVIOR = List.of(
             "i_string_UTF-16LE_with_BOM.json",
@@ -68,25 +62,23 @@ public class JSONTestSuiteTest {
             "i_string_not_in_unicode_range.json",
             "i_string_overlong_sequence_2_bytes.json",
             "i_string_utf16BE_no_BOM.json",
-            "i_string_utf16LE_no_BOM.json"
-    );
+            "i_string_utf16LE_no_BOM.json");
     public static final Path JSON_TEST_SUITE_PATH = Path.of("src/test/JSONTestSuite/");
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("mustPassSuite")
     void mustPassSuiteWithNoopMaskerShouldBeEquivalentToJackson(String testName, JsonTestSuiteFile file) {
         // masks everything with ValueMasker that tracks the content, but returns the same value back
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .allowKeys(Set.of())
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys(Set.of())
+                .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
+                .build());
 
         byte[] actual = jsonMasker.mask(file.originalContent);
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(
+                jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         // must be equivalent to being parsed by jackson
         assertThat(ParseAndMaskUtil.DEFAULT_JSON_MAPPER.readTree(actual))
@@ -98,17 +90,16 @@ public class JSONTestSuiteTest {
     @MethodSource("mayPassSuite")
     void mayPassSuiteWithNoopMaskerShouldNotFail(String testName, JsonTestSuiteFile file) {
         // masks everything with ValueMasker that tracks the content, but returns the same value back
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .allowKeys(Set.of())
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys(Set.of())
+                .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
+                .build());
 
         byte[] actual = jsonMasker.mask(file.originalContent);
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(
+                jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         if (INVALID_JSON_JACKSON_DIFFERENT_BEHAVIOR.contains(file.name)) {
             // for these jackson behavior is different from java.lang.String parsing of UTF-8 characters
@@ -130,14 +121,12 @@ public class JSONTestSuiteTest {
     @MethodSource("mustFailSuite")
     void mustFailSuiteWithNoopMaskerShouldOnlyFailWithInvalidJsonException(String testName, JsonTestSuiteFile file) {
         // masks everything with ValueMasker that tracks the content, but returns the same value back
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .allowKeys(Set.of())
-                        .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
-                        .build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys(Set.of())
+                .maskStringsWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskNumbersWith(ValueMaskers.withRawValueFunction(value -> value))
+                .maskBooleansWith(ValueMaskers.withRawValueFunction(value -> value))
+                .build());
 
         if (PRODUCING_STACK_OVER_FLOW.contains(file.name)) {
             InputStream inputStream = new ByteArrayInputStream(file.originalContent);
@@ -156,13 +145,11 @@ public class JSONTestSuiteTest {
     void shouldMaskAllTestCasesPredictably(String testName, JsonTestSuiteFile file) {
         // masks everything
         JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .allowKeys(Set.of())
-                        .build()
-        );
+                JsonMaskingConfig.builder().allowKeys(Set.of()).build());
 
         byte[] actual = jsonMasker.mask(file.originalContent);
-        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(
+                jsonMasker, new String(file.originalContent, StandardCharsets.UTF_8));
 
         Assertions.assertThat(file.maskedContent).isNotNull();
         Assertions.assertThat(new String(actual, StandardCharsets.UTF_8))
@@ -173,14 +160,12 @@ public class JSONTestSuiteTest {
     @MethodSource("allWithoutStackOverFlow")
     void mustPassSuiteWithNoopTextFunction(String testName, JsonTestSuiteFile file) {
         // masks everything with withTextFunction, that is equivalent to default masker settings
-        JsonMasker jsonMasker = JsonMasker.getMasker(
-                JsonMaskingConfig.builder()
-                        .allowKeys(Set.of())
-                        .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
-                        .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
-                        .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
-                        .build()
-        );
+        JsonMasker jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys(Set.of())
+                .maskStringsWith(ValueMaskers.withTextFunction(value -> "***"))
+                .maskNumbersWith(ValueMaskers.withTextFunction(value -> "###"))
+                .maskBooleansWith(ValueMaskers.withTextFunction(value -> "&&&"))
+                .build());
 
         if (INVALID_UTF_8.contains(file.name)) {
             InputStream inputStream = new ByteArrayInputStream(file.originalContent);
@@ -199,33 +184,25 @@ public class JSONTestSuiteTest {
     }
 
     private static Stream<Arguments> mustPassSuite() {
-        return loadSuite(name -> name.startsWith("y_"))
-                .stream()
-                .map(file -> Arguments.of(file.name, file));
+        return loadSuite(name -> name.startsWith("y_")).stream().map(file -> Arguments.of(file.name, file));
     }
 
     private static Stream<Arguments> mayPassSuite() {
-        return loadSuite(name -> name.startsWith("i_"))
-                .stream()
-                .map(file -> Arguments.of(file.name, file));
+        return loadSuite(name -> name.startsWith("i_")).stream().map(file -> Arguments.of(file.name, file));
     }
 
     private static Stream<Arguments> mustFailSuite() {
-        return loadSuite(name -> name.startsWith("n_"))
-                .stream()
-                .map(file -> Arguments.of(file.name, file));
+        return loadSuite(name -> name.startsWith("n_")).stream().map(file -> Arguments.of(file.name, file));
     }
 
     private static Stream<Arguments> allWithoutStackOverFlow() {
-        return loadSuite(name -> !PRODUCING_STACK_OVER_FLOW.contains(name))
-                .stream()
+        return loadSuite(name -> !PRODUCING_STACK_OVER_FLOW.contains(name)).stream()
                 .map(file -> Arguments.of(file.name, file));
     }
 
     private static List<JsonTestSuiteFile> loadSuite(Predicate<String> predicate) {
-        try (Stream<Path> files = Files.list(JSON_TEST_SUITE_PATH .resolve("original"))) {
-            var tests = files
-                    .filter(file -> predicate.test(file.getFileName().toString()))
+        try (Stream<Path> files = Files.list(JSON_TEST_SUITE_PATH.resolve("original"))) {
+            var tests = files.filter(file -> predicate.test(file.getFileName().toString()))
                     .map(file -> {
                         try {
                             var fileName = file.getFileName().toString();
@@ -233,7 +210,8 @@ public class JSONTestSuiteTest {
                             if (PRODUCING_STACK_OVER_FLOW.contains(fileName)) {
                                 return new JsonTestSuiteFile(fileName, content, null);
                             }
-                            var maskedContent = Files.readAllBytes(JSON_TEST_SUITE_PATH.resolve("masked/%s".formatted(fileName)));
+                            var maskedContent =
+                                    Files.readAllBytes(JSON_TEST_SUITE_PATH.resolve("masked/%s".formatted(fileName)));
                             return new JsonTestSuiteFile(fileName, content, maskedContent);
                         } catch (IOException e) {
                             throw new IllegalStateException(e);
@@ -250,6 +228,5 @@ public class JSONTestSuiteTest {
     }
 
     @SuppressWarnings("ArrayRecordComponent") // not used for equals & hashCode
-    record JsonTestSuiteFile(String name, byte[] originalContent, byte @Nullable [] maskedContent) {
-    }
+    record JsonTestSuiteFile(String name, byte[] originalContent, byte @Nullable [] maskedContent) {}
 }

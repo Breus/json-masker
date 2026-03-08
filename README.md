@@ -228,10 +228,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "***",
 -    "age": 29,
-+    "age": "###",
 -    "visaApproved": true
++    "email": "***",
++    "age": "###",
 +    "visaApproved": "&&&"
    },
    "payment": {
@@ -240,8 +240,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "***",
 -      "1071 DJ Amsterdam"
++      "***",
 +      "***"
      ]
    },
@@ -275,10 +275,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "***",
 -    "age": 29,
-+    "age": "###",
 -    "visaApproved": true
++    "email": "***",
++    "age": "###",
 +    "visaApproved": "&&&"
    },
    "payment": {
@@ -287,8 +287,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "***",
 -      "1071 DJ Amsterdam"
++      "***",
 +      "***"
      ]
    },
@@ -325,10 +325,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "[redacted]",
 -    "age": 29,
-+    "age": "[redacted]",
 -    "visaApproved": true
++    "email": "[redacted]",
++    "age": "[redacted]",
 +    "visaApproved": "[redacted]"
    },
    "payment": {
@@ -337,8 +337,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "[redacted]",
 -      "1071 DJ Amsterdam"
++      "[redacted]",
 +      "[redacted]"
      ]
    },
@@ -419,10 +419,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "***",
 -    "age": 29,
-+    "age": "###",
 -    "visaApproved": true,
++    "email": "***",
++    "age": "###",
 +    "visaApproved": "&&&",
      "identificationDocuments": [
        {
@@ -445,8 +445,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "***",
 -      "1071 DJ Amsterdam"
++      "***",
 +      "***"
      ]
    },
@@ -482,10 +482,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "***",
 -    "age": 29,
-+    "age": 0,
 -    "visaApproved": true
++    "email": "***",
++    "age": 0,
 +    "visaApproved": false
    },
    "payment": {
@@ -494,8 +494,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "***",
 -      "1071 DJ Amsterdam"
++      "***",
 +      "***"
      ]
    },
@@ -531,10 +531,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "*******************************",
 -    "age": 29,
-+    "age": 88,
 -    "visaApproved": true
++    "email": "*******************************",
++    "age": 88,
 +    "visaApproved": "&&&"
    },
    "payment": {
@@ -543,8 +543,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "*************",
 -      "1071 DJ Amsterdam"
++      "*************",
 +      "*****************"
      ]
    },
@@ -589,10 +589,10 @@ String maskedJson = jsonMasker.mask(json);
      "id": 1,
      "travelPurpose": "business",
 -    "email": "some-customer-email@example.com",
-+    "email": "***",
 -    "age": 29,
-+    "age": "###",
 -    "visaApproved": true
++    "email": "***",
++    "age": "###",
 +    "visaApproved": "&&&"
    },
    "payment": {
@@ -601,8 +601,8 @@ String maskedJson = jsonMasker.mask(json);
      "successful": true,
      "billingAddress": [
 -      "Museumplein 6",
-+      "***",
 -      "1071 DJ Amsterdam"
++      "***",
 +      "***"
      ]
    },

@@ -1,6 +1,6 @@
 > [!NOTE]
 > These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on a more stable machine before drawing conclusions!
-> Regressions/improvements are highlighted when the difference exceeds 1%.
+> Regressions/improvements are highlighted when the difference exceeds 1.0%.
 
 ### Benchmark results
 

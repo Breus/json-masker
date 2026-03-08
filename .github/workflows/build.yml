@@ -80,8 +80,8 @@ jobs:
 
       - name: Test compare_benchmarks.py
         run: |
-          pip install pytest --quiet
-          pytest .github/scripts/tests/test_compare_benchmarks.py -v
+          python3 -m pip install pytest --quiet
+          python3 -m pytest .github/scripts/tests/test_compare_benchmarks.py -v
 
       - name: Build
         run: |

@@ -319,9 +319,9 @@ def _build_class_table(
         if master_r and pr_r:
             change = change_cell(master_r.score, pr_r.score, threshold)
         elif master_r:
-            change = "➕ added"
-        else:
             change = "➖ removed"
+        else:
+            change = "➕ added"
 
         alloc_cells = ""
         if has_alloc:
@@ -390,7 +390,7 @@ def build_sections(
         if sig_table:
             section_lines.append(sig_table)
         else:
-            section_lines.append(f"_No significant changes (all within {threshold:.0f}%)._\n")
+            section_lines.append(f"_No significant changes (all within {threshold}%)._\n")
 
         section_lines.append(
             f"<details>\n"
@@ -431,7 +431,7 @@ def build_comment(
 
     comment = f"""> [!NOTE]
 > These results are affected by shared workloads on GitHub runners. Use the results only to detect possible regressions, but always rerun on a more stable machine before drawing conclusions!
-> Regressions/improvements are highlighted when the difference exceeds {threshold:.0f}%.
+> Regressions/improvements are highlighted when the difference exceeds {threshold}%.
 
 ### Benchmark results
 

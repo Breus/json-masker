@@ -9,7 +9,7 @@ The fixtures and expected output live in tests/fixtures/:
 If this test fails because the script output changed intentionally, update the
 snapshot by running:
 
-    python .github/scripts/compare_benchmarks.py \\
+    python3 .github/scripts/compare_benchmarks.py \\
         --master-sha e3a00f208b781fc6946043d4527921f6d0e8f1f4 \\
         --pr-sha fa40aadbc0f7285ea77472d3a4e65adb3de865d4 \\
         --base-ref master \\
@@ -62,7 +62,7 @@ def test_comment_matches_snapshot() -> None:
     assert actual == expected, (
         "Script output no longer matches the committed snapshot.\n"
         "If this change is intentional, update the snapshot by running:\n\n"
-        "    python .github/scripts/compare_benchmarks.py \\\n"
+        "    python3 .github/scripts/compare_benchmarks.py \\\n"
         f"        --master-sha {MASTER_SHA} \\\n"
         f"        --pr-sha {PR_SHA} \\\n"
         f"        --base-ref {BASE_REF} \\\n"

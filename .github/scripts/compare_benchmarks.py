@@ -216,13 +216,15 @@ def change_cell(master_score: float, pr_score: float, threshold: float, inverted
     Returns a formatted change cell.
     inverted=True means lower is better (used for allocation rate).
     """
+    if master_score == 0:
+        return "N/A"
     pct = (pr_score - master_score) / master_score * 100
     if inverted:
-        improved = pct <= -threshold
-        regressed = pct >= threshold
+        improved = pct < -threshold
+        regressed = pct > threshold
     else:
-        improved = pct >= threshold
-        regressed = pct <= -threshold
+        improved = pct > threshold
+        regressed = pct < -threshold
 
     if improved:
         icon = "🟢"
@@ -243,11 +245,11 @@ def _is_significant(
     if master_r is None or pr_r is None:
         return True  # added/removed benchmarks are always significant
 
-    ops_pct = abs((pr_r.score - master_r.score) / master_r.score * 100)
+    ops_pct = abs((pr_r.score - master_r.score) / master_r.score * 100) if master_r.score != 0 else 0
     if ops_pct > threshold:
         return True
 
-    if master_r.alloc_score is not None and pr_r.alloc_score is not None:
+    if master_r.alloc_score is not None and pr_r.alloc_score is not None and master_r.alloc_score != 0:
         alloc_pct = abs((pr_r.alloc_score - master_r.alloc_score) / master_r.alloc_score * 100)
         if alloc_pct > threshold:
             return True
@@ -288,17 +290,17 @@ def _build_class_table(
     )
 
     # Header
-    param_header = " | ".join(active_params)
+    param_header = (" | ".join(active_params) + " | ") if active_params else ""
     alloc_header = (
         f" | master alloc (B/op) | PR alloc (B/op) | alloc change" if has_alloc else ""
     )
     header = (
-        f"| Method | {param_header} | master ({unit}) | PR ({unit}) | change"
+        f"| Method | {param_header}master ({unit}) | PR ({unit}) | change"
         f"{alloc_header} |"
     )
-    sep_params = " | ".join(["---"] * len(active_params))
+    sep_params = (" | ".join(["---"] * len(active_params)) + " | ") if active_params else ""
     alloc_sep = " | ---: | ---: | ---:" if has_alloc else ""
-    separator = f"| --- | {sep_params} | ---: | ---: | ---:{alloc_sep} |"
+    separator = f"| --- | {sep_params}---: | ---: | ---:{alloc_sep} |"
 
     rows = [header, separator]
     for key in class_keys:
@@ -309,7 +311,7 @@ def _build_class_table(
             continue
 
         param_dict = dict(key[1:])
-        param_cells = " | ".join(f"`{param_dict.get(col, 'N/A')}`" for col in active_params)
+        param_cells = (" | ".join(f"`{param_dict.get(col, 'N/A')}`" for col in active_params) + " | ") if active_params else ""
 
         method_name = key[0].split(".")[-1] if "." in key[0] else key[0]
 
@@ -337,7 +339,7 @@ def _build_class_table(
                 alloc_ch = "N/A"
             alloc_cells = f" | {m_alloc_cell} | {p_alloc_cell} | {alloc_ch}"
 
-        rows.append(f"| `{method_name}` | {param_cells} | {master_cell} | {pr_cell} | {change}{alloc_cells} |")
+        rows.append(f"| `{method_name}` | {param_cells}{master_cell} | {pr_cell} | {change}{alloc_cells} |")
 
     if len(rows) == 2:
         # Only header + separator, no data rows matched

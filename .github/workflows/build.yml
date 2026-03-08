@@ -78,6 +78,11 @@ jobs:
             exit 1
           fi
 
+      - name: Test compare_benchmarks.py
+        run: |
+          python3 -m pip install pytest --quiet
+          python3 -m pytest .github/scripts/tests/test_compare_benchmarks.py -v
+
       - name: Build
         run: |
           ./gradlew \

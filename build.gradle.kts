@@ -183,6 +183,11 @@ tasks {
         targetCompatibility = "11"
     }
 
+    named<JavaCompile>("compileJava17Java") {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+
     check {
         dependsOn("spotlessCheck")
     }

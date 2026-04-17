@@ -4,7 +4,7 @@ import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 
 /** The library represents a jsonpath as an array of segments. See {@link JsonPathParser} for details. */
-public final class JsonPath {
+public final class JsonPath implements Comparable<JsonPath> {
     private final String[] segments;
 
     public JsonPath(String[] segments) {
@@ -45,5 +45,10 @@ public final class JsonPath {
 
     public String[] segments() {
         return segments;
+    }
+
+    @Override
+    public int compareTo(JsonPath o) {
+        return Arrays.compare(segments, o.segments);
     }
 }

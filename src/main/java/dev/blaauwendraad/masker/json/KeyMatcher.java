@@ -52,6 +52,7 @@ final class KeyMatcher {
             // in allow mode we might have a specific configuration for the masking key
             // see ByteTrie#insert documentation for more details
             maskingConfig.getKeyConfigs().keySet().forEach(key -> insert(preInitRootNode, key, true));
+            maskingConfig.getJsonPathConfigs().keySet().forEach(jsonPath -> insert(preInitRootNode, jsonPath.toString(), true));
         }
         this.root = compress(preInitRootNode);
     }
@@ -200,6 +201,9 @@ final class KeyMatcher {
             node = child;
         }
         node.keyMaskingConfig = maskingConfig.getKeyConfig(key);
+        if (node.keyMaskingConfig == null) {
+            node.keyMaskingConfig = maskingConfig.getJsonPathConfig(key);
+        }
         node.terminalNode = true;
         node.negativeMatch = negativeMatch;
     }

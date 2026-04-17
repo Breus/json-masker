@@ -2,7 +2,6 @@ package dev.blaauwendraad.masker.json.path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -88,21 +87,22 @@ public class JsonPathParser {
         for (int i = 2; i < literal.length() - 1; i++) {
             char symbol = literal.charAt(i);
             char nextSymbol = literal.charAt(i + 1);
-            if (symbol == '.' || (symbol == '[' && segment.length() != 0)) {
+            if (symbol == '.' || (symbol == '[' && !segment.isEmpty())) {
                 segments.add(segment.toString());
-                segment = new StringBuilder();
+                segment.setLength(0);
             } else if ((symbol == ']' && nextSymbol == '.') || (symbol == ']' && nextSymbol == '[')) {
                 segments.add(segment.toString());
-                segment = new StringBuilder();
+                segment.setLength(0);
                 i++; // NOSONAR this statement skips the next segment delimiter symbol
             } else if (symbol != '[') {
                 segment.append(symbol);
             }
         }
-        if (literal.charAt(literal.length() - 1) != ']' && literal.charAt(literal.length() - 1) != '.') {
-            segment.append(literal.charAt(literal.length() - 1));
+        char lastChar = literal.charAt(literal.length() - 1);
+        if (lastChar != ']' && lastChar != '.') {
+            segment.append(lastChar);
         }
-        if (segment.length() != 0 || literal.endsWith("[]")) {
+        if (!segment.isEmpty() || literal.endsWith("[]")) {
             segments.add(segment.toString());
         }
         if (segments.size() > 1
@@ -150,9 +150,7 @@ public class JsonPathParser {
      * @param jsonPaths input set of jsonpath queries
      */
     public void checkAmbiguity(Set<JsonPath> jsonPaths) {
-        List<JsonPath> jsonPathList = jsonPaths.stream()
-                .sorted(Comparator.comparing(JsonPath::toString))
-                .toList();
+        List<JsonPath> jsonPathList = jsonPaths.stream().sorted().toList();
         for (int i = 1; i < jsonPathList.size(); i++) {
             JsonPath current = jsonPathList.get(i - 1);
             JsonPath next = jsonPathList.get(i);

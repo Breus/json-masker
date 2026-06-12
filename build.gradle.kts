@@ -179,13 +179,11 @@ sonar {
 
 tasks {
     compileJava {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        options.release = 11
     }
 
     named<JavaCompile>("compileJava17Java") {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        options.release = 17
     }
 
     check {

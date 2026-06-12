@@ -162,6 +162,12 @@ public final class JsonMaskingConfig {
          * (they are not added to {@link #targetJsonPaths}).
          */
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
+        /**
+         * Tracks JSONPaths added via {@code maskJsonPaths(path, config)} for the ambiguity check in {@link #build()}.
+         * In ALLOW mode these are not added to {@link #targetJsonPaths}, so this set ensures they are still included in
+         * the ambiguity validation.
+         */
+        private final Set<JsonPath> customConfigJsonPaths = new HashSet<>();
 
         private Builder() {}
 
@@ -318,6 +324,7 @@ public final class JsonMaskingConfig {
             }
             if (config != null) {
                 targetKeyConfigs.put(parsed.toString(), config);
+                customConfigJsonPaths.add(parsed);
             }
         }
 
@@ -559,15 +566,8 @@ public final class JsonMaskingConfig {
          * @return the new instance
          */
         public JsonMaskingConfig build() {
-            // In ALLOW mode, maskJsonPaths(path, config) only stores entries in targetKeyConfigs,
-            // so merge those JSONPaths into the ambiguity check.
             Set<JsonPath> allJsonPaths = new HashSet<>(targetJsonPaths);
-            for (String key : targetKeyConfigs.keySet()) {
-                JsonPath parsed = JSON_PATH_PARSER.tryParse(key);
-                if (parsed != null) {
-                    allJsonPaths.add(parsed);
-                }
-            }
+            allJsonPaths.addAll(customConfigJsonPaths);
             JSON_PATH_PARSER.checkAmbiguity(allJsonPaths);
             return new JsonMaskingConfig(this);
         }

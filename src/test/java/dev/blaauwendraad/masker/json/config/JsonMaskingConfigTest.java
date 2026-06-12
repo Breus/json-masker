@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -84,6 +85,31 @@ final class JsonMaskingConfigTest {
                         .maskBooleansWith(false),
                 () -> JsonMaskingConfig.builder()
                         .maskBooleansWith(ValueMaskers.with(false))
-                        .maskBooleansWith(ValueMaskers.with(false)));
+                        .maskBooleansWith(ValueMaskers.with(false)),
+                () -> JsonMaskingConfig.builder()
+                        .allowJsonPaths("$.a.b.c")
+                        .maskJsonPaths("$.a.*.c", KeyMaskingConfig.builder().build()),
+                () -> JsonMaskingConfig.builder()
+                        .allowJsonPaths("$.x.y")
+                        .maskJsonPaths("$.a.*.c", KeyMaskingConfig.builder().build())
+                        .maskJsonPaths("$.a.b.c", KeyMaskingConfig.builder().build()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("validBuilders")
+    void validBuilders(Supplier<JsonMaskingConfig.Builder> builder) {
+        Assertions.assertDoesNotThrow(() -> builder.get().build());
+    }
+
+    private static Stream<Supplier<JsonMaskingConfig.Builder>> validBuilders() {
+        return Stream.of(
+                // non-ambiguous allowJsonPaths + maskJsonPaths with config
+                () -> JsonMaskingConfig.builder()
+                        .allowJsonPaths("$.a.b.c")
+                        .maskJsonPaths("$.d.e.f", KeyMaskingConfig.builder().build()),
+                // plain keys with maskKeys config in ALLOW mode should not be affected
+                () -> JsonMaskingConfig.builder()
+                        .allowKeys("name")
+                        .maskKeys("ssn", KeyMaskingConfig.builder().build()));
     }
 }

@@ -84,6 +84,13 @@ final class JsonMaskingConfigTest {
                         .maskBooleansWith(false),
                 () -> JsonMaskingConfig.builder()
                         .maskBooleansWith(ValueMaskers.with(false))
-                        .maskBooleansWith(ValueMaskers.with(false)));
+                        .maskBooleansWith(ValueMaskers.with(false)),
+                () -> JsonMaskingConfig.builder()
+                        .allowJsonPaths("$.a.b.c")
+                        .maskJsonPaths("$.a.*.c", KeyMaskingConfig.builder().build()),
+                () -> JsonMaskingConfig.builder()
+                        .allowJsonPaths("$.x.y")
+                        .maskJsonPaths("$.a.*.c", KeyMaskingConfig.builder().build())
+                        .maskJsonPaths("$.a.b.c", KeyMaskingConfig.builder().build()));
     }
 }

@@ -88,7 +88,7 @@ public class JsonPathParser {
         for (int i = 2; i < literal.length() - 1; i++) {
             char symbol = literal.charAt(i);
             char nextSymbol = literal.charAt(i + 1);
-            if (symbol == '.' || (symbol == '[' && !segment.isEmpty())) {
+            if (symbol == '.' || (symbol == '[' && segment.length() != 0)) {
                 segments.add(segment.toString());
                 segment.setLength(0);
             } else if ((symbol == ']' && nextSymbol == '.') || (symbol == ']' && nextSymbol == '[')) {
@@ -103,7 +103,7 @@ public class JsonPathParser {
         if (lastChar != ']' && lastChar != '.') {
             segment.append(lastChar);
         }
-        if (!segment.isEmpty() || literal.endsWith("[]")) {
+        if (segment.length() != 0 || literal.endsWith("[]")) {
             segments.add(segment.toString());
         }
         if (segments.size() > 1

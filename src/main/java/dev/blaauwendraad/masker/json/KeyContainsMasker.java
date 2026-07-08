@@ -46,7 +46,7 @@ final class KeyContainsMasker implements JsonMasker {
      * and processes each chunk sequentially. The output is written into provided output stream after processing each
      * chunk.
      *
-     * @param inputStream  the JSON input stream
+     * @param inputStream the JSON input stream
      * @param outputStream masked JSON output stream
      */
     @Override
@@ -61,7 +61,8 @@ final class KeyContainsMasker implements JsonMasker {
         try {
             JsonPathTracker jsonPathTracker;
             KeyMaskingConfig keyMaskingConfig;
-            if (!maskingConfig.getTargetJsonPaths().isEmpty() || !maskingConfig.getJsonPathConfigs().isEmpty()) {
+            if (!maskingConfig.getTargetJsonPaths().isEmpty()
+                    || !maskingConfig.getJsonPathConfigs().isEmpty()) {
                 var pointer = maskingState.getKeyMatcherRootNodePointer();
                 jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
                 keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(

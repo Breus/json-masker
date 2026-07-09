@@ -31,6 +31,11 @@ public final class JsonMaskingConfig {
     int bufferSize = 8192;
 
     private final KeyMaskingConfig defaultConfig;
+    /**
+     * Per-key masking configuration overrides. The map key is either a plain key name (e.g. {@code "ssn"}) or a
+     * JSONPath string representation (e.g. {@code "$.a.b.c"}). JSONPath entries are distinguishable by being valid
+     * JSONPath expressions (starting with {@code $}).
+     */
     private final Map<String, KeyMaskingConfig> targetKeyConfigs;
 
     JsonMaskingConfig(JsonMaskingConfig.Builder builder) {
@@ -150,7 +155,19 @@ public final class JsonMaskingConfig {
         private Boolean caseSensitiveTargetKeys;
 
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
+        /**
+         * Per-key masking configuration overrides, keyed by plain key name (e.g. {@code "ssn"}) or JSONPath string
+         * (e.g. {@code "$.a.b.c"}). Populated by {@code maskKeys(key, config)} and {@code maskJsonPaths(path, config)}.
+         * In ALLOW mode, this is the only place where JSONPaths from {@code maskJsonPaths(path, config)} are stored
+         * (they are not added to {@link #targetJsonPaths}).
+         */
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
+        /**
+         * Tracks JSONPaths added via {@code maskJsonPaths(path, config)} for the ambiguity check in {@link #build()}.
+         * In ALLOW mode these are not added to {@link #targetJsonPaths}, so this set ensures they are still included in
+         * the ambiguity validation.
+         */
+        private final Set<JsonPath> customConfigJsonPaths = new HashSet<>();
 
         private Builder() {}
 
@@ -307,6 +324,7 @@ public final class JsonMaskingConfig {
             }
             if (config != null) {
                 targetKeyConfigs.put(parsed.toString(), config);
+                customConfigJsonPaths.add(parsed);
             }
         }
 
@@ -548,7 +566,9 @@ public final class JsonMaskingConfig {
          * @return the new instance
          */
         public JsonMaskingConfig build() {
-            JSON_PATH_PARSER.checkAmbiguity(targetJsonPaths);
+            Set<JsonPath> allJsonPaths = new HashSet<>(targetJsonPaths);
+            allJsonPaths.addAll(customConfigJsonPaths);
+            JSON_PATH_PARSER.checkAmbiguity(allJsonPaths);
             return new JsonMaskingConfig(this);
         }
     }

@@ -2,7 +2,7 @@
 
 # JSON Masker
 
-### Blazingly fast, zero-dependency JSON masking for Java
+### High performance, zero-dependency JSON masking for Java
 
 [![Maven Central](https://img.shields.io/maven-central/v/dev.blaauwendraad/json-masker?style=flat-square)](https://central.sonatype.com/artifact/dev.blaauwendraad/json-masker)
 [![Javadoc](https://javadoc.io/badge2/dev.blaauwendraad/json-masker/javadoc.svg?style=flat-square)](https://javadoc.io/doc/dev.blaauwendraad/json-masker)

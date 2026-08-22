@@ -10,7 +10,10 @@ concurrency:
 
 jobs:
   benchmarks:
-    if: ${{ github.repository == 'Breus/json-masker' }}
+    # Runs on pull_request_target, so the job has a write-capable token and the default branch cache scope.
+    # Benchmarking a fork would mean building and running its code in that trusted context, so forks are skipped.
+    if: ${{ github.repository == 'Breus/json-masker'
+      && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: read
       pull-requests: write # for benchmark comment

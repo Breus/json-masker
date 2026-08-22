@@ -10,7 +10,10 @@ concurrency:
 
 jobs:
   benchmarks:
-    if: ${{ github.repository == 'Breus/json-masker' }}
+    # Runs on pull_request_target, so the job has a write-capable token and the default branch cache scope.
+    # Benchmarking a fork would mean building and running its code in that trusted context, so forks are skipped.
+    if: ${{ github.repository == 'Breus/json-masker'
+      && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: read
       pull-requests: write # for benchmark comment
@@ -23,12 +26,12 @@ jobs:
           # getting exact master sha at the moment to reference it in the comment
           echo "sha=$( curl -u "u:${{ github.token }}" https://api.github.com/repos/${{ github.repository }}/git/ref/heads/${{ github.base_ref }} | jq .object.sha | tr -d '"' )" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.get-master-sha.outputs.sha }}
           path: benchmark-master
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # https://github.com/actions/checkout/issues/518#issuecomment-890401887
           # When the up-to-date branch check is enabled, for some reason

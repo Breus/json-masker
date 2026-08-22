@@ -25,6 +25,6 @@ class JsonPathTest {
         Assertions.assertEquals(a, a);
         Assertions.assertEquals(a, b);
         Assertions.assertEquals(a.hashCode(), b.hashCode());
-        Assertions.assertNotEquals(a, null);
+        Assertions.assertNotEquals(null, a);
     }
 }

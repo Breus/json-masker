@@ -409,28 +409,30 @@ final class KeyContainsMasker implements JsonMasker {
         if (!maskingState.next()) {
             return;
         }
+        boolean oddBackslashRunBeforeCurrentIndex = false;
         while (true) {
             int currentIndex = maskingState.currentIndex();
-            int candidateIndex = ByteArrayJsonScanner.indexOfQuoteOrBackslash(
-                    maskingState.getMessage(), currentIndex, maskingState.messageLength);
-            maskingState.incrementIndex(candidateIndex - currentIndex);
+            byte[] message = maskingState.getMessage();
+            int quoteIndex = ByteArrayJsonScanner.indexOfQuote(message, currentIndex, maskingState.messageLength);
+            maskingState.incrementIndex(quoteIndex - currentIndex);
 
-            if (candidateIndex == maskingState.messageLength) {
+            if (quoteIndex == maskingState.messageLength) {
+                oddBackslashRunBeforeCurrentIndex = ByteArrayJsonScanner.isPrecededByOddBackslashRun(
+                        message, currentIndex, quoteIndex, oddBackslashRunBeforeCurrentIndex);
                 if (maskingState.endOfJson()) {
                     return;
                 }
                 continue;
             }
 
-            if (maskingState.byteAtCurrentIndex() == '"') {
+            boolean quoteIsEscaped = ByteArrayJsonScanner.isPrecededByOddBackslashRun(
+                    message, currentIndex, quoteIndex, oddBackslashRunBeforeCurrentIndex);
+            if (!quoteIsEscaped) {
                 maskingState.next(); // step over the closing quote
                 return;
             }
 
-            // The backslash escapes exactly one byte for the purpose of locating the closing quote.
-            if (!maskingState.next()) {
-                return;
-            }
+            oddBackslashRunBeforeCurrentIndex = false;
             if (!maskingState.next()) {
                 return;
             }

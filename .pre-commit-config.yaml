@@ -3,6 +3,7 @@ repos:
     hooks:
       - id: spotless-apply
         name: Run Gradle Spotless
-        entry: bash -c "./gradlew spotlessApply"
+        entry: java -classpath gradle/wrapper/gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain spotlessApply
         language: system
+        pass_filenames: false
         types: [java]

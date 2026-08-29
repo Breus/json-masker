@@ -406,14 +406,36 @@ final class KeyContainsMasker implements JsonMasker {
      * @param maskingState the current {@link MaskingState}
      */
     private static void stepOverStringValue(MaskingState maskingState) {
-        boolean isEscapeCharacter = false;
-        while (maskingState.next()) {
-            byte b = maskingState.byteAtCurrentIndex();
-            if (!isEscapeCharacter && b == '"') {
-                maskingState.next(); // step over the closing quote
-                break;
+        if (!maskingState.next()) {
+            return;
+        }
+        boolean oddBackslashRunBeforeCurrentIndex = false;
+        while (true) {
+            int currentIndex = maskingState.currentIndex();
+            byte[] message = maskingState.getMessage();
+            int quoteIndex = ByteArrayJsonScanner.indexOfQuote(message, currentIndex, maskingState.messageLength);
+            maskingState.incrementIndex(quoteIndex - currentIndex);
+
+            if (quoteIndex == maskingState.messageLength) {
+                oddBackslashRunBeforeCurrentIndex = ByteArrayJsonScanner.isPrecededByOddBackslashRun(
+                        message, currentIndex, quoteIndex, oddBackslashRunBeforeCurrentIndex);
+                if (maskingState.endOfJson()) {
+                    return;
+                }
+                continue;
             }
-            isEscapeCharacter = !isEscapeCharacter && b == '\\';
+
+            boolean quoteIsEscaped = ByteArrayJsonScanner.isPrecededByOddBackslashRun(
+                    message, currentIndex, quoteIndex, oddBackslashRunBeforeCurrentIndex);
+            if (!quoteIsEscaped) {
+                maskingState.next(); // step over the closing quote
+                return;
+            }
+
+            oddBackslashRunBeforeCurrentIndex = false;
+            if (!maskingState.next()) {
+                return;
+            }
         }
     }
 

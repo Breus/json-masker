@@ -3,6 +3,7 @@ repos:
     hooks:
       - id: spotless-apply
         name: Run Gradle Spotless
-        entry: bash -c "./gradlew spotlessApply"
+        entry: python -c "import os, subprocess, sys; sys.exit(subprocess.call([os.path.abspath('gradlew.bat' if os.name == 'nt' else 'gradlew'), 'spotlessApply']))"
         language: system
+        pass_filenames: false
         types: [java]

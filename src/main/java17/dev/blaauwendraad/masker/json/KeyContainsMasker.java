@@ -367,14 +367,34 @@ final class KeyContainsMasker implements JsonMasker {
      * @param maskingState the current {@link MaskingState}
      */
     private static void stepOverStringValue(MaskingState maskingState) {
-        boolean isEscapeCharacter = false;
-        while (maskingState.next()) {
-            byte b = maskingState.byteAtCurrentIndex();
-            if (!isEscapeCharacter && b == '"') {
-                maskingState.next(); // step over the closing quote
-                break;
+        if (!maskingState.next()) {
+            return;
+        }
+        while (true) {
+            int currentIndex = maskingState.currentIndex();
+            int candidateIndex = ByteArrayJsonScanner.indexOfQuoteOrBackslash(
+                    maskingState.getMessage(), currentIndex, maskingState.messageLength);
+            maskingState.incrementIndex(candidateIndex - currentIndex);
+
+            if (candidateIndex == maskingState.messageLength) {
+                if (maskingState.endOfJson()) {
+                    return;
+                }
+                continue;
             }
-            isEscapeCharacter = !isEscapeCharacter && b == '\\';
+
+            if (maskingState.byteAtCurrentIndex() == '"') {
+                maskingState.next(); // step over the closing quote
+                return;
+            }
+
+            // The backslash escapes exactly one byte for the purpose of locating the closing quote.
+            if (!maskingState.next()) {
+                return;
+            }
+            if (!maskingState.next()) {
+                return;
+            }
         }
     }
 

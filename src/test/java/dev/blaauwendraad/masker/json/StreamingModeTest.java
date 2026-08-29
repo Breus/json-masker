@@ -89,6 +89,23 @@ class StreamingModeTest {
                 .isInstanceOf(InvalidJsonException.class);
     }
 
+    @Test
+    void shouldHandleStringSpecialCharactersAtEveryBufferBoundary() {
+        String json = "{\"keep\":\"0123456789\\\"quoted\\\\tail\",\"mask\":\"abcdefghij\\\"quoted\\\\tail\"}";
+        String expected = "{\"keep\":\"0123456789\\\"quoted\\\\tail\",\"mask\":\"***\"}";
+
+        for (int bufferSize = 5; bufferSize <= json.length(); bufferSize++) {
+            JsonMaskingConfig config =
+                    JsonMaskingConfig.builder().maskKeys("mask").build();
+            JsonMaskingConfigTestUtil.setBufferSize(config, bufferSize);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            JsonMasker.getMasker(config).mask(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), output);
+
+            Assertions.assertThat(output).hasToString(expected);
+        }
+    }
+
     private static Stream<Arguments> getBufferingSituations() {
         return Stream.of(
                 // process json with a single buffer.

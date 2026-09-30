@@ -211,6 +211,21 @@ public final class KeyMaskingConfig {
         }
 
         /**
+         * Copies the masking settings from the given {@link KeyMaskingConfig} into this builder.
+         *
+         * <p>Settings that were already set on this builder are rejected by the corresponding setters.
+         *
+         * @param config the {@link KeyMaskingConfig} to copy the masking settings from
+         * @return the builder instance
+         */
+        public Builder from(KeyMaskingConfig config) {
+            this.maskStringsWith(config.getStringValueMasker());
+            this.maskNumbersWith(config.getNumberValueMasker());
+            this.maskBooleansWith(config.getBooleanValueMasker());
+            return this;
+        }
+
+        /**
          * Builds the {@link KeyMaskingConfig} instance.
          *
          * @return the {@link KeyMaskingConfig} instance

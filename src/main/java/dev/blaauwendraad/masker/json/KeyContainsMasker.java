@@ -59,16 +59,17 @@ final class KeyContainsMasker implements JsonMasker {
 
     private void mask(MaskingState maskingState) {
         try {
-            KeyMaskingConfig keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
-
             JsonPathTracker jsonPathTracker;
-            if (!maskingConfig.getTargetJsonPaths().isEmpty()) {
+            KeyMaskingConfig keyMaskingConfig;
+            if (!maskingConfig.getTargetJsonPaths().isEmpty()
+                    || !maskingConfig.getJsonPathConfigs().isEmpty()) {
                 var pointer = maskingState.getKeyMatcherRootNodePointer();
                 jsonPathTracker = new JsonPathTracker(keyMatcher, pointer);
                 keyMaskingConfig = keyMatcher.getMaskConfigIfMatched(
                         maskingState.getMessage(), -1, -1, pointer, jsonPathTracker.currentNode());
             } else {
                 jsonPathTracker = null;
+                keyMaskingConfig = maskingConfig.isInAllowMode() ? maskingConfig.getDefaultConfig() : null;
             }
 
             while (!maskingState.endOfJson()) {

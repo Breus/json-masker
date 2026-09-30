@@ -613,6 +613,41 @@ String maskedJson = jsonMasker.mask(json);
  }
 ```
 
+### Masking with a default masking configuration
+
+To customize how all values are masked by default, use `maskWith` with a `KeyMaskingConfig`. It is a shorthand for
+providing the default `maskStringsWith`, `maskNumbersWith` and `maskBooleansWith` in a single call.
+
+#### Usage
+
+```java
+var jsonMasker = JsonMasker.getMasker(
+        JsonMaskingConfig.builder()
+                .allowKeys("id")
+                .maskWith(KeyMaskingConfig.builder()
+                        .maskStringsWith("■")
+                        .maskNumbersWith(0)
+                        .maskBooleansWith(false)
+                        .build()
+                )
+                .build()
+);
+
+String maskedJson = jsonMasker.mask(json);
+```
+
+```diff
+ {
+   "id": 1,
+-  "email": "some-customer-email@example.com",
+-  "age": 29,
+-  "visaApproved": true
++  "email": "■",
++  "age": 0,
++  "visaApproved": false
+ }
+```
+
 ### Masking with a `ValueMasker`
 
 In addition to standard options like `maskStringsWith`, `maskNumbersWith` and `maskBooleansWith`, the `ValueMasker` is

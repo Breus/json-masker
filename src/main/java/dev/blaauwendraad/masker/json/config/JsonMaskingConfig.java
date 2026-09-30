@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /** Contains the JSON masker configurations. */
@@ -31,12 +32,13 @@ public final class JsonMaskingConfig {
     int bufferSize = 8192;
 
     private final KeyMaskingConfig defaultConfig;
-    /**
-     * Per-key masking configuration overrides. The map key is either a plain key name (e.g. {@code "ssn"}) or a
-     * JSONPath string representation (e.g. {@code "$.a.b.c"}). JSONPath entries are distinguishable by being valid
-     * JSONPath expressions (starting with {@code $}).
-     */
+    /** Per-key masking configuration overrides, keyed by plain key name (e.g. {@code "ssn"}). */
     private final Map<String, KeyMaskingConfig> targetKeyConfigs;
+    /**
+     * Per-JSONPath masking configuration overrides, keyed by the JSONPath string representation (e.g.
+     * {@code "$.a.b.c"}).
+     */
+    private final Map<String, KeyMaskingConfig> targetJsonPathConfigs;
 
     JsonMaskingConfig(JsonMaskingConfig.Builder builder) {
         if (builder.targetKeyMode == null) {
@@ -48,6 +50,8 @@ public final class JsonMaskingConfig {
         this.caseSensitiveTargetKeys = builder.caseSensitiveTargetKeys != null && builder.caseSensitiveTargetKeys;
         this.defaultConfig = builder.defaultConfigBuilder.build();
         this.targetKeyConfigs = builder.targetKeyConfigs;
+        this.targetJsonPathConfigs = builder.targetJsonPathConfigs.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
     }
 
     /**
@@ -121,6 +125,17 @@ public final class JsonMaskingConfig {
         return targetKeyConfigs.get(key);
     }
 
+    /**
+     * Returns the config for the given JSON path. If no specific config is available for the given path, returns
+     * {@code null}.
+     *
+     * @param path the JSON path to be masked
+     * @return the config for the given JSON path
+     */
+    public @Nullable KeyMaskingConfig getJsonPathConfig(String path) {
+        return targetJsonPathConfigs.get(path);
+    }
+
     public KeyMaskingConfig getDefaultConfig() {
         return defaultConfig;
     }
@@ -134,11 +149,26 @@ public final class JsonMaskingConfig {
         return Collections.unmodifiableMap(targetKeyConfigs);
     }
 
+    /**
+     * Returns a map with all masking configs per JSON path.
+     *
+     * @return masking configs per JSON path
+     */
+    public Map<String, KeyMaskingConfig> getJsonPathConfigs() {
+        return Collections.unmodifiableMap(targetJsonPathConfigs);
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "targetKeys=%s,%ntargetJsonPaths=%s,%ntargetKeyMode=%s,%ncaseSensitiveTargetKeys=%s,%ndefaultConfig=%s,%ntargetKeyConfigs=%s%n",
-                targetKeys, targetJsonPaths, targetKeyMode, caseSensitiveTargetKeys, defaultConfig, targetKeyConfigs);
+                "targetKeys=%s,%ntargetJsonPaths=%s,%ntargetKeyMode=%s,%ncaseSensitiveTargetKeys=%s,%ndefaultConfig=%s,%ntargetKeyConfigs=%s,%ntargetJsonPathConfigs=%s%n",
+                targetKeys,
+                targetJsonPaths,
+                targetKeyMode,
+                caseSensitiveTargetKeys,
+                defaultConfig,
+                targetKeyConfigs,
+                targetJsonPathConfigs);
     }
 
     /** Builder to create {@link JsonMaskingConfig} instances using the builder pattern. */
@@ -156,18 +186,16 @@ public final class JsonMaskingConfig {
 
         private final KeyMaskingConfig.Builder defaultConfigBuilder = KeyMaskingConfig.builder();
         /**
-         * Per-key masking configuration overrides, keyed by plain key name (e.g. {@code "ssn"}) or JSONPath string
-         * (e.g. {@code "$.a.b.c"}). Populated by {@code maskKeys(key, config)} and {@code maskJsonPaths(path, config)}.
-         * In ALLOW mode, this is the only place where JSONPaths from {@code maskJsonPaths(path, config)} are stored
-         * (they are not added to {@link #targetJsonPaths}).
+         * Per-key masking configuration overrides, keyed by plain key name (e.g. {@code "ssn"}). Populated by
+         * {@code maskKeys(key, config)}. JSONPath overrides are kept in {@link #targetJsonPathConfigs}.
          */
         private final Map<String, KeyMaskingConfig> targetKeyConfigs = new HashMap<>();
         /**
-         * Tracks JSONPaths added via {@code maskJsonPaths(path, config)} for the ambiguity check in {@link #build()}.
-         * In ALLOW mode these are not added to {@link #targetJsonPaths}, so this set ensures they are still included in
-         * the ambiguity validation.
+         * Per-JSONPath masking configuration overrides, populated by {@code maskJsonPaths(path, config)}. In ALLOW mode
+         * these paths are not added to {@link #targetJsonPaths}, so the key set is also fed into the ambiguity check in
+         * {@link #build()}.
          */
-        private final Set<JsonPath> customConfigJsonPaths = new HashSet<>();
+        private final Map<JsonPath, KeyMaskingConfig> targetJsonPathConfigs = new HashMap<>();
 
         private Builder() {}
 
@@ -237,6 +265,10 @@ public final class JsonMaskingConfig {
             }
             if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
                 throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
+            }
+            if (targetJsonPathConfigs.keySet().stream().map(JsonPath::toString).anyMatch(key::equals)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate key '%s', it is already registered as a JSONPath", key));
             }
             // in ALLOW mode this method can be used to set a specific masking config for a key
             if (targetKeyMode != TargetKeyMode.ALLOW) {
@@ -314,8 +346,12 @@ public final class JsonMaskingConfig {
                         + " maskJsonPaths that accepts KeyMaskingConfig");
             }
             JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
-            if (targetJsonPaths.contains(parsed) || targetKeyConfigs.containsKey(parsed.toString())) {
+            if (targetJsonPaths.contains(parsed) || targetJsonPathConfigs.containsKey(parsed)) {
                 throw new IllegalArgumentException(String.format("Duplicate JSONPath '%s'", jsonPath));
+            }
+            if (targetKeyConfigs.containsKey(jsonPath)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate JSONPath '%s', it is already registered as a key", jsonPath));
             }
             // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
             if (targetKeyMode != TargetKeyMode.ALLOW) {
@@ -323,8 +359,7 @@ public final class JsonMaskingConfig {
                 targetJsonPaths.add(parsed);
             }
             if (config != null) {
-                targetKeyConfigs.put(parsed.toString(), config);
-                customConfigJsonPaths.add(parsed);
+                targetJsonPathConfigs.put(parsed, config);
             }
         }
 
@@ -354,10 +389,9 @@ public final class JsonMaskingConfig {
             }
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String key : keys) {
-                if (targetKeys.contains(key)) {
+                if (!targetKeys.add(key)) {
                     throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
                 }
-                targetKeys.add(key);
             }
             return this;
         }
@@ -392,10 +426,9 @@ public final class JsonMaskingConfig {
             targetKeyMode = TargetKeyMode.ALLOW;
             for (String jsonPath : jsonPaths) {
                 JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
-                if (targetJsonPaths.contains(parsed)) {
+                if (!targetJsonPaths.add(parsed)) {
                     throw new IllegalArgumentException(String.format("Duplicate JSONPath '%s'", jsonPath));
                 }
-                targetJsonPaths.add(parsed);
             }
             return this;
         }
@@ -412,6 +445,18 @@ public final class JsonMaskingConfig {
                 throw new IllegalArgumentException("Case sensitivity already set");
             }
             this.caseSensitiveTargetKeys = true;
+            return this;
+        }
+
+        /**
+         * Mask all values according to the provided {@link KeyMaskingConfig}.
+         *
+         * @return the builder instance
+         * @see dev.blaauwendraad.masker.json.config.KeyMaskingConfig
+         */
+        public Builder maskWith(KeyMaskingConfig maskingConfig) {
+            Objects.requireNonNull(maskingConfig);
+            defaultConfigBuilder.from(maskingConfig);
             return this;
         }
 
@@ -567,7 +612,7 @@ public final class JsonMaskingConfig {
          */
         public JsonMaskingConfig build() {
             Set<JsonPath> allJsonPaths = new HashSet<>(targetJsonPaths);
-            allJsonPaths.addAll(customConfigJsonPaths);
+            allJsonPaths.addAll(targetJsonPathConfigs.keySet());
             JSON_PATH_PARSER.checkAmbiguity(allJsonPaths);
             return new JsonMaskingConfig(this);
         }

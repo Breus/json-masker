@@ -496,4 +496,167 @@ class CustomKeyMaskingConfigTest {
                 }
                 """);
     }
+
+    @Test
+    void maskKeysWithSpecificConfigInAllowModeWithoutDefaultAllowedKey() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowJsonPaths()
+                .maskKeys(
+                        "maskedLikeEpsteinFiles",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
+                .maskJsonPaths(
+                        "$.maskedPathLikeEpsteinFiles",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
+                .build());
+
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
+                {
+                  "allowed": "maskMe",
+                  "masked": "maskMe",
+                  "maskedLikeEpsteinFiles": "maskMe",
+                  "allowedPath": "maskMe",
+                  "maskedPath": "maskMe",
+                  "maskedPathLikeEpsteinFiles": "maskMe"
+                }
+                """, """
+                {
+                  "allowed": "***",
+                  "masked": "***",
+                  "maskedLikeEpsteinFiles": "■■■■■",
+                  "allowedPath": "***",
+                  "maskedPath": "***",
+                  "maskedPathLikeEpsteinFiles": "■■■■■"
+                }
+                """);
+    }
+
+    @Test
+    void maskNestedJsonPathsWithSpecificConfigInAllowMode() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowJsonPaths()
+                .maskJsonPaths(
+                        "$.a.b.maskedSecret",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
+                .build());
+
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
+                {
+                  "a": {
+                    "b": {
+                      "maskedSecret": "maskMe",
+                      "other": "maskMe"
+                    }
+                  },
+                  "maskedSecret": "maskMe",
+                  "masked": "maskMe"
+                }
+                """, """
+                {
+                  "a": {
+                    "b": {
+                      "maskedSecret": "■■■■■",
+                      "other": "***"
+                    }
+                  },
+                  "maskedSecret": "***",
+                  "masked": "***"
+                }
+                """);
+    }
+
+    @Test
+    void conflictingAllowAndMaskJsonPathsAreRejected() {
+        assertThatThrownBy(() -> JsonMaskingConfig.builder()
+                        .allowJsonPaths(Set.of("$.a.configuredPath"))
+                        .maskJsonPaths(
+                                "$.a.configuredPath", KeyMaskingConfig.builder().build())
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Duplicate JSONPath");
+        assertThatThrownBy(() -> JsonMaskingConfig.builder()
+                        .maskJsonPaths(
+                                "$.a.configuredPath", KeyMaskingConfig.builder().build())
+                        .allowJsonPaths(Set.of("$.a.configuredPath"))
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Cannot allow keys when in MASK mode");
+    }
+
+    @Test
+    void maskJsonPathsWithSpecificConfigInMaskMode() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .maskKeys(Set.of("masked"))
+                .maskJsonPaths(
+                        "$.a.b.maskedPath",
+                        KeyMaskingConfig.builder().maskStringsWith("■■■■■").build())
+                .build());
+
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
+                {
+                  "masked": "maskMe",
+                  "unmasked": "keepMe",
+                  "a": {
+                    "b": {
+                      "maskedPath": "maskMe",
+                      "other": "keepMe"
+                    }
+                  }
+                }
+                """, """
+                {
+                  "masked": "***",
+                  "unmasked": "keepMe",
+                  "a": {
+                    "b": {
+                      "maskedPath": "■■■■■",
+                      "other": "keepMe"
+                    }
+                  }
+                }
+                """);
+    }
+
+    @Test
+    void maskWithAppliesConfigAsDefault() {
+        var jsonMasker = JsonMasker.getMasker(JsonMaskingConfig.builder()
+                .allowKeys("allowed")
+                .maskWith(KeyMaskingConfig.builder()
+                        .maskStringsWith("■")
+                        .maskNumbersWith(0)
+                        .maskBooleansWith(false)
+                        .build())
+                .build());
+
+        JsonMaskerTestUtil.assertJsonMaskerApiEquivalence(jsonMasker, """
+                {
+                  "allowed": "allowMe",
+                  "string": "maskMe",
+                  "number": 12345,
+                  "boolean": true
+                }
+                """, """
+                {
+                  "allowed": "allowMe",
+                  "string": "■",
+                  "number": 0,
+                  "boolean": false
+                }
+                """);
+    }
+
+    @Test
+    void duplicateKeysAndJsonPathsAcrossConfigMapsAreRejected() {
+        assertThatThrownBy(() -> JsonMaskingConfig.builder()
+                        .maskJsonPaths("$.a", KeyMaskingConfig.builder().build())
+                        .maskKeys("$.a", KeyMaskingConfig.builder().build())
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already registered as a JSONPath");
+        assertThatThrownBy(() -> JsonMaskingConfig.builder()
+                        .maskKeys("$.a", KeyMaskingConfig.builder().build())
+                        .maskJsonPaths("$.a", KeyMaskingConfig.builder().build())
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already registered as a key");
+    }
 }

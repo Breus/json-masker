@@ -266,6 +266,10 @@ public final class JsonMaskingConfig {
             if (targetKeys.contains(key) || targetKeyConfigs.containsKey(key)) {
                 throw new IllegalArgumentException(String.format("Duplicate key '%s'", key));
             }
+            if (targetJsonPathConfigs.keySet().stream().map(JsonPath::toString).anyMatch(key::equals)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate key '%s', it is already registered as a JSONPath", key));
+            }
             // in ALLOW mode this method can be used to set a specific masking config for a key
             if (targetKeyMode != TargetKeyMode.ALLOW) {
                 targetKeyMode = TargetKeyMode.MASK;
@@ -344,6 +348,10 @@ public final class JsonMaskingConfig {
             JsonPath parsed = JSON_PATH_PARSER.parse(jsonPath);
             if (targetJsonPaths.contains(parsed) || targetJsonPathConfigs.containsKey(parsed)) {
                 throw new IllegalArgumentException(String.format("Duplicate JSONPath '%s'", jsonPath));
+            }
+            if (targetKeyConfigs.containsKey(jsonPath)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate JSONPath '%s', it is already registered as a key", jsonPath));
             }
             // in ALLOW mode this method can be used to set a specific masking config for a JSONPath
             if (targetKeyMode != TargetKeyMode.ALLOW) {
@@ -448,10 +456,7 @@ public final class JsonMaskingConfig {
          */
         public Builder maskWith(KeyMaskingConfig maskingConfig) {
             Objects.requireNonNull(maskingConfig);
-            defaultConfigBuilder
-                    .maskStringsWith(maskingConfig.getStringValueMasker())
-                    .maskBooleansWith(maskingConfig.getBooleanValueMasker())
-                    .maskNumbersWith(maskingConfig.getNumberValueMasker());
+            defaultConfigBuilder.from(maskingConfig);
             return this;
         }
 
